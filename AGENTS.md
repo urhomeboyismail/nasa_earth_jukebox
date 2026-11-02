@@ -19,12 +19,13 @@ Full brief: see `CHALLENGE.md`.
 
 ## Commands
 
-<!-- Fill in once the stack exists, e.g.:
-- Install: 
-- Dev: 
-- Test: 
-- Lint: 
--->
+Stack: React + TypeScript, built with Vite. No backend; static site.
+
+- Install: `npm install`
+- Dev: `npm run dev`
+- Build (typecheck + bundle): `npm run build`
+- Lint: `npm run lint` (oxlint)
+- Preview build: `npm run preview`
 
 ## Conventions
 
