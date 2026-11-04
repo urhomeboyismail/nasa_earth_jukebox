@@ -3,5 +3,10 @@
     "id": "fixture",
     "title": "Fixture ocean",
     "summary": "Four test frames with obvious answers, for development."
+  },
+  {
+    "id": "synthetic-ocean",
+    "title": "Synthetic ocean",
+    "summary": "Twelve made-up frames with known answers, for testing."
   }
 ]

@@ -31,6 +31,7 @@ Stack: React + TypeScript, built with Vite. A small FastAPI server (`server/`) r
 - Test: `npm test` (Vitest + Testing Library, jsdom); `npm run test:watch` while working
 - Preview build: `npm run preview`
 - Regenerate the fixture dataset: `python3 -I scripts/make_fixture.py` (writes `public/data/fixture/`)
+- Regenerate the synthetic dataset (needs Pillow and NumPy): `python3 -m venv .venv && .venv/bin/pip install -r scripts/requirements.txt && .venv/bin/python -I scripts/make_synthetic.py` (writes `public/data/synthetic-ocean/`)
 
 Server (from `server/`):
 

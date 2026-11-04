@@ -1,0 +1,101 @@
+{
+  "note": "Computed from the values drawn at the sample points, not from the images.",
+  "frames": [
+    {
+      "frameId": "2024-01-15",
+      "regionId": "open-ocean",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 3.0037,
+      "category": "cold"
+    },
+    {
+      "frameId": "2024-02-15",
+      "regionId": "open-ocean",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 5.0037,
+      "category": "cold"
+    },
+    {
+      "frameId": "2024-03-15",
+      "regionId": "open-ocean",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 8.0037,
+      "category": "cool"
+    },
+    {
+      "frameId": "2024-04-15",
+      "regionId": "open-ocean",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 10.5037,
+      "category": "cool"
+    },
+    {
+      "frameId": "2024-05-15",
+      "regionId": "open-ocean",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 14.5037,
+      "category": "mild"
+    },
+    {
+      "frameId": "2024-06-15",
+      "regionId": "open-ocean",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 19.5037,
+      "category": "warm"
+    },
+    {
+      "frameId": "2024-07-15",
+      "regionId": "open-ocean",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 16.0037,
+      "category": "mild"
+    },
+    {
+      "frameId": "2024-08-15",
+      "regionId": "open-ocean",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 13.0037,
+      "category": "mild"
+    },
+    {
+      "frameId": "2024-09-15",
+      "regionId": "open-ocean",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 9.5037,
+      "category": "cool"
+    },
+    {
+      "frameId": "2024-10-15",
+      "regionId": "open-ocean",
+      "sampled": 30,
+      "valid": 5,
+      "medianValue": null,
+      "category": "insufficient"
+    },
+    {
+      "frameId": "2024-11-15",
+      "regionId": "open-ocean",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 15.0037,
+      "category": "mild"
+    },
+    {
+      "frameId": "2024-12-15",
+      "regionId": "open-ocean",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 15.4037,
+      "category": "mild"
+    }
+  ]
+}
