@@ -1,23 +1,48 @@
 // Live voice conversation with the app guide, over /api/v1/assistant/live.
 // Ported from the FinAssist voice assistant.
 //
-// The server holds the Gemini session and runs every tool. The only thing it can ask
-// this page to do is navigate to a page. Every action is re-validated here, because it
-// arrives from a model over a WebSocket.
+// The server holds the Gemini session and runs every tool. The only things it can ask this
+// page to do are navigate to a page and send a playback command to the player. Every action is
+// re-validated here, because it arrives from a model over a WebSocket.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { frameLevel, SpeechPlayer, startRecorder, type Recorder } from "../assistant/audio";
 import { currentContext, subscribeContext, type ContextUpdate } from "../assistant/context";
 import { socketUrl } from "../config";
+import type { PlayerCommand } from "../features/player/controls";
 import { isPage, type Page } from "../pages";
 
 export type AssistantStatus = "idle" | "connecting" | "listening" | "speaking" | "ended" | "error";
 export type TranscriptEntry = { id: number; role: "user" | "assistant"; text: string };
-export type AssistantAction = { action: "navigate"; page: Page };
+export type AssistantAction = { action: "navigate"; page: Page } | { action: "player"; command: PlayerCommand };
+
+const PLAYER_WORDS = ["play", "pause", "stop", "replay", "next", "previous"] as const;
+
+/** A real calendar date written YYYY-MM-DD. */
+function isIsoDate(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value);
+}
+
+/** The player command in a message, or null. Only the known words, and an object with nothing but a real date. */
+function toPlayerCommand(value: unknown): PlayerCommand | null {
+  if (typeof value === "string") return (PLAYER_WORDS as readonly string[]).includes(value) ? (value as PlayerCommand) : null;
+  if (value && typeof value === "object") {
+    const keys = Object.keys(value);
+    const { setDate } = value as { setDate?: unknown };
+    if (keys.length === 1 && keys[0] === "setDate" && isIsoDate(setDate)) return { setDate };
+  }
+  return null;
+}
 
 /** The action in a server message, or null when it is unknown or unusable. Never guesses. */
 export function toAssistantAction(message: Record<string, unknown>): AssistantAction | null {
   if (message.action === "navigate" && typeof message.page === "string" && isPage(message.page)) return { action: "navigate", page: message.page };
+  if (message.action === "player") {
+    const command = toPlayerCommand(message.command);
+    if (command) return { action: "player", command };
+  }
   return null;
 }
 
