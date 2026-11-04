@@ -1,51 +1,47 @@
-# 2026 NASA Space Apps Challenge: Lunar Landing Site Evaluation
+# 2026 NASA Space Apps Challenge: Earth Jukebox
 
-- Difficulty: Advanced, Intermediate
-- Subjects: Human Exploration, Moon, Software, Space Exploration
+- Difficulty: Intermediate, Beginner/Youth
+- Subjects: Arts & Multimedia, Earth Science, Software
 
 ## Summary
 
-Missions to the Moon's south pole face extreme lighting and communication constraints, and planning them takes careful coordination between science and engineering teams. Tools for determining Sun and Earth positions at candidate landing sites exist, but their complicated interfaces make it difficult to evaluate critical information efficiently. The challenge is to create an intuitive tool or application that lets mission planners, educators, and the public compare landing sites and dates quickly, visualizing Sun and Earth positions relative to the horizon to assess power generation potential and direct-to-Earth communication windows.
+NASA's Earth Information Center (EIC) produces stunning visualizations of our changing planet, but presenting Earth science through visualization alone limits who can reach it. The challenge is to make this science accessible, engaging, and multi-sensory by translating sight into sound: build an "Earth Jukebox", an interface, script, or application that pairs EIC visual frames with dynamic sonifications generated in real time.
 
 ## Background
 
-- NASA's CLPS program and other lunar missions depend on selecting landing sites and dates that balance science and engineering needs.
-- Sun position determines power for solar arrays and thermal conditions; Earth position determines whether direct communication is possible without relay satellites.
-- The south pole (water ice, other resources) has extreme variations in illumination and Earth visibility across lunar days and seasons. Small changes in site or date can dramatically change power and comms windows.
-- Missions rarely keep a fixed timeline: delays force planners to evaluate alternative sites in the same region or alternative dates at the same site. Rapid, intuitive scenario comparison would speed these decisions.
-- Existing tools (NASA Quickmap, Moon Trek, JPL Horizons) are built for detailed analysis and are hard for non-specialists to use for quick comparison. The gap is an interface that turns ephemeris and topographic data into clear, comparable visualizations.
+- The EIC visualizations track how our planet is changing, from shifting global temperatures to evolving oceanic currents. This information is presented predominantly in a visual format.
+- Relying exclusively on sight limits accessibility for blind and low-vision users and constrains how the public can interact with complex Earth science.
+- Sonification (translating data into sound) bridges that gap. Auditory processing can reveal subtle data patterns that might be missed by the naked eye and can foster a deeper emotional connection to our home planet.
+- Participants might prioritize an interactive environment where the translation from sight to sound is exploratory, blending scientific data with artistic expression.
+- Possible approaches: computer vision to map color spectrums to musical chords; algorithms that translate pixel density into rhythm; artistic rulesets that drive synthesizer parameters from visual shapes. These are examples only; creative alternatives are encouraged.
 
 ## Objectives (suggested, not required)
 
-- **Site selection and comparison:** curated list (Apollo sites, CLPS targets, other commercial and national programs) plus custom lunar coordinates; side-by-side or sequential comparison.
-- **Date and time flexibility:** choose landing date/time; explore change across lunar days or seasons.
-- **Sun and Earth visualization:** show Sun and Earth relative to the horizon at a site on a chosen date; show time remaining before sunset or Earthset.
-- **Power and comms assessment:** solar elevation angle, sunlight duration, Earth visibility windows.
-- **Multiple visualization approaches:** 2D maps, 3D surface views, other creative representations.
-- **Temporal dynamics:** animations or timelines over a lunar day or multiple days.
-- **Accessibility across skill levels:** detailed for planners; approachable for educators and the public.
-- Format is open: web app, mobile app, interactive visualization, educational game, etc.
+- Create an "Earth Jukebox" experience that generates dynamic sonifications from EIC visual frames.
+- Let individuals select or experience a specific EIC visualization alongside its corresponding soundscape.
+- Either build an interactive tool that actively translates visual data into sound, or submit a curated collection of original, generated audio files that tell the auditory story of the data.
+- Process the visual data with any methods and technologies: computer vision on color palettes, shapes, or pixel densities; mapping to pitch, tempo, or instrumentation; machine learning; open-source audio synthesis frameworks; custom data-driven artistic rulesets.
+- Aim for soundscapes that balance data interpretation with artistic, musically pleasing output.
+- Deliverable format is open: interactive web jukebox, standalone desktop app, backend API endpoint, or a playlist of original generated audio files with an explanation of the creative process.
 
 ## Technical considerations
 
-- Ephemeris: JPL Horizons System or pre-computed datasets.
-- Topography: LOLA (Lunar Orbiter Laser Altimeter) for realistic surface views and accurate horizon calculation.
-- No atmosphere: horizon is set by local terrain and the edge of the lunar sphere; no refraction.
-- Solar elevation angle is the key power metric; display it prominently.
-- Consider Earth libration and the Moon's orbital variations.
-- South pole terrain is complex: steep slopes and deep craters create extreme shadows.
+- Sonification: the use of non-speech audio to convey information or perceptualize data.
+- Visual frames: many EIC visualizations are animated sequences or images. Consider extracting individual frames as the foundation for audio generation.
+- Mapping: color spectrums, brightness, geometric shapes, or spatial pixel density to pitch, rhythm, tempo, volume, or instrumentation.
+- Musicality: a direct pixel-to-sound translation may produce chaotic noise. Consider musical scales, harmonies, and artistic rulesets to keep the audio engaging and pleasant.
+- Disciplines to draw on: custom computer vision algorithms, machine learning models, audio synthesizers, digital audio workstations.
 
 ## UX considerations
 
-- Prioritize rapid comparison of multiple site-date combinations.
-- Communicate time to sunset/Earthset clearly.
-- Make lunar vs terrestrial differences apparent.
-- Help users see why small location or date changes have large feasibility impacts.
+- If building an interactive tool, make it intuitive to select a visualization and start the audio.
+- Accessibility is a core theme: consider screen-reader compatibility, tactile feedback, and rich descriptive text accompanying the audio, to support blind and low-vision users.
+- Think about how the audience will experience the visual data and how the approach conveys the complexity of a changing planet through sound.
 
 ## Impact
 
-- Support coordination between science and engineering teams.
-- Help teams respond quickly to schedule or hardware changes.
-- Serve as an educational tool on why lunar mission planning is hard.
+- Open Earth science to blind and low-vision users and broaden how the public engages with it.
+- Convey the urgency of climate change and the beauty of interconnected planetary systems through emotional, multi-sensory experience.
+- Document the process (the "why" behind artistic choices, the algorithms and scripts used) so others can understand and build on it.
 
 Resources: see the Resources tab on the event page (more may be added before the hackathon).

@@ -4,9 +4,9 @@ Project instructions for AI coding agents (Claude Code, Codex).
 
 ## Overview
 
-Entry for the 2026 NASA Space Apps Challenge (Advanced/Intermediate; subjects: Human Exploration, Moon, Software, Space Exploration).
+Entry for the 2026 NASA Space Apps Challenge (Intermediate/Beginner-Youth; subjects: Arts & Multimedia, Earth Science, Software).
 
-Goal: an intuitive tool/app that lets mission planners, educators and the public compare lunar landing sites and dates quickly. It visualizes Sun and Earth positions relative to the horizon to assess power generation (solar elevation, sunlight duration) and direct-to-Earth communication windows (Earth visibility, time to sunset/Earthset), with a focus on the Moon's south pole.
+Goal: an "Earth Jukebox" that pairs NASA Earth Information Center (EIC) visual frames with dynamic sonifications generated in real time, making Earth science accessible and multi-sensory (including for blind and low-vision users) by translating sight into sound.
 
 Full brief: see `CHALLENGE.md`.
 
