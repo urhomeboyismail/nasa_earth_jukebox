@@ -7,13 +7,29 @@ import { useAnnounce } from '../../components/useAnnounce'
 import type { Visualization } from '../../data'
 import type { PageProps } from '../types'
 import './compare.css'
+import './test-mode.css'
 import { formatDate } from './dates'
 import { answerText, categoryLabel, judge, type Answer } from './judge'
+import TestMode from './TestMode'
 
 const CUSTOM = 'custom'
 
+/** Listening-test mode is open only when the address is #compare?test=1. */
+function useTestMode(): boolean {
+  const read = () => new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('test') === '1'
+  const [on, setOn] = useState(read)
+  useEffect(() => {
+    const update = () => setOn(read())
+    window.addEventListener('hashchange', update)
+    return () => window.removeEventListener('hashchange', update)
+  }, [])
+  return on
+}
+
 export default function ComparePage({ visualization }: PageProps) {
+  const testMode = useTestMode()
   if (!visualization) return <p>Loading the data…</p>
+  if (testMode) return <TestMode key={visualization.id} visualization={visualization} />
   return (
     <AnnouncerProvider>
       <Compare key={visualization.id} visualization={visualization} />
