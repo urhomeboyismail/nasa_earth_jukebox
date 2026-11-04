@@ -385,6 +385,45 @@ describe('sequences on the Transport', () => {
     expect(engine.isPlaying()).toBe(false)
   })
 
+  it('leaves out the tick after each sound when asked, for sweeps that are not dates', async () => {
+    const engine = await unlocked()
+    engine.playSequence(steps, vi.fn(), { tick: false })
+    mocks.transport.advance(3)
+    expect(played().map(c => c.node === 'Synth' ? c.args[0] : c.node)).toEqual(['C4', 'E4', 'NoiseSynth'])
+  })
+
+  it('ticks by default, and when tick is true', async () => {
+    const engine = await unlocked()
+    engine.playSequence(steps, vi.fn(), { tick: true })
+    mocks.transport.advance(3)
+    expect(playedNotes()).toEqual(['C4', 'C6', 'E4', 'C6', 'C6'])
+  })
+
+  // T68 gives these meaning. Until then the engine must accept them and sound exactly as before.
+  it('accepts a chord, a glide and a bell on a step, and sounds the same until T68', async () => {
+    const engine = await unlocked()
+    const voiced: SequenceStep[] = steps.map(step => ({ ...step, pad: ['cold', 'mild'], glide: true, bell: true }))
+    engine.playSequence(voiced, vi.fn())
+    mocks.transport.advance(3)
+    expect(played().map(c => c.node === 'Synth' ? c.args[0] : c.node)).toEqual(['C4', 'C6', 'E4', 'C6', 'NoiseSynth', 'C6'])
+  })
+
+  it('accepts a chord on a single note, and sounds the same until T68', async () => {
+    const engine = await unlocked()
+    engine.playCategory('cold', { pad: ['cold', 'mild'] })
+    expect(playedNotes()).toEqual(['C4'])
+  })
+
+  it('accepts a sound style in either state, before and after unlock, without changing the sound until T68', async () => {
+    const engine = createSoundEngine(mapping)
+    expect(() => { engine.setStyle('simple'); engine.setStyle('full') }).not.toThrow()
+    await engine.unlock()
+    mocks.calls.length = 0
+    engine.setStyle('simple')
+    engine.playCategory('cold')
+    expect(playedNotes()).toEqual(['C4'])
+  })
+
   it('reports WAV export as not built', async () => {
     const engine = await unlocked()
     await expect(engine.renderToWav(steps)).rejects.toThrow(/T08/)

@@ -29,6 +29,7 @@ const fake = vi.hoisted(() => {
     state: 'idle' as 'idle' | 'playing' | 'paused',
     unlock: async () => {},
     setVolume: (_v: number) => {},
+    setStyle: (_style: string) => {},
     playSequence(steps: Step[], onStep: (i: number) => void) {
       engine.sequences.push(steps)
       engine.steps = steps

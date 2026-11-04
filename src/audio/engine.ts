@@ -118,7 +118,7 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
     else panner.pan.setValueAtTime(clamped, time)
   }
 
-  function playCategory(id: CategoryId, opts?: { pan?: number; durationMs?: number }, time?: number) {
+  function playCategory(id: CategoryId, opts?: { pan?: number; durationMs?: number; pad?: CategoryId[] }, time?: number) {
     if (!unlocked) return
     const category = mapping.categories.find(c => c.id === id)
     if (!category) return
@@ -151,7 +151,7 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
     transport.seconds = 0
   }
 
-  function playSequence(nextSteps: SequenceStep[], onStep: (index: number) => void) {
+  function playSequence(nextSteps: SequenceStep[], onStep: (index: number) => void, opts?: { tick?: boolean }) {
     if (!unlocked) return
     const t = tone!
     const transport = t.getTransport()
@@ -171,7 +171,7 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
       transport.schedule(time => {
         if (step.category === 'insufficient') playMissing(time)
         else playCategory(step.category, { pan: step.pan, durationMs: noteSeconds * 1000 }, time)
-        playTick(time + noteSeconds)
+        if (opts?.tick !== false) playTick(time + noteSeconds)
         // Draw runs the callback when the sound is heard, not when it is scheduled.
         draw.schedule(() => {
           if (sequence === sequenceId) onStep(index)
@@ -223,6 +223,8 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
       if (unlocked) resetTransport()
       silence()
     },
+    // The chord, slide and bell (T68) are not built yet: the style is accepted and the sound is the same in both.
+    setStyle() {},
     isPlaying() { return state === 'playing' },
     duck() {
       pause()
