@@ -54,6 +54,7 @@ Pages are listed in both `src/pages.ts` and `server/app/assistant/knowledge.py`;
   - Images and frames scale to fit their container and keep their aspect ratio.
   - On mobile (below 768 px wide) the main navigation sits in a bar fixed to the bottom of the screen, within thumb reach; on tablet and desktop it stays in the header. Leave room for it: page content and floating panels (such as the voice guide) must not be hidden behind the bar, and it must clear the phone's home indicator (`env(safe-area-inset-bottom)`).
   - Say in your PR which widths you checked.
+  - To choose and check the layout, follow the responsive-layout skill in `.claude/skills/responsive-layout/SKILL.md` (pattern guide, rules, and a screenshot script for the four widths). Claude Code runs it automatically through a hook after layout edits; with other AI tools, point the agent at that file.
 
 ## Git
 
