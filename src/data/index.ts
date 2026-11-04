@@ -1,6 +1,6 @@
-// Loads content data from public/data/. T00 stub: fetches and parses without validation.
-// T30 (Dhruv) adds schema validation behind these same exports.
+// Loads content data from public/data/ and checks it against the schemas in schema.ts.
 
+import { catalogSchema, describeIssues, visualizationSchema } from './schema'
 import type { CatalogEntry, Visualization } from './types'
 
 export type * from './types'
@@ -36,13 +36,16 @@ async function fetchJson(path: string): Promise<unknown> {
 export async function loadCatalog(): Promise<CatalogEntry[]> {
   const catalog = await fetchJson('index.json')
   if (!Array.isArray(catalog)) throw new DataError('index.json', 'must be a list of visualizations.')
-  return catalog as CatalogEntry[]
+  const parsed = catalogSchema.safeParse(catalog)
+  if (!parsed.success) throw new DataError('index.json', describeIssues(parsed.error))
+  return parsed.data
 }
 
 export async function loadVisualization(id: string): Promise<Visualization> {
   const path = `${id}/manifest.json`
-  const visualization = (await fetchJson(path)) as Visualization
-  if (!visualization || !Array.isArray(visualization.frames)) throw new DataError(path, 'has no frames list.')
+  const parsed = visualizationSchema.safeParse(await fetchJson(path))
+  if (!parsed.success) throw new DataError(path, describeIssues(parsed.error))
+  const visualization = parsed.data
   return {
     ...visualization,
     frames: visualization.frames.map(frame => ({ ...frame, image: dataUrl(`${id}/${frame.image}`) })),

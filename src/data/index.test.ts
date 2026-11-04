@@ -38,8 +38,8 @@ describe('loadVisualization', () => {
     mockFetch(() => new Response('{not json'))
     await expect(loadVisualization('broken')).rejects.toThrow('broken/manifest.json: is not valid JSON.')
 
-    mockFetch(() => json({ id: 'empty' }))
-    await expect(loadVisualization('empty')).rejects.toThrow('empty/manifest.json: has no frames list.')
+    mockFetch(() => json({ ...fixture, frames: [] }))
+    await expect(loadVisualization('empty')).rejects.toThrow('empty/manifest.json: frames: needs at least one frame')
   })
 
   it('throws DataError when the download fails', async () => {
