@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../public/data/fixture/manifest.json'
 import type { SoundMapping, Visualization } from '../data'
 import { validateMapping } from './engine'
@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => {
   const param = (node: string, name: string) => ({
     value: 0,
     rampTo: (...args: unknown[]) => calls.push({ node, method: `${name}.rampTo`, args }),
+    setValueAtTime: (...args: unknown[]) => calls.push({ node, method: `${name}.setValueAtTime`, args }),
     cancelScheduledValues: (...args: unknown[]) => calls.push({ node, method: `${name}.cancelScheduledValues`, args }),
   })
   function make(node: string, methods: string[] = [], params: string[] = []) {
@@ -33,12 +34,39 @@ const mocks = vi.hoisted(() => {
     }
     return Base
   }
-  return { calls, nodes, make, start: vi.fn(async () => {}) }
+
+  // A Transport that only moves when the test calls advance(), and a Draw that runs its callbacks at once.
+  const AUDIO_CLOCK_OFFSET = 100
+  const transport = {
+    events: [] as { cb: (time: number) => void; at: number; fired: boolean }[],
+    position: 0,
+    running: false,
+    starts: [] as unknown[],
+    schedule(cb: (time: number) => void, at: number) { this.events.push({ cb, at, fired: false }) },
+    start(when?: unknown) { this.running = true; this.starts.push(when) },
+    pause() { this.running = false },
+    stop() { this.running = false; this.position = 0 },
+    cancel() { this.events = [] },
+    get seconds() { return this.position },
+    set seconds(value: number) { this.position = value },
+    advance(seconds: number) {
+      if (!this.running) return
+      const end = this.position + seconds
+      const due = this.events.filter(e => !e.fired && e.at <= end).sort((a, b) => a.at - b.at)
+      for (const event of due) { event.fired = true; event.cb(AUDIO_CLOCK_OFFSET + event.at) }
+      this.position = end
+    },
+    reset() { this.events = []; this.position = 0; this.running = false; this.starts = [] },
+  }
+  const draw = { times: [] as number[], schedule(cb: () => void, time: number) { this.times.push(time); cb() } }
+  return { calls, nodes, make, transport, draw, start: vi.fn(async () => {}) }
 })
 
 vi.mock('tone', () => ({
   start: mocks.start,
   now: () => 0,
+  getTransport: () => mocks.transport,
+  getDraw: () => mocks.draw,
   Gain: mocks.make('Gain', [], ['gain']),
   Panner: mocks.make('Panner', [], ['pan']),
   Filter: mocks.make('Filter'),
@@ -57,9 +85,9 @@ const steps: SequenceStep[] = [
 beforeEach(() => {
   mocks.calls.length = 0
   for (const key of Object.keys(mocks.nodes)) delete mocks.nodes[key]
-  vi.useFakeTimers()
+  mocks.transport.reset()
+  mocks.draw.times.length = 0
 })
-afterEach(() => vi.useRealTimers())
 
 async function unlocked(map: SoundMapping = mapping) {
   const engine = createSoundEngine(map)
@@ -96,9 +124,10 @@ describe('unlocking', () => {
     engine.playTick()
     engine.playMissing()
     engine.playSequence(steps, onStep)
-    vi.advanceTimersByTime(5000)
+    mocks.transport.advance(5)
     expect(onStep).not.toHaveBeenCalled()
     expect(engine.isPlaying()).toBe(false)
+    expect(mocks.transport.starts).toEqual([])
     expect(mocks.calls).toEqual([])
     expect(mocks.start).not.toHaveBeenCalled()
   })
@@ -188,12 +217,12 @@ describe('stop and duck', () => {
     const engine = await unlocked()
     const onStep = vi.fn()
     engine.playSequence(steps, onStep)
-    vi.advanceTimersByTime(0)
+    mocks.transport.advance(0)
     engine.stop()
     expect(fade()).toHaveLength(1)
     expect(fade()[0].args[1]).toBeLessThan(0.05)
     expect(engine.isPlaying()).toBe(false)
-    vi.advanceTimersByTime(5000)
+    mocks.transport.advance(5)
     expect(onStep).toHaveBeenCalledTimes(1)
   })
 
@@ -209,65 +238,151 @@ describe('stop and duck', () => {
     const engine = await unlocked()
     const onStep = vi.fn()
     engine.playSequence(steps, onStep)
-    vi.advanceTimersByTime(500)
+    mocks.transport.advance(0.5)
     engine.duck()
     expect(engine.isPlaying()).toBe(false)
     expect(fade()).toHaveLength(1)
-    vi.advanceTimersByTime(5000)
+    mocks.transport.advance(5)
     expect(onStep.mock.calls).toEqual([[0]])
+    expect(mocks.transport.position).toBe(0.5)
   })
 
   it('unduck() does not resume by itself; resume() continues from the next step', async () => {
     const engine = await unlocked()
     const onStep = vi.fn()
     engine.playSequence(steps, onStep)
-    vi.advanceTimersByTime(500)
+    mocks.transport.advance(0.5)
     engine.duck()
     engine.unduck()
-    vi.advanceTimersByTime(5000)
+    mocks.transport.advance(5)
     expect(onStep.mock.calls).toEqual([[0]])
     engine.resume()
-    vi.advanceTimersByTime(500)
+    mocks.transport.advance(0.5)
     expect(onStep.mock.calls).toEqual([[0], [1]])
   })
 })
 
-describe('sequences (timer-based until T04)', () => {
-  it('fires onStep in order at each step time, sounding each step, then stops playing', async () => {
+describe('sequences on the Transport', () => {
+  it('fires onStep in order at each step time, then stops playing', async () => {
     const engine = await unlocked()
     const onStep = vi.fn()
     engine.playSequence(steps, onStep)
-    vi.advanceTimersByTime(0)
+    expect(engine.isPlaying()).toBe(true)
+    mocks.transport.advance(0)
     expect(onStep.mock.calls).toEqual([[0]])
-    vi.advanceTimersByTime(1000)
-    vi.advanceTimersByTime(1000)
+    mocks.transport.advance(1)
+    expect(onStep.mock.calls).toEqual([[0], [1]])
+    mocks.transport.advance(1)
     expect(onStep.mock.calls).toEqual([[0], [1], [2]])
-    expect(playedNotes()).toEqual(['C4', 'E4'])
-    expect(played().at(-1)?.node).toBe('NoiseSynth')
+    expect(engine.isPlaying()).toBe(true) // the last sound is still ringing
+    mocks.transport.advance(1)
     expect(engine.isPlaying()).toBe(false)
+  })
+
+  it('sounds each step then a tick, and the cue for missing data', async () => {
+    const engine = await unlocked()
+    engine.playSequence(steps, vi.fn())
+    mocks.transport.advance(3)
+    expect(played().map(c => c.node === 'Synth' ? c.args[0] : c.node)).toEqual([
+      'C4', 'C6', 'E4', 'C6', 'NoiseSynth', 'C6',
+    ])
+  })
+
+  it('puts each tick after its sound and before the next step', async () => {
+    const engine = await unlocked()
+    engine.playSequence(steps, vi.fn())
+    mocks.transport.advance(3)
+    const [note, tick] = played()
+    const time = (c: typeof note) => c.args[c.node === 'NoiseSynth' ? 1 : 2] as number
+    expect(time(note)).toBe(100)
+    expect(time(tick)).toBeGreaterThan(100)
+    expect(time(tick)).toBeLessThan(101)
+  })
+
+  it('shortens the note when steps are close together, so the tick still fits', async () => {
+    const engine = await unlocked()
+    engine.playSequence([{ category: 'cold', atMs: 0 }, { category: 'hot', atMs: 200 }], vi.fn())
+    mocks.transport.advance(1)
+    const [first, firstTick] = played()
+    expect(first.args[1]).toBeCloseTo(0.12)
+    expect(firstTick.args[2]).toBeCloseTo(100.12)
+  })
+
+  it('runs onStep through Tone.Draw at the time of the sound', async () => {
+    const engine = await unlocked()
+    engine.playSequence(steps, vi.fn())
+    mocks.transport.advance(2)
+    expect(mocks.draw.times.slice(0, 3)).toEqual([100, 101, 102])
   })
 
   it('passes each step\'s pan to its note', async () => {
     const engine = await unlocked()
     engine.playSequence([{ category: 'hot', atMs: 0, pan: 0.8 }], vi.fn())
-    vi.advanceTimersByTime(0)
-    expect((mocks.nodes.Panner[0] as { pan: { value: number } }).pan.value).toBe(0.8)
+    mocks.transport.advance(0)
+    const pans = mocks.calls.filter(c => c.method === 'pan.setValueAtTime')
+    expect(pans[0].args).toEqual([0.8, 100])
   })
 
-  it('pauses and resumes from the next step that has not sounded', async () => {
+  it('pauses and resumes from the same step', async () => {
     const engine = await unlocked()
     const onStep = vi.fn()
     engine.playSequence(steps, onStep)
-    vi.advanceTimersByTime(500)
+    mocks.transport.advance(0.5)
     engine.pause()
-    vi.advanceTimersByTime(5000)
+    expect(engine.isPlaying()).toBe(false)
+    mocks.transport.advance(5)
     expect(onStep.mock.calls).toEqual([[0]])
     engine.resume()
     expect(engine.isPlaying()).toBe(true)
-    vi.advanceTimersByTime(500)
+    mocks.transport.advance(0.5)
     expect(onStep.mock.calls).toEqual([[0], [1]])
-    vi.advanceTimersByTime(1000)
+    mocks.transport.advance(1)
     expect(onStep.mock.calls).toEqual([[0], [1], [2]])
+  })
+
+  it('does nothing on resume() unless paused', async () => {
+    const engine = await unlocked()
+    engine.resume()
+    expect(mocks.transport.starts).toEqual([])
+    engine.playSequence(steps, vi.fn())
+    engine.resume()
+    expect(mocks.transport.starts).toHaveLength(1)
+  })
+
+  it('replaces a sequence already playing, from the start', async () => {
+    const engine = await unlocked()
+    const first = vi.fn()
+    const second = vi.fn()
+    engine.playSequence(steps, first)
+    mocks.transport.advance(1.5)
+    engine.playSequence(steps, second)
+    mocks.transport.advance(0)
+    expect(second.mock.calls).toEqual([[0]])
+    mocks.transport.advance(2)
+    expect(first.mock.calls).toEqual([[0], [1]])
+    expect(second.mock.calls).toEqual([[0], [1], [2]])
+  })
+
+  it('takes a different speed on each play, by the spacing of the steps', async () => {
+    const engine = await unlocked()
+    const slow = vi.fn()
+    engine.playSequence(steps, slow)
+    mocks.transport.advance(1)
+    expect(slow).toHaveBeenCalledTimes(2)
+    const fast = vi.fn()
+    engine.playSequence(steps.map(step => ({ ...step, atMs: step.atMs / 2 })), fast)
+    mocks.transport.advance(1)
+    expect(fast.mock.calls).toEqual([[0], [1], [2]])
+  })
+
+  it('sorts steps by time and ignores an empty sequence', async () => {
+    const engine = await unlocked()
+    const onStep = vi.fn()
+    engine.playSequence([steps[1], steps[0]], onStep)
+    mocks.transport.advance(1)
+    expect(playedNotes().filter(note => note !== 'C6')).toEqual(['C4', 'E4'])
+    engine.playSequence([], onStep)
+    expect(engine.isPlaying()).toBe(false)
   })
 
   it('reports WAV export as not built', async () => {

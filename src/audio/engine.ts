@@ -1,7 +1,9 @@
 // The real sound engine (docs/PLAN.md §5.3), built on Tone.js. Tone is loaded on unlock(), which has to
 // happen in a click or key press anyway, so it stays out of the first page load.
 //
-// Sequences still use timers, as the T00 stub did. T04 moves them onto Tone.Transport.
+// Sequences run on Tone.Transport. Each step plays its category (or the missing cue) and then a tick, and
+// calls onStep through Tone.Draw so the picture changes when the sound does. Speed is whatever spacing the
+// caller gives the steps' atMs: it can differ on every play.
 
 import { Note } from 'tonal'
 import type { CategoryId, SoundMapping } from '../data'
@@ -14,6 +16,10 @@ const VOLUME_RAMP_S = 0.05
 /** Fade used by stop() and duck(). Together with the node's own latency this stays well inside 50 ms. */
 const CUT_RAMP_S = 0.02
 const DEFAULT_NOTE_MS = 600
+/** Audio is scheduled this far ahead of now, so the first step is not cut off. */
+const START_DELAY_S = 0.05
+/** Share of the gap to the next step that a note may fill, leaving room for the tick after it. */
+const NOTE_SHARE_OF_GAP = 0.6
 
 /** Checks every note in the mapping and that cooler categories are always lower. Throws a message naming the problem. */
 export function validateMapping(mapping: SoundMapping) {
@@ -47,13 +53,9 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
   let master: InstanceType<ToneModule['Gain']>
 
   // Sequence state.
-  let steps: SequenceStep[] = []
-  let onStep: (index: number) => void = () => {}
-  let timers: number[] = []
-  let startedAt = 0
-  let elapsedAtPause = 0
-  let next = 0
   let state: 'idle' | 'playing' | 'paused' = 'idle'
+  /** Bumped on every play and stop, so a step scheduled by an old sequence never reports itself. */
+  let sequenceId = 0
 
   function build(t: ToneModule) {
     master = new t.Gain(volume).toDestination()
@@ -109,57 +111,89 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
     missingSynth?.triggerRelease()
   }
 
-  function setPan(pan: number | undefined) {
-    panner.pan.value = Math.min(1, Math.max(-1, pan ?? 0))
+  /** `time` is an audio-clock time from the Transport; without it the sound is immediate. */
+  function setPan(pan: number | undefined, time?: number) {
+    const clamped = Math.min(1, Math.max(-1, pan ?? 0))
+    if (time === undefined) panner.pan.value = clamped
+    else panner.pan.setValueAtTime(clamped, time)
   }
 
-  function playCategory(id: CategoryId, opts?: { pan?: number; durationMs?: number }) {
+  function playCategory(id: CategoryId, opts?: { pan?: number; durationMs?: number }, time?: number) {
     if (!unlocked) return
     const category = mapping.categories.find(c => c.id === id)
     if (!category) return
     open()
-    setPan(opts?.pan)
-    categorySynth.triggerAttackRelease(category.note, (opts?.durationMs ?? DEFAULT_NOTE_MS) / 1000)
+    setPan(opts?.pan, time)
+    categorySynth.triggerAttackRelease(category.note, (opts?.durationMs ?? DEFAULT_NOTE_MS) / 1000, time)
   }
 
-  function playTick() {
+  function playTick(time?: number) {
     if (!unlocked) return
     open()
-    setPan(0)
-    tickSynth.triggerAttackRelease(mapping.tick.note, mapping.tick.durationMs / 1000)
+    setPan(0, time)
+    tickSynth.triggerAttackRelease(mapping.tick.note, mapping.tick.durationMs / 1000, time)
   }
 
-  function playMissing() {
+  function playMissing(time?: number) {
     if (!unlocked) return
     open()
-    setPan(0)
+    setPan(0, time)
     const seconds = mapping.missingCue.durationMs / 1000
-    if (missingSynth) missingSynth.triggerAttackRelease('B1', seconds)
-    else missingNoise?.triggerAttackRelease(seconds)
+    if (missingSynth) missingSynth.triggerAttackRelease('B1', seconds, time)
+    else missingNoise?.triggerAttackRelease(seconds, time)
   }
 
-  const clear = () => { timers.forEach(timer => window.clearTimeout(timer)); timers = [] }
+  /** Forgets any sequence: stops the Transport, drops its scheduled steps and puts it back at 0. */
+  function resetTransport() {
+    const transport = tone!.getTransport()
+    transport.stop()
+    transport.cancel(0)
+    transport.seconds = 0
+  }
 
-  function schedule(fromMs: number) {
-    clear()
-    startedAt = performance.now() - fromMs
-    for (let index = next; index < steps.length; index++) {
-      timers.push(window.setTimeout(() => {
-        next = index + 1
-        const step = steps[index]
-        if (step.category === 'insufficient') playMissing()
-        else playCategory(step.category, { pan: step.pan })
-        onStep(index)
-        if (next === steps.length) state = 'idle'
-      }, Math.max(0, steps[index].atMs - fromMs)))
+  function playSequence(nextSteps: SequenceStep[], onStep: (index: number) => void) {
+    if (!unlocked) return
+    const t = tone!
+    const transport = t.getTransport()
+    const draw = t.getDraw()
+    const sorted = [...nextSteps].sort((a, b) => a.atMs - b.atMs)
+    resetTransport()
+    if (!sorted.length) {
+      state = 'idle'
+      return
     }
+    const sequence = ++sequenceId
+
+    sorted.forEach((step, index) => {
+      const at = step.atMs / 1000
+      const gap = index + 1 < sorted.length ? (sorted[index + 1].atMs - step.atMs) / 1000 : DEFAULT_NOTE_MS / 1000
+      const noteSeconds = Math.min(DEFAULT_NOTE_MS / 1000, gap * NOTE_SHARE_OF_GAP)
+      transport.schedule(time => {
+        if (step.category === 'insufficient') playMissing(time)
+        else playCategory(step.category, { pan: step.pan, durationMs: noteSeconds * 1000 }, time)
+        playTick(time + noteSeconds)
+        // Draw runs the callback when the sound is heard, not when it is scheduled.
+        draw.schedule(() => {
+          if (sequence === sequenceId) onStep(index)
+        }, time)
+      }, at)
+    })
+
+    // Marks the sequence finished once the last step has sounded.
+    const last = sorted[sorted.length - 1].atMs / 1000
+    transport.schedule(time => {
+      draw.schedule(() => {
+        if (sequence === sequenceId && state === 'playing') state = 'idle'
+      }, time)
+    }, last + DEFAULT_NOTE_MS / 1000)
+
     state = 'playing'
+    transport.start(`+${START_DELAY_S}`)
   }
 
   function pause() {
     if (state !== 'playing') return
-    clear()
-    elapsedAtPause = performance.now() - startedAt
+    tone!.getTransport().pause()
     state = 'paused'
   }
 
@@ -168,13 +202,7 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
     playCategory,
     playTick,
     playMissing,
-    playSequence(nextSteps, listener) {
-      if (!unlocked) return
-      steps = [...nextSteps].sort((a, b) => a.atMs - b.atMs)
-      onStep = listener
-      next = 0
-      schedule(0)
-    },
+    playSequence,
     setVolume(zeroToOne) {
       volume = Math.min(1, Math.max(0, Number.isFinite(zeroToOne) ? zeroToOne : 0))
       if (unlocked) master.gain.rampTo(volume, VOLUME_RAMP_S)
@@ -185,13 +213,14 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
     },
     resume() {
       if (state !== 'paused') return
-      // Continue at the next step that has not sounded, keeping the gaps between steps.
-      schedule(Math.min(elapsedAtPause, steps[next]?.atMs ?? elapsedAtPause))
+      // Continues from the position where pause() stopped the Transport.
+      state = 'playing'
+      tone!.getTransport().start()
     },
     stop() {
-      clear()
-      next = 0
+      sequenceId++
       state = 'idle'
+      if (unlocked) resetTransport()
       silence()
     },
     isPlaying() { return state === 'playing' },
