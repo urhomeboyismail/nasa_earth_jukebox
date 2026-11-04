@@ -57,6 +57,10 @@ const comparison = z.object({
   explanation: nonEmpty,
 })
 
+const mapFraction = z.number().min(0, 'must be between 0 and 1').max(1, 'must be between 0 and 1')
+const mapArea = z.object({ x0: mapFraction, y0: mapFraction, x1: mapFraction, y1: mapFraction })
+const storyChapter = z.object({ id: nonEmpty, title: nonEmpty, text: nonEmpty, fromFrame: nonEmpty, toFrame: nonEmpty })
+
 export const visualizationSchema = z
   .object({
     id: nonEmpty,
@@ -77,6 +81,8 @@ export const visualizationSchema = z
     frames: z.array(frame).min(1, 'needs at least one frame'),
     mapping,
     comparisons: z.array(comparison),
+    mapArea: mapArea.optional(),
+    story: z.array(storyChapter).optional(),
   })
   .superRefine((data, ctx) => {
     const problem = (path: (string | number)[], message: string) => ctx.addIssue({ code: 'custom', path, message })
@@ -101,6 +107,13 @@ export const visualizationSchema = z
     unique(data.regions.map(r => r.id), 'regions', 'region')
     unique(data.mapping.categories.map(c => c.id), 'mapping.categories', 'category')
     unique(data.comparisons.map(c => c.id), 'comparisons', 'comparison')
+    unique((data.story ?? []).map(c => c.id), 'story', 'chapter')
+
+    if (data.mapArea) {
+      const { x0, y0, x1, y1 } = data.mapArea
+      if (x1 <= x0) problem(['mapArea', 'x1'], `must be greater than x0 (${x0}); the area runs from west to east`)
+      if (y1 <= y0) problem(['mapArea', 'y1'], `must be greater than y0 (${y0}); the area runs from north to south`)
+    }
 
     const frameIds = new Set(data.frames.map(f => f.id))
     const regionIds = new Set(data.regions.map(r => r.id))
@@ -108,6 +121,16 @@ export const visualizationSchema = z
       if (!frameIds.has(c.frameA)) problem(['comparisons', i, 'frameA'], `there is no frame "${c.frameA}"`)
       if (!frameIds.has(c.frameB)) problem(['comparisons', i, 'frameB'], `there is no frame "${c.frameB}"`)
       if (!regionIds.has(c.regionId)) problem(['comparisons', i, 'regionId'], `there is no region "${c.regionId}"`)
+    })
+
+    const dateOf = new Map(data.frames.map(f => [f.id, f.date]))
+    data.story?.forEach((chapter, i) => {
+      if (!frameIds.has(chapter.fromFrame)) problem(['story', i, 'fromFrame'], `there is no frame "${chapter.fromFrame}"`)
+      if (!frameIds.has(chapter.toFrame)) problem(['story', i, 'toFrame'], `there is no frame "${chapter.toFrame}"`)
+      const [from, to] = [dateOf.get(chapter.fromFrame), dateOf.get(chapter.toFrame)]
+      if (from && to && to < from) {
+        problem(['story', i, 'toFrame'], `"${chapter.toFrame}" (${to}) is earlier than "${chapter.fromFrame}" (${from}); a chapter runs forward in time`)
+      }
     })
   })
 

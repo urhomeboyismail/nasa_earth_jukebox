@@ -118,3 +118,54 @@ describe('the datasets in public/data', () => {
     })
   }
 })
+
+describe('visualizationSchema: map area and story', () => {
+  const withBoth = (v: any) => {
+    v.mapArea = { x0: 0, y0: 0, x1: 1, y1: 0.88 }
+    v.story = [
+      { id: 'start', title: 'The start', text: 'It begins.', fromFrame: v.frames[0].id, toFrame: v.frames[1].id },
+      { id: 'later', title: 'Later', text: 'It changes.', fromFrame: v.frames[1].id, toFrame: v.frames[3].id },
+    ]
+  }
+
+  it('accepts a map area and a story', () => {
+    const v: any = valid()
+    withBoth(v)
+    expect(visualizationSchema.safeParse(v).success).toBe(true)
+  })
+
+  it('accepts a chapter that covers one date', () => {
+    const v: any = valid()
+    v.story = [{ id: 'one', title: 'One date', text: 'Just this.', fromFrame: v.frames[2].id, toFrame: v.frames[2].id }]
+    expect(visualizationSchema.safeParse(v).success).toBe(true)
+  })
+
+  it('rejects a map area outside the picture', () => {
+    expect(errorAfter(v => { v.mapArea = { x0: 0, y0: 0, x1: 1.2, y1: 1 } })).toBe('mapArea.x1: must be between 0 and 1')
+    expect(errorAfter(v => { v.mapArea = { x0: -0.1, y0: 0, x1: 1, y1: 1 } })).toBe('mapArea.x0: must be between 0 and 1')
+  })
+
+  it('rejects a map area with no width or height, or running the wrong way', () => {
+    expect(errorAfter(v => { v.mapArea = { x0: 0.5, y0: 0, x1: 0.5, y1: 1 } })).toBe(
+      'mapArea.x1: must be greater than x0 (0.5); the area runs from west to east',
+    )
+    expect(errorAfter(v => { v.mapArea = { x0: 0, y0: 0.9, x1: 1, y1: 0.2 } })).toBe(
+      'mapArea.y1: must be greater than y0 (0.9); the area runs from north to south',
+    )
+  })
+
+  it('rejects a chapter that names a frame that is not there', () => {
+    expect(errorAfter(v => { withBoth(v); v.story[1].toFrame = 'nope' })).toBe('story.1.toFrame: there is no frame "nope"')
+    expect(errorAfter(v => { withBoth(v); v.story[0].fromFrame = 'gone' })).toBe('story.0.fromFrame: there is no frame "gone"')
+  })
+
+  it('rejects a chapter that runs backwards in time', () => {
+    const message = errorAfter(v => { withBoth(v); v.story[1].fromFrame = v.frames[3].id; v.story[1].toFrame = v.frames[1].id })
+    expect(message).toMatch(/^story\.1\.toFrame: ".*" \(2024-07-15\) is earlier than ".*" \(2025-03-15\); a chapter runs forward in time$/)
+  })
+
+  it('rejects two chapters with the same id, and a chapter with no text', () => {
+    expect(errorAfter(v => { withBoth(v); v.story[1].id = 'start' })).toBe('story.1.id: chapter id "start" is used more than once')
+    expect(errorAfter(v => { withBoth(v); v.story[0].text = '' })).toMatch(/^story\.0\.text: /)
+  })
+})

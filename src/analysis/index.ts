@@ -2,7 +2,7 @@
 // Pixels are read and analyzed in a Web Worker (see worker.ts). Without Worker or OffscreenCanvas the same
 // code runs on the main thread. Results are cached per frame and region.
 
-import type { CategoryId, ColorScale, Frame, Region, SoundMapping } from '../data'
+import type { CategoryId, ColorScale, Frame, MapArea, Region, SoundMapping } from '../data'
 import { analyzePixels } from './analyze'
 import { readPixels } from './pixels'
 import type { WorkerRequest, WorkerResponse } from './protocol'
@@ -14,7 +14,15 @@ export type FrameAnalysis = {
   valid: number
   medianValue?: number
   category: CategoryId | 'insufficient'
+  /** The fraction of the valid points that fall in each category; sums to 1 when `valid` > 0. Left out when `valid` is 0. */
+  shares?: Record<CategoryId, number>
 }
+
+/** One cell of the sound map. A cell without enough readable pixels has no value and is never read as a low one. */
+export type GridCell = { value: number | null; category: CategoryId | 'insufficient' }
+
+/** The whole map read into a grid, for exploring it by ear (PLAN.md §5.6). Row-major; row 0 is the top (north). */
+export type FrameGrid = { frameId: string; cols: number; rows: number; area: MapArea; cells: GridCell[] }
 
 type Pending = { resolve: (result: FrameAnalysis) => void; reject: (error: Error) => void }
 
@@ -82,4 +90,29 @@ export function analyzeFrame(frame: Frame, region: Region, colorScale: ColorScal
 
 export function analyzeAll(frames: Frame[], region: Region, colorScale: ColorScale, mapping: SoundMapping): Promise<FrameAnalysis[]> {
   return Promise.all(frames.map(frame => analyzeFrame(frame, region, colorScale, mapping)))
+}
+
+const STUB_COLS = 24
+const STUB_ROWS = 12
+
+/**
+ * The map of one frame as a grid. This is a stub (T64) so the explorer can be built against it: it ignores the pixels and
+ * runs from the coolest category in the west to the warmest in the east, with the last two columns without data.
+ * T65 replaces it behind the same signature. `area` defaults to the whole image.
+ */
+export function analyzeGrid(frame: Frame, _colorScale: ColorScale, mapping: SoundMapping, area: MapArea = { x0: 0, y0: 0, x1: 1, y1: 1 }): Promise<FrameGrid> {
+  const { categories } = mapping
+  const readable = STUB_COLS - 2
+  const cells: GridCell[] = []
+  for (let row = 0; row < STUB_ROWS; row++) {
+    for (let col = 0; col < STUB_COLS; col++) {
+      if (col >= readable) {
+        cells.push({ value: null, category: 'insufficient' })
+        continue
+      }
+      const category = categories[Math.min(categories.length - 1, Math.floor((col / readable) * categories.length))]
+      cells.push({ value: (category.range[0] + category.range[1]) / 2, category: category.id })
+    }
+  }
+  return Promise.resolve({ frameId: frame.id, cols: STUB_COLS, rows: STUB_ROWS, area, cells })
 }

@@ -90,18 +90,23 @@ Visualization {
              missingCue: { type: "noise" | "note"; durationMs: number } }
   comparisons: { id: string; regionId: string; frameA: string; frameB: string
                  question: string; answer: "a" | "b" | "same"; explanation: string }[]
+  mapArea?: { x0: number; y0: number; x1: number; y1: number }   // optional, 0 to 1 fractions; default the whole image (see 5.6)
+  story?: { id: string; title: string; text: string; fromFrame: string; toFrame: string }[]   // optional chapters for story mode
 }
 loadCatalog(): Promise<{ id: string; title: string; summary: string }[]>   // reads public/data/index.json
 loadVisualization(id: string): Promise<Visualization>                     // throws DataError with a readable message
 ```
+`mapArea` leaves out legend bars, titles and logos, so only the map is read. It must stay inside 0 to 1 with `x0 < x1` and `y0 < y1`. A `story` chapter runs from `fromFrame` to `toFrame`, both real frame ids, forward in time; chapter ids are unique. The schema (`src/data/schema.ts`) rejects anything else with a readable message.
 
 ### 5.2 Frame analysis: `src/analysis/` (team leader)
 
 ```ts
 FrameAnalysis { frameId: string; regionId: string; sampled: number; valid: number
-                medianValue?: number; category: CategoryId | "insufficient" }
+                medianValue?: number; category: CategoryId | "insufficient"
+                shares?: Record<CategoryId, number> }   // fraction of the valid points in each category; sums to 1; absent when valid is 0
 analyzeFrame(frame, region, colorScale, mapping): Promise<FrameAnalysis> // runs in a worker; same input → same output
 ```
+The whole map, for exploring it by ear, is `analyzeGrid` (5.6).
 Rules: no-data and unmatched colors are left out, never guessed. If fewer than `minValidFraction` of the points are valid, the result is `"insufficient"`, never "cold".
 
 ### 5.3 Sound engine: `src/audio/` (team leader)
@@ -109,16 +114,20 @@ Rules: no-data and unmatched colors are left out, never guessed. If fewer than `
 ```ts
 SoundEngine {
   unlock(): Promise<void>            // call from a click or key press
-  playCategory(id: CategoryId, opts?: { pan?: number; durationMs?: number }): void
+  playCategory(id: CategoryId, opts?: { pan?: number; durationMs?: number; pad?: CategoryId[] }): void
   playTick(): void
   playMissing(): void
-  playSequence(steps: { category: CategoryId | "insufficient"; atMs: number }[], onStep: (index: number) => void): void
+  playSequence(steps: SequenceStep[], onStep: (index: number) => void, opts?: { tick?: boolean }): void
+  setStyle(style: "full" | "simple"): void   // see 5.7
   setVolume(zeroToOne: number): void
   pause(): void; resume(): void; stop(): void
   isPlaying(): boolean
   renderToWav(steps: ...): Promise<Blob>   // should-have (F14)
 }
+SequenceStep { category: CategoryId | "insufficient"; atMs: number; pan?: number
+               pad?: CategoryId[]; glide?: boolean; bell?: boolean }   // the last three are the musical layer, see 5.7
 ```
+`pan` runs from -1 (west) to +1 (east). A tick follows each sound unless `opts.tick` is `false`; sweeping across a map is not a run of dates, so it passes `tick: false`.
 
 ### 5.4 Voice guide screen context and playback commands (Mohammad)
 
@@ -151,6 +160,44 @@ test_responses (id INTEGER PK, session_id TEXT REFERENCES test_sessions(id), com
                 confidence INTEGER CHECK BETWEEN 1 AND 5, comment TEXT)
 ```
 No names, emails or IP addresses are stored. Render's free disk is wiped on restart, so attach a persistent disk or export the CSV after every session.
+
+### 5.6 The sound map: `analyzeGrid` in `src/analysis/` (team leader; the explorer is Mohammad's)
+
+The whole map of one date, read into a grid, so a listener can explore it by keyboard, touch or pointer and sweep along a row or a column. T64 adds the types and a **stub** (24 × 12 cells, coolest in the west to warmest in the east, the last two columns without data); T65 replaces it with the real reading behind the same signature.
+```ts
+GridCell  { value: number | null; category: CategoryId | "insufficient" }   // no value when too few pixels could be read
+FrameGrid { frameId: string; cols: number; rows: number
+            area: { x0: number; y0: number; x1: number; y1: number }        // the part of the image that was read
+            cells: GridCell[] }                                              // row-major; row 0 is the top (north)
+analyzeGrid(frame, colorScale, mapping, area?): Promise<FrameGrid>           // area defaults to the whole image
+```
+Rules: the same pixel lookup as `analyzeFrame`, so a cell and a region never disagree. A cell that cannot be read is `"insufficient"` with no value, never a low one. The same input always gives the same grid.
+
+### 5.7 The musical layer: `src/audio/voicing.ts` and `src/audio/style.ts` (team leader)
+
+T64 adds the fields and a stub; T68 gives them sound. Until then the engine accepts them and sounds exactly as before.
+```ts
+voicingFor(results: FrameAnalysis[], index: number, mapping): { pad?: CategoryId[]; glide?: boolean; bell?: boolean }
+//   pad:   a chord under the note, from the categories that hold a large share of the region's values
+//   glide: the note slides from the previous one, when the value changed
+//   bell:  a bell above the note, when the value jumped by two or more steps
+type SoundStyle = "full" | "simple"            // "simple" is the main note, the tick and the missing cue only
+useSoundStyle(): [SoundStyle, (style: SoundStyle) => void]   // remembered in localStorage "earth-jukebox:sound-style"; "full" if unset or storage is blocked
+```
+`voicingFor` is pure: the same results always give the same voicing.
+
+### 5.8 Descriptions: `src/describe/` (Roni)
+
+Words for what is on screen and what is heard, for screen readers. T64 adds stubs returning a fixed sentence; T69 writes the real rules behind the same signatures.
+```ts
+describeFrame(visualization, results, index): string                       // one date, and how it changed since the one before
+describeSequence(visualization, results): string                           // the whole sequence in a few sentences
+describeCell(visualization, grid, col, row): string                        // one cell of the map
+describeSweep(visualization, grid, { kind: "row" | "column"; index }): string   // a row or column as runs
+```
+Descriptions come from rules, never from a language model: the same data always gives the same words.
+
+**The boundary.** Agents and language models never sit in `src/analysis/`, `src/audio/`, `src/describe/` or the scoring in `src/features/compare/judge.ts`. The same frame must always give the same category, chord, words and score, and none of this may need the server. `src/boundary.test.ts` fails if any of those files imports the voice guide (`src/assistant/`, `useVoiceAssistant`, `VoiceAssistant`), imports `src/config`, uses `WebSocket`, or calls `fetch` (only `src/analysis/pixels.ts` may, to download the picture it reads).
 
 ## 6. Features
 

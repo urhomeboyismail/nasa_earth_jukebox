@@ -22,6 +22,7 @@ const engine = vi.hoisted(() => ({
   playCategory: vi.fn(),
   playMissing: vi.fn(),
   stop: vi.fn(),
+  setStyle: vi.fn(),
 }))
 vi.mock('../../audio', () => ({ createSoundEngine: () => engine }))
 const analyzeAll = vi.hoisted(() => vi.fn())

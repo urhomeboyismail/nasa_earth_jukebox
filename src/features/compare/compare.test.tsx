@@ -16,6 +16,7 @@ const engine = vi.hoisted(() => ({
   playCategory: vi.fn((id: string) => { calls.push(`category:${id}`) }),
   playMissing: vi.fn(() => { calls.push('missing') }),
   stop: vi.fn(() => { calls.push('stop') }),
+  setStyle: vi.fn(),
 }))
 vi.mock('../../audio', () => ({ createSoundEngine: () => engine }))
 

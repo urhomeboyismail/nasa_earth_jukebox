@@ -64,6 +64,12 @@ export type Comparison = {
   explanation: string
 }
 
+/** The part of the image that is map, as fractions 0 to 1 (x0 < x1, y0 < y1). Leaves out legend bars and titles. */
+export type MapArea = { x0: number; y0: number; x1: number; y1: number }
+
+/** One chapter of the story mode. fromFrame and toFrame are frame ids; fromFrame comes first in date order. */
+export type StoryChapter = { id: string; title: string; text: string; fromFrame: string; toFrame: string }
+
 export type Visualization = {
   id: string
   title: string
@@ -76,6 +82,9 @@ export type Visualization = {
   frames: Frame[]
   mapping: SoundMapping
   comparisons: Comparison[]
+  /** Default: the whole image. */
+  mapArea?: MapArea
+  story?: StoryChapter[]
 }
 
 export type CatalogEntry = { id: string; title: string; summary: string }
