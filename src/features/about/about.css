@@ -9,7 +9,7 @@
 
 .about h3 { margin: 1rem 0 0.25rem; font-size: 1.125rem; color: var(--text-h); }
 
-.about__facts { display: grid; gap: 0.5rem; margin: 0; }
+.about__facts { display: grid; gap: 0.5rem; margin: 0.75rem 0 0; }
 .about__facts div { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr)); gap: 0.25rem 1rem; }
 .about__facts dt { color: var(--text-h); font-weight: 600; }
 .about__facts dd { margin: 0; overflow-wrap: anywhere; }
