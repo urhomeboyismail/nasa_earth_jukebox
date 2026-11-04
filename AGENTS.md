@@ -46,6 +46,14 @@ Pages are listed in both `src/pages.ts` and `server/app/assistant/knowledge.py`;
 - Match the style of the surrounding code.
 - Keep changes small and focused; don't refactor unrelated code.
 - Don't commit secrets or `.env` files.
+- If a change affects layout (markup structure, CSS, spacing, sizing, or anything visible), it must work well on both mobile and desktop:
+  - Design mobile first, then widen. Check at least 360 px (phone), 768 px (tablet) and 1280 px (desktop) wide.
+  - No horizontal scrolling at any of those widths; content reflows instead of being cut off. Use flexible units (`%`, `rem`, `min()`/`clamp()`) and `flex-wrap`/grid over fixed pixel widths.
+  - Touch targets (buttons, sliders, links) are at least 44 × 44 px with space between them; nothing depends on hover alone.
+  - Text stays readable without zooming (body at least 16 px) and the page still works at 200% browser zoom.
+  - Images and frames scale to fit their container and keep their aspect ratio.
+  - On mobile (below 768 px wide) the main navigation sits in a bar fixed to the bottom of the screen, within thumb reach; on tablet and desktop it stays in the header. Leave room for it: page content and floating panels (such as the voice guide) must not be hidden behind the bar, and it must clear the phone's home indicator (`env(safe-area-inset-bottom)`).
+  - Say in your PR which widths you checked.
 
 ## Git
 

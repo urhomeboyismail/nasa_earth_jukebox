@@ -205,6 +205,7 @@ A ticket is done when all of these hold:
 - `npm run build` and `npm run lint` pass; `server/.venv/bin/python -m pytest` passes if `server/` changed.
 - New logic has unit tests (Vitest on the frontend, pytest on the server).
 - It works by keyboard only, and each control has a label.
+- If it changes layout, it works on mobile and desktop: checked at 360, 768 and 1280 px wide, with no horizontal scroll, touch targets at least 44 × 44 px, nothing that needs hover, and the main navigation in a bottom bar below 768 px (full rule in `AGENTS.md` → Conventions).
 - No secrets or `.env` files are committed.
 - The PR describes what changed and how it was tested.
 
