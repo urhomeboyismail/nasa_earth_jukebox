@@ -1,0 +1,573 @@
+{
+  "id": "synthetic-globe",
+  "title": "Synthetic globe (made-up practice data)",
+  "summary": "Twelve made-up monthly frames of a pretend globe with a marine heatwave, for practising the explorer and the story.",
+  "description": "A pretend globe through one year: warm at the equator and cold towards the top and bottom, two grey land masses, a warm current, and a marine heatwave that grows in the north-east from March to August and fades by November. One date is hidden by cloud. Every temperature is chosen by us, so the right answer is always known. None of it is real data.",
+  "variable": {
+    "name": "Sea surface temperature",
+    "unit": "°C"
+  },
+  "source": {
+    "name": "Synthetic test data",
+    "url": "",
+    "credit": "Earth Jukebox team",
+    "license": "CC0",
+    "retrievedOn": "2026-11-05"
+  },
+  "colorScale": {
+    "stops": [
+      {
+        "value": 0,
+        "rgb": [
+          8,
+          48,
+          160
+        ]
+      },
+      {
+        "value": 5,
+        "rgb": [
+          30,
+          120,
+          220
+        ]
+      },
+      {
+        "value": 10,
+        "rgb": [
+          60,
+          190,
+          230
+        ]
+      },
+      {
+        "value": 15,
+        "rgb": [
+          120,
+          215,
+          150
+        ]
+      },
+      {
+        "value": 20,
+        "rgb": [
+          250,
+          230,
+          60
+        ]
+      },
+      {
+        "value": 24,
+        "rgb": [
+          250,
+          160,
+          40
+        ]
+      },
+      {
+        "value": 27,
+        "rgb": [
+          235,
+          90,
+          40
+        ]
+      },
+      {
+        "value": 30,
+        "rgb": [
+          180,
+          20,
+          30
+        ]
+      }
+    ],
+    "noData": [
+      [
+        128,
+        128,
+        128
+      ]
+    ],
+    "maxColorDistance": 40
+  },
+  "regions": [
+    {
+      "id": "north-east-patch",
+      "name": "North-east patch",
+      "description": "A grid of 30 points in the north-east ocean, where the marine heatwave grows and fades.",
+      "points": [
+        {
+          "x": 0.46,
+          "y": 0.09
+        },
+        {
+          "x": 0.5,
+          "y": 0.09
+        },
+        {
+          "x": 0.54,
+          "y": 0.09
+        },
+        {
+          "x": 0.58,
+          "y": 0.09
+        },
+        {
+          "x": 0.62,
+          "y": 0.09
+        },
+        {
+          "x": 0.66,
+          "y": 0.09
+        },
+        {
+          "x": 0.46,
+          "y": 0.115
+        },
+        {
+          "x": 0.5,
+          "y": 0.115
+        },
+        {
+          "x": 0.54,
+          "y": 0.115
+        },
+        {
+          "x": 0.58,
+          "y": 0.115
+        },
+        {
+          "x": 0.62,
+          "y": 0.115
+        },
+        {
+          "x": 0.66,
+          "y": 0.115
+        },
+        {
+          "x": 0.46,
+          "y": 0.14
+        },
+        {
+          "x": 0.5,
+          "y": 0.14
+        },
+        {
+          "x": 0.54,
+          "y": 0.14
+        },
+        {
+          "x": 0.58,
+          "y": 0.14
+        },
+        {
+          "x": 0.62,
+          "y": 0.14
+        },
+        {
+          "x": 0.66,
+          "y": 0.14
+        },
+        {
+          "x": 0.46,
+          "y": 0.165
+        },
+        {
+          "x": 0.5,
+          "y": 0.165
+        },
+        {
+          "x": 0.54,
+          "y": 0.165
+        },
+        {
+          "x": 0.58,
+          "y": 0.165
+        },
+        {
+          "x": 0.62,
+          "y": 0.165
+        },
+        {
+          "x": 0.66,
+          "y": 0.165
+        },
+        {
+          "x": 0.46,
+          "y": 0.19
+        },
+        {
+          "x": 0.5,
+          "y": 0.19
+        },
+        {
+          "x": 0.54,
+          "y": 0.19
+        },
+        {
+          "x": 0.58,
+          "y": 0.19
+        },
+        {
+          "x": 0.62,
+          "y": 0.19
+        },
+        {
+          "x": 0.66,
+          "y": 0.19
+        }
+      ]
+    },
+    {
+      "id": "tropics",
+      "name": "Tropics",
+      "description": "A grid of 30 points along the equator in the middle of the ocean, which stays hot all year.",
+      "points": [
+        {
+          "x": 0.4,
+          "y": 0.405
+        },
+        {
+          "x": 0.44,
+          "y": 0.405
+        },
+        {
+          "x": 0.48,
+          "y": 0.405
+        },
+        {
+          "x": 0.52,
+          "y": 0.405
+        },
+        {
+          "x": 0.56,
+          "y": 0.405
+        },
+        {
+          "x": 0.6,
+          "y": 0.405
+        },
+        {
+          "x": 0.4,
+          "y": 0.422
+        },
+        {
+          "x": 0.44,
+          "y": 0.422
+        },
+        {
+          "x": 0.48,
+          "y": 0.422
+        },
+        {
+          "x": 0.52,
+          "y": 0.422
+        },
+        {
+          "x": 0.56,
+          "y": 0.422
+        },
+        {
+          "x": 0.6,
+          "y": 0.422
+        },
+        {
+          "x": 0.4,
+          "y": 0.44
+        },
+        {
+          "x": 0.44,
+          "y": 0.44
+        },
+        {
+          "x": 0.48,
+          "y": 0.44
+        },
+        {
+          "x": 0.52,
+          "y": 0.44
+        },
+        {
+          "x": 0.56,
+          "y": 0.44
+        },
+        {
+          "x": 0.6,
+          "y": 0.44
+        },
+        {
+          "x": 0.4,
+          "y": 0.458
+        },
+        {
+          "x": 0.44,
+          "y": 0.458
+        },
+        {
+          "x": 0.48,
+          "y": 0.458
+        },
+        {
+          "x": 0.52,
+          "y": 0.458
+        },
+        {
+          "x": 0.56,
+          "y": 0.458
+        },
+        {
+          "x": 0.6,
+          "y": 0.458
+        },
+        {
+          "x": 0.4,
+          "y": 0.475
+        },
+        {
+          "x": 0.44,
+          "y": 0.475
+        },
+        {
+          "x": 0.48,
+          "y": 0.475
+        },
+        {
+          "x": 0.52,
+          "y": 0.475
+        },
+        {
+          "x": 0.56,
+          "y": 0.475
+        },
+        {
+          "x": 0.6,
+          "y": 0.475
+        }
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "id": "2024-01-15",
+      "date": "2024-01-15",
+      "image": "frames/2024-01-15.png",
+      "width": 1200,
+      "height": 600,
+      "altText": "Synthetic globe map, January 2024. Made-up practice data: two grey land masses, west and east, with a warm current between them. The north-east patch is light blue, cool, about 8 °C. A normal winter."
+    },
+    {
+      "id": "2024-02-15",
+      "date": "2024-02-15",
+      "image": "frames/2024-02-15.png",
+      "width": 1200,
+      "height": 600,
+      "altText": "Synthetic globe map, February 2024. Made-up practice data: two grey land masses, west and east, with a warm current between them. The north-east patch is light blue, cool, about 9 °C. A normal winter."
+    },
+    {
+      "id": "2024-03-15",
+      "date": "2024-03-15",
+      "image": "frames/2024-03-15.png",
+      "width": 1200,
+      "height": 600,
+      "altText": "Synthetic globe map, March 2024. Made-up practice data: two grey land masses, west and east, with a warm current between them. The north-east patch is light blue, cool, about 10 °C. The patch starts to warm."
+    },
+    {
+      "id": "2024-04-15",
+      "date": "2024-04-15",
+      "image": "frames/2024-04-15.png",
+      "width": 1200,
+      "height": 600,
+      "altText": "Synthetic globe map, April 2024. Made-up practice data: two grey land masses, west and east, with a warm current between them. The north-east patch is green, mild, about 13 °C. The patch warms."
+    },
+    {
+      "id": "2024-05-15",
+      "date": "2024-05-15",
+      "image": "frames/2024-05-15.png",
+      "width": 1200,
+      "height": 600,
+      "altText": "Synthetic globe map, May 2024. Made-up practice data: two grey land masses, west and east, with a warm current between them. The north-east patch is green, mild, about 15 °C. The patch warms."
+    },
+    {
+      "id": "2024-06-15",
+      "date": "2024-06-15",
+      "image": "frames/2024-06-15.png",
+      "width": 1200,
+      "height": 600,
+      "altText": "Synthetic globe map, June 2024. Made-up practice data: two grey land masses, west and east, with a warm current between them. The north-east patch is green, mild, about 17 °C. The patch warms."
+    },
+    {
+      "id": "2024-07-15",
+      "date": "2024-07-15",
+      "image": "frames/2024-07-15.png",
+      "width": 1200,
+      "height": 600,
+      "altText": "Synthetic globe map, July 2024. Made-up practice data: two grey land masses, west and east, with a warm current between them. The north-east patch is yellow to orange, warm, about 19 °C. The patch warms."
+    },
+    {
+      "id": "2024-08-15",
+      "date": "2024-08-15",
+      "image": "frames/2024-08-15.png",
+      "width": 1200,
+      "height": 600,
+      "altText": "Synthetic globe map, August 2024. Made-up practice data: two grey land masses, west and east, with a warm current between them. The north-east patch is yellow to orange, warm, about 19 °C. The warmest the patch gets."
+    },
+    {
+      "id": "2024-09-15",
+      "date": "2024-09-15",
+      "image": "frames/2024-09-15.png",
+      "width": 1200,
+      "height": 600,
+      "altText": "Synthetic globe map, September 2024. Made-up practice data: two grey land masses, west and east, with a warm current between them. The north-east patch is green, mild, about 16 °C. The patch starts to fade."
+    },
+    {
+      "id": "2024-10-15",
+      "date": "2024-10-15",
+      "image": "frames/2024-10-15.png",
+      "width": 1200,
+      "height": 600,
+      "altText": "Synthetic globe map, October 2024. Made-up practice data: two grey land masses, west and east, with a warm current between them. Cloud hides most of the north-east patch, so there is not enough data to read a temperature there. Cloud hides most of the patch: not enough data.",
+      "note": "Cloud hides most of the north-east patch on this date."
+    },
+    {
+      "id": "2024-11-15",
+      "date": "2024-11-15",
+      "image": "frames/2024-11-15.png",
+      "width": 1200,
+      "height": 600,
+      "altText": "Synthetic globe map, November 2024. Made-up practice data: two grey land masses, west and east, with a warm current between them. The north-east patch is light blue, cool, about 10 °C. The patch has almost gone."
+    },
+    {
+      "id": "2024-12-15",
+      "date": "2024-12-15",
+      "image": "frames/2024-12-15.png",
+      "width": 1200,
+      "height": 600,
+      "altText": "Synthetic globe map, December 2024. Made-up practice data: two grey land masses, west and east, with a warm current between them. The north-east patch is light blue, cool, about 9 °C. The patch has gone."
+    }
+  ],
+  "mapping": {
+    "scale": "C major arpeggio",
+    "summary": "median",
+    "minValidFraction": 0.5,
+    "categories": [
+      {
+        "id": "cold",
+        "label": "Cold",
+        "range": [
+          0,
+          6
+        ],
+        "note": "C4"
+      },
+      {
+        "id": "cool",
+        "label": "Cool",
+        "range": [
+          6,
+          12
+        ],
+        "note": "E4"
+      },
+      {
+        "id": "mild",
+        "label": "Mild",
+        "range": [
+          12,
+          18
+        ],
+        "note": "G4"
+      },
+      {
+        "id": "warm",
+        "label": "Warm",
+        "range": [
+          18,
+          24
+        ],
+        "note": "C5"
+      },
+      {
+        "id": "hot",
+        "label": "Hot",
+        "range": [
+          24,
+          30
+        ],
+        "note": "E5"
+      }
+    ],
+    "tick": {
+      "note": "C6",
+      "durationMs": 60
+    },
+    "missingCue": {
+      "type": "noise",
+      "durationMs": 300
+    }
+  },
+  "comparisons": [
+    {
+      "id": "march-vs-august",
+      "regionId": "north-east-patch",
+      "frameA": "2024-03-15",
+      "frameB": "2024-08-15",
+      "question": "Which date shows warmer water in the north-east patch?",
+      "answer": "b",
+      "explanation": "Date B (15 August) is about 19 °C, warm on the legend: the heatwave is at its peak. Date A (15 March) is about 10 °C, cool."
+    },
+    {
+      "id": "august-vs-november",
+      "regionId": "north-east-patch",
+      "frameA": "2024-08-15",
+      "frameB": "2024-11-15",
+      "question": "Which date shows warmer water in the north-east patch?",
+      "answer": "a",
+      "explanation": "The heatwave faded. Date A (15 August) is about 19 °C; date B (15 November) is about 10 °C."
+    },
+    {
+      "id": "january-vs-december",
+      "regionId": "north-east-patch",
+      "frameA": "2024-01-15",
+      "frameB": "2024-12-15",
+      "question": "Do these two dates show warmer water, or about the same?",
+      "answer": "same",
+      "explanation": "Both are about 9 °C, cool, at the start and the end of the year. The difference of under half a degree is too small to hear as a change."
+    }
+  ],
+  "mapArea": {
+    "x0": 0,
+    "y0": 0,
+    "x1": 1,
+    "y1": 0.88
+  },
+  "story": [
+    {
+      "id": "a-normal-spring",
+      "title": "A normal spring",
+      "fromFrame": "2024-01-15",
+      "toFrame": "2024-03-15",
+      "text": "This is made-up practice data, not a real measurement. From January to March the north-east patch of ocean is cool, about 8 °C, the way it usually is at this time of year. Listen for a steady note."
+    },
+    {
+      "id": "the-patch-warms",
+      "title": "The patch warms",
+      "fromFrame": "2024-03-15",
+      "toFrame": "2024-08-15",
+      "text": "From March the patch warms faster than the sea around it. By August it is about 19 °C, warm on our scale, where it was about 10 °C in March. The notes climb with it."
+    },
+    {
+      "id": "cloud-hides-the-sea",
+      "title": "Cloud hides the sea",
+      "fromFrame": "2024-10-15",
+      "toFrame": "2024-10-15",
+      "text": "In October cloud covers most of the patch, so there is not enough data to read a temperature. The app plays a hiss for a date like this, never a low note, because missing data is not cold."
+    },
+    {
+      "id": "it-fades-for-now",
+      "title": "It fades, for now",
+      "fromFrame": "2024-09-15",
+      "toFrame": "2024-12-15",
+      "text": "From September the patch cools again, and by December it is back to about 9 °C, close to where the year began. The heatwave has faded, for now."
+    }
+  ]
+}

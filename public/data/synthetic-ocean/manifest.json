@@ -319,7 +319,7 @@
     }
   ],
   "mapping": {
-    "scale": "C major pentatonic",
+    "scale": "C major arpeggio",
     "summary": "median",
     "minValidFraction": 0.5,
     "categories": [
@@ -339,7 +339,7 @@
           6,
           12
         ],
-        "note": "D4"
+        "note": "E4"
       },
       {
         "id": "mild",
@@ -348,7 +348,7 @@
           12,
           18
         ],
-        "note": "E4"
+        "note": "G4"
       },
       {
         "id": "warm",
@@ -357,7 +357,7 @@
           18,
           24
         ],
-        "note": "G4"
+        "note": "C5"
       },
       {
         "id": "hot",
@@ -366,7 +366,7 @@
           24,
           30
         ],
-        "note": "A4"
+        "note": "E5"
       }
     ],
     "tick": {
@@ -406,5 +406,11 @@
       "answer": "same",
       "explanation": "Both are about 15 °C. The difference of under half a degree is too small to hear as a change."
     }
-  ]
+  ],
+  "mapArea": {
+    "x0": 0,
+    "y0": 0,
+    "x1": 1,
+    "y1": 0.88
+  }
 }
