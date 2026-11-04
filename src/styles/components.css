@@ -62,3 +62,19 @@
 }
 .ui-notice--error { border-color: var(--error); background: var(--error-bg); }
 .ui-notice__label { color: var(--error); }
+
+/* DatasetPicker: a labelled choice with the chosen set's summary under it, centred above the page. */
+.ui-picker { display: grid; gap: 0.25rem; inline-size: 100%; max-inline-size: 30rem; margin-inline: auto; text-align: left; }
+.ui-picker__label { color: var(--text-h); font-weight: 600; }
+.ui-picker select {
+  font: inherit;
+  min-block-size: var(--control-size);
+  inline-size: 100%;
+  padding: 0 0.75rem;
+  color: var(--text-h);
+  background: var(--bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 0.75rem;
+}
+.ui-picker select:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.ui-picker__summary { margin: 0; color: var(--text); }

@@ -38,4 +38,32 @@ describe('hashFor', () => {
   it('round-trips with parseHash', () => {
     for (const { id } of pages) expect(parseHash(hashFor(id)).page).toBe(id)
   })
+
+  it('is just the page when there is nothing to add', () => {
+    expect(hashFor('listen')).toBe('#listen')
+    expect(hashFor('listen', {})).toBe('#listen')
+  })
+
+  it('carries the chosen data set, and parseHash reads it back', () => {
+    expect(hashFor('listen', { data: 'synthetic-ocean' })).toBe('#listen?data=synthetic-ocean')
+    const route = parseHash(hashFor('compare', { data: 'synthetic-ocean' }))
+    expect(route).toMatchObject({ page: 'compare', known: true })
+    expect(route.params.get('data')).toBe('synthetic-ocean')
+  })
+
+  it('leaves out parameters that are empty or missing', () => {
+    expect(hashFor('about', { data: null })).toBe('#about')
+    expect(hashFor('about', { data: undefined })).toBe('#about')
+    expect(hashFor('about', { data: '' })).toBe('#about')
+  })
+
+  it('keeps several parameters together, in a form parseHash reads', () => {
+    const route = parseHash(hashFor('compare', { test: '1', data: 'synthetic-ocean' }))
+    expect(route.params.get('test')).toBe('1')
+    expect(route.params.get('data')).toBe('synthetic-ocean')
+  })
+
+  it('escapes anything that would break the address', () => {
+    expect(parseHash(hashFor('listen', { data: 'a b&c=d' })).params.get('data')).toBe('a b&c=d')
+  })
 })

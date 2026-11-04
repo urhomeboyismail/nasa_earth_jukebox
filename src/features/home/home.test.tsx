@@ -29,6 +29,15 @@ describe('Home page', () => {
     expect(links.map(link => link.getAttribute('href'))).toEqual(['#learn', '#listen', '#compare'])
   })
 
+  it('keeps the chosen data set on its links', () => {
+    window.location.hash = '#home?data=synthetic-ocean'
+    render(<HomePage visualization={visualization} />)
+    const hrefs = within(screen.getByRole('list', { name: 'Steps' })).getAllByRole('link').map(link => link.getAttribute('href'))
+    expect(hrefs).toEqual(['#learn?data=synthetic-ocean', '#listen?data=synthetic-ocean', '#compare?data=synthetic-ocean'])
+    expect(screen.getByRole('link', { name: 'About the data' })).toHaveAttribute('href', '#about?data=synthetic-ocean')
+    window.location.hash = ''
+  })
+
   it('says the values are approximate and credits the imagery', () => {
     render(<HomePage visualization={visualization} />)
     expect(screen.getByText(/approximate/i)).toBeInTheDocument()
