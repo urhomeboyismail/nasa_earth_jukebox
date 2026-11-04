@@ -1,5 +1,5 @@
 // Sound engine contract (docs/PLAN.md §5.3).
-// The engine itself is in engine.ts (Tone.js). Sequences are still timer-based; T04 moves them onto Tone.Transport.
+// The engine itself is in engine.ts (Tone.js); sequences run on Tone.Transport.
 
 import type { CategoryId } from '../data'
 
