@@ -1,6 +1,6 @@
 import type { KeyboardEvent } from 'react'
 import { useAssistantContext } from '../../assistant/context'
-import { AnnouncerProvider, Button, Notice, Slider } from '../../components'
+import { AnnouncerProvider, Button, Legend, Notice, Slider } from '../../components'
 import type { Visualization } from '../../data'
 import type { PageProps } from '../types'
 import './player.css'
@@ -73,6 +73,11 @@ function Player({ visualization }: { visualization: Visualization }) {
   return (
     <section className="player" aria-label="Player" onKeyDown={onKeyDown}>
       <Viewer frame={frame} dateText={player.formatDate(frame.date)} region={player.region} source={source} />
+
+      <details className="player__legend">
+        <summary>Colour legend</summary>
+        <Legend colorScale={visualization.colorScale} mapping={visualization.mapping} variable={visualization.variable} />
+      </details>
 
       {player.error && <Notice variant="error">The sounds could not be prepared. {player.error}</Notice>}
       {player.loading && <Notice>Analyzing the images…</Notice>}

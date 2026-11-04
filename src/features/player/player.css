@@ -56,3 +56,16 @@
 @container (min-width: 48rem) {
   .player__controls .ui-button { flex: 0 0 auto; min-inline-size: 7rem; }
 }
+
+/* The colour legend folds away under the image; the summary is the tap target. */
+.player__legend { border: 1px solid var(--border); border-radius: 0.5rem; padding: 0 1rem; text-align: left; }
+.player__legend summary {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--control-size);
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-h);
+}
+.player__legend summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 0.25rem; }
+.player__legend[open] .ui-legend { padding-block-end: 1rem; }

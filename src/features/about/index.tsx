@@ -1,4 +1,4 @@
-import { Card } from '../../components'
+import { Card, Legend } from '../../components'
 import type { Visualization } from '../../data'
 import { dateFormatterFor, formatDate } from '../../dates'
 import type { PageProps } from '../types'
@@ -70,6 +70,7 @@ function About({ visualization }: { visualization: Visualization }) {
         </div>
 
         <h3>The colour legend</h3>
+        <Legend colorScale={colorScale} mapping={mapping} variable={variable} />
         <div className="about__table" role="region" aria-label="Colour legend" tabIndex={0}>
           <table>
             <caption>The colours we match against, in order.</caption>
