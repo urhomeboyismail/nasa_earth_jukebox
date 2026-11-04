@@ -1,0 +1,36 @@
+.learn {
+  display: grid;
+  gap: 1rem;
+  text-align: left;
+  max-inline-size: 70ch;
+  margin-inline: auto;
+}
+
+/* Cards share the row when there is room and stack when there is not: no breakpoint needed. */
+.learn__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.learn__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.learn__next {
+  display: inline-block;
+  min-height: var(--control-size);
+  line-height: var(--control-size);
+  padding-inline: 0.25rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+.learn__next:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
