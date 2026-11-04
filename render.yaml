@@ -1,0 +1,29 @@
+# Render Blueprint for the server (voice guide + listening-test API). The website is on Vercel (vercel.json).
+# Secrets are never written here: set them in the Render dashboard (marked sync: false).
+services:
+  - type: web
+    name: earth-jukebox-server
+    runtime: python
+    rootDir: server
+    plan: free # sleeps when idle; wake it a minute before any demo. A persistent disk needs a paid plan (see below).
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: GEMINI_API_KEY # the voice guide; without it the rest of the app still works
+        sync: false
+      - key: STUDY_EXPORT_TOKEN # long random text; needed to download the listening-test CSV
+        sync: false
+      - key: CORS_ORIGINS # the Vercel site, for example https://earth-jukebox.vercel.app (no trailing slash, no wildcard)
+        sync: false
+      - key: ENVIRONMENT
+        value: production
+    # Render's free disk is wiped on every restart and deploy, which would lose test results. To keep them, move to a
+    # paid plan and uncomment the disk and STUDY_DB_PATH; otherwise download the CSV (X-Team-Token) after every session.
+    # disk:
+    #   name: study-data
+    #   mountPath: /var/data
+    #   sizeGB: 1
+    # (and add:  - key: STUDY_DB_PATH   value: /var/data/study.db )
