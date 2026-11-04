@@ -50,7 +50,7 @@
   color: var(--text-h); background: transparent; border: 1px solid transparent; cursor: pointer;
 }
 .voice-assistant__icon-btn { width: 44px; height: 44px; border-radius: 50%; }
-.voice-assistant__btn { min-height: 40px; padding: 0 16px; border-radius: 999px; background: var(--accent-bg); }
+.voice-assistant__btn { min-height: var(--control-size); padding: 0 16px; border-radius: 999px; background: var(--accent-bg); }
 .voice-assistant__btn--filled { background: var(--accent); color: var(--bg); }
 .voice-assistant__btn--text { background: transparent; }
 .voice-assistant__icon-btn:hover, .voice-assistant__btn:hover { border-color: var(--accent-border); }
