@@ -1,22 +1,44 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type ComponentType } from 'react'
 import VoiceAssistant from './VoiceAssistant'
+import { loadCatalog, loadVisualization, type Visualization } from './data'
+import AboutPage from './features/about'
+import ComparePage from './features/compare'
+import HomePage from './features/home'
+import LearnPage from './features/learn'
+import PlayerPage from './features/player'
+import type { PageProps } from './features/types'
 import { useVoiceAssistant, type AssistantAction } from './hooks/useVoiceAssistant'
 import { pages, type Page } from './pages'
 import './App.css'
 
-const summaries: Record<Page, string> = {
-  home: 'Hear how our planet is changing. The Earth Jukebox turns NASA Earth imagery into sound.',
-  learn: 'Learn what each sound means before you listen to the data.',
-  listen: 'Play a sequence of NASA imagery as sound, one date after another.',
-  compare: 'Choose two dates, listen to each, and decide which shows the change.',
-  about: 'Where the imagery comes from, and how its colours become sound.',
+const pageComponents: Record<Page, ComponentType<PageProps>> = {
+  home: HomePage,
+  learn: LearnPage,
+  listen: PlayerPage,
+  compare: ComparePage,
+  about: AboutPage,
 }
 
 function App() {
   const [page, setPage] = useState<Page>('home')
   const [assistantOpen, setAssistantOpen] = useState(false)
+  const [visualization, setVisualization] = useState<Visualization | null>(null)
+  const [loadError, setLoadError] = useState('')
   const heading = useRef<HTMLHeadingElement>(null)
   const moved = useRef(false)
+
+  // Load the first visualization in the catalog. Choosing between several comes later (F16).
+  useEffect(() => {
+    let cancelled = false
+    loadCatalog()
+      .then(catalog => {
+        if (!catalog.length) throw new Error('No visualizations are listed in public/data/index.json.')
+        return loadVisualization(catalog[0].id)
+      })
+      .then(loaded => { if (!cancelled) setVisualization(loaded) })
+      .catch((error: unknown) => { if (!cancelled) setLoadError(error instanceof Error ? error.message : String(error)) })
+    return () => { cancelled = true }
+  }, [])
 
   // Move focus to the new page's heading so screen readers announce it, but not on first load.
   useEffect(() => {
@@ -36,6 +58,7 @@ function App() {
   }
 
   const title = pages.find(item => item.id === page)?.title
+  const CurrentPage = pageComponents[page]
 
   return (
     <>
@@ -60,7 +83,8 @@ function App() {
 
       <main className="app-main">
         <h1 ref={heading} tabIndex={-1}>{title}</h1>
-        <p>{summaries[page]}</p>
+        {loadError && <p role="alert">The data could not be loaded. {loadError}</p>}
+        <CurrentPage visualization={visualization} />
       </main>
 
       {assistantOpen && <VoiceAssistant assistant={assistant} onClose={closeAssistant} />}

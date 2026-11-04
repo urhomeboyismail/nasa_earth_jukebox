@@ -10,12 +10,15 @@ Goal: an "Earth Jukebox" that pairs NASA Earth Information Center (EIC) visual f
 
 Full brief: see `CHALLENGE.md`.
 
+Project plan (features, interfaces, folder ownership, milestones): see `docs/PLAN.md`. Read it and your ticket before starting work.
+
 ## Team
 
 - Team leader
 - Mohammad Ismail Iftikhar Oozeerally (@urhomeboyismail)
 - @bhavish.tb
 - Dhruv Bhantoo
+- Roni
 
 ## Commands
 
@@ -25,7 +28,9 @@ Stack: React + TypeScript, built with Vite. A small FastAPI server (`server/`) r
 - Dev: `npm run dev` (proxies `/api`, including the voice guide WebSocket, to the server on port 8000)
 - Build (typecheck + bundle): `npm run build`
 - Lint: `npm run lint` (oxlint)
+- Test: `npm test` (Vitest + Testing Library, jsdom); `npm run test:watch` while working
 - Preview build: `npm run preview`
+- Regenerate the fixture dataset: `python3 -I scripts/make_fixture.py` (writes `public/data/fixture/`)
 
 Server (from `server/`):
 

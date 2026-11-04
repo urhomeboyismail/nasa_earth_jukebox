@@ -1,0 +1,204 @@
+{
+  "id": "fixture",
+  "title": "Fixture ocean",
+  "summary": "Four test frames with obvious answers, for development.",
+  "description": "A tiny test dataset: one cold, one mild, one hot and one missing frame of a pretend ocean.",
+  "variable": {
+    "name": "Sea surface temperature",
+    "unit": "°C"
+  },
+  "source": {
+    "name": "Synthetic test data",
+    "url": "",
+    "credit": "Earth Jukebox team",
+    "license": "CC0",
+    "retrievedOn": "2026-11-04"
+  },
+  "colorScale": {
+    "stops": [
+      {
+        "value": 0,
+        "rgb": [
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "value": 15,
+        "rgb": [
+          255,
+          255,
+          0
+        ]
+      },
+      {
+        "value": 30,
+        "rgb": [
+          255,
+          0,
+          0
+        ]
+      }
+    ],
+    "noData": [
+      [
+        128,
+        128,
+        128
+      ]
+    ],
+    "maxColorDistance": 40
+  },
+  "regions": [
+    {
+      "id": "centre",
+      "name": "Central ocean",
+      "description": "A grid of nine points in the middle of the image.",
+      "points": [
+        {
+          "x": 0.3,
+          "y": 0.3
+        },
+        {
+          "x": 0.5,
+          "y": 0.3
+        },
+        {
+          "x": 0.7,
+          "y": 0.3
+        },
+        {
+          "x": 0.3,
+          "y": 0.5
+        },
+        {
+          "x": 0.5,
+          "y": 0.5
+        },
+        {
+          "x": 0.7,
+          "y": 0.5
+        },
+        {
+          "x": 0.3,
+          "y": 0.7
+        },
+        {
+          "x": 0.5,
+          "y": 0.7
+        },
+        {
+          "x": 0.7,
+          "y": 0.7
+        }
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "id": "2024-01-15",
+      "date": "2024-01-15",
+      "image": "frames/2024-01-15.png",
+      "width": 200,
+      "height": 100,
+      "altText": "Ocean region in deep blue: the coldest colour on the legend."
+    },
+    {
+      "id": "2024-07-15",
+      "date": "2024-07-15",
+      "image": "frames/2024-07-15.png",
+      "width": 200,
+      "height": 100,
+      "altText": "Ocean region in yellow: the middle of the legend."
+    },
+    {
+      "id": "2024-12-15",
+      "date": "2024-12-15",
+      "image": "frames/2024-12-15.png",
+      "width": 200,
+      "height": 100,
+      "altText": "Ocean region in red: the warmest colour on the legend."
+    },
+    {
+      "id": "2025-03-15",
+      "date": "2025-03-15",
+      "image": "frames/2025-03-15.png",
+      "width": 200,
+      "height": 100,
+      "altText": "The whole image is grey: no data was recorded for this date.",
+      "note": "Most of this frame is missing data."
+    }
+  ],
+  "mapping": {
+    "scale": "C major pentatonic",
+    "summary": "median",
+    "minValidFraction": 0.5,
+    "categories": [
+      {
+        "id": "cold",
+        "label": "Cold",
+        "range": [
+          0,
+          6
+        ],
+        "note": "C4"
+      },
+      {
+        "id": "cool",
+        "label": "Cool",
+        "range": [
+          6,
+          12
+        ],
+        "note": "D4"
+      },
+      {
+        "id": "mild",
+        "label": "Mild",
+        "range": [
+          12,
+          18
+        ],
+        "note": "E4"
+      },
+      {
+        "id": "warm",
+        "label": "Warm",
+        "range": [
+          18,
+          24
+        ],
+        "note": "G4"
+      },
+      {
+        "id": "hot",
+        "label": "Hot",
+        "range": [
+          24,
+          30
+        ],
+        "note": "A4"
+      }
+    ],
+    "tick": {
+      "note": "C6",
+      "durationMs": 60
+    },
+    "missingCue": {
+      "type": "noise",
+      "durationMs": 300
+    }
+  },
+  "comparisons": [
+    {
+      "id": "january-vs-december",
+      "regionId": "centre",
+      "frameA": "2024-01-15",
+      "frameB": "2024-12-15",
+      "question": "Which date shows warmer water in the central ocean?",
+      "answer": "b",
+      "explanation": "Date B is red on the legend, about 30 °C; date A is deep blue, about 0 °C."
+    }
+  ]
+}

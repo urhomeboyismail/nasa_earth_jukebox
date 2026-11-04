@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { frameLevel, SpeechPlayer, startRecorder, type Recorder } from "../assistant/audio";
 import { currentContext, subscribeContext, type ContextUpdate } from "../assistant/context";
+import { socketUrl } from "../config";
 import { isPage, type Page } from "../pages";
 
 export type AssistantStatus = "idle" | "connecting" | "listening" | "speaking" | "ended" | "error";
@@ -33,10 +34,7 @@ const SILENT_WARNING_FRAMES = 100;
 /** Screens republish on every keystroke; forward at most this often per screen. */
 const CONTEXT_DEBOUNCE_MS = 400;
 
-function socketUrl() {
-  const scheme = window.location.protocol === "https:" ? "wss" : "ws";
-  return `${scheme}://${window.location.host}/api/v1/assistant/live`;
-}
+const SOCKET_PATH = "/api/v1/assistant/live";
 
 export function micErrorMessage(cause: unknown): string {
   const name = cause instanceof Error ? cause.name : "";
@@ -131,7 +129,7 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
     speech.onIdle = () => setStatus(current => current === "speaking" ? "listening" : current);
     void speech.resume();
 
-    const ws = new WebSocket(socketUrl());
+    const ws = new WebSocket(socketUrl(SOCKET_PATH));
     ws.binaryType = "arraybuffer";
     socket.current = ws;
     let ready = false;
