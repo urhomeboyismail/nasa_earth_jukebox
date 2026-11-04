@@ -19,13 +19,22 @@ Full brief: see `CHALLENGE.md`.
 
 ## Commands
 
-Stack: React + TypeScript, built with Vite. No backend; static site.
+Stack: React + TypeScript, built with Vite. A small FastAPI server (`server/`) runs only the voice guide, a Gemini Live bridge ported from FinAssist; the rest of the app works without it.
 
 - Install: `npm install`
-- Dev: `npm run dev`
+- Dev: `npm run dev` (proxies `/api`, including the voice guide WebSocket, to the server on port 8000)
 - Build (typecheck + bundle): `npm run build`
 - Lint: `npm run lint` (oxlint)
 - Preview build: `npm run preview`
+
+Server (from `server/`):
+
+- Install: `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`
+- Configure: copy `.env.example` to `.env` and set `GEMINI_API_KEY`
+- Run: `.venv/bin/uvicorn app.main:app --port 8000`
+- Test: `.venv/bin/python -m pytest`
+
+Pages are listed in both `src/pages.ts` and `server/app/assistant/knowledge.py`; a server test fails if they drift.
 
 ## Conventions
 

@@ -1,0 +1,10 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.8.0
+pydantic-settings>=2.4.0
+google-genai
+
+# Tests
+pytest>=8.3.0
+# fastapi.testclient prefers httpx2 (a real package, not a typo) and warns when it falls back to httpx.
+httpx2

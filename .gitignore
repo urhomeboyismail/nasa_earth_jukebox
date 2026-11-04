@@ -1,6 +1,12 @@
 .env
 .env.*
+!.env.example
 node_modules/
+
+# Python (server/)
+__pycache__/
+.venv/
+.pytest_cache/
 .claude/settings.local.json
 # Logs
 logs
