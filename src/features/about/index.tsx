@@ -1,9 +1,106 @@
+import { Card } from '../../components'
+import type { Visualization } from '../../data'
 import type { PageProps } from '../types'
+import './about.css'
 
-// Placeholder from T00. Owner: Roni (T43).
+const long = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+const formatDate = (iso: string) => {
+  const date = new Date(`${iso}T00:00:00Z`)
+  return Number.isNaN(date.getTime()) ? iso : long.format(date)
+}
+const percent = (fraction: number) => `${Math.round(fraction * 100)}%`
+const rgbText = (rgb: [number, number, number]) => `rgb(${rgb.join(', ')})`
+
 export default function AboutPage({ visualization }: PageProps) {
-  return <>
-    <p>Where the imagery comes from, and how its colours become sound.</p>
-    {visualization && <p>Source: {visualization.source.name}. Credit: {visualization.source.credit}.</p>}
-  </>
+  if (!visualization) return <p>Loading the data…</p>
+  return <About visualization={visualization} />
+}
+
+/** Everything on this page is read from the visualization's manifest, so it can never disagree with the data. */
+function About({ visualization }: { visualization: Visualization }) {
+  const { variable, source, frames, regions, colorScale, mapping } = visualization
+  const region = regions[0]
+  const dates = frames.map(frame => frame.date).sort()
+  const missing = frames.filter(frame => frame.note)
+  const unit = variable.unit
+
+  return (
+    <div className="about">
+      <p>Where the imagery comes from, what the colours and sounds mean, and where the method falls short.</p>
+
+      <Card title="What the data is" headingLevel={2}>
+        <p><strong>{visualization.title}.</strong> {visualization.description}</p>
+        <dl className="about__facts">
+          <div><dt>What is measured</dt><dd>{variable.name}{unit && `, in ${unit}`}</dd></div>
+          <div><dt>Dates</dt><dd>{frames.length} {frames.length === 1 ? 'date' : 'dates'}, from {formatDate(dates[0])} to {formatDate(dates[dates.length - 1])}</dd></div>
+          <div><dt>Place we listen to</dt><dd>{region.name}. {region.description}</dd></div>
+        </dl>
+      </Card>
+
+      <Card title="Source and credits" headingLevel={2}>
+        <dl className="about__facts">
+          <div><dt>Source</dt><dd>{source.url ? <a href={source.url}>{source.name}</a> : source.name}</dd></div>
+          <div><dt>Credit</dt><dd>{source.credit}</dd></div>
+          <div><dt>Licence</dt><dd>{source.license}</dd></div>
+          <div><dt>Retrieved</dt><dd>{formatDate(source.retrievedOn)}</dd></div>
+        </dl>
+      </Card>
+
+      <Card title="How colours become sound" headingLevel={2}>
+        <ol className="about__steps">
+          <li>Each image comes with a colour legend that links colours to {variable.name.toLowerCase()} values. We use the legend from the data: {colorScale.stops.length} colours, from {colorScale.stops[0].value} to {colorScale.stops[colorScale.stops.length - 1].value}{unit && ` ${unit}`}.</li>
+          <li>We read the colour of {region.points.length} points in {region.name}, the same places on every date. Land, labels and missing data are skipped, and so is any colour that is not close to the legend (more than {colorScale.maxColorDistance} away in RGB).</li>
+          <li>Each readable colour becomes a value, and we take the middle value (the median) of the points, so a few odd points do not decide the result.</li>
+          <li>If fewer than {percent(mapping.minValidFraction)} of the points can be read, the date counts as missing data and plays a different sound. Otherwise the median falls in one of {mapping.categories.length} ranges, and each range has its own note.</li>
+        </ol>
+
+        <h3>The ranges and their notes</h3>
+        <div className="about__table" role="region" aria-label="Ranges and notes" tabIndex={0}>
+          <table>
+            <caption>Cooler is always a lower note. Notes are from {mapping.scale}.</caption>
+            <thead><tr><th scope="col">Sound</th><th scope="col">Range{unit && ` (${unit})`}</th><th scope="col">Note</th></tr></thead>
+            <tbody>
+              {mapping.categories.map(category => (
+                <tr key={category.id}>
+                  <th scope="row">{category.label}</th>
+                  <td>{category.range[0]} to {category.range[1]}</td>
+                  <td>{category.note}</td>
+                </tr>
+              ))}
+              <tr><th scope="row">Missing data</th><td>Not enough readable points</td><td>A hiss, not a note</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>The colour legend</h3>
+        <div className="about__table" role="region" aria-label="Colour legend" tabIndex={0}>
+          <table>
+            <caption>The colours we match against, in order.</caption>
+            <thead><tr><th scope="col">Value{unit && ` (${unit})`}</th><th scope="col">Colour</th></tr></thead>
+            <tbody>
+              {colorScale.stops.map(stop => (
+                <tr key={stop.value}>
+                  <th scope="row">{stop.value}</th>
+                  <td><span className="about__swatch" style={{ background: rgbText(stop.rgb) }} aria-hidden="true" />{rgbText(stop.rgb)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <Card title="What to keep in mind" headingLevel={2}>
+        <ul className="about__limits">
+          <li>The values are approximate. They come from the colours of a published image, not from the measurements behind it, and a colour can only be matched to the legend so closely.</li>
+          <li>Each date is one of {mapping.categories.length} sounds, so small changes inside a range cannot be heard.</li>
+          <li>Missing data is left out, never counted as cold.{missing.length > 0 && ` ${missing.length === 1 ? 'One date has' : `${missing.length} dates have`} missing data: ${missing.map(frame => formatDate(frame.date)).join(', ')}.`}</li>
+          <li>We listen to {region.name} only. Other places can behave differently.</li>
+        </ul>
+      </Card>
+
+      <Card title="How we used AI tools" headingLevel={2}>
+        <p>AI coding assistants helped write parts of this app, and people on the team checked and tested their work. The voice guide uses Google&apos;s Gemini, so what you say to it is sent to Google while it is open; this app does not save it. The sounds are made by rules we wrote, not by AI.</p>
+      </Card>
+    </div>
+  )
 }
