@@ -5,10 +5,10 @@ import { useAssistantContext } from '../../assistant/context'
 import { AnnouncerProvider, Button, Card, Notice } from '../../components'
 import { useAnnounce } from '../../components/useAnnounce'
 import type { Visualization } from '../../data'
+import { dateFormatterFor } from '../../dates'
 import type { PageProps } from '../types'
 import './compare.css'
 import './test-mode.css'
-import { formatDate } from './dates'
 import { answerText, categoryLabel, judge, type Answer } from './judge'
 import TestMode from './TestMode'
 
@@ -40,6 +40,7 @@ export default function ComparePage({ visualization }: PageProps) {
 function Compare({ visualization }: { visualization: Visualization }) {
   const { frames, comparisons, regions, colorScale, mapping } = visualization
   const announce = useAnnounce()
+  const formatDate = useMemo(() => dateFormatterFor(frames.map(frame => frame.date)), [frames])
 
   const [choice, setChoice] = useState(comparisons[0]?.id ?? CUSTOM)
   const [customA, setCustomA] = useState(frames[0].id)

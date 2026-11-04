@@ -6,8 +6,8 @@ import { analyzeAll, type FrameAnalysis } from '../../analysis'
 import { createSoundEngine, type SoundEngine } from '../../audio'
 import { useAnnounce } from '../../components/useAnnounce'
 import type { Visualization } from '../../data'
+import { dateFormatterFor } from '../../dates'
 import { onPlayerCommand } from './controls'
-import { formatMonthYear } from './format'
 
 export type Speed = 'slow' | 'normal' | 'fast'
 export type Status = 'idle' | 'playing' | 'paused'
@@ -20,6 +20,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
   const { frames, regions, colorScale, mapping } = visualization
   const region = regions[0]
   const announce = useAnnounce()
+  const formatDate = useMemo(() => dateFormatterFor(frames.map(frame => frame.date)), [frames])
 
   const [results, setResults] = useState<FrameAnalysis[] | null>(null)
   const [analysisError, setAnalysisError] = useState('')
@@ -66,8 +67,8 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     return category === 'insufficient' ? 'no data' : (mapping.categories.find(c => c.id === category)?.label ?? category).toLowerCase()
   }, [results, mapping])
 
-  /** "March 2024: warm". Said once per date unless `force` is set (Replay says it again on purpose). */
-  const describeDate = useCallback((i: number) => `${formatMonthYear(frames[i].date)}: ${labelFor(i)}`, [frames, labelFor])
+  /** "March 2024: warm" (the date as detailed as the dataset needs). Said once per date unless `force` is set (Replay says it again on purpose). */
+  const describeDate = useCallback((i: number) => `${formatDate(frames[i].date)}: ${labelFor(i)}`, [frames, formatDate, labelFor])
   const speak = useCallback((i: number, force = false) => {
     if (!force && lastSpoken.current === i) return
     lastSpoken.current = i
@@ -202,7 +203,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     error: engineError || analysisError,
     loading: !engineError && !analysisError && !results,
     play, pause, stop, replay, goTo, setSpeed, setVolume,
-    describeDate,
+    describeDate, formatDate,
     categoryAt: (i: number) => results?.[i]?.category ?? null,
   }
 }

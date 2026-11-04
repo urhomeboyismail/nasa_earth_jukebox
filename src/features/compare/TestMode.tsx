@@ -7,7 +7,7 @@ import { analyzeAll, type FrameAnalysis } from '../../analysis'
 import { createSoundEngine, type SoundEngine } from '../../audio'
 import { Button, Card, Notice } from '../../components'
 import type { Comparison, Visualization } from '../../data'
-import { formatDate } from './dates'
+import { dateFormatterFor } from '../../dates'
 import { StudyClient, type Participant, type StudyStatus } from './studyClient'
 
 type Step = 'consent' | 'about' | 'images' | 'question' | 'thanks'
@@ -181,6 +181,7 @@ function Question({ comparison, number, of, visualization, engine, results, show
   const [comment, setComment] = useState('')
   const shownAt = useRef<number | null>(null)
   useEffect(() => { shownAt.current = performance.now() }, [])
+  const formatDate = dateFormatterFor(visualization.frames.map(frame => frame.date))
   const frameA = visualization.frames.find(f => f.id === comparison.frameA)!
   const frameB = visualization.frames.find(f => f.id === comparison.frameB)!
   const ready = !!engine && !!results

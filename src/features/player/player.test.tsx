@@ -113,9 +113,25 @@ describe('Player: viewing', () => {
   it('shows the image with its alt text, the date written out, the region, the note and the credit', async () => {
     await renderReady()
     expect(screen.getByRole('img', { name: visualization.frames[0].altText })).toBeInTheDocument()
-    expect(screen.getByText('15 January 2024')).toBeInTheDocument()
+    expect(screen.getByText('January 2024')).toBeInTheDocument()
     expect(screen.getByText('Region: Central ocean')).toBeInTheDocument()
     expect(screen.getByText(/Earth Jukebox team/)).toBeInTheDocument()
+  })
+
+  it('says the day when the frames are days apart, and only the year when they are years apart', async () => {
+    const withDates = (dates: string[]): Visualization => ({
+      ...visualization,
+      frames: visualization.frames.map((frame, i) => ({ ...frame, date: dates[i] })),
+    })
+    const daily = render(<PlayerPage visualization={withDates(['2024-05-01', '2024-05-02', '2024-05-03', '2024-05-04'])} />)
+    await tick(0)
+    expect(screen.getByText('1 May 2024')).toBeInTheDocument()
+    expect(dateText()).toBe('1 May 2024: cold')
+    daily.unmount()
+    render(<PlayerPage visualization={withDates(['2021-09-15', '2022-09-15', '2023-09-15', '2024-09-15'])} />)
+    await tick(0)
+    expect(screen.getByText('2021')).toBeInTheDocument()
+    expect(dateText()).toBe('2021: cold')
   })
 
   it('hides the region outline from assistive technology', async () => {
@@ -146,7 +162,7 @@ describe('Player: playing', () => {
     expect(fake.sequences[0].map(s => s.atMs)).toEqual([0, 1000, 2000, 3000])
     expect(screen.getByRole('button', { name: 'Pause' })).toBeInTheDocument()
     expect(liveText()).toBe('January 2024: cold')
-    expect(screen.getByText('15 January 2024')).toBeInTheDocument()
+    expect(screen.getByText('January 2024')).toBeInTheDocument()
 
     await tick(1000)
     expect(liveText()).toBe('July 2024: mild')
