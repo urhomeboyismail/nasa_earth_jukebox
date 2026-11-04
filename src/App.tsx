@@ -9,6 +9,7 @@ import PlayerPage from './features/player'
 import type { PageProps } from './features/types'
 import { useVoiceAssistant, type AssistantAction } from './hooks/useVoiceAssistant'
 import { pages, type Page } from './pages'
+import { hashFor, parseHash } from './route'
 import './App.css'
 
 const pageComponents: Record<Page, ComponentType<PageProps>> = {
@@ -19,13 +20,30 @@ const pageComponents: Record<Page, ComponentType<PageProps>> = {
   about: AboutPage,
 }
 
+/** Opens a page by changing the hash, which adds a history entry so back and forward work. */
+function goTo(page: Page) {
+  window.location.hash = hashFor(page)
+}
+
 function App() {
-  const [page, setPage] = useState<Page>('home')
+  const [page, setPage] = useState<Page>(() => parseHash(window.location.hash).page)
   const [assistantOpen, setAssistantOpen] = useState(false)
   const [visualization, setVisualization] = useState<Visualization | null>(null)
   const [loadError, setLoadError] = useState('')
   const heading = useRef<HTMLHeadingElement>(null)
-  const moved = useRef(false)
+  const shownPage = useRef(page)
+
+  // Follow the address bar: links, back and forward, and edits to the hash. An unknown hash becomes #home.
+  useEffect(() => {
+    function follow() {
+      const route = parseHash(window.location.hash)
+      if (!route.known) window.history.replaceState(null, '', hashFor('home'))
+      setPage(route.page)
+    }
+    follow()
+    window.addEventListener('hashchange', follow)
+    return () => window.removeEventListener('hashchange', follow)
+  }, [])
 
   // Load the first visualization in the catalog. Choosing between several comes later (F16).
   useEffect(() => {
@@ -42,12 +60,12 @@ function App() {
 
   // Move focus to the new page's heading so screen readers announce it, but not on first load.
   useEffect(() => {
-    if (moved.current) heading.current?.focus()
-    moved.current = true
+    if (shownPage.current !== page) heading.current?.focus()
+    shownPage.current = page
   }, [page])
 
   const handleAssistantAction = useCallback((action: AssistantAction) => {
-    if (action.action === 'navigate') setPage(action.page)
+    if (action.action === 'navigate') goTo(action.page)
   }, [])
 
   const assistant = useVoiceAssistant({ language: 'en', page, onAction: handleAssistantAction })
@@ -68,7 +86,7 @@ function App() {
           <ul className="app-nav">
             {pages.map(item => (
               <li key={item.id}>
-                <button type="button" aria-current={item.id === page ? 'page' : undefined} onClick={() => setPage(item.id)}>
+                <button type="button" aria-current={item.id === page ? 'page' : undefined} onClick={() => goTo(item.id)}>
                   {item.title}
                 </button>
               </li>
