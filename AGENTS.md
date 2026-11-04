@@ -41,6 +41,16 @@ Server (from `server/`):
 
 Pages are listed in both `src/pages.ts` and `server/app/assistant/knowledge.py`; a server test fails if they drift.
 
+## How to write a test
+
+Tests sit next to the code (`thing.ts` → `thing.test.ts`) and run with `npm test`. Copy `src/test/a11y.test.tsx`.
+
+- Render with Testing Library and find things the way a person would: `screen.getByRole('button', { name: 'Play' })`, not by class or test id. Use `userEvent` for clicks and keys.
+- Check accessibility on anything you render: `await expectNoA11yViolations(container)` from `src/test/a11y.ts`. It cannot check color contrast in jsdom, so that is covered by the design tokens and the manual audit.
+- jsdom has no `AudioContext` or `Worker`. Call `installFakeAudioContext()` or `installFakeWorker(handler)` from `src/test/fakes.ts`, and `uninstall()` after. Code that plays sound should normally go through the sound engine's fake in the same way the player tests do.
+- Mock `fetch` with `vi.stubGlobal('fetch', ...)` and undo it in `afterEach` (see `src/App.test.tsx`).
+- Use the fixture dataset (`public/data/fixture/manifest.json`) for realistic data.
+
 ## Conventions
 
 - Match the style of the surrounding code.
