@@ -3,7 +3,6 @@ import { useAssistantContext } from '../../assistant/context'
 import { AnnouncerProvider, Button, Notice, Slider } from '../../components'
 import type { Visualization } from '../../data'
 import type { PageProps } from '../types'
-import { formatMonthYear } from './format'
 import './player.css'
 import { usePlayer, type Speed } from './usePlayer'
 import { useVibrationSetting, vibrateForDate } from './vibration'
@@ -73,7 +72,7 @@ function Player({ visualization }: { visualization: Visualization }) {
 
   return (
     <section className="player" aria-label="Player" onKeyDown={onKeyDown}>
-      <Viewer frame={frame} region={player.region} source={source} />
+      <Viewer frame={frame} dateText={player.formatDate(frame.date)} region={player.region} source={source} />
 
       {player.error && <Notice variant="error">The sounds could not be prepared. {player.error}</Notice>}
       {player.loading && <Notice>Analyzing the images…</Notice>}
@@ -95,7 +94,7 @@ function Player({ visualization }: { visualization: Visualization }) {
           value={player.index}
           disabled={!player.ready}
           onChange={player.goTo}
-          describe={i => player.ready ? player.describeDate(i) : formatMonthYear(frames[i].date)}
+          describe={i => player.ready ? player.describeDate(i) : player.formatDate(frames[i].date)}
         />
       </div>
 

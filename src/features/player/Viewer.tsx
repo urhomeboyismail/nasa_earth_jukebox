@@ -1,14 +1,15 @@
 import type { Frame, Region, Visualization } from '../../data'
-import { formatDate } from './format'
 
 type Props = {
   frame: Frame
+  /** The frame's date, already written out for this dataset (see src/dates.ts). */
+  dateText: string
   region: Region
   source: Visualization['source']
 }
 
 /** The frame image with its region outline, the date written out, the frame's note and the source credit. */
-export function Viewer({ frame, region, source }: Props) {
+export function Viewer({ frame, dateText, region, source }: Props) {
   const { width, height } = frame
   const xs = region.points.map(p => p.x * width)
   const ys = region.points.map(p => p.y * height)
@@ -28,7 +29,7 @@ export function Viewer({ frame, region, source }: Props) {
         </svg>
       </div>
       <figcaption>
-        <strong className="player__date">{formatDate(frame.date)}</strong>
+        <strong className="player__date">{dateText}</strong>
         <span className="player__region">Region: {region.name}</span>
         {frame.note && <span className="player__note">{frame.note}</span>}
         <span className="player__credit">

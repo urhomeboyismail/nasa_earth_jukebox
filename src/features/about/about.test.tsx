@@ -16,7 +16,7 @@ describe('About the data page', () => {
   it('says what the data is: the variable, unit, dates and place', () => {
     render(<AboutPage visualization={visualization} />)
     expect(screen.getByText(/Sea surface temperature, in °C/)).toBeInTheDocument()
-    expect(screen.getByText('4 dates, from 15 January 2024 to 15 March 2025')).toBeInTheDocument()
+    expect(screen.getByText('4 dates, from January 2024 to March 2025')).toBeInTheDocument()
     expect(screen.getByText(/Central ocean\. A grid of nine points/)).toBeInTheDocument()
   })
 
@@ -67,9 +67,21 @@ describe('About the data page', () => {
     expect(screen.getByText(/one of 5 ranges/)).toBeInTheDocument()
   })
 
+  it('writes the dates at the level the data has: years for a yearly set, days for a daily one', () => {
+    const withDates = (dates: string[]): Visualization => ({
+      ...visualization,
+      frames: dates.map((date, i) => ({ ...visualization.frames[i % visualization.frames.length], id: `f${i}`, date })),
+    })
+    const { unmount } = render(<AboutPage visualization={withDates(['2022-09-15', '2023-09-18', '2024-09-11'])} />)
+    expect(screen.getByText('3 dates, from 2022 to 2024')).toBeInTheDocument()
+    unmount()
+    render(<AboutPage visualization={withDates(['2024-09-15', '2024-09-16'])} />)
+    expect(screen.getByText('2 dates, from 15 September 2024 to 16 September 2024')).toBeInTheDocument()
+  })
+
   it('lists the dates with missing data', () => {
     render(<AboutPage visualization={visualization} />)
-    expect(screen.getByText(/One date has missing data: 15 March 2025/)).toBeInTheDocument()
+    expect(screen.getByText(/One date has missing data: March 2025/)).toBeInTheDocument()
   })
 
   it('takes every number from the manifest: change the data and the page changes', () => {
@@ -90,7 +102,7 @@ describe('About the data page', () => {
     }
     render(<AboutPage visualization={changed} />)
     expect(screen.getByText(/Sea ice extent, in km²/)).toBeInTheDocument()
-    expect(screen.getByText('2 dates, from 15 January 2024 to 15 July 2024')).toBeInTheDocument()
+    expect(screen.getByText('2 dates, from January 2024 to July 2024')).toBeInTheDocument()
     expect(screen.getByText(/colour of 4 points in Arctic/)).toBeInTheDocument()
     expect(screen.getByText(/more than 25 away/)).toBeInTheDocument()
     expect(screen.getByText(/fewer than 75% of the points/)).toBeInTheDocument()
