@@ -401,3 +401,60 @@ describe('Player: the voice guide', () => {
     expect(fake.played).toEqual([])
   })
 })
+
+describe('Player: vibration', () => {
+  function supportVibration(on: boolean) {
+    const vibrate = vi.fn((_pattern: number | number[]) => true)
+    Object.defineProperty(navigator, 'vibrate', { value: on ? vibrate : undefined, configurable: true })
+    return vibrate
+  }
+  afterEach(() => { supportVibration(false); window.localStorage.clear() })
+
+  it('shows no setting where the phone cannot vibrate', async () => {
+    supportVibration(false)
+    await renderReady()
+    expect(screen.queryByRole('button', { name: 'Vibration' })).toBeNull()
+  })
+
+  it('is off by default and does not buzz when the page opens', async () => {
+    const vibrate = supportVibration(true)
+    await renderReady()
+    expect(screen.getByRole('button', { name: 'Vibration' })).toHaveAttribute('aria-pressed', 'false')
+    expect(vibrate).not.toHaveBeenCalled()
+  })
+
+  it('buzzes at each new date, longer for warmer ones, once it is turned on', async () => {
+    const vibrate = supportVibration(true)
+    const { user } = await renderReady()
+    await user.click(screen.getByRole('button', { name: 'Vibration' }))
+    expect(screen.getByRole('button', { name: 'Vibration' })).toHaveAttribute('aria-pressed', 'true')
+    await user.click(screen.getByRole('button', { name: 'Play' }))
+    await tick(0)
+    await tick(1000)
+    await tick(1000)
+    await tick(1000)
+    const patterns = vibrate.mock.calls.map(call => call[0] as number[])
+    // January is cold (the shortest pulse), July mild, December hot (the longest), then missing data (two taps).
+    expect(patterns).toEqual([[30], [75], [120], [25, 60, 25]])
+    expect(patterns[0][0]).toBeLessThan(patterns[1][0])
+  })
+
+  it('buzzes when one date is chosen on its own, and when it is replayed', async () => {
+    const vibrate = supportVibration(true)
+    const { user } = await renderReady()
+    await user.click(screen.getByRole('button', { name: 'Vibration' }))
+    await jumpTo(2)
+    expect(vibrate).toHaveBeenLastCalledWith([120])
+    await user.click(screen.getByRole('button', { name: 'Replay this date' }))
+    await tick(0)
+    expect(vibrate).toHaveBeenCalledTimes(2)
+  })
+
+  it('stays quiet while it is turned off', async () => {
+    const vibrate = supportVibration(true)
+    const { user } = await renderReady()
+    await user.click(screen.getByRole('button', { name: 'Play' }))
+    await tick(2500)
+    expect(vibrate).not.toHaveBeenCalled()
+  })
+})

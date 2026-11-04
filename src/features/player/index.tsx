@@ -6,6 +6,7 @@ import type { PageProps } from '../types'
 import { formatMonthYear } from './format'
 import './player.css'
 import { usePlayer, type Speed } from './usePlayer'
+import { useVibrationSetting, vibrateForDate } from './vibration'
 import { Viewer } from './Viewer'
 
 const SPEEDS: { id: Speed; label: string }[] = [
@@ -33,7 +34,11 @@ export default function PlayerPage({ visualization }: PageProps) {
 }
 
 function Player({ visualization }: { visualization: Visualization }) {
-  const player = usePlayer(visualization)
+  const vibration = useVibrationSetting()
+  // A pulse each time the player lands on a date, while playing or when one date is chosen. Not on page load.
+  const player = usePlayer(visualization, (_index, category) => {
+    if (vibration.enabled) vibrateForDate(category, visualization.mapping)
+  })
   const { frames, source } = visualization
   const frame = frames[player.index]
   const playing = player.status === 'playing'
@@ -110,6 +115,13 @@ function Player({ visualization }: { visualization: Visualization }) {
           describe={value => `${value} percent`}
         />
       </div>
+
+      {vibration.supported && (
+        <div className="player__vibration">
+          <Button pressed={vibration.enabled} onClick={() => vibration.setEnabled(!vibration.enabled)}>Vibration</Button>
+          <span>A short buzz at each date, longer for warmer water.</span>
+        </div>
+      )}
 
       <p className="player__hint">
         Keyboard: Space plays or pauses, and the left and right arrow keys move between dates.
