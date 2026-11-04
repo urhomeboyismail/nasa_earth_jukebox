@@ -236,6 +236,17 @@ describe('Compare: the voice guide and cleanup', () => {
     expect(engine.stop).toHaveBeenCalled()
   })
 
+  it('says so when a sound cannot be played, and clears the message on the next try', async () => {
+    const { user } = await renderReady()
+    engine.unlock.mockRejectedValueOnce(new Error('audio blocked'))
+    await user.click(screen.getByRole('button', { name: 'Play date A' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(/could not be played.*audio blocked/)
+    expect(sounded()).toEqual([])
+    await user.click(screen.getByRole('button', { name: 'Play date A' }))
+    await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
+    expect(sounded()).toEqual(['category:cold'])
+  })
+
   it('says so when the sounds cannot be prepared', async () => {
     analyzeAll.mockRejectedValue(new Error('worker crashed'))
     render(<ComparePage visualization={visualization} />)

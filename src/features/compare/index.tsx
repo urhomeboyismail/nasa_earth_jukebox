@@ -48,6 +48,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
   const [revealed, setRevealed] = useState(false)
   const [results, setResults] = useState<FrameAnalysis[] | null>(null)
   const [analysisError, setAnalysisError] = useState('')
+  const [playError, setPlayError] = useState('')
 
   const { engine, engineError } = useMemo((): { engine: SoundEngine | null; engineError: string } => {
     try {
@@ -111,11 +112,16 @@ function Compare({ visualization }: { visualization: Visualization }) {
   async function playDate(which: 'A' | 'B') {
     const result = which === 'A' ? resultA : resultB
     if (!engine || !result) return
-    await engine.unlock()
-    engine.stop()
-    if (result.category === 'insufficient') engine.playMissing()
-    else engine.playCategory(result.category)
-    announce(`Played date ${which}.`)
+    try {
+      await engine.unlock()
+      engine.stop()
+      if (result.category === 'insufficient') engine.playMissing()
+      else engine.playCategory(result.category)
+      setPlayError('')
+      announce(`Played date ${which}.`)
+    } catch (error) {
+      setPlayError(error instanceof Error ? error.message : String(error))
+    }
   }
 
   const right = answer !== null && answer === correct
@@ -144,6 +150,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
 
       {(engineError || analysisError) && <Notice variant="error">The sounds could not be prepared. {engineError || analysisError}</Notice>}
       {!results && !analysisError && !engineError && <Notice>Analyzing the images…</Notice>}
+      {playError && <Notice variant="error">The sound could not be played. {playError}</Notice>}
 
       <div className="compare__choose">
         <label htmlFor="compare-choice" className="compare__label">Comparison</label>
