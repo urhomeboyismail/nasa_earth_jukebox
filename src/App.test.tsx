@@ -5,6 +5,11 @@ import catalog from '../public/data/index.json'
 import fixture from '../public/data/fixture/manifest.json'
 import App from './App'
 
+// The real analysis decodes images, which jsdom cannot do; the Player's own tests cover that path with the same mock.
+vi.mock('./analysis', () => ({
+  analyzeAll: async (frames: { id: string }[]) => frames.map(frame => ({ frameId: frame.id, regionId: 'centre', sampled: 9, valid: 9, category: 'cold' })),
+}))
+
 beforeEach(() => {
   window.location.hash = ''
   vi.stubGlobal('fetch', vi.fn((input: RequestInfo | URL) => {
@@ -23,7 +28,8 @@ describe('App shell', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Listen' }))
     expect(screen.getByRole('heading', { level: 1, name: 'Listen' })).toHaveFocus()
-    expect(screen.getByText('4 dates from 2024-01-15 to 2025-03-15.')).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Play' })).toBeEnabled()
+    expect(screen.getByRole('slider', { name: 'Date' })).toHaveAttribute('max', '3')
 
     await userEvent.click(screen.getByRole('button', { name: 'Learn the sounds' }))
     expect(screen.getByText(/Cold, Cool, Mild, Warm, Hot/)).toBeInTheDocument()
