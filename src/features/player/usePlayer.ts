@@ -15,7 +15,8 @@ export type Status = 'idle' | 'playing' | 'paused'
 /** Time between dates. */
 export const STEP_MS: Record<Speed, number> = { slow: 1600, normal: 1000, fast: 500 }
 
-export function usePlayer(visualization: Visualization) {
+/** `onDate` is called each time the player lands on a date: at every step of a sequence, and when one date is played alone. */
+export function usePlayer(visualization: Visualization, onDate?: (index: number, category: string | null) => void) {
   const { frames, regions, colorScale, mapping } = visualization
   const region = regions[0]
   const announce = useAnnounce()
@@ -56,6 +57,8 @@ export function usePlayer(visualization: Visualization) {
   const endTimer = useRef<number | undefined>(undefined)
   const lastSpoken = useRef(-1)
   const volumeRef = useRef(volume)
+  const onDateRef = useRef(onDate)
+  useEffect(() => { onDateRef.current = onDate })
 
   const labelFor = useCallback((i: number) => {
     const category = results?.[i]?.category
@@ -98,6 +101,7 @@ export function usePlayer(visualization: Visualization) {
       if (mine !== run.current) return
       setIndex(from + k)
       speak(from + k)
+      onDateRef.current?.(from + k, results[from + k].category)
       if (k === steps.length - 1) {
         endTimer.current = window.setTimeout(() => {
           if (mine !== run.current) return
@@ -120,6 +124,7 @@ export function usePlayer(visualization: Visualization) {
     setStatus('idle')
     setIndex(i)
     speak(i, force)
+    onDateRef.current?.(i, results[i].category)
     engine.playSequence([{ category: results[i].category, atMs: 0 }], () => {})
   }, [engine, results, speak, cancelRun])
 
