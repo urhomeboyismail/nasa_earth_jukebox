@@ -53,9 +53,9 @@ function Compare({ visualization }: { visualization: Visualization }) {
   useEffect(() => () => engine?.stop(), [engine])
 
   // The button that was pressed disappears on reveal and on "try again", so focus has to be put somewhere sensible.
+  // Changing a dropdown after a reveal must not move focus, so only those two actions do it.
   const resultRef = useRef<HTMLDivElement>(null)
   const playRef = useRef<HTMLDivElement>(null)
-  const movedFocus = useRef(false)
 
   const preset = comparisons.find(c => c.id === choice)
   const frameAId = preset ? preset.frameA : customA
@@ -115,12 +115,11 @@ function Compare({ visualization }: { visualization: Visualization }) {
   function tryAgain() {
     setAnswer(null)
     setRevealed(false)
+    playRef.current?.querySelector('button')?.focus()
   }
 
   useEffect(() => {
     if (revealed) resultRef.current?.focus()
-    else if (movedFocus.current) playRef.current?.querySelector('button')?.focus()
-    movedFocus.current = true
   }, [revealed])
 
   return (

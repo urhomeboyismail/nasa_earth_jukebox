@@ -119,6 +119,16 @@ describe('Compare: the ready-made comparison', () => {
     expect(screen.getByRole('button', { name: 'Play date A' })).toHaveFocus()
   })
 
+  it('leaves focus on the dropdown when it is changed after a reveal, and not on the play button at load', async () => {
+    const { user } = await renderReady()
+    expect(screen.getByRole('button', { name: 'Play date A' })).not.toHaveFocus()
+    await user.click(screen.getByRole('radio', { name: 'B is warmer' }))
+    await user.click(screen.getByRole('button', { name: 'Reveal the answer' }))
+    const choice = screen.getByRole('combobox', { name: 'Comparison' })
+    await user.selectOptions(choice, 'Choose my own two dates')
+    expect(choice).toHaveFocus()
+  })
+
   it('goes from start to finish by keyboard alone', async () => {
     const { user } = await renderReady()
     await user.tab()
