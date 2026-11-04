@@ -60,7 +60,12 @@
 .voice-assistant__actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .voice-assistant__note { margin: 0; color: var(--text); font-size: 13px; }
 
-@media (max-width: 599px) {
-  .voice-assistant { right: 16px; left: 16px; width: auto; bottom: 16px; max-height: calc(100vh - 120px); }
+/* Mobile: sit above the bottom navigation bar (App.css). */
+@media (max-width: 767px) {
+  .voice-assistant {
+    right: 16px; left: 16px; width: auto;
+    bottom: calc(var(--bottom-nav-height, 0px) + 16px);
+    max-height: calc(100dvh - var(--bottom-nav-height, 0px) - 96px);
+  }
 }
 @media (prefers-reduced-motion: reduce) { .voice-assistant__orb { animation: none !important; } }
