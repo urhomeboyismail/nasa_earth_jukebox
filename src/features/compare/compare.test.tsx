@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
@@ -33,7 +33,7 @@ beforeEach(() => {
 async function renderReady() {
   const user = userEvent.setup()
   const view = render(<ComparePage visualization={visualization} />)
-  await screen.findByRole('button', { name: 'Play date A' }).then(button => expect(button).toBeEnabled())
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Play date A' })).toBeEnabled())
   return { user, ...view }
 }
 const sounded = () => calls.filter(c => c !== 'stop' && c !== 'unlock')
