@@ -34,6 +34,13 @@ class Settings(BaseSettings):
     assistant_max_session_seconds: int = Field(default=600, gt=0)
     assistant_max_sessions: int = Field(default=4, gt=0)
 
+    # Listening-test results (src/features/test, docs/PLAN.md §5.5). On Render the file needs a persistent
+    # disk to survive restarts; without one, download the CSV after every session.
+    study_db_path: Path = SERVER_DIR / "study.db"
+    # Sent as the X-Team-Token header to download the CSV. Left unset, the export is switched off.
+    study_export_token: SecretStr = SecretStr("")
+    study_max_responses: int = Field(default=50, gt=0)
+
     @field_validator("cors_origins")
     @classmethod
     def _no_wildcard_origin(cls, value: str) -> str:
