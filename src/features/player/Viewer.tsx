@@ -29,7 +29,7 @@ export function Viewer({ frame, region, source }: Props) {
       </div>
       <figcaption>
         <strong className="player__date">{formatDate(frame.date)}</strong>
-        <span className="player__region"> · {region.name}</span>
+        <span className="player__region">Region: {region.name}</span>
         {frame.note && <span className="player__note">{frame.note}</span>}
         <span className="player__credit">
           Source: {source.url ? <a href={source.url}>{source.name}</a> : source.name}. {source.credit}.

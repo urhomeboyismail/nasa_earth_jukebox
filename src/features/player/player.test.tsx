@@ -114,7 +114,7 @@ describe('Player: viewing', () => {
     await renderReady()
     expect(screen.getByRole('img', { name: visualization.frames[0].altText })).toBeInTheDocument()
     expect(screen.getByText('15 January 2024')).toBeInTheDocument()
-    expect(screen.getByText(/Central ocean/)).toBeInTheDocument()
+    expect(screen.getByText('Region: Central ocean')).toBeInTheDocument()
     expect(screen.getByText(/Earth Jukebox team/)).toBeInTheDocument()
   })
 
