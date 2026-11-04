@@ -7,6 +7,8 @@ import HomePage from './features/home'
 import LearnPage from './features/learn'
 import PlayerPage from './features/player'
 import type { PageProps } from './features/types'
+import { noteGuidePlaybackCommand, useDucking } from './assistant/ducking'
+import { sendPlayerCommand } from './features/player/controls'
 import { useVoiceAssistant, type AssistantAction } from './hooks/useVoiceAssistant'
 import { pages, type Page } from './pages'
 import { hashFor, parseHash } from './route'
@@ -66,9 +68,14 @@ function App() {
 
   const handleAssistantAction = useCallback((action: AssistantAction) => {
     if (action.action === 'navigate') goTo(action.page)
+    else {
+      noteGuidePlaybackCommand(action.command)
+      sendPlayerCommand(action.command)
+    }
   }, [])
 
   const assistant = useVoiceAssistant({ language: 'en', page, onAction: handleAssistantAction })
+  useDucking(assistant.status)
 
   function closeAssistant() {
     assistant.stop()

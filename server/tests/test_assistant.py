@@ -35,6 +35,7 @@ class FakeSession:
         self.audio_frames = 0
         self.texts = []
         self.queue = None
+        self.call = ("navigate_to", {"page": "listen"})  # what the next text turn asks the app to do
 
     def _q(self):
         if self.queue is None:
@@ -47,7 +48,7 @@ class FakeSession:
         if text:
             self.texts.append(text)
         if text and not text.startswith("[App update"):
-            call = SimpleNamespace(id="c1", name="navigate_to", args={"page": "listen"})
+            call = SimpleNamespace(id="c1", name=self.call[0], args=self.call[1])
             await self._q().put(_msg(tool_call=SimpleNamespace(function_calls=[call])))
 
     async def send_tool_response(self, function_responses):
@@ -135,7 +136,103 @@ def test_player_context_prompts_feedback(fake_session):
 
 def test_tool_declarations_build():
     names = [d.name for d in tools()[0].function_declarations]
-    assert names == ["navigate_to", "explain_section", "get_screen_context"]
+    assert names == ["navigate_to", "explain_section", "control_playback", "set_date", "get_screen_context"]
+
+
+LISTEN = SessionState(page="listen")
+
+
+@pytest.mark.parametrize("command", ["play", "pause", "stop", "replay", "next", "previous"])
+def test_control_playback_returns_a_player_action(command):
+    result = run_tool("control_playback", {"command": command}, LISTEN)
+    assert result.client_action == {"action": "player", "command": command}
+    assert result.response == {"ok": True, "command": command}
+
+
+@pytest.mark.parametrize("command", ["rewind", "", None, 5, "PLAY", "play; drop table"])
+def test_control_playback_rejects_other_commands(command):
+    result = run_tool("control_playback", {"command": command}, LISTEN)
+    assert result.client_action is None and "error" in result.response
+
+
+def test_control_playback_with_no_arguments():
+    assert "error" in run_tool("control_playback", None, LISTEN).response
+
+
+def test_set_date_returns_a_player_action():
+    result = run_tool("set_date", {"date": "2024-07-15"}, LISTEN)
+    assert result.client_action == {"action": "player", "command": {"setDate": "2024-07-15"}}
+    assert result.response == {"ok": True, "date": "2024-07-15"}
+
+
+@pytest.mark.parametrize("value", ["15 July 2024", "2024-7-15", "2024-13-01", "2024-02-30", "", None, 20240715, "2024-07-15T00:00:00"])
+def test_set_date_rejects_anything_but_a_real_iso_date(value):
+    result = run_tool("set_date", {"date": value}, LISTEN)
+    assert result.client_action is None and "error" in result.response
+
+
+@pytest.mark.parametrize("page", ["home", "learn", "compare", "about"])
+def test_playback_tools_only_work_on_the_listen_page(page):
+    state = SessionState(page=page)
+    for name, args in (("control_playback", {"command": "play"}), ("set_date", {"date": "2024-07-15"})):
+        result = run_tool(name, args, state)
+        assert result.client_action is None
+        assert "Listen page" in result.response["error"]
+
+
+def _ask(ws, text):
+    ws.send_json({"type": "text", "text": text})
+
+
+def test_a_playback_action_reaches_the_browser(fake_session):
+    fake_session.call = ("control_playback", {"command": "pause"})
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        ws.send_json({"type": "start", "language": "en", "page": "listen"})
+        assert ws.receive_json() == {"type": "ready"}
+        _ask(ws, "Pause the music")
+        assert ws.receive_json() == {"type": "action", "action": "player", "command": "pause"}
+        assert ws.receive_bytes() == b"\x01\x00" * 10
+        ws.send_json({"type": "stop"})
+    assert fake_session.tool_responses[0].response == {"ok": True, "command": "pause"}
+
+
+def test_set_date_reaches_the_browser(fake_session):
+    fake_session.call = ("set_date", {"date": "2024-07-15"})
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        ws.send_json({"type": "start", "language": "en", "page": "listen"})
+        assert ws.receive_json() == {"type": "ready"}
+        _ask(ws, "Play July")
+        assert ws.receive_json() == {"type": "action", "action": "player", "command": {"setDate": "2024-07-15"}}
+        ws.send_json({"type": "stop"})
+
+
+def test_no_action_reaches_the_browser_when_the_player_is_not_open(fake_session):
+    fake_session.call = ("control_playback", {"command": "play"})
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        ws.send_json({"type": "start", "language": "en", "page": "about"})
+        assert ws.receive_json() == {"type": "ready"}
+        _ask(ws, "Play")
+        assert ws.receive_bytes() == b"\x01\x00" * 10  # straight to the spoken reply: no action first
+        ws.send_json({"type": "stop"})
+    assert "Listen page" in fake_session.tool_responses[0].response["error"]
+
+
+def test_going_to_listen_makes_the_playback_tools_work(fake_session):
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        ws.send_json({"type": "start", "language": "en", "page": "home"})
+        assert ws.receive_json() == {"type": "ready"}
+        _ask(ws, "Take me to the player")  # navigate_to listen: the server now believes the user is there
+        assert ws.receive_json() == {"type": "action", "action": "navigate", "page": "listen"}
+        assert ws.receive_bytes() == b"\x01\x00" * 10
+        assert ws.receive_json()["type"] == "transcript"
+        assert ws.receive_json() == {"type": "turn_complete"}
+        ws.send_json({"type": "stop"})
+
+
+def test_the_guide_is_told_about_the_playback_tools():
+    from app.assistant.knowledge import system_instruction
+    text = system_instruction("Earth Jukebox", "en", "listen")
+    assert "control_playback" in text and "set_date" in text
 
 
 def test_pages_match_frontend():
