@@ -66,6 +66,26 @@ Tests sit next to the code (`thing.ts` → `thing.test.ts`) and run with `npm te
   - Say in your PR which widths you checked.
   - To choose and check the layout, follow the responsive-layout skill in `.claude/skills/responsive-layout/SKILL.md` (pattern guide, rules, and a screenshot script for the four widths). Claude Code runs it automatically through a hook after layout edits; with other AI tools, point the agent at that file.
 
+## Deployment
+
+Two services: the website on Vercel and the server (voice guide and listening-test API) on Render.
+
+| What | Where | Live URL |
+|---|---|---|
+| Website | Vercel, from `vercel.json` | _fill in after the first deploy_ |
+| Server | Render, from `render.yaml` | _fill in after the first deploy_ |
+
+**First deploy**
+1. Render: New → Blueprint → this repository. In the dashboard set the secrets `GEMINI_API_KEY`, `STUDY_EXPORT_TOKEN` (long random text) and `CORS_ORIGINS` (the Vercel URL, no trailing slash). Never put them in a file.
+2. Vercel: import this repository. It reads `vercel.json` (build `npm run build`, output `dist`). Set the environment variable `VITE_API_URL` to the Render URL, with no trailing slash. Redeploy after changing it, because Vite reads it at build time.
+3. Check `https://<render-url>/api/v1/health`, then open the Vercel site and try the voice guide.
+
+**Redeploying:** both services deploy automatically when `main` changes. To redeploy by hand, use "Manual Deploy" on Render and "Redeploy" on Vercel.
+
+**Before any demo:** Render's free tier sleeps when idle and takes up to a minute to wake. Open the health URL a minute before you start.
+
+**Test results:** the free tier's disk is wiped on every restart and deploy. Either use a paid plan with a persistent disk (see the comments in `render.yaml`), or download the CSV after every session: `curl -H "X-Team-Token: $STUDY_EXPORT_TOKEN" https://<render-url>/api/v1/tests/export.csv -o results.csv`.
+
 ## Git
 
 - Default branch: `main`
