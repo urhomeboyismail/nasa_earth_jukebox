@@ -1,0 +1,55 @@
+.player {
+  display: grid;
+  gap: 1rem;
+  text-align: left;
+  container-type: inline-size;
+}
+
+.player__figure { margin: 0; display: grid; gap: 0.5rem; }
+
+/* The image keeps its aspect ratio and never grows past its natural width. */
+.player__frame {
+  position: relative;
+  inline-size: 100%;
+  max-inline-size: 50rem;
+  margin-inline: auto;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  background: var(--code-bg);
+}
+.player__frame img,
+.player__frame svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+.player__frame svg { position: absolute; inset: 0; pointer-events: none; }
+.player__frame svg rect { fill: none; stroke: #fff; stroke-width: 3; stroke-dasharray: 10 6; vector-effect: non-scaling-stroke; }
+.player__frame svg rect,
+.player__frame svg circle { filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8)); }
+.player__frame svg circle { fill: #fff; }
+
+.player figcaption { display: grid; gap: 0.25rem; max-inline-size: 50rem; margin-inline: auto; inline-size: 100%; }
+.player__date { color: var(--text-h); font-size: 1.25rem; }
+.player__region, .player__note, .player__credit { color: var(--text); overflow-wrap: anywhere; }
+.player__note, .player__credit { display: block; font-size: 1rem; }
+
+/* Controls: the main button first and widest, the rest wrap below on a narrow screen. */
+.player__controls,
+.player__settings,
+.player__speed { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.player__controls .ui-button--primary { flex: 1 1 8rem; }
+.player__controls .ui-button { flex: 1 1 8rem; }
+
+.player__slider { inline-size: 100%; }
+.player__speed-label { color: var(--text-h); font-weight: 600; margin-inline-end: 0.25rem; }
+.player__settings { align-items: end; justify-content: space-between; gap: 1rem; }
+.player__settings > .ui-slider { flex: 1 1 14rem; }
+
+.player__hint { color: var(--text); font-size: 1rem; }
+
+/* With room, controls and the date slider share one row. */
+@container (min-width: 48rem) {
+  .player__controls .ui-button { flex: 0 0 auto; min-inline-size: 7rem; }
+}
