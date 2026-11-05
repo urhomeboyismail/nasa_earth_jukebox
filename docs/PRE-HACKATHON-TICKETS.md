@@ -1,6 +1,6 @@
 # Pre-hackathon tickets: ready for real data
 
-Written 5 Nov 2026 from two team requests, checked against the code on `main` (`b5a0243`). The first asks to "lock down UI, accessibility, audio mapping and data schemas before the sprint" (T88 to T99). The second adds three features (T100 to T104): both dates at once, one in each ear; display modes with a voice command; and a beacon that leads the cursor to the hottest area. Where the second request repeats the first, it is folded into the existing ticket, not written twice. Numbering continues [`docs/TICKETS.md`](TICKETS.md) (last ticket there: T87). The same rules apply as in that file:
+Written 5 Nov 2026 from three team requests, checked against the code on `main` (`b5a0243`; the third request against `70daab1`, after T88, T89 and T90 part A). The first asks to "lock down UI, accessibility, audio mapping and data schemas before the sprint" (T88 to T99). The second adds three features (T100 to T104): both dates at once, one in each ear; display modes with a voice command; and a beacon that leads the cursor to the hottest area. The third (T105 to T110) asks for a richer sound for warmth, a sound-on control, sound only while exploring, and a welcome message; its other items are already ticketed or done (see "Third request" under "Risks"). Where a later request repeats an earlier one, it is folded into the existing ticket, not written twice. Numbering continues [`docs/TICKETS.md`](TICKETS.md) (last ticket there: T87). The same rules apply as in that file:
 
 - Hand a ticket to your own AI like this:
 
@@ -27,10 +27,12 @@ The second request adds three large features on top of the first, with 8 days le
 | Priority | Tickets | Why |
 |---|---|---|
 | **Must** | T88 regression baseline, T89 manifest and check command, T90 part A legend matcher and missing data, T91 converter and rehearsal, T92 explorer keys and focus, T93 announcements, T96 engine cleanup (step 1 and 2), T98 Compare region fix and About claims table | The 30-minute T85 target, the rules that keep the sound honest, and accessibility we already promise |
-| **Should** | T94 touch and vibration, T96 steps 3 to 5, T97 WAV, T98 Learn, T99 clean load, **T100 both dates at once (behind a listening check)**, **T101 display settings with a visible control** | Real improvements that can wait if a Must is late |
-| **Could** | T90 part B CIELAB, T95 height accent, T97 part B, **T102 colour-vision patterns**, **T103 voice path for display settings**, **T104 hottest-area beacon** | Unproven, or a second path to something that already has one |
+| **Should** | T94 touch and vibration, T96 steps 3 to 5, T97 WAV, T98 Learn, T99 clean load, **T100 both dates at once (behind a listening check)**, **T101 display settings with a visible control**, *T108 part A sound comes back after the browser suspends it* | Real improvements that can wait if a Must is late |
+| **Could** | T90 part B CIELAB, T95 height accent, T97 part B, **T102 colour-vision patterns**, **T103 voice path for display settings**, **T104 hottest-area beacon**, *T105 expressive style*, *T106 tremolo and Calm sound*, *T107 chord tension*, *T108 part B sound-on banner*, *T109 sound only while exploring*, *T110 welcome message* | Unproven, or a second path to something that already has one |
 
-**Cut first, in this order:** T104 beacon; T102 colour-vision patterns; T103 voice path; T95 height accent; T97 part B; T90 part B; T100 (if its listening check fails, it is cut anyway); T99 step 3 (CI; keep the command); T101 (keep the browser's own `prefers-contrast` and `forced-colors` support from its step 1 if anything); T98 Learn; T94 layout extras.
+The third request (in italics, plus *T108 part A* under Should) adds six tickets with 8 days left and real data arriving on the sprint day. Only T108 part A, a small fix, may start before the cut line. **None of T105 to T107 is promised.** They change what every listener hears, so they start after the cut line, stay off by default, and ship only if their listening checks pass. **The sound-engine upgrade (T105 to T107) is the first thing cut.**
+
+**Cut first, in this order:** T107 chord tension; T106 tremolo; T105 expressive style; T110 welcome message; T108 part B banner; T109 sound only while exploring; T104 beacon; T102 colour-vision patterns; T103 voice path; T95 height accent; T97 part B; T90 part B; T100 (if its listening check fails, it is cut anyway); T99 step 3 (CI; keep the command); T108 part A; T101 (keep the browser's own `prefers-contrast` and `forced-colors` support from its step 1 if anything); T98 Learn; T94 layout extras.
 
 **Never cut:** T88, T89, T90 part A, T91, T92, T93, T96 steps 1 and 2, the Compare region fix and the claims table in T98.
 
@@ -74,10 +76,18 @@ Done when: the rehearsal in T91 meets the total, or each step that ran over has 
 | T102 | Colour-vision patterns over the map | Roni (pattern layer), Mohammad (explorer) | M | T101 | after the cut line | Could | second request B |
 | T103 | Voice path for the display settings | Mohammad (voice guide) | S | T101 | after the cut line | Could | second request B |
 | T104 | Hottest-area beacon in the sound map | Mohammad (explorer), team leader (engine ping) | M | T92, T93, T96 | after the cut line | Could | second request C |
+| T105 | Expressive sound style: brightness follows warmth, loudness matched | Team leader (engine), Bhavish (measurements, listening check) | L | T88, T96 | after the cut line | Could | third request 1a, 1b |
+| T106 | Tremolo for the warmest category, and a Calm sound setting | Team leader, Bhavish (listening check) | M | T105 | after the cut line | Could | third request 1c |
+| T107 | Chord tension on the hottest category | Team leader, Roni (Learn line) | S | T105, T106 (Calm sound) | after the cut line | Could | third request 1d |
+| T108 | Sound-on control: resume after the browser suspends audio; a banner | Bhavish (engine fix, team leader reviews), Roni (banner, `src/test/`), Mohammad reviews the shell | S, part B S | T99 step 1 | part A 11 Nov; part B after the cut line | Should (part A); Could (part B) | third request 3 |
+| T109 | Sound only while exploring: pause and hidden tab cut the chord | Team leader (engine), Mohammad (player, explorer) | S | T96 steps 1 and 2 | after the cut line | Could | third request 3 |
+| T110 | Welcome message at the root, once per visit | Roni (Mohammad reviews `App.tsx`) | S | T93 | after the cut line | Could | third request 3 |
 
 The three kinds of unit test in request area 5 are in the tickets that own the code: colour edge cases in T90, grid edges in T92, announcement strings in T93.
 
 The second request's repeated items are covered here: the manifest types (T89), the normalizer and the hiss (T90), the north accent (T95), the WAV audit (T97), focus visibility on grid cells and controls (T92), aria-live for coordinates (T93) and for display changes (T101, T103), and Learn, Compare and About (T98).
+
+The third request's repeated items are covered here: both dates at once (T100, extended), display modes and `AccessibilityContext` (T101, extended; T102, T103), the data types, normalizer and hiss (T89, T90 part A, done), focus rings (T92), the WAV audit (T97, extended), the F key ping (T104, extended), and no audio before a gesture (T99). Its table is at the top of "Risks".
 
 ## Order
 
@@ -90,6 +100,8 @@ The second request's repeated items are covered here: the manifest types (T89), 
 - Team leader: T90, then T96 → T97. This is a heavy load on top of T87's creative process. If it slips, Dhruv takes the T97 measurements and the team leader only reviews T88 and T89.
 - Roni: T101 after T93's part, by 12 Nov. Then T102 only after the cut line.
 - Mohammad and team leader: T100 after T96 and the Compare fix. T103 and T104 only after the cut line.
+- Bhavish: T108 part A after T99 step 1, by 11 Nov.
+- Third request, only after the cut line and only after every Must and Should above: T105 → T106 → T107 (team leader, in that order; each one's listening check gates the next); T109 after T96; T108 part B and T110 (Roni). Expect most of these not to ship before the demo; T85 and the listening test come first.
 
 The cut order is in "Scope and cut order" above.
 
@@ -112,6 +124,11 @@ Most of the request is already on `main`. These tickets are audits and gap fills
 | Comparing two dates | The Compare page and test mode (`src/features/compare/`), one date at a time |
 | Display themes | Light and dark tokens on `:root` in `src/index.css` (`prefers-color-scheme`), `prefers-reduced-motion`, and a token contrast test in `src/styles/tokens.test.ts`. No display settings control |
 | Voice commands | Server tools in `server/app/assistant/tools.py` (navigate, explain, playback, date, screen context), sent to the browser by `server/app/api/assistant.py`, checked by `toAssistantAction` in `src/hooks/useVoiceAssistant.ts` and carried out by `handleAssistantAction` in `src/App.tsx` |
+| Waveform and oscillator (third request) | The melody is one monophonic `Tone.Synth` with `oscillator: { type: 'triangle' }` (`createVoices` in `src/audio/engine.ts`). A `Tone.Synth`'s oscillator already **is** an `OmniOscillator`, so sine, triangle, sawtooth and pwm are available without a new class. The chord is a `PolySynth` of sine voices; tick and bell are sine `Synth`s. No filter, tremolo or distortion is on the melody today. Only the missing cue has a filter (900 Hz band-pass on the pink noise) |
+| User-initiated audio (third request) | No AudioContext exists before a gesture: Tone is imported inside `unlock()` (and `renderToWav()`), and every caller of `unlock()` is a click or key handler (`usePlayer.ts`, `Explorer.tsx` `turnOn`, Learn's `play`, Compare, TestMode). **There is no sound-on banner and nothing watches the context's state.** `unlock()` memoises its promise (`unlocking ??=`), so if the browser later suspends or interrupts the context (iOS Safari after a call, Siri or a long background), later presses never resume it and the app plays silence. The voice guide does resume its own contexts (`src/assistant/audio.ts`) |
+| Space key (third request) | Space plays or pauses only while focus is inside the Listen player section and not on a button, link, summary, select, text field or text input (`spaceActivates` in `src/features/player/index.tsx`); on the sound map surface it replays the cell (`Explorer.tsx`). On Home, Learn, Compare and About, and on Listen before anything is focused, Space does nothing of ours: it scrolls the page or activates the focused button |
+| Chord only with a note (third request) | The chord (`pad`) is started by `triggerAttackRelease` with the melody's own duration in `sounding()`, so it never sounds without a note and is never background music. It plays in the full style only, on Listen steps and single dates, Compare, TestMode and Learn's chord cards; explorer cells never get a chord. `stop()` cuts everything in 20 ms (`CUT_RAMP_S`). **Gaps:** `pause()` only releases the voices, so the chord's 0.8 s release and the reverb tail ring on after Pause; nothing listens for `visibilitychange`, so a sequence keeps playing in a hidden tab |
+| Live regions at the root (third request) | **None at the root.** `App.tsx` has a `role="alert"` paragraph for load errors only. `AnnouncerProvider` (`src/components/Announcer.tsx`, `className="sr-only"`, `aria-live="polite"`, `aria-atomic="true"`) is mounted per page, by Listen and Compare. Learn has its own `role="status"` line; the voice guide panel has a `role="status"` line. The hidden-text class is `.sr-only` in `src/App.css`. The page `<title>` is "Earth Jukebox" (`index.html`), and focus moves to the page heading on page changes but not on first load |
 
 ---
 
@@ -369,6 +386,8 @@ Checked against WCAG 2.2: 2.4.7 Focus Visible (AA); 2.4.11 Focus Not Obscured (M
 
 **Done when:** the tests pass; the browser check numbers and the listening results (scores and headphone models, no names) are in the PR; the default follows the rule above.
 
+**Third request (cross-reference).** T105 makes brightness mean "warmer" in its expressive style, and this accent makes brightness mean "north". One cue cannot carry two meanings, so the two are never on together: while the expressive style is on, the height accent is off and its setting says why (see the cue budget in T105).
+
 ---
 
 ## T96: Sound engine: cleanup, style switching, one music context, clipping, latency (Team leader)
@@ -399,6 +418,8 @@ Checked against WCAG 2.2: 2.4.7 Focus Visible (AA); 2.4.11 Focus Not Obscured (M
 - In Chrome DevTools' WebAudio panel, after switching Learn, Listen and Compare 10 times with a sound on each, there is one realtime context, and its node count is within 10% of the count after the first visit.
 - The peak level and latency numbers are in the PR. T88 is unchanged.
 
+**Third request (cross-reference).** T109 builds on `dispose()` and the leak test here (no node or timer left after a stop). Any node T105 to T107 add (filter, tremolo, limiter, the extra chord voice) is disposed by `dispose()` and counted in the same leak test. T108 part A changes `unlock()`; keep `dispose()` safe before and after it.
+
 ---
 
 ## T97: WAV download: the 3-minute limit, speed, and ranges (Team leader, Mohammad, Dhruv)
@@ -421,6 +442,8 @@ Checked against WCAG 2.2: 2.4.7 Focus Visible (AA); 2.4.11 Focus Not Obscured (M
 **Part B (Could, after the cut line).** "Download this chapter" in the story panel, using the chapter's frames. It is the only "chosen date range" the app has. One test: it renders only the chapter's steps.
 
 **Done when:** the numbers are in `docs/performance.md`; the tests pass; the over-limit message names the length and what to do.
+
+**Third request (extension).** The request repeats "audit the Tone.Offline WAV exporter for fast exports"; that is this ticket. One new item: if T105 merges, the expressive style adds a filter (and with T106 a tremolo) to every render, so repeat step 1's 97.5 s laptop and phone timings with the expressive style and write them next to the full-style ones. The budget does not change. "Same input, same output" must still hold for the expressive style without missing data (T106's tremolo LFO starts at a fixed phase, so it does).
 
 ---
 
@@ -493,6 +516,8 @@ All text must make sense without seeing anything. No new sounds.
 
 **Done when:** the test and the check pass on `main`; 15 page loads (five pages, three data sets) give 0 warnings and 0 errors; no AudioContext exists before the first gesture; the check runs in CI or is documented.
 
+**Third request (cross-reference).** "AudioContext stays suspended until a click or Space" is this ticket's rule (no context created or resumed before a gesture). The sound-on control, the Space key and resuming after the browser suspends audio are T108, which reuses step 1's test setup.
+
 ---
 
 ## T100: Both dates at once, one in each ear (a Compare mode) (Mohammad, team leader)
@@ -525,6 +550,8 @@ All text must make sense without seeing anything. No new sounds.
 4. **Listening check (11 Nov):** at least two people on headphones, who do not see the screen or the dates' categories: each hears 12 pairs from synthetic-globe at the same time (random order, including same-category pairs and one-step pairs) and says "left warmer", "right warmer" or "the same". **Pass:** every listener gets at least 9 of 12 right. If it fails, "At the same time" is removed and only "One after the other" stays (which is T98's "Play A, then B").
 
 **Part B (Could, after the cut line, only if part A passed):** the sound map on Compare, playing the same cell or row of both dates at once, with two grids from `analyzeGrid` and the same rules.
+
+**Third request, item 2 (extension).** The third request asks for this mode again ("Stereo Time-Travel", 1980 against 2026, notes together while sweeping a cell, pitch and timbre differing between the ears). Everything above stays: pan means "which date" in this mode, region pan, 3D and elevation are off, "One after the other" is the default fallback for mono, speakers and one-ear hearing, both categories are given in words, one music AudioContext, and the voice and loudness caps for two notes. Added: **if T105's expressive style is on, its cues (brightness, T106 tremolo, T107 chord tension) are off for both sides in this mode,** and A and B use the same plain melody. A timbre that differs between the ears would confound the interval: a listener could answer by brightness instead of pitch, and the listening check would no longer test pitch. Timbre differences between A and B are not added unless T105 passed its own check and a second listening check for this mode passes with them. Engine test: with the expressive style set, `playPair` builds both sides with the same oscillator type and no filter, tremolo or chord change.
 
 **Done when:**
 - Engine tests (Tone mock): `playPair` uses two voices at pan −1 and +1 and no 3D panner; style and spatial mode are restored afterwards; the hiss plays on the side with no data.
@@ -564,6 +591,8 @@ All text must make sense without seeing anything. No new sounds.
 - `tokens.test.ts` passes for every mode and combination.
 - In every mode and combination: no horizontal scroll at 320, 360, 768, 1024 and 1280 px and at 200% zoom; touch targets at least 44 × 44 px; layout checked at 360, 768, 1024 and 1280 px.
 - The font files are within the budget, served locally, and their licence is recorded.
+
+**Third request, item 4 (extension).** The request repeats this ticket, T102 and T103 and calls the provider `AccessibilityContext`. Name the React context `AccessibilityContext` (provided by the `useDisplaySettings` provider above) and add one comment line naming the request's term, as T89 did for the data types. Nothing else changes: the visible control stays the main path and the voice parser (T103) calls the same `setDisplay`.
 
 ---
 
@@ -626,11 +655,201 @@ All text must make sense without seeing anything. No new sounds.
 - `beacon.test.ts` covers: the cursor already on the target ("You are on the hottest area."); several equal targets (nearest wins, ties always the same); targets next to cells with not enough data; a grid with no readable cells ("Not enough data on this date to find the hottest area.", and no ping); a grid where every cell is the same category.
 - Explorer tests: F on the focused surface pings and announces; F in a text field or elsewhere on the page does nothing; the button does the same as F.
 - Engine test: the ping's pitch is the same at every distance; only the number and spacing of pings change.
+
+**Third request, item 6 (extension).** The request repeats "hotkey F sonar ping to peak anomalies". The label stays "hottest area", for the reason above. One addition: the ping is the same fixed sound in every sound style; T105 to T107's brightness, tremolo and chord tension never apply to it (engine test with the expressive style set).
 - The a11y check passes; layout is checked at 360, 768, 1024 and 1280 px.
 
 ---
 
+## T105: Expressive sound style: brightness follows warmth, loudness matched (Team leader, Bhavish)
+
+**Could, L, after the cut line; with T106 and T107, the first thing cut.** Team leader: `src/audio/`. Bhavish: the measurements and the listening check. Depends on T88 (the baseline) and T96 (`dispose`, leak test, clipping). Third request, item 1 (a) and (b).
+
+**What exists.** One monophonic triangle `Tone.Synth` plays the melody; it slides between notes in the full style (`portamento`, `GLIDE_S`). No filter on it. The T88 golden files record what is played (categories, steps, chords, grids, notes), **not how it sounds**: the style is not in them, so they cannot catch a change of timbre in either style. See also "What already exists".
+
+**The rules for every cue, written down first.** Pitch means "warmer", always and only. Any new cue is a second, redundant way of saying something the pitch and the words already say; it never carries information of its own, never contradicts the pitch, and a listener who cannot hear it loses nothing. The cue budget (add it to `docs/SOUND_MAPPINGS.md` and PLAN.md §5.7 in this PR):
+
+| Cue | Means | When |
+|---|---|---|
+| Pitch | Warmer (the main cue) | Always |
+| Pan (left to right) | West to east; in T100's "both at once" mode, which date | Always |
+| Elevation, and T95's high shelf | North to south, as height | 3D mode only; the shelf only if T95 passed |
+| Chord (pad) | How the region's values are spread | Full and expressive |
+| Slide, bell | Changed, or jumped two steps, since the date before | Full and expressive |
+| Tick, hiss | Next date; not enough data | Always |
+| Repetition of a ping | Distance to the hottest area (T104) | Explorer |
+| **Brightness (this ticket)** | **Warmer, again** | Expressive only |
+| **Tremolo (T106)** | **The warmest category, again** | Expressive, Calm sound off |
+| **Chord tension (T107)** | **The warmest category, again** | Expressive, Calm sound off |
+
+Brightness is already proposed for "north" (T95's high shelf), so **the expressive style and the height accent are never on together.** Every added cue makes the sound harder to learn; that is why each of T105 to T107 is separate, off by default, and judged by listeners.
+
+**A new style, not a change to the existing ones.** Add `'expressive'` to `SoundStyle` (`src/audio/style.ts`; an interface change to PLAN.md §5.7 that everyone who uses `SoundStyle` agrees to, as F22's `'organic'` would have needed). The expressive style is the full style (chord, slide, bell, reverb) plus the cues in this ticket. **Default stays `'full'`;** `readSoundStyle` returns `'expressive'` only when it was chosen on this device. The full and simple styles must sound exactly as they do now.
+- Every `style === 'full'` check in `engine.ts` (`createVoices`, `applyStyle`, `sounding`) becomes "full or expressive", without changing what full does.
+- **TestMode always plays full or simple, never expressive** (`src/features/compare/TestMode.tsx` follows `useSoundStyle` today): the listening-test protocol must not change before the 12 Nov practice test.
+- The Listen control is a pressed button today ("Simple" on or off). It becomes a radio group "Sound: Full, Simple, Expressive (experimental)" (Mohammad reviews). Learn shows the chord cards for expressive too (today it shows the "Simple sound" card for anything that is not `'full'`).
+
+**How, the cheapest way that works.** The request names `Tone.OmniOscillator` and a per-category waveform (sine, triangle, sawtooth or pwm). `Tone.Synth`'s oscillator already is an OmniOscillator, so no new class is needed. **Changing `oscillator.type` from note to note is not used:** the melody is one monophonic voice whose note is often still releasing when the next starts (mallet release 0.6 s; steps 0.5 to 1.6 s apart), so a type change clicks, and per-category voices would break the slide, which needs one voice. Instead:
+1. In the expressive style the melody's oscillator is a sawtooth, set once when the style is chosen (behind the existing cut fade), not per note. A low-pass `Tone.Filter` sits between the melody and the bus (the melody only: tick, bell, chord and hiss do not pass through it, so the missing cue is unchanged).
+2. The cutoff follows the category: the coolest near-sine (muffled), the warmest fully open (bright). **The cutoff is never below 3 times the note's fundamental** (with C4 to E5 that is at least 785 Hz for C4), so the pitch heard never moves (the same risk T95 describes). Cutoff changes ramp over 10 ms ending at the note's start.
+3. **Loudness is matched,** because an open sawtooth is much louder than a muffled one and "hot" must not mean "louder". A gain per category (a pure table) brings every category's RMS within 1 dB of the full style's note for the same category.
+4. A `Tone.Limiter` at −1 dB at the end of the expressive chain is the hard ceiling. It is a safety net, not the loudness match: a render must meet step 3 with the limiter bypassed.
+5. **Distortion is not used.** It adds loudness and harshness, aliases, and is the cue most likely to be unpleasant for listeners with hearing sensitivity. It is not tried in this ticket; T106 decides whether a capped amount is worth a check.
+
+The table in steps 2 and 3 is a pure `expressiveCueFor(categoryIndex, categoryCount)` in `src/audio/expressive.ts`, so it is the same for any mapping and testable without audio.
+
+**Files:** `src/audio/style.ts`, `src/audio/style.test.ts`, `src/audio/expressive.ts` (new), `src/audio/expressive.test.ts` (new), `src/audio/engine.ts`, `src/audio/engine.test.ts`, `src/audio/index.ts` (comment only), `src/data/sound-regression.test.ts` (one added test), `src/data/__golden__/expressive.json` (new), `src/features/player/index.tsx` (the radio group; Mohammad reviews), `src/features/player/player.test.tsx`, `src/features/compare/TestMode.tsx` and `src/features/compare/test-mode.test.tsx` (never expressive; Mohammad reviews), `src/features/learn/index.tsx` and `src/features/learn/learn.test.tsx` (Roni reviews), `docs/PLAN.md` §5.3 and §5.7, `docs/SOUND_MAPPINGS.md`, `docs/performance.md`.
+
+**Do:**
+1. `expressiveCueFor` and its tests: cutoff rises strictly with the category, never below 3 times the fundamental, gain per category from the step 3 measurement.
+2. **The existing sound is frozen.** An engine test with the Tone mock records the nodes and parameters `createVoices` builds for `'full'` and for `'simple'` before this change, and the PR shows them equal after it. The three T88 golden files stay byte-for-byte unchanged. **Never regenerate a golden file to hide a change.** The expressive table is recorded additively: one more test in `sound-regression.test.ts` writes `src/data/__golden__/expressive.json` (each data set's category → cutoff and gain), so a later change to the table shows in a diff.
+3. Engine tests: expressive builds one filter and one limiter on the melody path only; the cutoff is set with a ramp, never a direct `.value` write; the tick, bell, chord and hiss do not go through the filter; `dispose()` disposes both; T96's leak test passes with the expressive style; T95's accent is off while expressive is on.
+4. **Measured in an offline render** (`renderToWav` on the preview build in Chrome, or `Tone.Offline` in a browser test page), written in the PR and in `docs/performance.md`:
+   - each category's note alone, 600 ms, volume 1, full and expressive: peak and RMS. **Pass:** every expressive peak at or below −1 dBFS (|sample| ≤ 0.891); every expressive RMS within 1 dB of the full style's for the same category; the warmest and coolest within 1 dB of each other;
+   - the worst case from T96 step 4 (hot note, three-note chord, bell, the hiss overlapping), expressive: peak at or below −1 dBFS with the limiter bypassed;
+   - pitch: C4 and E5 rendered in both styles have the same fundamental within 1% (autocorrelation, as in T95 step 3);
+   - **clicks:** render synthetic-globe at Fast in both styles. Take the first difference of the samples (|x[n] − x[n−1]|) and its maximum within 5 ms of each note start. **Pass:** at no note start is the expressive maximum more than twice the full style's at the same start;
+   - **cost:** the 60-frame stress set (regenerate with the command in `docs/performance.md`) at Slow (97.5 s of audio): expressive render time no more than 20% above full, and within T97's budget. Node count added: at most 3 per engine (filter, limiter, one gain), checked in the WebAudio panel.
+5. **Listening check** (Bhavish runs it). At least two listeners on headphones, **at least one who did not write the code, none told what the styles are meant to mean or which is new.** On synthetic-globe:
+   - 12 pairs of single notes, two categories each (including one-step pairs), in the full style: "which is warmer?". Then 12 more in the expressive style. Alternate which block comes first between listeners.
+   - **Pass:** every listener gets at least 10 of 12 in the full style (pitch alone is learnable; if not, the problem is not timbre and this ticket stops), and at least as many in expressive as in full.
+   - Two minutes of Listen at Fast and one minute of sweeping the sound map, in expressive. Each listener rates comfort 1 (unpleasant) to 5 (fine). **Fail** if any rating is below 3 or anyone describes it as harsh, tiring or painful.
+   - Write scores, ratings and headphone models in the PR, no names.
+6. Learn (Roni): in the expressive style, one card "Brighter means warmer, too", with the coolest and warmest note to compare, saying that brightness always agrees with the pitch and adds nothing new. The style's label and its description on Listen say the same ("Expressive: warmer places also sound brighter.").
+
+**Done when:** the tests pass; the T88 golden files are unchanged and `expressive.json` is committed; the measurements in step 4 pass and are in the PR; the listening check passes, **or** the style is not offered (the code may stay, unreachable, with the result written in `docs/performance.md`); the a11y check passes; the Listen control is checked at 360, 768, 1024 and 1280 px. Even after a pass, the default stays `'full'`.
+
+---
+
+## T106: Tremolo for the warmest category, and a Calm sound setting (Team leader, Bhavish)
+
+**Could, M, after the cut line; cut before T105.** Depends on T105 (and its listening check passing). Third request, item 1 (c).
+
+**What changes from the request.** The request asks for a slow 0.5 Hz "breathing" tremolo on cold notes and a rapid flutter of 8 Hz or more on hot ones.
+- **0.5 Hz on our notes cannot be heard as tremolo.** A melody note lasts at most 600 ms, a sound-map cell 300 ms (`CELL_NOTE_MS`); 0.5 Hz is a third of a cycle in that time, heard (if at all) as a random swell that depends on where the LFO happens to be. So cool categories get **no tremolo**.
+- **Tremolo marks the warmest category only,** as a redundant "this is the hottest" cue, at **8 Hz, capped at 10 Hz,** depth at most 0.3 (about a 3 dB dip). Never in the 15 to 20 Hz band, where amplitude modulation turns into roughness; never deeper than 0.3.
+- **`Tone.Tremolo` is stereo by default** (`spread` 180°): it swings the sound between the ears, which would sound like moving west and east. Set `spread: 0`.
+- **One tremolo is enough.** `Tone.Tremolo` is one effect on whatever passes through it, so per-note rates would need one effect per voice or rate automation. The melody is one monophonic voice, so one tremolo after T105's filter, with its `depth` automated to 0.3 on a warmest note and 0 otherwise (ramped over 10 ms), does the job. The chord, tick, bell and hiss do not pass through it. T100's `playPair` does not use it (T100 extension). The LFO is restarted at a fixed phase at each warmest note, so every hot note sounds the same and WAV renders stay identical.
+- **An 8 Hz flutter on every hot cell while sweeping can be tiring,** and for some listeners (hearing sensitivity, autism, migraine) it is unpleasant or worse. Hence the **"Calm sound" setting**: **on by default**, remembered with the same try/catch as `useSoundStyle`, shown with the expressive style. Calm sound on turns off the tremolo and T107's chord tension (and any distortion). It does not turn off T105's brightness, which has no flutter.
+- **Distortion:** not added. If the team leader still wants to try it, it goes behind Calm sound off, at most 20% wet, with the same loudness and comfort checks as below, in a separate PR.
+
+**Files:** `src/audio/expressive.ts`, `src/audio/expressive.test.ts`, `src/audio/engine.ts`, `src/audio/engine.test.ts`, `src/audio/index.ts` (an optional `setCalm(on)`; interface change to PLAN.md §5.3), `src/audio/style.ts` (`useCalmSound`), `src/audio/style.test.ts`, `src/features/player/index.tsx` and `src/features/player/player.test.tsx` (the setting; Mohammad reviews), `src/features/learn/index.tsx` (one sentence; Roni reviews), `src/data/__golden__/expressive.json` (additive: the tremolo column), `docs/PLAN.md` §5.3, `docs/SOUND_MAPPINGS.md`.
+
+**Do:**
+1. `expressiveCueFor` gains the tremolo depth and rate (0 for all but the warmest category; 8 Hz, 0.3 for it) and its tests: rate never above 10 Hz, depth never above 0.3.
+2. Engine tests: one `Tremolo` with `spread` 0, on the melody path only; depth ramped, not set directly; Calm sound on gives depth 0 for every category; `dispose()` disposes it; leak test still passes.
+3. Measured offline, in the PR: the hot note with tremolo has RMS within 1 dB of the same note without it, and peak at or below −1 dBFS; the click test from T105 step 4 passes; the stress-set render time is still within T105's 20% and T97's budget.
+4. **Listening check,** as in T105 step 5 (at least two listeners, at least one who did not write the code, none told what the tremolo means), with Calm sound off: the 12-pair "which is warmer" block, and the comfort block (two minutes at Fast, one minute of sweeping across the warmest areas of synthetic-globe). **Pass:** scores no lower than T105's expressive scores, and every comfort rating 3 or more. Fail: the tremolo is removed.
+5. Learn: one sentence, only with expressive on and Calm sound off: "In the expressive style the hottest category also flutters. Turn on Calm sound to stop it."
+
+**Done when:** the tests pass; the numbers and the listening results are in the PR; Calm sound is on by default; the T88 golden files are unchanged; layout of the setting is checked at 360, 768, 1024 and 1280 px.
+
+---
+
+## T107: Chord tension on the hottest category (Team leader, Roni)
+
+**Could, S, after the cut line; the first ticket cut.** Depends on T105 and T106 (Calm sound is its off switch). Third request, item 1 (d).
+
+**What changes from the request.**
+- **"Hot anomaly" becomes "the warmest category".** The data are temperature categories read from colours, not departures from a baseline, so there is no anomaly to detect (the same reason as T104). A real anomaly needs baseline data the project does not have. The tension plays when a step's category is the mapping's last (warmest) category, in the expressive style, with Calm sound off. PLAN.md §6.1 says "Severe anomalies get minor voicings"; this PR changes that wording to "the warmest category".
+- **The chord carries data, so it is not replaced.** The request describes the pad as "a stable triad" that shifts to a diminished chord. Our chord is not a fixed triad: it is the categories that hold at least 20% of the region's values (`voicingFor`), each an octave below its note. Replacing it with a diminished chord would throw that information away. Instead **one note is added** to the chord on the warmest steps: a tritone above the warmest category's chord note (with the default mapping, E4 → A♯4), at the chord's level −6 dB, on the same `PolySynth`. It sounds only when the step already has a chord; explorer cells (which have none) are unchanged.
+- **The +15 cent detune is not the first choice.** On a sustained sine chord it sounds out of tune (like a fault, not like heat), and 15 cents at E4 beats at about 3 Hz, which adds a second flutter on top of T106's. It may be tried as the alternative in the listening check; the PR says which one was kept.
+- **A diminished sound is a musical convention for tension,** familiar from Western music, not a measured property of heat. Learn says so: "On the hottest category the chord adds a tense note. This is a musical habit, not something measured."
+
+**Files:** `src/audio/engine.ts`, `src/audio/engine.test.ts`, `src/audio/expressive.ts`, `src/audio/expressive.test.ts`, `src/features/learn/index.tsx` and `src/features/learn/learn.test.tsx` (Roni), `docs/PLAN.md` §5.7 and §6.1, `docs/SOUND_MAPPINGS.md`.
+
+**Do:**
+1. Engine tests: in the expressive style with Calm sound off, a warmest step with a chord adds exactly one note, a tritone above the warmest chord note; no added note with Calm sound on, in the full or simple style, on any other category, or without a chord; the melody's pitch is untouched; T88's golden files are unchanged.
+2. Measured offline: the warmest step with the added note has peak at or below −1 dBFS and RMS within 1 dB of the same step without it.
+3. **Listening check** (at least two listeners, at least one who did not write the code, not told what the added note means): play 10 warmest steps from synthetic-globe with the added note and 10 without, mixed. Ask only "Does anything sound wrong or broken?" and "Which is warmer?" for 6 pairs. **Pass:** no listener calls the added note a mistake or out of tune, and the warmer-pair score is no lower than T106's. Fail: the added note is removed (or the detune tried once in its place, with the same check).
+
+**Done when:** the tests pass; the numbers and the listening result are in the PR; Learn's sentence appears only when the tension can play; the a11y check passes.
+
+---
+
+## T108: Sound-on control: resume after the browser suspends audio; a banner (Bhavish, Roni)
+
+**Part A Should, S, by 11 Nov. Part B Could, S, after the cut line.** Bhavish: `unlock()` (team leader reviews `engine.ts`). Roni: the banner and `src/test/`. Mohammad reviews `src/App.tsx` and `src/App.css`. Depends on T99 step 1 (the jsdom test setup). Third request, item 3 (strict user-initiated audio and the banner).
+
+**The requirement, rewritten.** Browsers keep an AudioContext suspended until a user gesture on their own; "stays suspended until a click or Space" is automatic. The real requirements are: the app never creates or resumes a context before a gesture (T99's rule, already true); sound comes back after the browser suspends it later; and while sound is off there is a visible, keyboard-reachable control to turn it on, not just a sentence.
+
+**Part A: sound comes back (a bug fix).** Today `unlock()` keeps its first promise forever, so after the browser suspends or interrupts the context (iOS Safari after a call, Siri or a long time in the background; other browsers after the device sleeps), every press plays silence and nothing says why.
+1. `unlock()` loads Tone once, but on every call checks the context's state and, if it is not `'running'`, calls `Tone.start()` again. Every caller already calls `unlock()` in a click or key handler.
+2. **iOS Safari needs the resume inside the gesture.** Today `unlock()` awaits `import('tone')` before `Tone.start()`; on a first press with a slow network the gesture may have expired by then. Check on a real iPhone; if the first press is silent, start loading the Tone chunk when a sound page mounts (a preload, which must not create a context: T99's test catches it if it does).
+3. Tests with the Tone mock: a context set to `'suspended'` after the first unlock is resumed by the next `unlock()`; a running context is not resumed again; `unlock()` before any gesture is never called by a page on load (T99).
+
+**Part B: a sound-on banner (Could).** Shown on the pages that make sound (Learn, Listen, Compare), under the page heading, while the music context is not running:
+- A **button**, "Turn sound on", at least 44 × 44 px, with the visible focus ring from T92, in the normal tab order, and a short line beside it: "Sound starts when you press a button. Space also works when nothing else is selected." Pressing any sound button on the page also turns sound on, and the banner then goes away.
+- **Space** turns sound on only when focus is on the page body or the banner itself, never on a button, link, summary, select, slider, text field or the sound map (which already use Space; the same test as `spaceActivates` in `src/features/player/index.tsx`), and only when no other handler has taken the key (`defaultPrevented`). When it acts it calls `preventDefault()` so the page does not scroll, and it acts once per press (a key repeat does nothing).
+- Once sound is running the banner disappears and does not come back during the visit, **unless the browser suspends the context again**: then it returns, with a polite announcement through the page's live region, "Sound was paused by your device. Press Turn sound on." This needs to know the context's state: a small store in `src/audio/` that the engines update on `unlock()` and that listens for the context's `statechange`.
+- **iOS:** the silent switch can mute Web Audio completely and no code can detect it. The banner's line on iOS adds "On iPhone, check the silent switch."
+- WCAG 2.2: 2.1.1 Keyboard, 2.4.7 Focus Visible, 2.5.8 Target Size (and our 44 px rule), 4.1.3 Status Messages (the "paused by your device" message).
+
+**Playwright, again.** The request asks for a Playwright check. Playwright is not in `package.json`, and "no new npm packages" is a project rule; T99 already asks the team leader to decide about it. Until then: the checks are unit tests with `installFakeAudioContext()` (Roni adds a `statechange` event to `FakeAudioContext` in `src/test/fakes.ts` if the store needs one), and a manual list for real browsers. If the team leader allows Playwright in T99, a spec for this banner is added there.
+
+**Files:** `src/audio/engine.ts`, `src/audio/engine.test.ts` (part A); `src/audio/audioState.ts` (new, part B), `src/components/SoundOnBanner.tsx` (new), `src/components/components.test.tsx`, `src/App.tsx`, `src/App.css`, `src/App.test.tsx`, `src/test/fakes.ts`, `docs/PLAN.md` §5.3.
+
+**Done when:**
+- Part A: the tests pass; on a real iPhone (model and iOS version in the PR) the first press on Learn sounds, and after a phone call or Siri the next press sounds again.
+- Part B tests: no `FakeAudioContext` before a gesture (T99); the banner shows on Learn, Listen and Compare and not on Home or About; clicking it or pressing a page's Play hides it; Space on the body turns sound on, calls `preventDefault()` and fires once; Space on a button, slider, text field or the sound map does not; setting the fake context to `'suspended'` brings it back with one polite announcement; the a11y check passes.
+- Part B manual list, in the PR: Chrome, Firefox and Safari on a laptop, Safari on an iPhone, Chrome on Android; keyboard only; with NVDA or VoiceOver. Layout checked at 360, 768, 1024 and 1280 px, with the banner clear of the bottom bar and `env(safe-area-inset-bottom)` below 768 px.
+
+---
+
+## T109: Sound only while exploring: pause and hidden tab cut the chord (Team leader, Mohammad)
+
+**Could, S, after the cut line.** Team leader: `engine.ts`. Mohammad: the player and the explorer. Depends on T96 steps 1 and 2 (`dispose` and the leak test). Third request, item 3 (no persistent background pads).
+
+**What exists, and the gap.** The chord is already never background music: it starts and ends with its note (see "What already exists"). Two gaps remain: after **Pause** the chord's 0.8 s release and the reverb tail ring on, and a sequence keeps playing in a **hidden tab**.
+
+**Definitions.** "Active data exploration" is: a Listen sequence playing; a single date, Learn card, Compare or TestMode note sounding until its note ends; a sound-map cell or sweep sounding (cells never get a chord today). Exploration "stops" on: Pause, Stop, the end of a sequence, leaving the page (unmount, `dispose()`), the tab becoming hidden (`visibilitychange`), and the voice guide ducking (exists). **A hidden tab pauses the player and stops the sound map's sound; nothing resumes on its own** when the tab is shown again.
+
+**The fade.** "Fade out instantly" cannot be a hard cut: a cut mid-wave clicks. **Choice: 20 ms,** the fade `stop()` and `duck()` already use (`CUT_RAMP_S`), so there is one number for every stop and T98's "within the engine's 20 ms fade" stays true. Pause uses the same cut fade (as `duck()` does). If the click test below finds a click, the constant becomes 50 ms for all of them.
+
+**Files:** `src/audio/engine.ts`, `src/audio/engine.test.ts`, `src/features/player/usePlayer.ts`, `src/features/player/player.test.tsx`, `src/features/explore/Explorer.tsx`, `src/features/explore/Explorer.test.tsx`, `docs/PLAN.md` §5.3 (comment on `pause`).
+
+**Do:**
+1. `pause()` fades the cut gain to 0 over `CUT_RAMP_S`, like `duck()`; `resume()` reopens it (the next step's `open()` already does).
+2. The player and the explorer listen for `visibilitychange`: hidden → the player pauses and the explorer stops its sound and timers.
+3. Tests (Tone mock, fake timers): after Pause, Stop, hidden tab and unmount, the cut gain is ramped to 0 within 20 ms, the chord's voices are released, no Transport event is left scheduled, and no timer is pending (`vi.getTimerCount()` is 0 once the end timer has run); T96's leak test passes with these paths added.
+4. Click test in an offline render, the method in T105 step 4: a Listen sequence at Slow with chords, paused in the middle of a chord. **Pass:** the first-difference maximum in the 25 ms after the pause is no larger than at a normal note end.
+
+**Done when:** the tests pass; the click test result is in the PR; T88 is unchanged.
+
+---
+
+## T110: Welcome message at the root, once per visit (Roni)
+
+**Could, S, after the cut line.** Roni owns `src/components/`; Mohammad reviews `src/App.tsx`. Depends on T93 (so two live regions do not talk over each other). Third request, item 3 (the welcome region).
+
+**What changes from the request.** The request asks for a root `<div aria-live="polite" aria-atomic="true" class="sr-only">` that, 100 ms after the first mount, says "Welcome to Earth Jukebox. Press Spacebar or Tab to begin exploring data soundscapes."
+- **"Press Spacebar" is not true on any page at load.** Space plays only while focus is inside the Listen player section; at load nothing is focused, so Space scrolls the page (see "What already exists"). Tab works everywhere. **Wording:** "Welcome to Earth Jukebox. Press Tab to reach the controls. No sound plays until you press a button." If T108 part B ships, the last sentence stays true.
+- **It competes with the screen reader's own announcements.** On load the screen reader reads the page title ("Earth Jukebox") and starts reading the page, and a polite message may be spoken before the user has done anything, or cut into that reading. Keep it short (the wording above, under 120 characters) and say it once: **once per browser tab session** (`sessionStorage`, guarded with try/catch like `useSoundStyle`; with storage blocked it is said once per load), never on a page change (the region lives in `App`, which does not remount on hash changes), and not again on a full reload in the same tab.
+- **The region must be in the DOM before its text is set,** or most screen readers ignore it; that is what the delay is for. Render it empty with the app, set the text after 100 ms, clear it after 10 s so a screen reader's reading cursor does not find it later. React's StrictMode runs effects twice in development: clear the timer in the effect's cleanup so it is said once. VoiceOver on Safari sometimes drops live-region text set very early after load; the manual check decides whether the delay must be longer (up to 1 s), and the PR says what was used.
+- **There is no live region at the root today.** Listen and Compare each mount their own (`AnnouncerProvider`), so the welcome region and the page's region can both exist on Listen. The welcome only speaks once in the first seconds, before any sound, so they do not overlap in practice; the test below checks that the page's region is empty while the welcome is set.
+- Use the project's `.sr-only` class (`src/App.css`); it is the same name as the request's.
+
+**Files:** `src/components/Welcome.tsx` (new), `src/components/components.test.tsx`, `src/App.tsx`, `src/App.test.tsx`.
+
+**Done when:**
+- Tests (fake timers): the region exists empty at first render; after 100 ms it holds the text; after 10 s it is empty; a hash change does not set it again; a second mount in the same session (stored flag) does not set it; blocked storage still says it once; the a11y check passes.
+- Manual check with NVDA and Firefox or Chrome, and VoiceOver and Safari, written in the PR: the message is spoken once, after the page title, and not again on page changes.
+
+---
+
 ## Risks and things I changed from the request
+
+**Third request.** It has six items. Where each went:
+
+| Item | What it asked | Where |
+|---|---|---|
+| 1 | Multi-parameter sonification: timbre and filter, tremolo, a tense chord for "hot" | New: T105 (brightness; no per-note waveform switch, no distortion), T106 (tremolo for the warmest category only, Calm sound), T107 (an added tense note on the warmest category; "anomaly" dropped) |
+| 2 | Both dates at once, one per ear | T100, extended: expressive cues off in that mode |
+| 3 | User-initiated audio, a banner, pads only while exploring, a welcome live region | T99 (no early context, already its rule), new T108 (resume after suspension; banner), new T109 (pause and hidden tab), new T110 (welcome, reworded) |
+| 4 | Voice-driven display modes and `AccessibilityContext` | T101, T102, T103; T101 extended with the context's name only |
+| 5 | `FrameManifest`, `SamplingPoint`, colour normalizer, `missing_data` as a hiss | Already done: T89 (types and request-term comments) and T90 part A (normalizer, one missing-data rule, hiss never a note). Nothing added |
+| 6 | Focus rings on grid cells, WAV export audit, F key ping to "peak anomalies" | T92 (unchanged), T97 (extended: re-time with the expressive style), T104 (extended: the ping ignores the expressive cues; still "hottest area") |
+
 
 1. **The height accent is an experiment, not a feature.** A brighter sound for north is a timbre cue, so it does not break "pitch means warmer". But generic HRTF height cues are weak and the effect is unproven, and a high-pass cutoff near a note's fundamental can make the note sound an octave higher. T95 starts with a high shelf, caps the boost at +4 dB and the peak at −1 dBFS, checks the pitch does not move, adds an off switch, and keeps it off unless at least two listeners who are not told the directions pass a blind check.
 2. **"Zero-lag haptics" cannot be measured where our tests run,** and iOS Safari has no `navigator.vibrate`. T94 requires the call to happen synchronously in the input handler, unsupported browsers to do nothing quietly, and a check on one real Android phone. iOS gets no haptics, and About says so (T98).
@@ -651,6 +870,18 @@ All text must make sense without seeing anything. No new sounds.
 14. **The "anomaly" beacon finds the hottest area,** because the data has no baseline. F only works on the focused sound map (screen readers use F, and text fields must not trigger it), with a visible button too; distance is told by repetition, never pitch.
 15. **Schedule.** Three large features on top of the first request do not fit in 8 days. T100 and T101 are Should; T102, T103 and T104 are Could and start only after the cut line. See "Scope and cut order".
 
+**From the third request:**
+
+16. **Scope.** Six more tickets with 8 days left, real data arriving on the sprint day. Only T108 part A (a small bug fix) is before the cut line. T105 to T107 change what every listener hears; they are Could, after the cut line, off by default, gated by listening checks, and **the first thing cut**. None of them is promised for the demo.
+17. **A sound change must not slip in.** The T88 golden files record what is played, not the style, so they would not notice a timbre change. T105 adds a new style value (`'expressive'`) instead of changing full or simple, freezes the nodes full and simple build with an engine test, keeps the three golden files byte-identical, and records the new table in an additional golden file. Golden files are never regenerated to hide a change. TestMode never uses the new style.
+18. **Too many cues make the sound harder to learn.** Pitch means warmer, only. Brightness, tremolo and chord tension may only repeat what the pitch and the words already say, never add information of their own, and must be explained on Learn. T105 writes a cue budget; brightness was already proposed for "north" (T95), so the expressive style and the height accent are never on together. T105's listening check first confirms that listeners can pick the warmer of two notes in the full style (timbre off).
+19. **Comfort and safety.** Sawtooth, distortion and an 8 Hz flutter can be harsh or tiring, and for some listeners (hearing sensitivity, autism, migraine) unsafe. So: no distortion; a −1 dB limiter as a ceiling; loudness matched per category in an offline render (hot must not be louder); tremolo depth at most 0.3, rate at most 10 Hz, never in the 15 to 20 Hz roughness band, `spread` 0 so it does not move between the ears; a Calm sound setting, on by default, that removes tremolo and chord tension; comfort ratings from at least two listeners, at least one who did not write the code, not told what the settings mean.
+20. **The request's waveform plan clicks or breaks the slide.** `Tone.Synth` already has an OmniOscillator, so no new class is needed; but switching the waveform per note on the one melody voice clicks while the previous note releases, and per-category voices break the slide. T105 uses one sawtooth with a low-pass filter whose cutoff follows the category, never below 3 times the fundamental so the pitch does not move. `pwm` is not used (it needs its own modulation rate, a second flutter). A 0.5 Hz "breathing" tremolo cannot be heard on 300 to 600 ms notes, so only the warmest category gets tremolo.
+21. **"Hot anomaly" and "peak anomalies" are not in our data.** These are temperature categories, not departures from a baseline. T107 and T104 say "warmest category" and "hottest area". T107 adds one tense note instead of replacing the chord, because the chord carries the spread of the region's values; a diminished sound is a musical convention, not a measurement, and Learn says so. A +15 cent detune sounds like a tuning fault and beats at about 3 Hz, so it is only the fallback.
+22. **Audio start.** "Suspended until a gesture" is the browser's own behaviour. The real gap is that `unlock()` never resumes a context the browser suspended later, so sound silently stops on iOS after an interruption (T108 part A). The banner (part B) is a real button, Space only acts when focus is not on something that uses Space, iOS needs the resume inside the gesture, and the silent switch can mute everything. Playwright is still not installed and "no new npm packages" still holds: the checks are unit tests with the fake AudioContext and a manual list, and the packaging decision stays with the team leader (T99).
+23. **"Fade out instantly" is a 20 ms fade,** the one the engine already uses for Stop, now also for Pause and a hidden tab (T109). A hard cut would click. Pads were already never background music.
+24. **The welcome text was not true.** Space does nothing of ours on any page at load. T110 says "Press Tab to reach the controls", once per tab session, in a region that exists before its text is set, and is checked with two screen readers.
+
 **Conflicts with the code found while writing these:**
 - `missingCue.type: "note"` is allowed and plays a low B1 sawtooth, against the rule that missing data is never a low note. Removed in T90 (an interface change).
 - A gap between category ranges makes a value in the gap sound like the warmest or coolest category. Forbidden in T89.
@@ -662,8 +893,17 @@ All text must make sense without seeing anything. No new sounds.
 - `test_tools_only_navigate_or_read` and the comment in `server/app/assistant/tools.py` assume the voice guide can only navigate, read and control playback; T103 must change both, on purpose.
 - There are no sidebars to remove for "tunnel vision"; below 768 px the app is already one column.
 - The request's type names (FrameManifest and so on) and "missing_data" are not added. The code keeps `Visualization`, `Category`, `ColorScale` and `'insufficient'`, so there are not two names for one thing.
+- Third request: `unlock()` memoises its promise and never resumes a context the browser suspended later (T108 part A).
+- Third request: TestMode follows the remembered sound style (`useSoundStyle`), so a new style would change the listening test; T105 keeps TestMode to full or simple.
+- Third request: the T88 golden files do not record the style, so they cannot detect a timbre change; T105 adds an engine test and an additional golden file.
+- Third request: the request's "stable triad" pad is really the region's spread of categories; replacing it with a diminished chord would lose data (T107).
+- Third request: brightness was already proposed for "north" (T95); the expressive style and the height accent cannot both be on.
+- Third request: `Tone.Tremolo`'s default `spread` of 180° moves sound between the ears, against pan meaning west to east; T106 sets it to 0.
+- Third request: `pause()` leaves the chord and reverb ringing, and a hidden tab keeps playing (T109).
+- Third request: "Press Spacebar ... to begin" is not true on any page at load (T110). There is no live region at the root; Listen and Compare each mount their own.
+- Third request: PLAN.md §6.1 says "severe anomalies get minor voicings"; T107's PR changes it to "the warmest category".
 
 **Other risks:**
-- **Load.** The team leader holds T90, T96 and T97 on top of T87, and Mohammad holds T92, T93, T94 and Compare. If either slips, follow the cut order above. Do not push back T85's real-device numbers or T87's "now" steps.
+- **Load.** The team leader holds T90, T96 and T97 on top of T87, and Mohammad holds T92, T93, T94 and Compare. If either slips, follow the cut order above. The third request's sound tickets (T105 to T107) also land on the team leader; they wait until everything else of theirs is merged. Do not push back T85's real-device numbers or T87's "now" steps.
 - **Dates.** The request says the sprint is 13 to 14 Nov; PLAN.md §2 says the hackathon is 14 to 15 Nov, with the resources on 13 Nov. These tickets target 12 Nov either way. Fix whichever document is wrong.
 - **The rehearsal is not the real data.** An SVS sequence tests the converter, but the 13 Nov frames may be video, have a changing legend, or be much larger. `docs/performance.md` already flags memory as the risk for large frames; nearest-neighbour scaling in T91 is the fallback.
