@@ -152,6 +152,116 @@ describe('valueAtPixel', () => {
   })
 })
 
+/** Standard HSV to RGB (hue in degrees, saturation and value 0 to 1), to build awkward colors without writing channel numbers. */
+function hsvToRgb(h: number, s: number, v: number): RGB {
+  const sector = (((h % 360) + 360) % 360) / 60
+  const chroma = v * s
+  const x = chroma * (1 - Math.abs((sector % 2) - 1))
+  const [r, g, b] = [[chroma, x, 0], [x, chroma, 0], [0, chroma, x], [0, x, chroma], [x, 0, chroma], [chroma, 0, x]][Math.floor(sector) % 6]
+  const m = v - chroma
+  return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)]
+}
+
+/** A legend that keeps away from the grey axis: blue, cyan, yellow, red. Greys, black and white are far from its line. */
+const rainbow: ColorScale = {
+  stops: [
+    { value: 0, rgb: [0, 0, 255] },
+    { value: 10, rgb: [0, 255, 255] },
+    { value: 20, rgb: [255, 255, 0] },
+    { value: 30, rgb: [255, 0, 0] },
+  ],
+  noData: [],
+  maxColorDistance: 40,
+}
+
+const valueOf = (rgb: RGB, scale: ColorScale = colorScale, alpha = 255) =>
+  valueAtPixel({ data: new Uint8ClampedArray([...rgb, alpha]), width: 1, height: 1 }, 0, 0, scale)
+
+describe('reading a color: edge cases', () => {
+  it('gives each stop its own value from its exact color', () => {
+    for (const stop of colorScale.stops) expect(valueOf(stop.rgb)).toBe(stop.value)
+  })
+
+  it('gives the mean of two stops for the color halfway between them', () => {
+    const pair: ColorScale = { stops: [{ value: 10, rgb: [200, 0, 0] }, { value: 20, rgb: [0, 0, 200] }], noData: [[0, 255, 0]], maxColorDistance: 40 }
+    expect(valueOf([100, 0, 100], pair)).toBe(15)
+  })
+
+  it('keeps the category when each channel of a stop color is off by up to 3 (compression jitter)', () => {
+    const categoryOf = (rgb: RGB) => analyzePixels(row([rgb, rgb, rgb, rgb]), frame, region, colorScale, mapping).category
+    for (const stop of colorScale.stops) {
+      for (const dr of [-3, 0, 3]) for (const dg of [-3, 0, 3]) for (const db of [-3, 0, 3]) {
+        const jittered: RGB = [stop.rgb[0] + dr, stop.rgb[1] + dg, stop.rgb[2] + db]
+        expect(categoryOf(jittered), `${jittered}`).toBe(categoryOf(stop.rgb))
+      }
+    }
+  })
+
+  it('reads a color at maxColorDistance from the legend, and not one step further', () => {
+    // Beyond the red end the nearest point on the line is red itself, so moving the red channel down by n is n away.
+    const max = colorScale.maxColorDistance
+    expect(valueOf([255 - (max - 1), 0, 0])).toBe(30)
+    expect(valueOf([255 - max, 0, 0])).toBe(30)
+    expect(valueOf([255 - (max + 1), 0, 0])).toBeNull()
+  })
+
+  it('treats hue 0 and hue 360 as the same color', () => {
+    expect(hsvToRgb(0, 1, 1)).toEqual(hsvToRgb(360, 1, 1))
+    expect(valueOf(hsvToRgb(0, 1, 1), rainbow)).toBe(30)
+    expect(valueOf(hsvToRgb(360, 1, 1), rainbow)).toBe(valueOf(hsvToRgb(0, 1, 1), rainbow))
+  })
+
+  it('cannot read any grey from black to white (saturation 0), unless the legend has that grey', () => {
+    for (let level = 0; level <= 255; level += 5) expect(valueOf(hsvToRgb(0, 0, level / 255), rainbow), `grey ${level}`).toBeNull()
+    const greyLegend: ColorScale = { stops: [{ value: 0, rgb: [0, 0, 0] }, { value: 10, rgb: [255, 255, 255] }], noData: [], maxColorDistance: 40 }
+    expect(valueOf(hsvToRgb(0, 0, 0.5), greyLegend)).toBeCloseTo(5, 0)
+  })
+
+  it('cannot read black (value 0) of any hue, such as coastlines and text', () => {
+    for (const hue of [0, 60, 120, 180, 240, 300]) expect(valueOf(hsvToRgb(hue, 1, 0), rainbow)).toBeNull()
+  })
+
+  it('cannot read a pale color between two legend colors (low saturation)', () => {
+    // Hue 30 sits between red (0) and yellow (60) on the legend, but washed out it is nearer to white than to either.
+    expect(valueOf(hsvToRgb(30, 0.1, 0.8), rainbow)).toBeNull()
+    expect(valueOf(hsvToRgb(30, 0.15, 0.9), rainbow)).toBeNull()
+  })
+
+  it('gives a color equally near two parts of a legend that doubles back the part listed first, every time', () => {
+    // Rule (see matchScale): the part listed first wins a tie, because a later part must be strictly nearer.
+    const hairpin: ColorScale = {
+      stops: [
+        { value: 0, rgb: [0, 0, 0] },
+        { value: 10, rgb: [200, 0, 0] },
+        { value: 20, rgb: [200, 20, 0] },
+        { value: 30, rgb: [0, 20, 0] },
+      ],
+      noData: [],
+      maxColorDistance: 40,
+    }
+    const between: RGB = [100, 10, 0] // 10 from the way out (value 5) and 10 from the way back (value 25)
+    for (let i = 0; i < 3; i++) expect(valueOf(between, hairpin)).toBe(5)
+  })
+
+  it('reads only fully opaque pixels: alpha 0 to 254 (soft edges) is unreadable, 255 is read', () => {
+    expect(valueOf(BLUE, colorScale, 255)).toBe(0)
+    for (const alpha of [0, 1, 128, 254]) expect(valueOf(BLUE, colorScale, alpha), `alpha ${alpha}`).toBeNull()
+  })
+
+  it('puts a value exactly on a category edge in the warmer category, and a value beyond the ends in the nearest end', () => {
+    const wide: ColorScale = { stops: [{ value: -15, rgb: [0, 0, 255] }, { value: 36, rgb: [255, 0, 0] }], noData: [], maxColorDistance: 40 }
+    const category = (rgb: RGB) => analyzePixels(row([rgb, rgb, rgb, rgb]), frame, region, wide, mapping)
+    // 5 per unit of value, so every value used here is exact
+    const at = (value: number): RGB => { const r = (value + 15) * 5; return [r, 0, 255 - r] }
+    expect(category(at(6))).toMatchObject({ medianValue: 6, category: 'cool' }) // on the edge of cold and cool
+    expect(category(at(24))).toMatchObject({ medianValue: 24, category: 'hot' })
+    expect(category(at(30))).toMatchObject({ medianValue: 30, category: 'hot' }) // the top edge of the last range
+    expect(category(at(0))).toMatchObject({ medianValue: 0, category: 'cold' })
+    expect(category(at(-15))).toMatchObject({ medianValue: -15, category: 'cold' }) // below the first range
+    expect(category(at(36))).toMatchObject({ medianValue: 36, category: 'hot' }) // above the last range
+  })
+})
+
 describe('category shares', () => {
   it('gives the fraction of the valid points in each category, and sums to 1', () => {
     // cold, cold, hot, grey: three valid points, two of them cold

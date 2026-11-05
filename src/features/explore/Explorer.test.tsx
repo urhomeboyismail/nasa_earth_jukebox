@@ -347,7 +347,7 @@ describe('Explorer: announcements', () => {
     const { user } = await exploring()
     await user.keyboard('{End}')
     await tick(400)
-    expect(liveText()).toMatch(/^No data/)
+    expect(liveText()).toMatch(/^Not enough data/)
   })
 })
 

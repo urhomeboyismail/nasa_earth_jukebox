@@ -87,7 +87,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
   const labelFor = useCallback((i: number) => {
     const category = results?.[i]?.category
     if (!category) return ''
-    return category === 'insufficient' ? 'no data' : (mapping.categories.find(c => c.id === category)?.label ?? category).toLowerCase()
+    return category === 'insufficient' ? 'not enough data' : (mapping.categories.find(c => c.id === category)?.label ?? category).toLowerCase()
   }, [results, mapping])
 
   /** "March 2024: warm" (the date as detailed as the dataset needs). Said once per date unless `force` is set (Replay says it again on purpose). */

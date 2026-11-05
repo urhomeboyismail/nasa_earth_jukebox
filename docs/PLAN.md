@@ -113,6 +113,8 @@ analyzeFrame(frame, region, colorScale, mapping): Promise<FrameAnalysis> // runs
 The whole map, for exploring it by ear, is `analyzeGrid` (5.6).
 Rules: no-data and unmatched colors are left out, never guessed. If fewer than `minValidFraction` of the points are valid, the result is `"insufficient"`, never "cold".
 
+Missing data, one rule (T90): a pixel that cannot be read is `null`. That is any pixel that is not fully opaque (alpha below 255, so soft edges and holes), within 10 of a `noData` color, or further than `maxColorDistance` from the legend line. A date, region or cell with fewer than `minValidFraction` readable points is `"insufficient"`, and `"insufficient"` always plays the hiss (`missingCue`, noise only) and never a note. It is said as "not enough data". A color equally near two parts of a legend that doubles back goes to the part listed first in `stops`. Pixels are decoded with `colorSpaceConversion: 'none'` and `premultiplyAlpha: 'none'`, so the browser does not shift the legend colors.
+
 ### 5.3 Sound engine: `src/audio/` (team leader)
 
 ```ts

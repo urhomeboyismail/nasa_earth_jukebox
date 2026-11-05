@@ -13,6 +13,8 @@ export const NO_DATA_DISTANCE = 10
 const distance = (a: RGB, b: RGB) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2])
 
 /** Closest point on the scale's line through its stops, as a value and its distance from the pixel. */
+// A color equally near two parts of the line (a legend that comes back on itself, such as red at both ends) goes to the part
+// listed first in `stops`: a later part must be strictly nearer to win. The answer is the same every time.
 function matchScale(rgb: RGB, stops: ColorScale['stops']): { value: number; distance: number } | null {
   let best: { value: number; distance: number } | null = null
   const consider = (value: number, d: number) => {
@@ -49,15 +51,15 @@ function categoryFor(value: number, mapping: SoundMapping): string {
 }
 
 /**
- * The value at one pixel of the image, or null when it cannot be read: transparent, no-data (grey land, cloud) or a color
- * too far from the scale. Both `analyzePixels` and the grid read pixels through this, so a cell and a region never disagree.
+ * The value at one pixel of the image, or null when it cannot be read: not fully opaque (a soft edge or a hole), no-data
+ * (grey land, cloud) or a color too far from the scale. Both `analyzePixels` and the grid read pixels through this, so a cell and a region never disagree.
  */
 export function valueAtPixel(pixels: Pixels, px: number, py: number, colorScale: ColorScale): number | null {
   const { data, width, height } = pixels
   const x = Math.min(width - 1, Math.max(0, px))
   const y = Math.min(height - 1, Math.max(0, py))
   const i = (y * width + x) * 4
-  if (data[i + 3] === 0) return null
+  if (data[i + 3] < 255) return null
   const rgb: RGB = [data[i], data[i + 1], data[i + 2]]
   if (colorScale.noData.some(c => distance(rgb, c) <= NO_DATA_DISTANCE)) return null
   const match = matchScale(rgb, colorScale.stops)

@@ -5,7 +5,8 @@ import type { Pixels } from './analyze'
 export async function readPixels(url: string): Promise<Pixels> {
   const response = await fetch(url)
   if (!response.ok) throw new Error(`Could not load ${url} (HTTP ${response.status}).`)
-  const bitmap = await createImageBitmap(await response.blob())
+  // No color-space conversion and no premultiplied alpha: the browser must not shift the colors the legend was read from.
+  const bitmap = await createImageBitmap(await response.blob(), { colorSpaceConversion: 'none', premultiplyAlpha: 'none' })
   try {
     const { width, height } = bitmap
     let context: OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D | null

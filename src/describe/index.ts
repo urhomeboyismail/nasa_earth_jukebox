@@ -46,8 +46,8 @@ function vocabulary(visualization: Visualization) {
       const year = iso.slice(0, 4)
       return name !== year && name.endsWith(year) ? name.slice(0, -year.length).trim() : name
     },
-    /** The label in lower case ("warm"); "no data" for a date or cell that could not be read. */
-    label: (category: string) => (category === 'insufficient' ? 'no data' : (categories.find(c => c.id === category)?.label ?? category).toLowerCase()),
+    /** The label in lower case ("warm"); "not enough data" for a date or cell that could not be read. */
+    label: (category: string) => (category === 'insufficient' ? 'not enough data' : (categories.find(c => c.id === category)?.label ?? category).toLowerCase()),
     /** Position from the coolest (0) up. */
     rank: (category: string) => categories.findIndex(c => c.id === category),
   }
@@ -124,7 +124,7 @@ function conciseFrame(visualization: Visualization, vocab: Vocabulary, results: 
   const { frames } = visualization
   const oneYear = frames[0].date.slice(0, 4) === frames[frames.length - 1].date.slice(0, 4)
   const date = oneYear ? vocab.withoutYear(frame.date) : vocab.formatDate(frame.date)
-  if (result.category === 'insufficient') return `${date}: no data.`
+  if (result.category === 'insufficient') return `${date}: not enough data.`
   const value = result.medianValue === undefined ? '' : `, ${withUnit(result.medianValue, vocab.unit)}`
   const previous = results.findLast((r, i) => i < index && r.category !== 'insufficient')
   let change = ', first date'
@@ -188,7 +188,7 @@ export function describeSequence(visualization: Visualization, results: FrameAna
   }
 
   const missing = dated.filter(d => d.result.category === 'insufficient').map(d => d.name)
-  if (missing.length) sentences.push(`No data ${datesIn(missing)}.`)
+  if (missing.length) sentences.push(`Not enough data ${datesIn(missing)}.`)
   return sentences.join(' ')
 }
 
@@ -206,12 +206,12 @@ export function describeCell(visualization: Visualization, grid: FrameGrid, col:
   const compass = COMPASS[Math.floor((row * 3) / grid.rows)][Math.floor((col * 3) / grid.cols)]
   const concise = options.detail === 'concise'
   const where = concise ? compass : `${compass} (column ${col + 1} of ${grid.cols}, row ${row + 1} of ${grid.rows})`
-  if (cell.category === 'insufficient' || cell.value === null) return `No data${concise ? '' : ' (land, cloud or labels)'}, ${where}.`
+  if (cell.category === 'insufficient' || cell.value === null) return `Not enough data${concise ? '' : ' (land, cloud or labels)'}, ${where}.`
   // Concise: "Warm, 21 °C, north-east."
   return `${upperFirst(vocab.label(cell.category))}, ${concise ? '' : 'about '}${withUnit(cell.value, vocab.unit)}, ${where}.`
 }
 
-/** A row or a column of the map, as runs: "Row 3, west to east: no data for 4 cells, cool for 6, mild for 8". `index` starts at 0. */
+/** A row or a column of the map, as runs: "Row 3, west to east: not enough data for 4 cells, cool for 6, mild for 8". `index` starts at 0. */
 export function describeSweep(visualization: Visualization, grid: FrameGrid, line: { kind: 'row' | 'column'; index: number }, options: DescribeOptions = {}): string {
   const { kind, index } = line
   const length = kind === 'row' ? grid.cols : grid.rows
@@ -226,9 +226,9 @@ export function describeSweep(visualization: Visualization, grid: FrameGrid, lin
     if (last && last.category === cell.category) last.length++
     else runs.push({ category: cell.category, length: 1 })
   }
-  // Concise: "Row 3: no data 4, cool 6, mild 8." (the direction and the word "cells" are left out)
+  // Concise: "Row 3: not enough data 4, cool 6, mild 8." (the direction and the word "cells" are left out)
   if (options.detail === 'concise') return `${upperFirst(kind)} ${index + 1}: ${runs.map(run => `${vocab.label(run.category)} ${run.length}`).join(', ')}.`
-  // The unit is said once, on the first run: "no data for 4 cells, cool for 6, mild for 8".
+  // The unit is said once, on the first run: "not enough data for 4 cells, cool for 6, mild for 8".
   const text = runs.map((run, i) => `${vocab.label(run.category)} for ${run.length}${i === 0 ? (run.length === 1 ? ' cell' : ' cells') : ''}`).join(', ')
   return `${upperFirst(kind)} ${index + 1}, ${kind === 'row' ? 'west to east' : 'north to south'}: ${text}.`
 }

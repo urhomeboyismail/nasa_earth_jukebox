@@ -60,6 +60,20 @@ async function toQuestions(user: ReturnType<typeof userEvent.setup>, options: { 
   await screen.findByRole('heading', { name: 'Question 1 of 2' })
 }
 
+describe('Test mode: missing data', () => {
+  it('plays the hiss, and no note, for a date without enough data', async () => {
+    analyzeAll.mockImplementation(async () => visualization.frames.map((f, i) => ({
+      frameId: f.id, regionId: 'centre', sampled: 9, valid: i === 0 ? 0 : 9, category: i === 0 ? 'insufficient' : CATEGORIES[i],
+    })))
+    const user = userEvent.setup()
+    render(<ComparePage visualization={visualization} />)
+    await toQuestions(user)
+    await user.click(screen.getByRole('button', { name: 'Play date A' }))
+    expect(engine.playMissing).toHaveBeenCalledTimes(1)
+    expect(engine.playCategory).not.toHaveBeenCalled()
+  })
+})
+
 describe('Test mode: opening', () => {
   it('opens only from #compare?test=1', async () => {
     window.location.hash = '#compare'

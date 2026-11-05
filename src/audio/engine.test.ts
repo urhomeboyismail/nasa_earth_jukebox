@@ -550,6 +550,13 @@ describe('renderToWav', () => {
     expect(played().map(c => c.node === 'Synth' ? c.args[0] : c.node)).toEqual(['C4', 'C6', 'E5', 'PolySynth', 'G5', 'C6'])
   })
 
+  it('renders missing data as the hiss and never as a note', async () => {
+    const engine = await unlocked()
+    await engine.renderToWav([{ category: 'insufficient', atMs: 0 }])
+    expect(played().map(c => c.node)).toEqual(['NoiseSynth', 'Synth'])
+    expect(playedNotes()).toEqual([mapping.tick.note])
+  })
+
   it('works before unlock() and uses the current style', async () => {
     const engine = createSoundEngine(mapping)
     engine.setStyle('simple')

@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest'
-import { rememberLast } from './pixels'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { readPixels, rememberLast } from './pixels'
 
 describe('rememberLast', () => {
   it('loads each key once while it is among the last two', async () => {
@@ -38,5 +38,24 @@ describe('rememberLast', () => {
     await expect(read('a')).rejects.toThrow('down')
     await expect(read('a')).resolves.toBe('ok')
     expect(load).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('readPixels', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('decodes without colour conversion or premultiplied alpha, so the browser cannot shift the legend colours', async () => {
+    const bitmap = { width: 2, height: 1, close: vi.fn() }
+    const createImageBitmap = vi.fn(async () => bitmap)
+    const image = { data: new Uint8ClampedArray(8), width: 2, height: 1 }
+    class FakeCanvas {
+      getContext() { return { drawImage: vi.fn(), getImageData: () => image } }
+    }
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, blob: async () => new Blob(['x']) })))
+    vi.stubGlobal('createImageBitmap', createImageBitmap)
+    vi.stubGlobal('OffscreenCanvas', FakeCanvas)
+    expect(await readPixels('frame.png')).toBe(image)
+    expect(createImageBitmap).toHaveBeenCalledWith(expect.any(Blob), { colorSpaceConversion: 'none', premultiplyAlpha: 'none' })
+    expect(bitmap.close).toHaveBeenCalled()
   })
 })

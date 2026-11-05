@@ -188,7 +188,7 @@ describe('Player: playing', () => {
     await tick(1000)
     expect(liveText()).toBe('December 2024: hot')
     await tick(1000)
-    expect(liveText()).toBe('March 2025: no data')
+    expect(liveText()).toBe('March 2025: not enough data')
   })
 
   it('keeps the slider, the image and the sound on the same date throughout', async () => {

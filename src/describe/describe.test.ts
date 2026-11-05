@@ -92,14 +92,14 @@ describe('describeFrame', () => {
 describe('describeSequence', () => {
   it('describes a whole year: ends, extremes, the biggest change and the gap', () => {
     expect(describeSequence(visualization, resultsFor(YEAR))).toBe(
-      '12 dates, January to December 2024, in the north-east patch. It starts cool and ends mild. Warmest: hot, in July and August. Coolest: cool, in January, February and March. Biggest change: up two steps, from March (cool) to April (warm). No data in October.',
+      '12 dates, January to December 2024, in the north-east patch. It starts cool and ends mild. Warmest: hot, in July and August. Coolest: cool, in January, February and March. Biggest change: up two steps, from March (cool) to April (warm). Not enough data in October.',
     )
   })
 
   it('counts dates instead of listing more than three in one item', () => {
     const text = describeSequence(visualization, resultsFor(['cool', 'cool', 'cool', 'cool', 'hot', 'insufficient', 'insufficient', 'insufficient', 'insufficient']))
     expect(text).toContain('Coolest: cool, on 4 dates.')
-    expect(text).toContain('No data on 4 dates.')
+    expect(text).toContain('Not enough data on 4 dates.')
     expect(text).toContain('Warmest: hot, in May.')
   })
 
@@ -135,7 +135,7 @@ describe('describeSequence', () => {
     expect(text).toContain('4 dates, January 2024 to March 2025, in the ')
     expect(text).toContain('It starts cold and ends hot.')
     expect(text).toContain('Biggest change: up two steps, from January 2024 (cold) to July 2024 (mild).')
-    expect(text).toContain('No data in March 2025.')
+    expect(text).toContain('Not enough data in March 2025.')
   })
 })
 
@@ -153,7 +153,7 @@ describe('describeCell', () => {
   })
 
   it('says a cell without data has none, and never gives it a value', () => {
-    expect(describeCell(visualization, grid, 18, 3)).toBe('No data (land, cloud or labels), north-east (column 19 of 24, row 4 of 11).')
+    expect(describeCell(visualization, grid, 18, 3)).toBe('Not enough data (land, cloud or labels), north-east (column 19 of 24, row 4 of 11).')
   })
 
   it('splits the map into thirds each way for the compass word', () => {
@@ -180,12 +180,12 @@ describe('describeSweep', () => {
   const grid = gridOf(cells)
 
   it('collapses a row into runs, west to east', () => {
-    expect(describeSweep(visualization, grid, { kind: 'row', index: 2 })).toBe('Row 3, west to east: no data for 4 cells, cool for 6, mild for 8, warm for 6.')
+    expect(describeSweep(visualization, grid, { kind: 'row', index: 2 })).toBe('Row 3, west to east: not enough data for 4 cells, cool for 6, mild for 8, warm for 6.')
   })
 
   it('reads a column north to south, and says "cell" only on the first run', () => {
     expect(describeSweep(visualization, grid, { kind: 'column', index: 4 })).toBe(
-      'Column 5, north to south: no data for 2 cells, cool for 1, no data for 8.',
+      'Column 5, north to south: not enough data for 2 cells, cool for 1, not enough data for 8.',
     )
   })
 
@@ -203,7 +203,7 @@ describe('on the real synthetic-globe frames', () => {
   it('describes a sweep across the map with land in it, and its runs add up to the row', () => {
     const text = describeSweep(visualization, grid, { kind: 'row', index: Math.floor(grid.rows / 2) })
     expect(text).toMatch(/^Row \d+, west to east: /)
-    expect(text).toContain('no data for')
+    expect(text).toContain('not enough data for')
     const total = [...text.matchAll(/ for (\d+)/g)].reduce((sum, m) => sum + Number(m[1]), 0)
     expect(total).toBe(grid.cols)
   })
@@ -239,7 +239,7 @@ describe('concise detail (F19)', () => {
 
   it('describes a cell as its label, rounded value and place: "Warm, 21 °C, north-east."', () => {
     expect(describeCell(visualization, cellGrid, 18, 2, concise)).toBe('Warm, 21 °C, north-east.')
-    expect(describeCell(visualization, cellGrid, 18, 3, concise)).toBe('No data, north-east.')
+    expect(describeCell(visualization, cellGrid, 18, 3, concise)).toBe('Not enough data, north-east.')
     expect(describeCell(visualization, cellGrid, 99, 3, concise)).toBe('That is outside the map.')
   })
 
@@ -248,7 +248,7 @@ describe('concise detail (F19)', () => {
     expect(describeFrame(visualization, results, 0, concise)).toBe('January: cool, 9 °C, first date.')
     expect(describeFrame(visualization, results, 1, concise)).toBe('February: cool, 9 °C, same.')
     expect(describeFrame(visualization, results, 2, concise)).toBe('March: warm, 21 °C, up two steps.')
-    expect(describeFrame(visualization, results, 3, concise)).toBe('April: no data.')
+    expect(describeFrame(visualization, results, 3, concise)).toBe('April: not enough data.')
     expect(describeFrame(visualization, results, 5, concise)).toBe('June: cool, 9 °C, down two steps.')
   })
 
@@ -264,8 +264,8 @@ describe('concise detail (F19)', () => {
     expect(describeFrame(spread, resultsFor(['cool', 'cool']), 0, concise)).toBe('January 2024: cool, 9 °C, first date.')
   })
 
-  it('describes a row as its runs: "Row 3: no data 4, cool 6, mild 14."', () => {
-    expect(describeSweep(visualization, lineGrid, { kind: 'row', index: 2 }, concise)).toBe('Row 3: no data 4, cool 6, mild 14.')
+  it('describes a row as its runs: "Row 3: not enough data 4, cool 6, mild 14."', () => {
+    expect(describeSweep(visualization, lineGrid, { kind: 'row', index: 2 }, concise)).toBe('Row 3: not enough data 4, cool 6, mild 14.')
     expect(describeSweep(visualization, lineGrid, { kind: 'row', index: 40 }, concise)).toBe('There is no row 41.')
   })
 

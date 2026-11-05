@@ -16,7 +16,7 @@ export function judge(a: FrameAnalysis | undefined, b: FrameAnalysis | undefined
 
 export function categoryLabel(result: FrameAnalysis | undefined, mapping: SoundMapping): string {
   if (!result) return ''
-  if (result.category === 'insufficient') return 'no data'
+  if (result.category === 'insufficient') return 'not enough data'
   return mapping.categories.find(category => category.id === result.category)?.label.toLowerCase() ?? result.category
 }
 

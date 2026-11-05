@@ -155,7 +155,7 @@ export default function LearnPage({ visualization }: PageProps) {
         </li>
         <li>
           <Card title="Missing data" headingLevel={2}>
-            <p>A rough, hissing sound instead of a note. It means there is no data for that date, so it is never mistaken for cold.</p>
+            <p>A rough, hissing sound instead of a note. It means there is not enough data for that date, so it is never mistaken for cold.</p>
             <Button disabled={!engine} onClick={() => void play('missing data', e => e.playMissing())}>Play: missing data</Button>
           </Card>
         </li>
