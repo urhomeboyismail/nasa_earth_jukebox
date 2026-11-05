@@ -179,7 +179,7 @@ Rules: the same pixel lookup as `analyzeFrame`, so a cell and a region never dis
 
 ### 5.7 The musical layer: `src/audio/voicing.ts` and `src/audio/style.ts` (team leader)
 
-T64 adds the fields and a stub; T68 gives them sound. Until then the engine accepts them and sounds exactly as before.
+T64 added the fields and a stub; T80 gives them sound. Until then the engine accepts them and sounds exactly as before.
 ```ts
 voicingFor(results: FrameAnalysis[], index: number, mapping): { pad?: CategoryId[]; glide?: boolean; bell?: boolean }
 //   pad:   a chord under the note, from the categories that hold a large share of the region's values
@@ -255,22 +255,22 @@ The Jukebox is described as four cooperating roles. They are **roles, not separa
 - **F23 Time travel.** In the sound map, a key locks the current cell and the date slider then plays that one cell across all dates. The root pitch stays fixed and the voicing follows the data, so a rising value is heard as harmony moving from calm to tense. The dates are those in the catalog: synthetic until 13 Nov, then whatever span the real data has. A 1980 to 2026 span is a goal, not a promise.
 - **F24 Fire alarm.** A plain rule: a flare plays when a cell or region moves by `alarmSteps` or more categories between two dates. It reuses the bell of 5.7. No statistics beyond that and no model. A methane-style outlier needs a dataset we do not have; if NASA offers one on 13 Nov, the same rule applies to it.
 - **F25 Sound buoys.** A room per visualization on the server: a sighted user drops a buoy on a cell, the others hear a ping that gets louder and brighter as their cursor nears it. It needs the server, so the app must stay fully usable without it. Built last and cut first.
-- **F19 ADK.** The decision in `docs/tickets/ticket.md` stays: a spike first, a build only if the must-haves are merged, and the first thing cut.
+- **F19 ADK.** A spike first, a build only if the must-haves are merged, and the first thing cut (T86 in `docs/TICKETS.md`).
 
-**Priority order for the extension** (matches the roadmap in `docs/tickets/ticket.md`):
+**Priority order for the extension** (matches the cut order in `docs/TICKETS.md`):
 
-1. Sound-map explorer: keyboard, touch and pointer, with no lag (T65, T67)
-2. Harmony and rhythm rules: pleasing, not noisy (T68, F18)
-3. Computed descriptions with concise and rich levels (T69, F19)
-4. WAV export and a fallback playlist, also the live-demo backup (T72, T74)
-5. The NASA data story, with real frames from 13 Nov (T61)
+1. Sound-map explorer: keyboard, touch and pointer, with no lag (T81)
+2. Harmony and rhythm rules: pleasing, not noisy (T80, F18)
+3. Computed descriptions with concise and rich levels (T82, F19)
+4. WAV export and a fallback playlist, also the live-demo backup (T80, T81, T87)
+5. The NASA data story, with real frames from 13 Nov (T85)
 6. Then, in this order if time allows: F23, F24, F20, F21, F22, F25
 
-Tickets for F18 to F25 are cut when T65 to T69 are merged, so they build on the real interfaces rather than the stubs.
+F18 to F25 are part B of the tickets in `docs/TICKETS.md` (or T84). Part B starts only after its part A is merged and the 12 Nov cut line is met.
 
 ## 7. Workstreams
 
-Tickets, and who owns each, are in [`docs/tickets/`](tickets/README.md), with one file per person. In short:
+Open tickets are in [`docs/TICKETS.md`](TICKETS.md). The per-person files in [`docs/tickets/`](tickets/README.md) record the earlier tickets, now built. In short:
 
 | Person | Load | Covers |
 |---|---|---|
@@ -329,7 +329,7 @@ Correctness checks that must always pass:
 | Render disk is wiped, or the free server is asleep at demo time | Export CSV after each session, attach a disk if possible, wake the server a minute before the demo |
 | No blind or low-vision testers | Recruit now; fallback is sighted volunteers with no screen; report honestly |
 | Live demo fails | Recorded backup video |
-| The extension (F18 to F25) eats the time for the must-haves | It starts only after T65 to T69 are merged; items are cut in the reverse of the order in 6.1 |
+| The extension (F18 to F25) eats the time for the must-haves | It is part B of each ticket and starts only after the 12 Nov cut line; items are cut in the order in `docs/TICKETS.md` |
 | A language model changes a fact in a description | Facts come from `src/describe/`; the Co-Pilot only rewords, and the boundary test keeps models out of that folder |
 | Rhythm or texture sounds like noise | Rules pick from a small fixed set of patterns in the current scale; listen-check before merging |
 | Vibration or HRTF is missing on a device | Both are extras on top of sound: stereo panning and the plain tone always work |

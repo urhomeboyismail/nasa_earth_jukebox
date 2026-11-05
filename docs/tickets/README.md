@@ -1,5 +1,7 @@
 # Tickets
 
+> **Open work is in [`docs/TICKETS.md`](../TICKETS.md).** The tickets below were the first round; most are built. Use this folder as a record, not a to-do list.
+
 Sub-tickets cut from [`docs/PLAN.md`](../PLAN.md). Hand a ticket to your own AI like this:
 
 > Read `AGENTS.md`, `docs/PLAN.md` and ticket `<ID>` in `docs/tickets/`. Do only that ticket, on branch `feature/<ID>-short-name`, and open a PR into `main`.
