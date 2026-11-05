@@ -9,12 +9,17 @@ data exists. It is practice data: every frame says so. Needs Pillow and NumPy:
     python3 -m venv .venv && .venv/bin/pip install -r scripts/requirements.txt
     .venv/bin/python -I scripts/make_synthetic_globe.py
 
+Stress option (T85, speed): `--frames N --width W --height H --out DIR` writes N frames of W x H into DIR instead (for example
+60 frames of 1920 x 1080 into public/data/stress-globe, which .gitignore leaves out), with a manifest and no change to
+index.json or expected.json. The first 12 frames are the usual dates; later ones carry on month by month from 2025.
+
 Running it twice gives identical files. `expected.json` is computed from the values the script draws at the sample points,
 never by reading an image back. The legend, notes and helpers are shared with make_synthetic.py (loaded by path, because
 `python -I` does not put this folder on the import path).
 """
 from __future__ import annotations
 
+import argparse
 import importlib.util
 import json
 from pathlib import Path
@@ -59,9 +64,10 @@ SCENARIOS = [
 WEST_LAND = [(0.08, 0.30), (0.22, 0.22), (0.30, 0.40), (0.28, 0.62), (0.20, 0.78), (0.10, 0.70), (0.06, 0.50)]
 EAST_LAND = [(0.72, 0.34), (0.84, 0.26), (0.93, 0.40), (0.90, 0.66), (0.80, 0.80), (0.72, 0.66), (0.70, 0.48)]
 
-# A cloud over most of the heatwave patch in October: an ellipse in pixels (centre and radii). It covers four of the six
-# columns of sample points, 20 of 30, so fewer than half can be read and the date is "not enough data".
-CLOUD = (624, 84, 114, 48)
+# A cloud over most of the heatwave patch in October: an ellipse in pixels (centre and radii) at 1200 x 600. It covers four of
+# the six columns of sample points, 20 of 30, so fewer than half can be read and the date is "not enough data".
+CLOUD_AT_1200 = (624, 84, 114, 48)
+CLOUD = CLOUD_AT_1200
 
 # Two regions of 30 points each, in open water: the patch (inside the heatwave) and the tropics (along the equator).
 PATCH_POINTS = [(round(0.46 + 0.04 * i, 2), round(0.09 + 0.025 * j, 3)) for j in range(5) for i in range(6)]
@@ -85,6 +91,15 @@ def field(x, y, month: int, gain: float):
     temperature = temperature + CURRENT_GAIN * np.exp(-((x - 0.34) ** 2 / (2 * 0.035 ** 2) + (v - 0.50) ** 2 / (2 * 0.16 ** 2)))
     temperature = temperature + gain * np.exp(-((x - PATCH_X) ** 2 / PATCH_RX ** 2 + (v - PATCH_V) ** 2 / PATCH_RV ** 2))
     return temperature + base.spatial_offset(x, y)
+
+
+def set_size(width: int, height: int) -> None:
+    """Draws at another size. Everything is placed by fraction of the image, so the answers do not change."""
+    global WIDTH, HEIGHT, LEGEND_TOP, CLOUD
+    WIDTH, HEIGHT = width, height
+    LEGEND_TOP = int(HEIGHT * MAP_BOTTOM)
+    cx, cy, rx, ry = CLOUD_AT_1200
+    CLOUD = (cx * width / 1200, cy * height / 600, rx * width / 1200, ry * height / 600)
 
 
 def pixel(x: float, y: float) -> tuple[int, int]:
@@ -113,18 +128,20 @@ def draw_frame(date: str, month: int, gain: float, cloud: bool) -> Image.Image:
         cx, cy, rx, ry = CLOUD
         draw.ellipse([cx - rx, cy - ry, cx + rx, cy + ry], fill=base.NO_DATA)
 
-    # Label, top left, white on dark: outside every sample point.
-    draw.rectangle([8, 8, 420, 34], fill=(20, 20, 20))
-    draw.text((14, 11), f"Synthetic globe (made-up)  {date}", fill=(255, 255, 255), font=base.font(15))
+    k = WIDTH / 1200  # the label and the legend are laid out for 1200 x 600 and scaled from there
+    draw.rectangle([8 * k, 8 * k, 420 * k, 34 * k], fill=(20, 20, 20))
+    draw.text((14 * k, 11 * k), f"Synthetic globe (made-up)  {date}", fill=(255, 255, 255), font=base.font(max(8, round(15 * k))))
 
     # Legend bar along the bottom, with its own labels: below the map area.
     draw.rectangle([0, LEGEND_TOP, WIDTH, HEIGHT], fill=(20, 20, 20))
-    bar = base.legend_rgb(np.tile(np.linspace(0, 30, 900), (24, 1)))
-    image.paste(Image.fromarray(bar, "RGB"), (150, LEGEND_TOP + 12))
+    bar_w, bar_h = max(2, round(900 * k)), max(2, round(24 * (HEIGHT / 600)))
+    bar = base.legend_rgb(np.tile(np.linspace(0, 30, bar_w), (bar_h, 1)))
+    left = round(150 * k)
+    image.paste(Image.fromarray(bar, "RGB"), (left, LEGEND_TOP + round(12 * HEIGHT / 600)))
     for value in (0, 10, 20, 30):
-        x = 150 + int(value / 30 * 899)
-        draw.text((x - 8, LEGEND_TOP + 42), str(value), fill=(255, 255, 255), font=base.font(13))
-    draw.text((1070, LEGEND_TOP + 14), "°C", fill=(255, 255, 255), font=base.font(15))
+        x = left + int(value / 30 * (bar_w - 1))
+        draw.text((x - 8 * k, LEGEND_TOP + 42 * HEIGHT / 600), str(value), fill=(255, 255, 255), font=base.font(max(8, round(13 * k))))
+    draw.text((1070 * k, LEGEND_TOP + 14 * HEIGHT / 600), "°C", fill=(255, 255, 255), font=base.font(max(8, round(15 * k))))
     return image
 
 
@@ -219,7 +236,43 @@ def manifest(expected: list[dict]) -> dict:
     }
 
 
+def write_stress(frames: int, out: Path) -> None:
+    """N frames at the current size in `out`, for measuring speed. Frame k repeats scenario k % 12 with its own date."""
+    expected = all_expected()
+    data = manifest(expected)
+    base_frames = data["frames"]
+    (out / "frames").mkdir(parents=True, exist_ok=True)
+    made = []
+    for k in range(frames):
+        month = k % 12 + 1
+        date, gain, cloud, _ = SCENARIOS[k % 12]
+        date = date if k < 12 else f"{2024 + k // 12}-{month:02d}-15"
+        draw_frame(date, month, gain, cloud).save(out / "frames" / f"{date}.png", format="PNG", compress_level=6)
+        made.append({**base_frames[k % 12], "id": date, "date": date, "image": f"frames/{date}.png", "width": WIDTH, "height": HEIGHT})
+    data["frames"] = made
+    data["id"] = out.name
+    data["title"] = f"Stress test: {frames} frames, {WIDTH} x {HEIGHT} (made-up)"
+    if frames < 12:  # the comparisons and the story name the first 12 dates
+        data["comparisons"], data["story"] = [], []
+    base.write_json(out / "manifest.json", data)
+    print(f"Wrote {frames} frames of {WIDTH} x {HEIGHT} and manifest.json to {out}")
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Write the synthetic globe, or with --out a stress set for measuring speed.")
+    parser.add_argument("--frames", type=int, default=12)
+    parser.add_argument("--width", type=int, default=1200)
+    parser.add_argument("--height", type=int, default=600)
+    parser.add_argument("--out", type=Path, help="write a stress set here, leaving the committed data alone")
+    args = parser.parse_args()
+    if args.out is None and (args.frames, args.width, args.height) != (12, 1200, 600):
+        parser.error("--frames, --width and --height need --out, so the committed data set is not overwritten")
+    if args.frames < 1 or args.width < 200 or args.height < 100:
+        parser.error("need at least 1 frame, 200 x 100 pixels")
+    if args.out is not None:
+        set_size(args.width, args.height)
+        write_stress(args.frames, args.out.resolve())
+        return
     (OUT / "frames").mkdir(parents=True, exist_ok=True)
     for month, (date, gain, cloud, _) in enumerate(SCENARIOS, start=1):
         draw_frame(date, month, gain, cloud).save(OUT / "frames" / f"{date}.png", format="PNG", compress_level=9)
