@@ -6,7 +6,9 @@
 // approves it. To rewrite the golden files after a change you meant to make: `npx vitest run -u src/data/sound-regression.test.ts`
 // (or `npm test -- -u`), then read the diff of src/data/__golden__/ before you commit it.
 //
-// It never reads stress-* folders: they are local, gitignored load-test data and are not in the catalog.
+// It covers the three committed data sets only (BASELINED), not every catalog entry: a data set added to index.json (a real one on
+// 13 Nov, or a gitignored rehearsal-* one in T91) would otherwise fail `npm run check-data` and get a new golden file written
+// without anyone asking. Add an id to BASELINED on purpose, with its golden file, once its sound is agreed.
 
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -69,12 +71,14 @@ const toText = (baseline: unknown) => JSON.stringify(baseline, null, 2) + '\n'
 const catalog = catalogSchema.parse(readJson('index.json'))
 const load = (id: string) => visualizationSchema.parse(readJson(`${id}/manifest.json`)) as Visualization
 
+const BASELINED = ['fixture', 'synthetic-ocean', 'synthetic-globe']
+
 describe('sound regression baseline', () => {
   it('covers the three data sets', () => {
-    expect(catalog.map(entry => entry.id)).toEqual(['fixture', 'synthetic-ocean', 'synthetic-globe'])
+    expect(catalog.map(entry => entry.id).slice(0, BASELINED.length)).toEqual(BASELINED)
   })
 
-  it.each(catalog.map(entry => entry.id))('%s sounds the same as the committed baseline', async id => {
+  it.each(BASELINED)('%s sounds the same as the committed baseline', async id => {
     await expect(toText(baselineFor(load(id)))).toMatchFileSnapshot(`__golden__/${id}.json`)
   })
 

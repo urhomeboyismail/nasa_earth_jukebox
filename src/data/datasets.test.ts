@@ -23,8 +23,10 @@ const expectedFor = (id: string) => expectations[`../../public/data/${id}/expect
 
 describe('the data sets on disk', () => {
   it('lists each one in the catalog, and each catalog entry has a manifest', () => {
-    // stress-* and rehearsal-* folders are local, gitignored data (scripts/make_synthetic_globe.py, the T91 rehearsal) and are never listed.
-    const onDisk = Object.keys(manifests).map(path => path.split('/').at(-2)!).filter(id => !/^(stress|rehearsal)-/.test(id)).sort()
+    // stress-* and rehearsal-* folders are local, gitignored data (scripts/make_synthetic_globe.py, the T91 rehearsal). They need not
+    // be listed, but a rehearsal set may be, so the T85 checklist (add it to index.json, then npm run check-data) works on it.
+    const listed = new Set(catalog.map(entry => entry.id))
+    const onDisk = Object.keys(manifests).map(path => path.split('/').at(-2)!).filter(id => listed.has(id) || !/^(stress|rehearsal)-/.test(id)).sort()
     expect(catalog.map(entry => entry.id).sort()).toEqual(onDisk)
   })
 
