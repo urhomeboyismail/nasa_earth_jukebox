@@ -5,6 +5,7 @@ import { useAssistantContext } from '../../assistant/context'
 import { AnnouncerProvider, Button, Card, Notice } from '../../components'
 import { useAnnounce } from '../../components/useAnnounce'
 import type { Visualization } from '../../data'
+import { describeFrame } from '../../describe'
 import { dateFormatterFor } from '../../dates'
 import type { PageProps } from '../types'
 import './compare.css'
@@ -209,6 +210,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
                 <Card title={`${label}: ${formatDate(frame.date)}`} headingLevel={2}>
                   <img src={frame.image} alt={frame.altText} width={frame.width} height={frame.height} />
                   {frame.note && <p>{frame.note}</p>}
+                  {results && <p>{describeFrame(visualization, results, frames.indexOf(frame))}</p>}
                 </Card>
               </li>
             ))}

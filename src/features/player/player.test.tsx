@@ -119,6 +119,18 @@ describe('Player: viewing', () => {
     expect(screen.getByText(/Earth Jukebox team/)).toBeInTheDocument()
   })
 
+  it('describes the date on screen in words, below the picture, and follows the date', async () => {
+    const { user } = await renderReady()
+    const description = screen.getByRole('region', { name: 'Description' })
+    expect(description).toHaveTextContent('January 2024.')
+    expect(description).toHaveTextContent('First date.')
+    screen.getByRole('button', { name: 'Stop' }).focus()
+    await user.keyboard('{ArrowRight}')
+    await tick(0)
+    expect(screen.getByRole('region', { name: 'Description' })).toHaveTextContent('July 2024.')
+    expect(screen.getByRole('region', { name: 'Description' })).toHaveTextContent('Up two steps from January (cold).')
+  })
+
   it('says the day when the frames are days apart, and only the year when they are years apart', async () => {
     const withDates = (dates: string[]): Visualization => ({
       ...visualization,

@@ -93,6 +93,17 @@ describe('Compare: the ready-made comparison', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'Date B: December 2024' })).toBeInTheDocument()
   })
 
+  it('describes both dates in words under their pictures after the reveal, and not before', async () => {
+    const { user } = await renderReady()
+    expect(screen.queryByText(/First date\./)).toBeNull()
+    await user.click(screen.getByRole('radio', { name: 'B is warmer' }))
+    await user.click(screen.getByRole('button', { name: 'Reveal the answer' }))
+    const [cardA, cardB] = screen.getAllByRole('img').map(img => img.closest('section')!)
+    expect(cardA).toHaveTextContent('First date.')
+    expect(cardB).toHaveTextContent('December 2024.')
+    expect(cardB).toHaveTextContent('Up two steps from July (mild).')
+  })
+
   it('says a wrong answer is not quite right, and still gives the answer', async () => {
     const { user } = await renderReady()
     await user.click(screen.getByRole('radio', { name: 'A is warmer' }))
