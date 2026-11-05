@@ -103,8 +103,11 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     }))
   }, [results, frames, region, mapping])
 
-  /** Plays dates from `from` to the end. Needs a click or key press, which is where every caller comes from. */
-  const startFrom = useCallback(async (from: number, speedNow: Speed) => {
+  /** The last date of the part being played, or null when the run goes to the end. Kept so a change of speed does not run past it. */
+  const rangeEnd = useRef<number | null>(null)
+
+  /** Plays dates from `from` to `to` (the end, unless a story chapter says otherwise). Needs a click or key press, which is where every caller comes from. */
+  const startFrom = useCallback(async (from: number, speedNow: Speed, to: number = frames.length - 1) => {
     if (!engine || !results) return
     cancelRun()
     const mine = run.current
@@ -113,7 +116,9 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     engine.setVolume(volumeRef.current)
     engine.stop()
     const stepMs = STEP_MS[speedNow]
-    const steps = stepsFor(from, frames.length - 1, stepMs)
+    const last = Math.min(frames.length - 1, Math.max(from, to))
+    rangeEnd.current = last === frames.length - 1 ? null : last
+    const steps = stepsFor(from, last, stepMs)
     setFinished(false)
     setStatus('playing')
     engine.playSequence(steps, k => {
@@ -125,7 +130,8 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
         endTimer.current = window.setTimeout(() => {
           if (mine !== run.current) return
           setStatus('idle')
-          setFinished(true)
+          // "That is the last date" is only true when the run reached the end of the data.
+          setFinished(last === frames.length - 1)
         }, stepMs)
       }
     })
@@ -222,8 +228,13 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
 
   const setSpeed = useCallback((next: Speed) => {
     setSpeedState(next)
-    if (status === 'playing') void startFrom(index, next)
+    if (status === 'playing') void startFrom(index, next, rangeEnd.current ?? undefined)
   }, [status, index, startFrom])
+
+  /** Plays only dates `from` to `to`, with the same sound, announcements and picture as a full run, and stops at `to`. */
+  const playRange = useCallback((from: number, to: number) => {
+    if (ready) void startFrom(from, speed, to)
+  }, [ready, startFrom, speed])
 
   const setVolume = useCallback((next: number) => {
     volumeRef.current = next
@@ -252,7 +263,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     engine, region, results, index, status, speed, volume, finished, ready, style, setStyle, downloading, downloadError,
     error: engineError || analysisError,
     loading: !engineError && !analysisError && !results,
-    play, pause, stop, replay, goTo, halt, download, setSpeed, setVolume,
+    play, pause, stop, replay, goTo, halt, playRange, download, setSpeed, setVolume,
     describeDate, formatDate,
     categoryAt: (i: number) => results?.[i]?.category ?? null,
   }

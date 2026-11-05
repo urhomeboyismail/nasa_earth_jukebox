@@ -1,0 +1,18 @@
+/* The story sits inline above the playback controls; it is text first, with buttons that wrap on a narrow screen. */
+.story {
+  display: grid;
+  gap: 0.75rem;
+  text-align: left;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+}
+.story__title { margin: 0; font-size: 1.25rem; color: var(--text-h); overflow-wrap: anywhere; }
+.story__title:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 0.25rem; }
+/* At least 16 px, a comfortable line length, and long words wrap instead of widening the page. */
+.story__text { margin: 0; font-size: 1rem; line-height: 1.5; max-inline-size: 70ch; overflow-wrap: anywhere; }
+.story__buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.story__buttons .ui-button { flex: 1 1 9rem; }
+@container (min-width: 48rem) {
+  .story__buttons .ui-button { flex: 0 0 auto; }
+}

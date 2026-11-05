@@ -1,9 +1,10 @@
-import { useEffect, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { useAssistantContext } from '../../assistant/context'
 import { AnnouncerProvider, Button, Legend, Notice, Slider } from '../../components'
 import type { Visualization } from '../../data'
 import { Description } from '../../describe/Description'
 import { ExplorerPanel, ExplorerSurface, useExplorer } from '../explore/Explorer'
+import { StoryPanel } from '../story/StoryPanel'
 import type { PageProps } from '../types'
 import './player.css'
 import { usePlayer, type Speed } from './usePlayer'
@@ -48,6 +49,29 @@ function Player({ visualization }: { visualization: Visualization }) {
   // Playing the dates takes the sound back from the explorer.
   const { on: exploring, turnOff: stopExploring } = explorer
   useEffect(() => { if (playing && exploring) stopExploring() }, [playing, exploring, stopExploring])
+
+  // Story mode. While it is open the explorer is off and cannot be turned on, so the two never fight over the sound.
+  const chapters = visualization.story ?? []
+  const [storyOpen, setStoryOpen] = useState(false)
+  const storyBox = useRef<HTMLDivElement>(null)
+  const returnToStoryButton = useRef(false)
+  useEffect(() => {
+    if (!storyOpen && returnToStoryButton.current) {
+      returnToStoryButton.current = false
+      storyBox.current?.querySelector('button')?.focus()
+    }
+  }, [storyOpen])
+
+  function openStory() {
+    if (exploring) explorer.turnOff()
+    setStoryOpen(true)
+  }
+
+  function closeStory() {
+    player.halt()
+    returnToStoryButton.current = true
+    setStoryOpen(false)
+  }
 
   function toggleExplorer() {
     if (exploring) {
@@ -105,13 +129,22 @@ function Player({ visualization }: { visualization: Visualization }) {
       {player.downloadError && <Notice variant="error">The audio could not be prepared. {player.downloadError}</Notice>}
       {player.finished && <Notice>That is the last date. Press Play to hear it again.</Notice>}
 
+      {chapters.length > 0 && (
+        <div className="player__story" ref={storyBox}>
+          <Button aria-expanded={storyOpen} disabled={!player.ready || storyOpen} onClick={openStory}>Hear the story</Button>
+        </div>
+      )}
+      {storyOpen && (
+        <StoryPanel visualization={visualization} chapters={chapters} results={player.results} playRange={player.playRange} onClose={closeStory} />
+      )}
+
       <div className="player__controls" role="group" aria-label="Playback">
         <Button variant="primary" disabled={!player.ready} onClick={playing ? player.pause : player.play}>
           {playing ? 'Pause' : player.status === 'paused' ? 'Resume' : 'Play'}
         </Button>
         <Button disabled={!player.ready} onClick={player.stop}>Stop</Button>
         <Button disabled={!player.ready} onClick={player.replay}>Replay this date</Button>
-        <Button disabled={!player.ready || !visualization.mapping} pressed={exploring} onClick={toggleExplorer}>Explore the map</Button>
+        <Button disabled={!player.ready || storyOpen} pressed={exploring} onClick={toggleExplorer}>Explore the map</Button>
       </div>
 
       <div className="player__slider">
