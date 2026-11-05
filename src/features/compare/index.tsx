@@ -8,6 +8,7 @@ import { AnnouncerProvider, Button, Card, Notice } from '../../components'
 import { useAnnounce } from '../../components/useAnnounce'
 import type { Visualization } from '../../data'
 import { describeFrame } from '../../describe'
+import { useDescriptionDetail } from '../../describe/detail'
 import { dateFormatterFor } from '../../dates'
 import type { PageProps } from '../types'
 import './compare.css'
@@ -71,6 +72,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
   }, [frames, regions, colorScale, mapping])
 
   const [soundStyle] = useSoundStyle()
+  const [detail] = useDescriptionDetail()
   useEffect(() => { engine?.setStyle(soundStyle) }, [engine, soundStyle])
 
   // Silence the sounds when leaving the page.
@@ -220,7 +222,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
                 <Card title={`${label}: ${formatDate(frame.date)}`} headingLevel={2}>
                   <img src={frame.image} alt={frame.altText} width={frame.width} height={frame.height} />
                   {frame.note && <p>{frame.note}</p>}
-                  {results && <p>{describeFrame(visualization, results, frames.indexOf(frame))}</p>}
+                  {results && <p>{describeFrame(visualization, results, frames.indexOf(frame), { detail })}</p>}
                 </Card>
               </li>
             ))}

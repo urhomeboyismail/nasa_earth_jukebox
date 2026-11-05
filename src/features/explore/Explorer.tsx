@@ -8,6 +8,7 @@ import { panForPoint } from '../../audio/pan'
 import { Button, Notice, Slider, useAnnounce } from '../../components'
 import type { Frame, MapArea, Visualization } from '../../data'
 import { describeCell, describeSweep } from '../../describe'
+import { useDescriptionDetail } from '../../describe/detail'
 import { vibrateForDate } from '../player/vibration'
 import './explore.css'
 
@@ -38,6 +39,7 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
   const { colorScale, mapping } = visualization
   const area = visualization.mapArea ?? WHOLE_MAP
   const announce = useAnnounce()
+  const [detail] = useDescriptionDetail()
 
   const [on, setOn] = useState(false)
   const [grid, setGrid] = useState<FrameGrid | null>(null)
@@ -98,10 +100,10 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
   const announceCell = useCallback((at: Cursor, delay: number) => {
     window.clearTimeout(announceTimer.current)
     if (!grid) return
-    const say = () => announce(describeCell(visualization, grid, at.col, at.row))
+    const say = () => announce(describeCell(visualization, grid, at.col, at.row, { detail }))
     if (delay <= 0) say()
     else announceTimer.current = window.setTimeout(say, delay)
-  }, [grid, visualization, announce])
+  }, [grid, visualization, announce, detail])
 
   /** Sounds a cell now, or after the pause between plays; a newer cell replaces one that is waiting. */
   const soundCell = useCallback((at: Cursor) => {
@@ -160,11 +162,11 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
         sweepEnd.current = window.setTimeout(() => {
           if (mine !== sweepId.current) return
           setSweeping(false)
-          announce(describeSweep(visualization, grid, { kind, index: kind === 'row' ? at.row : at.col }))
+          announce(describeSweep(visualization, grid, { kind, index: kind === 'row' ? at.row : at.col }, { detail }))
         }, SWEEP_STEP_MS)
       }
     }, { tick: false })
-  }, [engine, grid, centreX, stopSweep, place, announce, visualization])
+  }, [engine, grid, centreX, stopSweep, place, announce, visualization, detail])
 
   /** Stops the sound of a sweep or cell, keeping the cursor where it is. */
   const stopSound = useCallback(() => {
@@ -298,9 +300,10 @@ export function ExplorerSurface({ explorer }: { explorer: ExplorerState }) {
 /** Notices, and for touch and screen readers: two sliders that move the same cursor, and buttons to sweep. Shown while exploring. */
 export function ExplorerPanel({ visualization, explorer }: { visualization: Visualization; explorer: ExplorerState }) {
   const { on, grid, cursor, loading, error } = explorer
+  const [detail] = useDescriptionDetail()
   const here = useMemo(
-    () => (grid ? describeCell(visualization, grid, cursor.col, cursor.row) : ''),
-    [grid, cursor.col, cursor.row, visualization],
+    () => (grid ? describeCell(visualization, grid, cursor.col, cursor.row, { detail }) : ''),
+    [grid, cursor.col, cursor.row, visualization, detail],
   )
   if (!on) return null
 

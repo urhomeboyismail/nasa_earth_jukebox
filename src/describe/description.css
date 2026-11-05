@@ -10,3 +10,6 @@
 /* At least 16 px, and long words and numbers wrap instead of widening the page at 360 px. */
 .description__text { margin: 0; font-size: 1rem; line-height: 1.5; overflow-wrap: anywhere; }
 .description__all summary { min-block-size: var(--control-size); display: flex; align-items: center; cursor: pointer; color: var(--text-h); }
+
+.description__detail { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.description__detail-label { color: var(--text-h); font-weight: 600; margin-inline-end: 0.25rem; }

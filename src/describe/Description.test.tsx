@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import fixture from '../../public/data/fixture/manifest.json'
 import type { FrameAnalysis } from '../analysis'
 import type { Visualization } from '../data'
@@ -14,6 +14,8 @@ const results: FrameAnalysis[] = visualization.frames.map((frame, i) => ({
   frameId: frame.id, regionId: visualization.regions[0].id, sampled: 9, valid: i === 3 ? 0 : 9, category: categories[i],
   ...(i === 3 ? {} : { medianValue: [3, 15, 27][i] }),
 }))
+
+afterEach(() => localStorage.clear())
 
 describe('Description', () => {
   it('shows the words for the date on screen under a "Description" heading', () => {
@@ -46,6 +48,39 @@ describe('Description', () => {
 
   it('has no accessibility violations', async () => {
     const { container } = render(<Description visualization={visualization} results={results} index={2} />)
+    await expectNoA11yViolations(container)
+  })
+})
+
+describe('Description: rich or concise', () => {
+  it('has a Rich / Concise choice, rich to begin with', () => {
+    render(<Description visualization={visualization} results={results} index={1} />)
+    const group = screen.getByRole('group', { name: 'Description detail' })
+    expect(group).toHaveTextContent('Rich')
+    expect(screen.getByRole('button', { name: 'Rich' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Concise' })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('switches the words to the short form and back', async () => {
+    render(<Description visualization={visualization} results={results} index={1} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Concise' }))
+    expect(screen.getByRole('region', { name: 'Description' })).toHaveTextContent(describeFrame(visualization, results, 1, { detail: 'concise' }))
+    expect(screen.getByRole('button', { name: 'Concise' })).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.click(screen.getByRole('button', { name: 'Rich' }))
+    expect(screen.getByRole('region', { name: 'Description' })).toHaveTextContent(describeFrame(visualization, results, 1))
+  })
+
+  it('remembers the choice for the next time', async () => {
+    const first = render(<Description visualization={visualization} results={results} index={1} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Concise' }))
+    first.unmount()
+    render(<Description visualization={visualization} results={results} index={1} />)
+    expect(screen.getByRole('button', { name: 'Concise' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('has no accessibility violations with the concise text', async () => {
+    const { container } = render(<Description visualization={visualization} results={results} index={2} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Concise' }))
     await expectNoA11yViolations(container)
   })
 })

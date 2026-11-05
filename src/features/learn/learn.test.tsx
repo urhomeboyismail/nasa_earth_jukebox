@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
 import type { Visualization } from '../../data'
 import { expectNoA11yViolations } from '../../test/a11y'
@@ -119,5 +119,97 @@ describe('Learn page', () => {
   it('has no accessibility violations', async () => {
     const { container } = render(<main><h1>Learn the sounds</h1><LearnPage visualization={visualization} /></main>)
     await expectNoA11yViolations(container)
+  })
+})
+
+describe('Learn page: the chord, the slide and the bell', () => {
+  afterEach(() => { localStorage.clear(); window.location.hash = '' })
+
+  it('has a card for each, with its explanation', () => {
+    render(<LearnPage visualization={visualization} />)
+    for (const title of ['The soft chord underneath', 'The slide', 'The bell']) {
+      expect(screen.getByRole('heading', { level: 2, name: title })).toBeInTheDocument()
+    }
+    expect(screen.getByText(/all one temperature you hear one deep note under the melody/)).toBeInTheDocument()
+    expect(screen.getByText(/A longer slide is a bigger change/)).toBeInTheDocument()
+    expect(screen.getByText(/two or more steps at once/)).toBeInTheDocument()
+  })
+
+  it('plays a single deep note for "all warm", and the chord of cool, mild and warm for "mixed"', async () => {
+    render(<LearnPage visualization={visualization} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Play: all warm' }))
+    expect(engine.playCategory).toHaveBeenLastCalledWith('warm', { pad: ['warm'] })
+    await userEvent.click(screen.getByRole('button', { name: 'Play: mixed' }))
+    expect(engine.playCategory).toHaveBeenLastCalledWith('mild', { pad: ['cool', 'mild', 'warm'] })
+  })
+
+  it('plays cool then hot with the slide on the second note, and no tick', async () => {
+    render(<LearnPage visualization={visualization} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Play: the slide' }))
+    const [steps, , options] = engine.playSequence.mock.calls[0] as unknown as [{ category: string; atMs: number; glide?: boolean; bell?: boolean }[], unknown, unknown]
+    expect(steps.map(step => step.category)).toEqual(['cool', 'hot'])
+    expect(steps[0]).not.toHaveProperty('glide')
+    expect(steps[1]).toMatchObject({ glide: true })
+    expect(steps[1]).not.toHaveProperty('bell')
+    expect(steps[1].atMs).toBeGreaterThan(0)
+    expect(options).toEqual({ tick: false })
+  })
+
+  it('plays cool then hot with the bell on the second note', async () => {
+    render(<LearnPage visualization={visualization} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Play: the bell' }))
+    const [steps] = engine.playSequence.mock.calls[0] as unknown as [{ category: string; glide?: boolean; bell?: boolean }[]]
+    expect(steps.map(step => step.category)).toEqual(['cool', 'hot'])
+    expect(steps[1]).toMatchObject({ bell: true })
+    expect(steps[1]).not.toHaveProperty('glide')
+  })
+
+  it('finds the notes by position, so it works for a data set with two categories', async () => {
+    const two: Visualization = { ...visualization, mapping: { ...visualization.mapping, categories: [visualization.mapping.categories[0], visualization.mapping.categories[2]] } }
+    render(<LearnPage visualization={two} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Play: mixed' }))
+    expect(engine.playCategory).toHaveBeenLastCalledWith('mild', { pad: ['cold', 'mild'] })
+  })
+
+  it('unlocks the sound first, like every other button', async () => {
+    render(<LearnPage visualization={visualization} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Play: the bell' }))
+    expect(calls.filter(c => c !== 'stop')).toEqual(['unlock', 'sequence'])
+  })
+
+  it('hides the three cards in the simple style, and says only the main note is heard', () => {
+    localStorage.setItem('earth-jukebox:sound-style', 'simple')
+    render(<LearnPage visualization={visualization} />)
+    expect(screen.getByText('Simple sound is on: you hear only the main note.')).toBeInTheDocument()
+    for (const title of ['The soft chord underneath', 'The slide', 'The bell']) {
+      expect(screen.queryByRole('heading', { name: title })).toBeNull()
+    }
+    expect(screen.queryByRole('button', { name: 'Play: the slide' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Play: Warm' })).toBeInTheDocument()
+  })
+
+  it('sets the engine to the remembered style', () => {
+    localStorage.setItem('earth-jukebox:sound-style', 'simple')
+    render(<LearnPage visualization={visualization} />)
+    expect(engine.setStyle).toHaveBeenLastCalledWith('simple')
+  })
+})
+
+describe('Learn page: explore the map', () => {
+  afterEach(() => { window.location.hash = '' })
+
+  it('says what the explorer does, its keys, and the sliders for phones', () => {
+    render(<LearnPage visualization={visualization} />)
+    expect(screen.getByRole('heading', { level: 2, name: 'Explore the map' })).toBeInTheDocument()
+    expect(screen.getByText(/Arrow keys move one place/)).toBeInTheDocument()
+    expect(screen.getByText(/Enter plays the row from west to east/)).toBeInTheDocument()
+    expect(screen.getByText(/On a phone, use the two sliders/)).toBeInTheDocument()
+  })
+
+  it('links to Listen, and keeps the chosen data set', () => {
+    window.location.hash = '#learn?data=synthetic-globe'
+    render(<LearnPage visualization={visualization} />)
+    expect(screen.getByRole('link', { name: 'Try Explore the map on Listen' })).toHaveAttribute('href', '#listen?data=synthetic-globe')
+    expect(screen.getByRole('link', { name: 'Go to Listen' })).toHaveAttribute('href', '#listen?data=synthetic-globe')
   })
 })

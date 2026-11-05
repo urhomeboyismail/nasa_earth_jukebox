@@ -5,6 +5,12 @@
 import type { FrameAnalysis, FrameGrid } from '../analysis'
 import type { Frame, Visualization } from '../data'
 import { dateFormatterFor } from '../dates'
+import type { Detail } from './detail'
+
+export type { Detail } from './detail'
+
+/** `detail` is 'rich' (the full sentences, and the default, so every existing call is unchanged) or 'concise'. */
+export type DescribeOptions = { detail?: Detail }
 
 const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']
 const word = (n: number) => NUMBER_WORDS[n] ?? String(n)
@@ -73,12 +79,16 @@ function sharesText(result: FrameAnalysis, vocab: Vocabulary): string {
   return `Split between ${listOf(listed.map(text))}.`
 }
 
-/** One date: its category, how much could be read, and how it changed since the date before. */
-export function describeFrame(visualization: Visualization, results: FrameAnalysis[], index: number): string {
+/**
+ * One date: its category, how much could be read, and how it changed since the date before.
+ * Concise keeps the date, the label, the rounded value and the change: "March: warm, 21 °C, up two steps."
+ */
+export function describeFrame(visualization: Visualization, results: FrameAnalysis[], index: number, options: DescribeOptions = {}): string {
   const result = results[index]
   const frame = result && frameOf(visualization, result)
   if (!result || !frame) return ''
   const vocab = vocabulary(visualization)
+  if (options.detail === 'concise') return conciseFrame(visualization, vocab, results, index, result, frame)
   const date = vocab.formatDate(frame.date)
   const region = visualization.regions.find(r => r.id === result.regionId)?.name ?? result.regionId
 
@@ -108,6 +118,23 @@ export function describeFrame(visualization: Visualization, results: FrameAnalys
   }
   parts.push(sharesText(result, vocab))
   return parts.filter(Boolean).join(' ')
+}
+
+function conciseFrame(visualization: Visualization, vocab: Vocabulary, results: FrameAnalysis[], index: number, result: FrameAnalysis, frame: Frame): string {
+  // Inside one year the date drops it ("March"), as the sequence description does; across years it keeps it.
+  const { frames } = visualization
+  const oneYear = frames[0].date.slice(0, 4) === frames[frames.length - 1].date.slice(0, 4)
+  const date = oneYear ? vocab.withoutYear(frame.date) : vocab.formatDate(frame.date)
+  if (result.category === 'insufficient') return `${date}: no data.`
+  const value = result.medianValue === undefined ? '' : `, ${withUnit(result.medianValue, vocab.unit)}`
+  const previous = results.findLast((r, i) => i < index && r.category !== 'insufficient')
+  let change = ', first date'
+  if (previous) {
+    const before = vocab.rank(previous.category)
+    const now = vocab.rank(result.category)
+    change = before === now ? ', same' : `, ${stepsText(before, now)}`
+  }
+  return `${date}: ${vocab.label(result.category)}${value}${change}.`
 }
 
 /** The whole sequence: where it starts and ends, the warmest and coolest dates, the biggest change, the gaps. */
@@ -173,17 +200,20 @@ const COMPASS = [
 ]
 
 /** One cell of the map: its category and value, and where it is ("north-east (column 19 of 24, row 3 of 11)"). `col` and `row` start at 0. */
-export function describeCell(visualization: Visualization, grid: FrameGrid, col: number, row: number): string {
+export function describeCell(visualization: Visualization, grid: FrameGrid, col: number, row: number, options: DescribeOptions = {}): string {
   if (!Number.isInteger(col) || !Number.isInteger(row) || col < 0 || row < 0 || col >= grid.cols || row >= grid.rows) return 'That is outside the map.'
   const vocab = vocabulary(visualization)
   const cell = grid.cells[row * grid.cols + col]
-  const where = `${COMPASS[Math.floor((row * 3) / grid.rows)][Math.floor((col * 3) / grid.cols)]} (column ${col + 1} of ${grid.cols}, row ${row + 1} of ${grid.rows})`
-  if (cell.category === 'insufficient' || cell.value === null) return `No data (land, cloud or labels), ${where}.`
-  return `${upperFirst(vocab.label(cell.category))}, about ${withUnit(cell.value, vocab.unit)}, ${where}.`
+  const compass = COMPASS[Math.floor((row * 3) / grid.rows)][Math.floor((col * 3) / grid.cols)]
+  const concise = options.detail === 'concise'
+  const where = concise ? compass : `${compass} (column ${col + 1} of ${grid.cols}, row ${row + 1} of ${grid.rows})`
+  if (cell.category === 'insufficient' || cell.value === null) return `No data${concise ? '' : ' (land, cloud or labels)'}, ${where}.`
+  // Concise: "Warm, 21 °C, north-east."
+  return `${upperFirst(vocab.label(cell.category))}, ${concise ? '' : 'about '}${withUnit(cell.value, vocab.unit)}, ${where}.`
 }
 
 /** A row or a column of the map, as runs: "Row 3, west to east: no data for 4 cells, cool for 6, mild for 8". `index` starts at 0. */
-export function describeSweep(visualization: Visualization, grid: FrameGrid, line: { kind: 'row' | 'column'; index: number }): string {
+export function describeSweep(visualization: Visualization, grid: FrameGrid, line: { kind: 'row' | 'column'; index: number }, options: DescribeOptions = {}): string {
   const { kind, index } = line
   const length = kind === 'row' ? grid.cols : grid.rows
   const lines = kind === 'row' ? grid.rows : grid.cols
@@ -197,6 +227,8 @@ export function describeSweep(visualization: Visualization, grid: FrameGrid, lin
     if (last && last.category === cell.category) last.length++
     else runs.push({ category: cell.category, length: 1 })
   }
+  // Concise: "Row 3: no data 4, cool 6, mild 8." (the direction and the word "cells" are left out)
+  if (options.detail === 'concise') return `${upperFirst(kind)} ${index + 1}: ${runs.map(run => `${vocab.label(run.category)} ${run.length}`).join(', ')}.`
   // The unit is said once, on the first run: "no data for 4 cells, cool for 6, mild for 8".
   const text = runs.map((run, i) => `${vocab.label(run.category)} for ${run.length}${i === 0 ? (run.length === 1 ? ' cell' : ' cells') : ''}`).join(', ')
   return `${upperFirst(kind)} ${index + 1}, ${kind === 'row' ? 'west to east' : 'north to south'}: ${text}.`

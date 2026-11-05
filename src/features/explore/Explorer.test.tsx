@@ -64,7 +64,7 @@ beforeEach(() => {
   analyzeGrid.mockReset()
   analyzeGrid.mockImplementation(async (frame: { id: string }) => makeGrid(frame.id))
 })
-afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals() })
+afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); localStorage.clear() })
 
 /** The player with the explorer turned on and the map read. The cursor starts in the middle: column 13, row 7. */
 async function exploring() {
@@ -343,6 +343,28 @@ describe('Explorer: announcements', () => {
     await user.keyboard('{End}')
     await tick(400)
     expect(liveText()).toMatch(/^No data/)
+  })
+})
+
+describe('Explorer: concise or rich announcements', () => {
+  it('says the short form of the cell, and of the sliders, when the listener chose concise', async () => {
+    localStorage.setItem('earth-jukebox:detail', 'concise')
+    const { user } = await exploring()
+    expect(screen.getByRole('slider', { name: 'Column, west to east' })).toHaveAttribute('aria-valuetext', describeCell(visualization, grid, START.col, START.row, { detail: 'concise' }))
+    await user.keyboard('{ArrowRight}')
+    await tick(400)
+    expect(liveText()).toBe(describeCell(visualization, grid, START.col + 1, START.row, { detail: 'concise' }))
+    expect(liveText()).not.toContain('column')
+  })
+
+  it('says the short form of the sweep too', async () => {
+    localStorage.setItem('earth-jukebox:detail', 'concise')
+    const { user } = await exploring()
+    await user.keyboard('{Enter}')
+    const [steps, onStep] = engine.playSequence.mock.calls[0]
+    for (let k = 0; k < steps.length; k++) act(() => onStep(k))
+    await tick(250)
+    expect(liveText()).toBe(describeSweep(visualization, grid, { kind: 'row', index: START.row }, { detail: 'concise' }))
   })
 })
 

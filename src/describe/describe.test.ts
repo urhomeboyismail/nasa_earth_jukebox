@@ -226,3 +226,68 @@ describe('determinism', () => {
     expect(describeSweep(visualization, grid, { kind: 'row', index: 3 })).toBe(describeSweep(visualization, grid, { kind: 'row', index: 3 }))
   })
 })
+
+describe('concise detail (F19)', () => {
+  const concise = { detail: 'concise' } as const
+  const cellGrid = gridOf({ '18,2': { value: 21.4, category: 'warm' } })
+  const rowCells: GridCell[] = [
+    ...Array<GridCell>(4).fill({ value: null, category: 'insufficient' }),
+    ...Array<GridCell>(6).fill({ value: 8, category: 'cool' }),
+    ...Array<GridCell>(14).fill({ value: 14, category: 'mild' }),
+  ]
+  const lineGrid = gridOf(Object.fromEntries(rowCells.map((cell, col) => [`${col},2`, cell])))
+
+  it('describes a cell as its label, rounded value and place: "Warm, 21 °C, north-east."', () => {
+    expect(describeCell(visualization, cellGrid, 18, 2, concise)).toBe('Warm, 21 °C, north-east.')
+    expect(describeCell(visualization, cellGrid, 18, 3, concise)).toBe('No data, north-east.')
+    expect(describeCell(visualization, cellGrid, 99, 3, concise)).toBe('That is outside the map.')
+  })
+
+  it('describes a date as its month, label, value and change: "March: warm, 21 °C, up two steps."', () => {
+    const results = resultsFor(['cool', 'cool', 'warm', 'insufficient', 'warm', 'cool'], { 2: { medianValue: 21.4 } })
+    expect(describeFrame(visualization, results, 0, concise)).toBe('January: cool, 9 °C, first date.')
+    expect(describeFrame(visualization, results, 1, concise)).toBe('February: cool, 9 °C, same.')
+    expect(describeFrame(visualization, results, 2, concise)).toBe('March: warm, 21 °C, up two steps.')
+    expect(describeFrame(visualization, results, 3, concise)).toBe('April: no data.')
+    expect(describeFrame(visualization, results, 5, concise)).toBe('June: cool, 9 °C, down two steps.')
+  })
+
+  it('compares with the last date that has data, so a gap does not hide a change', () => {
+    const results = resultsFor(['cool', 'insufficient', 'cool', 'warm'])
+    expect(describeFrame(visualization, results, 2, concise)).toBe('March: cool, 9 °C, same.')
+  })
+
+  it('leaves out the value when there is none, and the year only when it is one year', () => {
+    const results = resultsFor(['cool', 'warm'], { 1: { medianValue: undefined } })
+    expect(describeFrame(visualization, results, 1, concise)).toBe('February: warm, up two steps.')
+    const spread: Visualization = { ...visualization, frames: frames.map((frame, i) => ({ ...frame, date: i === 11 ? '2025-12-15' : frame.date })) }
+    expect(describeFrame(spread, resultsFor(['cool', 'cool']), 0, concise)).toBe('January 2024: cool, 9 °C, first date.')
+  })
+
+  it('describes a row as its runs: "Row 3: no data 4, cool 6, mild 14."', () => {
+    expect(describeSweep(visualization, lineGrid, { kind: 'row', index: 2 }, concise)).toBe('Row 3: no data 4, cool 6, mild 14.')
+    expect(describeSweep(visualization, lineGrid, { kind: 'row', index: 40 }, concise)).toBe('There is no row 41.')
+  })
+
+  it('is shorter than the rich text for every one of them', () => {
+    const results = resultsFor(YEAR)
+    expect(describeFrame(visualization, results, 3, concise).length).toBeLessThan(describeFrame(visualization, results, 3).length)
+    expect(describeCell(visualization, cellGrid, 18, 2, concise).length).toBeLessThan(describeCell(visualization, cellGrid, 18, 2).length)
+    expect(describeSweep(visualization, lineGrid, { kind: 'row', index: 2 }, concise).length).toBeLessThan(describeSweep(visualization, lineGrid, { kind: 'row', index: 2 }).length)
+  })
+
+  it('leaves every existing call exactly as it was: rich is the default', () => {
+    const results = resultsFor(YEAR)
+    expect(describeFrame(visualization, results, 3, { detail: 'rich' })).toBe(describeFrame(visualization, results, 3))
+    expect(describeFrame(visualization, results, 3, {})).toBe(describeFrame(visualization, results, 3))
+    expect(describeCell(visualization, cellGrid, 18, 2, { detail: 'rich' })).toBe('Warm, about 21 °C, north-east (column 19 of 24, row 3 of 11).')
+    expect(describeSweep(visualization, lineGrid, { kind: 'row', index: 2 }, { detail: 'rich' })).toBe(describeSweep(visualization, lineGrid, { kind: 'row', index: 2 }))
+  })
+
+  it('gives the same words for the same input, every time', () => {
+    const results = resultsFor(YEAR)
+    for (let i = 0; i < results.length; i++) expect(describeFrame(visualization, results, i, concise)).toBe(describeFrame(visualization, results, i, concise))
+    expect(describeCell(visualization, cellGrid, 18, 2, concise)).toBe(describeCell(visualization, cellGrid, 18, 2, concise))
+    expect(describeSweep(visualization, lineGrid, { kind: 'row', index: 2 }, concise)).toBe(describeSweep(visualization, lineGrid, { kind: 'row', index: 2 }, concise))
+  })
+})
