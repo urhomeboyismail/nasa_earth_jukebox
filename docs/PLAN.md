@@ -156,7 +156,8 @@ In the `"change"` style a step with a `changeStep` plays the change bed (6.2) in
 
 Pages publish these with `useAssistantContext` (in `src/assistant/context.ts`):
 ```ts
-"player":  { visualization: string; date: string; region: string; category: string; playing: boolean }
+"player":  { visualization: string; date: string; region: string; category: string; playing: boolean
+             changeStep?: string }          // v2: only in the "change" style, the date's change step id or "insufficient"
 "compare": { frameA: string; frameB: string; answered: boolean; revealed: boolean }
 ```
 The server's allowed keys (`CONTEXT_KEYS` in `server/app/api/assistant.py`) must match these.

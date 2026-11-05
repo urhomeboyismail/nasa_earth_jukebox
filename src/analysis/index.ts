@@ -9,7 +9,8 @@ import type { ChangeSpec, WorkerRequest, WorkerResponse } from './protocol'
 import { scorePixels } from './score'
 import type { BaselineSource, ChangeFrame, ChangeMapping, ChangeStepId, ChangeVisualization, Score } from './types'
 
-export type { Contour, Score, ValueField } from './types'
+export { hasChange } from './available'
+export type { ChangeFrame, ChangeVisualization, Contour, Score, ValueField } from './types'
 
 export type FrameAnalysis = {
   frameId: string

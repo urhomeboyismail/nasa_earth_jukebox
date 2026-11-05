@@ -4,11 +4,11 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import fixture from '../../public/data/fixture/manifest.json'
 import globe from '../../public/data/synthetic-globe/manifest.json'
-import type { FrameAnalysis, FrameGrid, GridCell } from '../analysis'
+import type { ChangeVisualization, Contour, FrameAnalysis, FrameGrid, GridCell, Score } from '../analysis'
 import { analyzePixels, gridFromPixels } from '../analysis/analyze'
 import { decodePng } from '../analysis/png'
 import type { CategoryId, Visualization } from '../data'
-import { describeCell, describeFrame, describeSequence, describeSweep } from '.'
+import { describeCell, describeChange, describeContour, describeFrame, describeSequence, describeSweep } from '.'
 
 // The globe has twelve monthly frames of 2024, five categories (cold, cool, mild, warm, hot) and a region called
 // "North-east patch": the data the sentences in ticket T69 are written for.
@@ -289,5 +289,112 @@ describe('concise detail (F19)', () => {
     for (let i = 0; i < results.length; i++) expect(describeFrame(visualization, results, i, concise)).toBe(describeFrame(visualization, results, i, concise))
     expect(describeCell(visualization, cellGrid, 18, 2, concise)).toBe(describeCell(visualization, cellGrid, 18, 2, concise))
     expect(describeSweep(visualization, lineGrid, { kind: 'row', index: 2 }, concise)).toBe(describeSweep(visualization, lineGrid, { kind: 'row', index: 2 }, concise))
+  })
+})
+
+// ---- describeChange and describeContour (T115) ----
+
+const changeSteps = [
+  { id: 'much-below', range: [-Infinity, -2] as [number, number] },
+  { id: 'below', range: [-2, -0.5] as [number, number] },
+  { id: 'near-normal', range: [-0.5, 0.5] as [number, number] },
+  { id: 'above', range: [0.5, 2] as [number, number] },
+  { id: 'much-above', range: [2, Infinity] as [number, number] },
+]
+const contourLevels = [{ value: 1 }, { value: 2 }]
+type Baseline = NonNullable<ChangeVisualization['baseline']>
+const withBaseline = (baseline: Baseline): ChangeVisualization =>
+  ({ ...(visualization as unknown as ChangeVisualization), baseline, mapping: { ...visualization.mapping, changeSteps, contourLevels } })
+const climatology = withBaseline({ kind: 'climatology', label: 'the 1991 to 2020 average', noiseFloor: 0.2 })
+const referenceDate = withBaseline({ kind: 'reference-date', frameId: frames[0].id, label: 'January 2024', noiseFloor: 0.2 })
+const anomalyProduct = withBaseline({ kind: 'anomaly-product' })
+
+const score = (over: Partial<Score['change']> = {}): Score => ({
+  frameId: frames[5].id, contours: [], change: { step: 'above', medianChange: 0.8, shareAbove: [0.42, 0.04], validFraction: 0.9, ...over },
+})
+const line = (points: [number, number][], over: Partial<Contour> = {}): Contour => ({
+  level: 1, closed: false, brokenEnds: 0, brokenStart: false, brokenEnd: false,
+  points: points.map(([x, y]) => ({ x, y, turn: 0, front: 1 })), ...over,
+})
+
+describe('describeChange', () => {
+  it('says the step, the change and what it is measured against, then the share of the map', () => {
+    expect(describeChange(climatology, score())).toBe(
+      'Above: +0.8 °C compared with the 1991 to 2020 average. About 40% of the readable map is at least +1 °C.',
+    )
+  })
+
+  it('keeps only the step and the change at the concise level', () => {
+    expect(describeChange(climatology, score(), { detail: 'concise' })).toBe('Above: +0.8 °C compared with the 1991 to 2020 average.')
+  })
+
+  it('always says "change since <date>" for a reference date, and never "normal" or "anomaly"', () => {
+    const text = describeChange(referenceDate, score())
+    expect(text).toContain('Change since January 2024: +0.8 °C (above).')
+    expect(text).not.toMatch(/anomal|normal/i)
+    expect(describeChange(referenceDate, score(), { detail: 'concise' })).toBe('Change since January 2024: +0.8 °C (above).')
+  })
+
+  it('says "anomaly" for an anomaly product, and only there or for a climatology', () => {
+    expect(describeChange(anomalyProduct, score())).toMatch(/^Above: \+0\.8 °C anomaly\./)
+    for (const v of [referenceDate]) expect(describeChange(v, score({ step: 'much-below', medianChange: -2.4 }))).not.toMatch(/anomal/i)
+  })
+
+  it('writes a fall with a minus sign and a step in words', () => {
+    expect(describeChange(referenceDate, score({ step: 'much-below', medianChange: -2.4, shareAbove: [0, 0] }), { detail: 'concise' }))
+      .toBe('Change since January 2024: −2.4 °C (much below).')
+  })
+
+  it('says there is not enough data, and why', () => {
+    const insufficient = score({ step: 'insufficient', medianChange: undefined, validFraction: 0.2 })
+    expect(describeChange(climatology, insufficient)).toBe(
+      'Change compared with the 1991 to 2020 average: not enough data. Only 20% of the map could be read (land, cloud or labels), so there is no change to report.',
+    )
+    expect(describeChange(climatology, insufficient, { detail: 'concise' })).toBe('Change: not enough data.')
+  })
+
+  it('leaves the share out when no level covers a tenth of the map', () => {
+    expect(describeChange(climatology, score({ shareAbove: [0.05, 0] }))).toBe('Above: +0.8 °C compared with the 1991 to 2020 average.')
+  })
+
+  it('says there is nothing to describe for a data set with no baseline', () => {
+    expect(describeChange(visualization as unknown as ChangeVisualization, score())).toMatch(/no baseline/)
+  })
+
+  it('is the same for the same input', () => {
+    expect(describeChange(climatology, score())).toBe(describeChange(climatology, score()))
+  })
+})
+
+describe('describeContour', () => {
+  it('says where an open line runs and how wide it is, in compass sectors', () => {
+    expect(describeContour(climatology, line([[0.1, 0.1], [0.3, 0.3], [0.5, 0.5]]))).toBe(
+      'A +1 °C line runs from the north-west to the centre, about a third of the map wide.',
+    )
+  })
+
+  it('names a closed line by the sector it circles', () => {
+    expect(describeContour(climatology, line([[0.4, 0.4], [0.6, 0.4], [0.6, 0.6], [0.4, 0.6]], { closed: true }))).toBe(
+      'A +1 °C line circles the centre, about a third of the map wide.',
+    )
+  })
+
+  it('says when a line stops where there is no data', () => {
+    expect(describeContour(climatology, line([[0.1, 0.1], [0.9, 0.9]], { brokenEnds: 1, brokenEnd: true }))).toBe(
+      'A +1 °C line runs from the north-west to the south-east, most of the map wide. It stops where the map has no data.',
+    )
+  })
+
+  it('is short at the concise level', () => {
+    expect(describeContour(climatology, line([[0.1, 0.1], [0.5, 0.5]]), { detail: 'concise' })).toBe('+1 °C line, north-west to centre.')
+  })
+
+  it('writes the level of a line below normal with a minus sign', () => {
+    expect(describeContour(referenceDate, line([[0.1, 0.5], [0.3, 0.5]], { level: -1 }))).toContain('A −1 °C line')
+  })
+
+  it('never names a sea or a country, and never says "anomaly" for a reference date', () => {
+    const text = describeContour(referenceDate, line([[0.1, 0.1], [0.8, 0.8]]))
+    expect(text).not.toMatch(/ocean|sea|anomal/i)
   })
 })

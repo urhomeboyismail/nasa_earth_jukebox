@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { analyzeAll, type FrameAnalysis } from '../../analysis'
+import { analyzeAll, type ChangeVisualization, type FrameAnalysis } from '../../analysis'
+import { hasChange } from '../../analysis/available'
 import { createSoundEngine, type SoundEngine } from '../../audio'
-import { useSoundStyle } from '../../audio/style'
+import { styleFor, useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
 import { useAssistantContext } from '../../assistant/context'
 import { AnnouncerProvider, Button, Card, Notice } from '../../components'
@@ -13,7 +14,7 @@ import { dateFormatterFor } from '../../dates'
 import type { PageProps } from '../types'
 import './compare.css'
 import './test-mode.css'
-import { answerText, categoryLabel, judge, type Answer } from './judge'
+import { answerText, baselineName, categoryLabel, changeStepLabel, judge, type Answer } from './judge'
 import TestMode from './TestMode'
 
 const CUSTOM = 'custom'
@@ -44,6 +45,7 @@ export default function ComparePage({ visualization }: PageProps) {
 function Compare({ visualization }: { visualization: Visualization }) {
   const { frames, comparisons, regions, colorScale, mapping } = visualization
   const announce = useAnnounce()
+  const changeAvailable = hasChange(visualization)
   const formatDate = useMemo(() => dateFormatterFor(frames.map(frame => frame.date)), [frames])
 
   const [choice, setChoice] = useState(comparisons[0]?.id ?? CUSTOM)
@@ -65,13 +67,18 @@ function Compare({ visualization }: { visualization: Visualization }) {
 
   useEffect(() => {
     let cancelled = false
-    analyzeAll(frames, regions[0], colorScale, mapping)
-      .then(done => { if (!cancelled) setResults(done) })
+    // With a baseline each result also carries its change step. Without one the call is exactly what it was.
+    const done = changeAvailable ? analyzeAll(frames, regions[0], colorScale, mapping, visualization as ChangeVisualization) : analyzeAll(frames, regions[0], colorScale, mapping)
+    done
+      .then(all => { if (!cancelled) setResults(all) })
       .catch((error: unknown) => { if (!cancelled) setAnalysisError(error instanceof Error ? error.message : String(error)) })
     return () => { cancelled = true }
-  }, [frames, regions, colorScale, mapping])
+  }, [frames, regions, colorScale, mapping, visualization, changeAvailable])
 
-  const [soundStyle] = useSoundStyle()
+  const [chosenStyle, setSoundStyle] = useSoundStyle()
+  // A remembered "change" is not used for a data set with no baseline.
+  const soundStyle = styleFor(chosenStyle, changeAvailable)
+  const changeOn = soundStyle === 'change'
   const [detail] = useDescriptionDetail()
   useEffect(() => { engine?.setStyle(soundStyle) }, [engine, soundStyle])
 
@@ -92,7 +99,8 @@ function Compare({ visualization }: { visualization: Visualization }) {
   const resultB = results?.find(r => r.frameId === frameBId)
 
   // For a ready-made comparison the data says what the right answer is; for the listener's own dates, the analysis does.
-  const correct: Answer | null = preset ? preset.answer : judge(resultA, resultB, mapping)
+  // In the change style the question is about the change from normal, so the analysis answers it; a ready-made comparison's answer is about the temperature.
+  const correct: Answer | null = preset && !changeOn ? preset.answer : judge(resultA, resultB, mapping)
   const canAnswer = correct !== null
   const ready = !!engine && !!results
 
@@ -124,7 +132,15 @@ function Compare({ visualization }: { visualization: Visualization }) {
     try {
       await engine.unlock()
       engine.stop()
-      if (result.category === 'insufficient') engine.playMissing()
+      if (changeOn) {
+        // The change bed of this date alone: the step and how far into it the date is. A date with no change to read plays the hiss.
+        if (result.category === 'insufficient' || !result.changeStep || result.changeStep === 'insufficient') engine.playMissing()
+        else {
+          engine.playSequence([{
+            category: result.category, atMs: 0, changeStep: result.changeStep, ...(result.medianChange !== undefined && { medianChange: result.medianChange }),
+          }], () => {}, { tick: false })
+        }
+      } else if (result.category === 'insufficient') engine.playMissing()
       else {
         // The chord, without the slide or bell: the two dates are not neighbours in a run.
         const pad = voicingFor(results!, results!.indexOf(result), mapping).pad
@@ -139,13 +155,16 @@ function Compare({ visualization }: { visualization: Visualization }) {
   }
 
   const right = answer !== null && answer === correct
-  const explanation = preset?.explanation ??
-    (correct ? `${formatDate(frameA.date)} sounded ${categoryLabel(resultA, mapping)} and ${formatDate(frameB.date)} sounded ${categoryLabel(resultB, mapping)}.` : '')
+  const baseline = (visualization as ChangeVisualization).baseline
+  const explanation = changeOn
+    ? (correct ? `${formatDate(frameA.date)} was ${changeStepLabel(resultA)} and ${formatDate(frameB.date)} was ${changeStepLabel(resultB)}, measured against ${baselineName(baseline)}.` : '')
+    : preset?.explanation ??
+      (correct ? `${formatDate(frameA.date)} sounded ${categoryLabel(resultA, mapping)} and ${formatDate(frameB.date)} sounded ${categoryLabel(resultB, mapping)}.` : '')
 
   function reveal() {
     engine?.stop()
     setRevealed(true)
-    announce(`${right ? 'Correct.' : 'Not quite.'} ${correct ? `${answerText(correct)}.` : ''} ${explanation}`)
+    announce(`${right ? 'Correct.' : 'Not quite.'} ${correct ? `${answerText(correct, changeOn)}.` : ''} ${explanation}`)
   }
 
   function tryAgain() {
@@ -187,7 +206,16 @@ function Compare({ visualization }: { visualization: Visualization }) {
         </div>
       )}
 
-      <p className="compare__question">{preset?.question ?? 'Which date shows warmer water?'}</p>
+      {changeAvailable && (
+        <div className="compare__style">
+          <Button pressed={changeOn} onClick={() => setSoundStyle(changeOn ? 'full' : 'change')}>Change from normal</Button>
+          <span>Hear how far each date is from its normal, not the temperature itself.</span>
+        </div>
+      )}
+
+      <p className="compare__question">
+        {changeOn ? 'Which date is further above its normal?' : (preset?.question ?? 'Which date shows warmer water?')}
+      </p>
 
       <div className="compare__play" ref={playRef}>
         <Button variant="primary" disabled={!ready} onClick={() => void playDate('A')}>Play date A</Button>
@@ -200,7 +228,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
 
       <fieldset className="compare__answer" disabled={revealed || !canAnswer}>
         <legend>Your answer</legend>
-        {([['a', 'A is warmer'], ['b', 'B is warmer'], ['same', 'About the same']] as const).map(([value, label]) => (
+        {([['a', changeOn ? 'A is further above' : 'A is warmer'], ['b', changeOn ? 'B is further above' : 'B is warmer'], ['same', 'About the same']] as const).map(([value, label]) => (
           <label key={value} className="compare__option">
             <input type="radio" name="answer" value={value} checked={answer === value} onChange={() => setAnswer(value)} />
             <span>{label}</span>
@@ -214,7 +242,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
         <div className="compare__result" ref={resultRef} tabIndex={-1} role="region" aria-label="Result">
           <Notice>
             <strong>{right ? 'Correct. ' : 'Not quite. '}</strong>
-            {correct && `${answerText(correct)}.`} {explanation}
+            {correct && `${answerText(correct, changeOn)}.`} {explanation}
           </Notice>
           <ul className="compare__images">
             {([['Date A', frameA], ['Date B', frameB]] as const).map(([label, frame]) => (

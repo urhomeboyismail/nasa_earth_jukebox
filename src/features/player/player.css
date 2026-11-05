@@ -51,6 +51,12 @@
 .player__sound,
 .player__vibration { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; color: var(--text); }
 
+.player__style { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: center; }
+.player__style-label { font-weight: 600; }
+.player__style-option { display: flex; align-items: center; gap: 0.5rem; min-block-size: var(--control-size); cursor: pointer; }
+.player__style-option input { inline-size: 1.5rem; block-size: 1.5rem; margin: 0; accent-color: var(--accent); }
+.player__change { color: var(--text); margin: 0; }
+
 .player__hint { color: var(--text); font-size: 1rem; }
 
 /* With room, controls and the date slider share one row. */

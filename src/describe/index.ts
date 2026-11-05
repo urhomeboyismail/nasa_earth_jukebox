@@ -8,6 +8,7 @@ import { dateFormatterFor } from '../dates'
 import type { Detail } from './detail'
 
 export type { Detail } from './detail'
+export { describeChange, describeContour } from './change'
 
 /** `detail` is 'rich' (the full sentences, and the default, so every existing call is unchanged) or 'concise'. */
 export type DescribeOptions = { detail?: Detail }

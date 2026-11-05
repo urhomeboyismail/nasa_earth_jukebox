@@ -29,3 +29,8 @@ export function useSoundStyle(): [SoundStyle, (style: SoundStyle) => void] {
   }, [])
   return [style, choose]
 }
+
+/** The style a data set can actually play: a remembered "change" falls back to "full" where there is no baseline, so v1 data sets never change. */
+export function styleFor(style: SoundStyle, changeAvailable: boolean): SoundStyle {
+  return style === 'change' && !changeAvailable ? 'full' : style
+}

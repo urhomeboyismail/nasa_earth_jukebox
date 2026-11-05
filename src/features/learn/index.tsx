@@ -41,7 +41,8 @@ export default function LearnPage({ visualization }: PageProps) {
   const [playingAll, setPlayingAll] = useState(false)
   const [lastPlayed, setLastPlayed] = useState('')
   const [style] = useSoundStyle()
-  useEffect(() => { engine?.setStyle(style) }, [engine, style])
+  // Learn teaches the notes of "full" and "simple"; the change style is not taught here, so it plays as "full".
+  useEffect(() => { engine?.setStyle(style === 'change' ? 'full' : style) }, [engine, style])
 
   // Silence the sounds when leaving the page or when the data changes.
   useEffect(() => () => engine?.stop(), [engine])
