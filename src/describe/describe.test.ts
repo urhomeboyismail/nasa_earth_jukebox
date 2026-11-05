@@ -1,39 +1,228 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import fixture from '../../public/data/fixture/manifest.json'
-import type { FrameAnalysis } from '../analysis'
-import { gridFromPixels } from '../analysis/analyze'
-import type { Visualization } from '../data'
+import globe from '../../public/data/synthetic-globe/manifest.json'
+import type { FrameAnalysis, FrameGrid, GridCell } from '../analysis'
+import { analyzePixels, gridFromPixels } from '../analysis/analyze'
+import { decodePng } from '../analysis/png'
+import type { CategoryId, Visualization } from '../data'
 import { describeCell, describeFrame, describeSequence, describeSweep } from '.'
 
-const visualization = fixture as Visualization
-const results: FrameAnalysis[] = visualization.frames.map((frame, i) => ({
-  frameId: frame.id, regionId: 'centre', sampled: 9, valid: 9, category: visualization.mapping.categories[i].id,
-}))
+// The globe has twelve monthly frames of 2024, five categories (cold, cool, mild, warm, hot) and a region called
+// "North-east patch": the data the sentences in ticket T69 are written for.
+const visualization = globe as unknown as Visualization
+const { frames } = visualization
+const region = visualization.regions[0]
 
-// A map of one solid colour, read the way the real grid is read. (analyzeGrid fetches the image, which a test cannot do.)
-const solid = { width: 48, height: 24, data: new Uint8ClampedArray(48 * 24 * 4).fill(255) }
-const grid = gridFromPixels(solid, visualization.frames[0], visualization.colorScale, visualization.mapping)
+type Spec = CategoryId | 'insufficient'
+/** One result per month, each given a category; its value is the middle of the category's range. */
+function resultsFor(categories: Spec[], overrides: Record<number, Partial<FrameAnalysis>> = {}): FrameAnalysis[] {
+  return categories.map((category, i) => {
+    const range = visualization.mapping.categories.find(c => c.id === category)?.range
+    const base: FrameAnalysis = category === 'insufficient'
+      ? { frameId: frames[i].id, regionId: region.id, sampled: 30, valid: 12, category }
+      : { frameId: frames[i].id, regionId: region.id, sampled: 30, valid: 30, category, medianValue: range && (range[0] + range[1]) / 2 }
+    return { ...base, ...overrides[i] }
+  })
+}
 
-// Stubs until T69, which writes the real sentences. These tests pin the contract the explorer and pages build against.
-describe('descriptions (stubs until T69)', () => {
-  it('give a sentence for a date, a whole sequence, a cell and a sweep', () => {
-    const texts = [
-      describeFrame(visualization, results, 0),
-      describeSequence(visualization, results),
-      describeCell(visualization, grid, 3, 4),
-      describeSweep(visualization, grid, { kind: 'row', index: 2 }),
-      describeSweep(visualization, grid, { kind: 'column', index: 5 }),
-    ]
-    texts.forEach(text => {
-      expect(typeof text).toBe('string')
-      expect(text.trim().length).toBeGreaterThan(0)
+const YEAR: Spec[] = ['cool', 'cool', 'cool', 'warm', 'mild', 'mild', 'hot', 'hot', 'warm', 'insufficient', 'mild', 'mild']
+
+const readFileBytes = (path: string) => readFileSync(resolve(fileURLToPath(import.meta.url), '../../..', path))
+
+describe('describeFrame', () => {
+  it('describes a date, its readable points, its change and its shares', () => {
+    const results = resultsFor(['cool', 'cool', 'warm'], {
+      2: { medianValue: 21.4, valid: 28, shares: { cold: 0, cool: 0, mild: 0.2, warm: 0.7, hot: 0.1 } },
     })
+    expect(describeFrame(visualization, results, 2)).toBe(
+      'March 2024. North-east patch: warm, about 21 °C. 28 of 30 points could be read. Up two steps from February (cool). Mostly warm (70%), some mild (20%) and hot (10%).',
+    )
   })
 
-  it('give the same words for the same input, every time', () => {
-    expect(describeFrame(visualization, results, 1)).toBe(describeFrame(visualization, results, 1))
+  it('says "First date." for the first, "Same as" for no change and "Down" for a fall', () => {
+    const results = resultsFor(['mild', 'mild', 'cool'])
+    expect(describeFrame(visualization, results, 0)).toContain('First date.')
+    expect(describeFrame(visualization, results, 1)).toContain('Same as January.')
+    expect(describeFrame(visualization, results, 2)).toContain('Down one step from February (mild).')
+  })
+
+  it('describes a date with too little data, and says what it plays', () => {
+    expect(describeFrame(visualization, resultsFor(YEAR), 9)).toBe(
+      'October 2024. North-east patch: not enough data. Only 12 of 30 points could be read (land, cloud or labels), so this date plays the hiss, not a note.',
+    )
+    const none = resultsFor(['cool', 'insufficient'], { 1: { valid: 0 } })
+    expect(describeFrame(visualization, none, 1)).toContain('None of the 30 points could be read')
+  })
+
+  it('compares with the last date that has data, across a gap, and says when there is none', () => {
+    expect(describeFrame(visualization, resultsFor(YEAR), 10)).toContain('Down one step from September (warm).')
+    const gapFirst = resultsFor(['insufficient', 'cool'])
+    expect(describeFrame(visualization, gapFirst, 1)).toContain('First date with data.')
+  })
+
+  it('lists only shares of at least 10%, to the nearest 10%', () => {
+    const shares = { cold: 0, cool: 0.04, mild: 0.14, warm: 0.82, hot: 0 }
+    const text = describeFrame(visualization, resultsFor(['warm'], { 0: { shares } }), 0)
+    expect(text).toContain('Mostly warm (80%), some mild (10%).')
+    expect(text).not.toContain('cool (')
+  })
+
+  it('says "Split between" when no category has half, "All" when one has everything, and nothing without shares', () => {
+    const split = describeFrame(visualization, resultsFor(['mild'], { 0: { shares: { cold: 0, cool: 0, mild: 0.4, warm: 0.3, hot: 0.3 } } }), 0)
+    expect(split).toContain('Split between mild (40%), warm (30%) and hot (30%).')
+    const all = describeFrame(visualization, resultsFor(['mild'], { 0: { shares: { cold: 0, cool: 0, mild: 1, warm: 0, hot: 0 } } }), 0)
+    expect(all).toContain('All mild.')
+    expect(describeFrame(visualization, resultsFor(['mild']), 0)).not.toMatch(/Mostly|Split|All /)
+  })
+
+  it('gives nothing for a date that is not there', () => {
+    expect(describeFrame(visualization, resultsFor(YEAR), 99)).toBe('')
+    expect(describeFrame(visualization, [], 0)).toBe('')
+  })
+
+  it('writes dates at the level the data set needs: months for monthly frames', () => {
+    const text = describeFrame(visualization, resultsFor(YEAR), 4)
+    expect(text.startsWith('May 2024.')).toBe(true)
+  })
+})
+
+describe('describeSequence', () => {
+  it('describes a whole year: ends, extremes, the biggest change and the gap', () => {
+    expect(describeSequence(visualization, resultsFor(YEAR))).toBe(
+      '12 dates, January to December 2024, in the north-east patch. It starts cool and ends mild. Warmest: hot, in July and August. Coolest: cool, in January, February and March. Biggest change: up two steps, from March (cool) to April (warm). No data in October.',
+    )
+  })
+
+  it('counts dates instead of listing more than three in one item', () => {
+    const text = describeSequence(visualization, resultsFor(['cool', 'cool', 'cool', 'cool', 'hot', 'insufficient', 'insufficient', 'insufficient', 'insufficient']))
+    expect(text).toContain('Coolest: cool, on 4 dates.')
+    expect(text).toContain('No data on 4 dates.')
+    expect(text).toContain('Warmest: hot, in May.')
+  })
+
+  it('says it starts and ends the same, and that nothing changed, when every date is alike', () => {
+    expect(describeSequence(visualization, resultsFor(['cool', 'cool', 'cool']))).toBe(
+      '3 dates, January to March 2024, in the north-east patch. It starts and ends cool. Every date with data is cool, so there is no change.',
+    )
+  })
+
+  it('names the first of two equal biggest changes, and a fall as down', () => {
+    const text = describeSequence(visualization, resultsFor(['hot', 'mild', 'hot']))
+    expect(text).toContain('Biggest change: down two steps, from January (hot) to February (mild).')
+  })
+
+  it('handles one date, no data at all, and no dates', () => {
+    expect(describeSequence(visualization, resultsFor(['mild']))).toBe(
+      '1 date, January 2024, in the north-east patch. It starts and ends mild. Every date with data is mild, so there is no change.',
+    )
+    expect(describeSequence(visualization, resultsFor(['insufficient', 'insufficient']))).toBe(
+      '2 dates, January to February 2024, in the north-east patch. No date had enough data.',
+    )
+    expect(describeSequence(visualization, [])).toBe('There are no dates.')
+  })
+
+  it('keeps a region name with capitals of its own, and gives both years across a year end', () => {
+    const arctic = { ...visualization, regions: [{ ...region, name: 'Arctic Ocean' }] }
+    expect(describeSequence(arctic, resultsFor(['cool', 'warm']))).toContain('in the Arctic Ocean.')
+    const fix = fixture as unknown as Visualization
+    const results: FrameAnalysis[] = fix.frames.map((f, i) => ({
+      frameId: f.id, regionId: fix.regions[0].id, sampled: 9, valid: i === 3 ? 0 : 9, category: (['cold', 'mild', 'hot', 'insufficient'] as const)[i],
+    }))
+    const text = describeSequence(fix, results)
+    expect(text).toContain('4 dates, January 2024 to March 2025, in the ')
+    expect(text).toContain('It starts cold and ends hot.')
+    expect(text).toContain('Biggest change: up two steps, from January 2024 (cold) to July 2024 (mild).')
+    expect(text).toContain('No data in March 2025.')
+  })
+})
+
+/** A 24 × 11 grid, every cell without data except the ones given as "col,row". */
+function gridOf(cells: Record<string, GridCell> = {}, cols = 24, rows = 11): FrameGrid {
+  const out: GridCell[] = Array.from({ length: cols * rows }, (_, i) => cells[`${i % cols},${Math.floor(i / cols)}`] ?? { value: null, category: 'insufficient' })
+  return { frameId: frames[0].id, cols, rows, area: { x0: 0, y0: 0, x1: 1, y1: 0.88 }, cells: out }
+}
+
+describe('describeCell', () => {
+  const grid = gridOf({ '18,2': { value: 21.4, category: 'warm' } })
+
+  it('says the category, the value and where the cell is', () => {
+    expect(describeCell(visualization, grid, 18, 2)).toBe('Warm, about 21 °C, north-east (column 19 of 24, row 3 of 11).')
+  })
+
+  it('says a cell without data has none, and never gives it a value', () => {
+    expect(describeCell(visualization, grid, 18, 3)).toBe('No data (land, cloud or labels), north-east (column 19 of 24, row 4 of 11).')
+  })
+
+  it('splits the map into thirds each way for the compass word', () => {
+    const word = (col: number, row: number) => /, ([a-z-]+) \(column/.exec(describeCell(visualization, grid, col, row))![1]
+    expect([[0, 0], [12, 0], [23, 0], [0, 5], [12, 5], [23, 5], [0, 10], [12, 10], [23, 10]].map(([c, r]) => word(c, r))).toEqual([
+      'north-west', 'north', 'north-east', 'west', 'centre', 'east', 'south-west', 'south', 'south-east',
+    ])
+  })
+
+  it('says so for a cell outside the map', () => {
+    for (const [col, row] of [[-1, 0], [24, 0], [0, 11], [1.5, 0]]) expect(describeCell(visualization, grid, col, row)).toBe('That is outside the map.')
+  })
+})
+
+describe('describeSweep', () => {
+  // Row 2: land for 4 cells, cool for 6, mild for 8, warm for 6.
+  const row: GridCell[] = [
+    ...Array<GridCell>(4).fill({ value: null, category: 'insufficient' }),
+    ...Array<GridCell>(6).fill({ value: 8, category: 'cool' }),
+    ...Array<GridCell>(8).fill({ value: 14, category: 'mild' }),
+    ...Array<GridCell>(6).fill({ value: 20, category: 'warm' }),
+  ]
+  const cells = Object.fromEntries(row.map((cell, col) => [`${col},2`, cell]))
+  const grid = gridOf(cells)
+
+  it('collapses a row into runs, west to east', () => {
+    expect(describeSweep(visualization, grid, { kind: 'row', index: 2 })).toBe('Row 3, west to east: no data for 4 cells, cool for 6, mild for 8, warm for 6.')
+  })
+
+  it('reads a column north to south, and says "cell" only on the first run', () => {
+    expect(describeSweep(visualization, grid, { kind: 'column', index: 4 })).toBe(
+      'Column 5, north to south: no data for 2 cells, cool for 1, no data for 8.',
+    )
+  })
+
+  it('says so for a row or column that is not there', () => {
+    expect(describeSweep(visualization, grid, { kind: 'row', index: 11 })).toBe('There is no row 12.')
+    expect(describeSweep(visualization, grid, { kind: 'column', index: -1 })).toBe('There is no column 0.')
+  })
+})
+
+describe('on the real synthetic-globe frames', () => {
+  const read = (image: string) => decodePng(readFileBytes(`public/data/synthetic-globe/${image}`))
+  const pixels = read(frames[0].image)
+  const grid = gridFromPixels(pixels, frames[0], visualization.colorScale, visualization.mapping, visualization.mapArea)
+
+  it('describes a sweep across the map with land in it, and its runs add up to the row', () => {
+    const text = describeSweep(visualization, grid, { kind: 'row', index: Math.floor(grid.rows / 2) })
+    expect(text).toMatch(/^Row \d+, west to east: /)
+    expect(text).toContain('no data for')
+    const total = [...text.matchAll(/ for (\d+)/g)].reduce((sum, m) => sum + Number(m[1]), 0)
+    expect(total).toBe(grid.cols)
+  })
+
+  it('describes a date read from its picture', () => {
+    const results = frames.map(frame => analyzePixels(read(frame.image), frame, region, visualization.colorScale, visualization.mapping))
+    const text = describeFrame(visualization, results, 0)
+    expect(text).toMatch(/^January 2024\. North-east patch: [a-z]+, about \d+ °C\. 30 of 30 points could be read\. First date\./)
+    expect(describeFrame(visualization, results, 9)).toContain('not enough data')
+  })
+})
+
+describe('determinism', () => {
+  it('gives the same words for the same input, every time', () => {
+    const results = resultsFor(YEAR, { 4: { shares: { cold: 0, cool: 0, mild: 0.6, warm: 0.4, hot: 0 } } })
+    const grid = gridOf({ '3,3': { value: 9, category: 'cool' } })
+    for (let i = 0; i < results.length; i++) expect(describeFrame(visualization, results, i)).toBe(describeFrame(visualization, results, i))
     expect(describeSequence(visualization, results)).toBe(describeSequence(visualization, results))
-    expect(describeCell(visualization, grid, 0, 0)).toBe(describeCell(visualization, grid, 0, 0))
-    expect(describeSweep(visualization, grid, { kind: 'row', index: 0 })).toBe(describeSweep(visualization, grid, { kind: 'row', index: 0 }))
+    expect(describeCell(visualization, grid, 3, 3)).toBe(describeCell(visualization, grid, 3, 3))
+    expect(describeSweep(visualization, grid, { kind: 'row', index: 3 })).toBe(describeSweep(visualization, grid, { kind: 'row', index: 3 }))
   })
 })

@@ -2,6 +2,7 @@ import type { KeyboardEvent } from 'react'
 import { useAssistantContext } from '../../assistant/context'
 import { AnnouncerProvider, Button, Legend, Notice, Slider } from '../../components'
 import type { Visualization } from '../../data'
+import { Description } from '../../describe/Description'
 import type { PageProps } from '../types'
 import './player.css'
 import { usePlayer, type Speed } from './usePlayer'
@@ -73,6 +74,8 @@ function Player({ visualization }: { visualization: Visualization }) {
   return (
     <section className="player" aria-label="Player" onKeyDown={onKeyDown}>
       <Viewer frame={frame} dateText={player.formatDate(frame.date)} region={player.region} source={source} />
+
+      {player.results && <Description visualization={visualization} results={player.results} index={player.index} />}
 
       <details className="player__legend">
         <summary>Colour legend</summary>

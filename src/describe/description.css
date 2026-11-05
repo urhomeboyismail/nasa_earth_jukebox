@@ -1,0 +1,12 @@
+.description {
+  display: grid;
+  gap: 0.5rem;
+  text-align: left;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+}
+.description__title { margin: 0; font-size: 1.25rem; color: var(--text-h); }
+/* At least 16 px, and long words and numbers wrap instead of widening the page at 360 px. */
+.description__text { margin: 0; font-size: 1rem; line-height: 1.5; overflow-wrap: anywhere; }
+.description__all summary { min-block-size: var(--control-size); display: flex; align-items: center; cursor: pointer; color: var(--text-h); }
