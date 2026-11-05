@@ -7,7 +7,8 @@ import type { SequenceStep, SoundEngine } from '../../audio'
 import { elevationForPoint, panForPoint } from '../../audio/pan'
 import { Button, Notice, Slider, useAnnounce } from '../../components'
 import type { Frame, MapArea, Visualization } from '../../data'
-import { describeCell, describeSweep } from '../../describe'
+import { dateFormatterFor } from '../../dates'
+import { describeCell, describeSweep, edgeMessage, explorerMessage, sweepEndMessage, type Edge } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
 import { vibrateForDate } from '../player/vibration'
 import './explore.css'
@@ -25,7 +26,6 @@ const MAP_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Ho
 const WHOLE_MAP: MapArea = { x0: 0, y0: 0, x1: 1, y1: 1 }
 
 type Cursor = { col: number; row: number }
-type Edge = 'West' | 'East' | 'North' | 'South'
 type Line = 'row' | 'column'
 
 type Options = {
@@ -43,6 +43,7 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
   const area = visualization.mapArea ?? WHOLE_MAP
   const announce = useAnnounce()
   const [detail] = useDescriptionDetail()
+  const formatDate = useMemo(() => dateFormatterFor(visualization.frames.map(f => f.date)), [visualization.frames])
 
   const [on, setOn] = useState(false)
   const [grid, setGrid] = useState<FrameGrid | null>(null)
@@ -57,6 +58,8 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
   const lastPlayed = useRef(-Infinity)
   const sweepEnd = useRef<number | undefined>(undefined)
   const placed = useRef(false)
+  /** True until the first message after turning on, or after the date changed, has been said: that message starts with the date. */
+  const needDate = useRef(true)
   const cursorRef = useRef(cursor)
   /** Sets the cursor everywhere at once, so a second key pressed before the next render still starts from the right cell. */
   const place = useCallback((next: Cursor) => { cursorRef.current = next; setCursor(next) }, [])
@@ -72,6 +75,7 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
   useEffect(() => {
     if (!on) return
     let cancelled = false
+    needDate.current = true
     setGrid(null)
     setError('')
     analyzeGrid(frame, colorScale, mapping, visualization.mapArea)
@@ -105,10 +109,15 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
   const announceCell = useCallback((at: Cursor, delay: number) => {
     window.clearTimeout(announceTimer.current)
     if (!grid) return
-    const say = () => announce(describeCell(visualization, grid, at.col, at.row, { detail }))
+    const say = () => {
+      // The date goes in the first message after turning on or after a date change; later moves leave it out.
+      const date = needDate.current ? formatDate(frame.date) : undefined
+      needDate.current = false
+      announce(explorerMessage(describeCell(visualization, grid, at.col, at.row, { detail }), detail, date))
+    }
     if (delay <= 0) say()
     else announceTimer.current = window.setTimeout(say, delay)
-  }, [grid, visualization, announce, detail])
+  }, [grid, visualization, announce, detail, formatDate, frame.date])
 
   /** Sounds a cell now, or after the pause between plays; a newer cell replaces one that is waiting. */
   const soundCell = useCallback((at: Cursor) => {
@@ -148,7 +157,7 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
   const hitEdge = useCallback((edge: Edge) => {
     stopSweep()
     window.clearTimeout(announceTimer.current)
-    announceTimer.current = window.setTimeout(() => announce(`${edge} edge.`), ANNOUNCE_AFTER_MS)
+    announceTimer.current = window.setTimeout(() => announce(edgeMessage(edge)), ANNOUNCE_AFTER_MS)
   }, [stopSweep, announce])
 
   /** A move by key. Plays and announces the new cell like `moveTo`; if the cursor cannot move, it says which edge instead. */
@@ -184,7 +193,7 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
         sweepEnd.current = window.setTimeout(() => {
           if (mine !== sweepId.current) return
           setSweeping(false)
-          announce(describeSweep(visualization, grid, { kind, index: kind === 'row' ? at.row : at.col }, { detail }))
+          announce(sweepEndMessage(describeSweep(visualization, grid, { kind, index: kind === 'row' ? at.row : at.col }, { detail }), detail))
         }, SWEEP_STEP_MS)
       }
     }, { tick: false })

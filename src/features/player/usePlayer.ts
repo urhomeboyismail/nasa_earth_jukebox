@@ -10,6 +10,8 @@ import { voicingFor } from '../../audio/voicing'
 import { useAnnounce } from '../../components/useAnnounce'
 import type { Region, SoundMapping, Visualization } from '../../data'
 import { dateFormatterFor } from '../../dates'
+import { categoryChanged, playerDateLine, playerStopLine, withUnit, type DateParts, type StopKind } from '../../describe'
+import { useDescriptionDetail } from '../../describe/detail'
 import { onPlayerCommand } from './controls'
 
 export type Speed = 'slow' | 'normal' | 'fast'
@@ -34,6 +36,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
   const { frames, regions, colorScale, mapping } = visualization
   const region = regions[0]
   const announce = useAnnounce()
+  const [detail] = useDescriptionDetail()
   const formatDate = useMemo(() => dateFormatterFor(frames.map(frame => frame.date)), [frames])
 
   const [results, setResults] = useState<FrameAnalysis[] | null>(null)
@@ -79,7 +82,8 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
   // Each play gets a number. Anything a finished or replaced run still has pending checks it and does nothing.
   const run = useRef(0)
   const endTimer = useRef<number | undefined>(undefined)
-  const lastSpoken = useRef(-1)
+  /** The category of the last date said during playback, so a run of equal dates is said once. Null before the first. */
+  const lastCategory = useRef<string | null>(null)
   const volumeRef = useRef(volume)
   const onDateRef = useRef(onDate)
   useEffect(() => { onDateRef.current = onDate })
@@ -90,13 +94,39 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     return category === 'insufficient' ? 'not enough data' : (mapping.categories.find(c => c.id === category)?.label ?? category).toLowerCase()
   }, [results, mapping])
 
-  /** "March 2024: warm" (the date as detailed as the dataset needs). Said once per date unless `force` is set (Replay says it again on purpose). */
+  /** "March 2024: warm" (the date as detailed as the dataset needs). The slider reads this as its value. */
   const describeDate = useCallback((i: number) => `${formatDate(frames[i].date)}: ${labelFor(i)}`, [frames, formatDate, labelFor])
-  const speak = useCallback((i: number, force = false) => {
-    if (!force && lastSpoken.current === i) return
-    lastSpoken.current = i
-    announce(describeDate(i))
-  }, [announce, describeDate])
+
+  /** The pieces of the spoken line for a date (words are built in src/describe/announcements.ts). */
+  const partsFor = useCallback((i: number): DateParts => {
+    const result = results?.[i]
+    return {
+      date: formatDate(frames[i].date),
+      label: labelFor(i),
+      missing: result?.category === 'insufficient',
+      value: result?.medianValue === undefined ? undefined : withUnit(result.medianValue, visualization.variable.unit),
+      detail,
+    }
+  }, [results, frames, formatDate, labelFor, visualization.variable.unit, detail])
+
+  /** A date reached during playback: said only when its category differs from the last one said, and at most once per 1.5 s (`busy`). */
+  const speakStep = useCallback((i: number) => {
+    const category = results?.[i]?.category
+    if (!category || !categoryChanged(lastCategory.current, category)) return
+    lastCategory.current = category
+    announce(playerDateLine(partsFor(i)), { busy: true })
+  }, [results, announce, partsFor])
+
+  /** A date the listener asked for (a jump, a replay, one date on its own): always said, at once. */
+  const speakNow = useCallback((i: number) => {
+    lastCategory.current = results?.[i]?.category ?? null
+    announce(playerDateLine(partsFor(i)))
+  }, [results, announce, partsFor])
+
+  /** Paused, stopped or finished: the current date, whatever was said before. */
+  const speakStop = useCallback((kind: StopKind, i: number) => {
+    if (results?.[i]) announce(playerStopLine(kind, partsFor(i)))
+  }, [results, announce, partsFor])
 
   const cancelRun = useCallback(() => {
     run.current++
@@ -135,7 +165,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     engine.playSequence(steps, k => {
       if (mine !== run.current) return
       setIndex(from + k)
-      speak(from + k)
+      speakStep(from + k)
       onDateRef.current?.(from + k, results[from + k].category)
       if (k === steps.length - 1) {
         endTimer.current = window.setTimeout(() => {
@@ -143,13 +173,15 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
           setStatus('idle')
           // "That is the last date" is only true when the run reached the end of the data.
           setFinished(last === frames.length - 1)
+          speakStop('finished', last)
+          lastCategory.current = null
         }, stepMs)
       }
     })
-  }, [engine, results, frames, stepsFor, speak, cancelRun])
+  }, [engine, results, frames, stepsFor, speakStep, speakStop, cancelRun])
 
   /** Sounds one date on its own and leaves the player stopped there. */
-  const playOne = useCallback(async (i: number, force = false) => {
+  const playOne = useCallback(async (i: number) => {
     if (!engine || !results) return
     cancelRun()
     const mine = run.current
@@ -159,12 +191,12 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     engine.stop()
     setStatus('idle')
     setIndex(i)
-    speak(i, force)
+    speakNow(i)
     onDateRef.current?.(i, results[i].category)
     // Alone, a date has no earlier note to slide from or to jump from, so it gets the chord only.
     const { pad } = voicingFor(results, i, mapping)
     engine.playSequence([{ category: results[i].category, atMs: 0, pan: panFor(region), elevation: elevationFor(region), ...(pad && { pad }) }], () => {})
-  }, [engine, results, region, mapping, speak, cancelRun])
+  }, [engine, results, region, mapping, speakNow, cancelRun])
 
   const play = useCallback(() => {
     if (!ready) return
@@ -172,6 +204,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
       setStatus('playing')
       engine.resume()
     } else if (status === 'idle') {
+      lastCategory.current = null
       void startFrom(index >= frames.length - 1 ? 0 : index, speed)
     }
   }, [ready, status, engine, startFrom, index, frames.length, speed])
@@ -180,18 +213,20 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     if (status !== 'playing') return
     engine?.pause()
     setStatus('paused')
-  }, [status, engine])
+    speakStop('paused', index)
+  }, [status, engine, speakStop, index])
 
   const stop = useCallback(() => {
     cancelRun()
     engine?.stop()
     setStatus('idle')
+    speakStop('stopped', index)
     setIndex(0)
-    lastSpoken.current = -1
-  }, [engine, cancelRun])
+    lastCategory.current = null
+  }, [engine, cancelRun, speakStop, index])
 
   const replay = useCallback(() => {
-    if (ready) void playOne(index, true)
+    if (ready) void playOne(index)
   }, [ready, playOne, index])
 
   /** Jump to a date: while playing the sequence carries on from there; otherwise that date plays on its own. */
@@ -200,12 +235,12 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     const clamped = Math.min(frames.length - 1, Math.max(0, i))
     if (status === 'playing') {
       setIndex(clamped)
-      speak(clamped)
+      speakNow(clamped)
       void startFrom(clamped, speed)
     } else {
       void playOne(clamped)
     }
-  }, [ready, frames.length, status, speed, startFrom, playOne, speak])
+  }, [ready, frames.length, status, speed, startFrom, playOne, speakNow])
 
   /** Stops the sound and any run but stays on the same date, for the sound-map explorer to take over. */
   const halt = useCallback(() => {
@@ -244,7 +279,9 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
 
   /** Plays only dates `from` to `to`, with the same sound, announcements and picture as a full run, and stops at `to`. */
   const playRange = useCallback((from: number, to: number) => {
-    if (ready) void startFrom(from, speed, to)
+    if (!ready) return
+    lastCategory.current = null
+    void startFrom(from, speed, to)
   }, [ready, startFrom, speed])
 
   const setVolume = useCallback((next: number) => {
