@@ -1,6 +1,8 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import type { z } from 'zod'
 import fixture from '../../public/data/fixture/manifest.json'
+import globe from '../../public/data/synthetic-globe/manifest.json'
+import synthetic from '../../public/data/synthetic-ocean/manifest.json'
 import catalogJson from '../../public/data/index.json'
 import { catalogSchema, describeIssues, visualizationSchema } from './schema'
 import type { CatalogEntry, Visualization } from './types'
@@ -71,6 +73,18 @@ describe('visualizationSchema', () => {
   it('rejects a date that is not YYYY-MM-DD, an unknown answer and a note that is too long a name', () => {
     expect(errorAfter(v => { v.frames[0].date = '15 January 2024' })).toMatch(/frames\.0\.date: must be a date/)
     expect(errorAfter(v => { v.comparisons[0].answer = 'maybe' })).toMatch(/^comparisons\.0\.answer: /)
+  })
+
+  it('rejects a missing-data cue that is a note: missing data is a hiss, never a low note', () => {
+    expect(errorAfter(v => { v.mapping.missingCue.type = 'note' })).toMatch(/^mapping\.missingCue\.type: missing data must play the noise hiss, never a note/)
+  })
+
+  it('accepts the committed manifests, each with the noise cue', () => {
+    for (const manifest of [fixture, synthetic, globe]) {
+      const result = visualizationSchema.safeParse(manifest)
+      expect(result.success ? '' : describeIssues(result.error, 10)).toBe('')
+      expect(result.data?.mapping.missingCue.type).toBe('noise')
+    }
   })
 
   it('rejects colors outside 0 to 255', () => {

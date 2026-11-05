@@ -91,7 +91,7 @@ Visualization {
   mapping: { scale: string; summary: "median"; minValidFraction: number
              categories: { id: CategoryId; label: string; range: [number, number]; note: string }[] // coolest first
              tick: { note: string; durationMs: number }
-             missingCue: { type: "noise" | "note"; durationMs: number } }
+             missingCue: { type: "noise"; durationMs: number } }
   comparisons: { id: string; regionId: string; frameA: string; frameB: string
                  question: string; answer: "a" | "b" | "same"; explanation: string }[]
   mapArea?: { x0: number; y0: number; x1: number; y1: number }   // optional, 0 to 1 fractions; default the whole image (see 5.6)

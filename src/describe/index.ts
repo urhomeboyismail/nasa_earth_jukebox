@@ -94,8 +94,7 @@ export function describeFrame(visualization: Visualization, results: FrameAnalys
 
   if (result.category === 'insufficient') {
     const read = result.valid === 0 ? `None of the ${result.sampled} points could be read` : `Only ${result.valid} of ${result.sampled} points could be read`
-    const sound = visualization.mapping.missingCue.type === 'noise' ? 'the hiss, not a note' : 'a warning sound, not a note'
-    return `${date}. ${region}: not enough data. ${read} (land, cloud or labels), so this date plays ${sound}.`
+    return `${date}. ${region}: not enough data. ${read} (land, cloud or labels), so this date plays the hiss, not a note.`
   }
 
   const parts = [

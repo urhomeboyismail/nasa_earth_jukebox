@@ -51,7 +51,7 @@ export type SoundMapping = {
   /** Coolest first. */
   categories: Category[]
   tick: { note: string; durationMs: number }
-  missingCue: { type: 'noise' | 'note'; durationMs: number }
+  missingCue: { type: 'noise'; durationMs: number }
 }
 
 export type Comparison = {

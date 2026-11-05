@@ -18,7 +18,8 @@ const expectedFor = (id: string) => expectations[`../../public/data/${id}/expect
 
 describe('the data sets on disk', () => {
   it('lists each one in the catalog, and each catalog entry has a manifest', () => {
-    const onDisk = Object.keys(manifests).map(path => path.split('/').at(-2)).sort()
+    // stress-* folders are local, gitignored load-test data (scripts/make_synthetic_globe.py) and are never listed.
+    const onDisk = Object.keys(manifests).map(path => path.split('/').at(-2)!).filter(id => !id.startsWith('stress-')).sort()
     expect(catalog.map(entry => entry.id).sort()).toEqual(onDisk)
   })
 

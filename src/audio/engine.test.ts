@@ -200,11 +200,11 @@ describe('voices', () => {
     expect(mocks.nodes.Filter).toHaveLength(1)
   })
 
-  it('can use a note for the missing cue instead, below every category', async () => {
-    const engine = await unlocked({ ...mapping, missingCue: { type: 'note', durationMs: 300 } })
+  it('plays the hiss even if a manifest got past the schema asking for a note', async () => {
+    const engine = await unlocked({ ...mapping, missingCue: { type: 'note', durationMs: 300 } } as unknown as typeof mapping)
     engine.playMissing()
-    expect(playedNotes()).toEqual(['B1'])
-    expect(mocks.nodes.NoiseSynth).toBeUndefined()
+    expect(played()[0].node).toBe('NoiseSynth')
+    expect(playedNotes()).toEqual([])
   })
 })
 

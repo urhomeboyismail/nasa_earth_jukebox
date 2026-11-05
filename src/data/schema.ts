@@ -44,7 +44,7 @@ const mapping = z.object({
   minValidFraction: fraction,
   categories: z.array(category).min(1, 'needs at least one category'),
   tick: z.object({ note: nonEmpty, durationMs: z.number().positive() }),
-  missingCue: z.object({ type: z.enum(['noise', 'note']), durationMs: z.number().positive() }),
+  missingCue: z.object({ type: z.literal('noise', { error: 'missing data must play the noise hiss, never a note' }), durationMs: z.number().positive() }),
 })
 
 const comparison = z.object({

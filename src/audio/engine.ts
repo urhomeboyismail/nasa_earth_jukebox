@@ -71,8 +71,7 @@ type Voices = {
   style: SoundStyle
   melody: Synth
   tick: Synth
-  missingNoise: InstanceType<ToneModule['NoiseSynth']> | null
-  missingSynth: Synth | null
+  missingNoise: InstanceType<ToneModule['NoiseSynth']>
   pad: InstanceType<ToneModule['PolySynth']>
   bell: Synth
   reverb: InstanceType<ToneModule['Freeverb']>
@@ -87,7 +86,7 @@ type Voices = {
 type NoteOptions = { pan?: number; elevation?: number; durationMs?: number; pad?: CategoryId[]; glide?: boolean; bell?: boolean }
 
 /** Builds the voices on whatever audio context Tone is using now: the live one, or the offline one inside renderToWav. */
-function createVoices(t: ToneModule, mapping: SoundMapping, style: SoundStyle, volume: number, spatial: SpatialMode): Voices {
+function createVoices(t: ToneModule, style: SoundStyle, volume: number, spatial: SpatialMode): Voices {
   const full = style === 'full'
   const master = new t.Gain(volume).toDestination()
   const cut = new t.Gain(1).connect(master)
@@ -105,22 +104,12 @@ function createVoices(t: ToneModule, mapping: SoundMapping, style: SoundStyle, v
     envelope: { attack: 0.005, decay: 0.04, sustain: 0, release: 0.02 },
     volume: -18,
   }).connect(bus)
-  let missingSynth: Synth | null = null
-  let missingNoise: Voices['missingNoise'] = null
-  if (mapping.missingCue.type === 'note') {
-    missingSynth = new t.Synth({
-      oscillator: { type: 'sawtooth' },
-      envelope: { attack: 0.02, decay: 0.1, sustain: 0.5, release: 0.2 },
-      volume: -14,
-    }).connect(bus)
-  } else {
-    const filter = new t.Filter({ type: 'bandpass', frequency: 900, Q: 1.2 }).connect(bus)
-    missingNoise = new t.NoiseSynth({
-      noise: { type: 'pink' },
-      envelope: { attack: 0.02, decay: 0.2, sustain: 0.3, release: 0.1 },
-      volume: -10,
-    }).connect(filter)
-  }
+  const missingFilter = new t.Filter({ type: 'bandpass', frequency: 900, Q: 1.2 }).connect(bus)
+  const missingNoise = new t.NoiseSynth({
+    noise: { type: 'pink' },
+    envelope: { attack: 0.02, decay: 0.2, sustain: 0.3, release: 0.1 },
+    volume: -10,
+  }).connect(missingFilter)
   const bell = new t.Synth({
     oscillator: { type: 'sine' },
     envelope: { attack: 0.002, decay: 0.5, sustain: 0, release: 0.1 },
@@ -131,7 +120,7 @@ function createVoices(t: ToneModule, mapping: SoundMapping, style: SoundStyle, v
     envelope: { attack: 0.3, release: 0.8 },
     volume: -18,
   }).connect(bus)
-  return { style, melody, tick, missingNoise, missingSynth, pad, bell, reverb, bus, panner, spatial, cut, master }
+  return { style, melody, tick, missingNoise, pad, bell, reverb, bus, panner, spatial, cut, master }
 }
 
 /** Switches a built set of voices between the styles: the reverb and the melody's shape. The other layers check the style when they sound. */
@@ -187,8 +176,7 @@ function tickAt(voices: Voices, mapping: SoundMapping, time?: number) {
 function missingAt(voices: Voices, mapping: SoundMapping, time?: number) {
   setPan(voices, 0, 0, time)
   const seconds = mapping.missingCue.durationMs / 1000
-  if (voices.missingSynth) voices.missingSynth.triggerAttackRelease('B1', seconds, time)
-  else voices.missingNoise?.triggerAttackRelease(seconds, time)
+  voices.missingNoise.triggerAttackRelease(seconds, time)
 }
 
 /**
@@ -240,7 +228,7 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
       const t = await import('tone')
       await t.start()
       tone = t
-      voices = createVoices(t, mapping, style, volume, spatial)
+      voices = createVoices(t, style, volume, spatial)
       unlocked = true
     })()
     return unlocking
@@ -254,7 +242,6 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
 
   function releaseAll() {
     voices.melody.triggerRelease()
-    voices.missingSynth?.triggerRelease()
     voices.bell.triggerRelease()
     voices.pad.releaseAll()
   }
@@ -340,7 +327,7 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
     const t = tone ?? (await import('tone'))
     // Full level whatever the listening volume is: the file is played back on the listener's own volume.
     const buffer = await t.Offline(() => {
-      scheduleSteps(t, createVoices(t, mapping, style, 1, spatial), mapping, sorted, {})
+      scheduleSteps(t, createVoices(t, style, 1, spatial), mapping, sorted, {})
       t.getTransport().start(0)
     }, seconds, 2, WAV_SAMPLE_RATE)
     return encodeWav([buffer.getChannelData(0), buffer.getChannelData(1)], WAV_SAMPLE_RATE)
