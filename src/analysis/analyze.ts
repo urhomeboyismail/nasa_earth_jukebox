@@ -3,6 +3,9 @@
 
 import type { CategoryId, ColorScale, Frame, MapArea, Region, RGB, SoundMapping } from '../data'
 import type { FrameAnalysis, FrameGrid, GridCell } from '.'
+import { stepFor } from './change'
+import { median } from './median'
+import type { ChangeMapping } from './types'
 
 /** The shape of `ImageData`: RGBA bytes, row by row. */
 export type Pixels = { data: ArrayLike<number>; width: number; height: number }
@@ -34,12 +37,6 @@ function matchScale(rgb: RGB, stops: ColorScale['stops']): { value: number; dist
     consider(a.value + (b.value - a.value) * t, distance(rgb, nearest))
   }
   return best
-}
-
-function median(values: number[]): number {
-  const sorted = [...values].sort((a, b) => a - b)
-  const middle = sorted.length >> 1
-  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2
 }
 
 /** The category whose range holds `value`. A value on a shared edge goes to the warmer one; values outside every range go to the nearest end. */
@@ -75,22 +72,43 @@ function sharesOf(values: number[], mapping: SoundMapping): Record<CategoryId, n
   return counts
 }
 
-export function analyzePixels(pixels: Pixels, frame: Frame, region: Region, colorScale: ColorScale, mapping: SoundMapping): FrameAnalysis {
+/** What `analyzePixels` needs to add a change step (v2): the frame's normal as pixels (null for an anomaly product) and the steps. */
+export type RegionChangeInput = { baseline: Pixels | null; noiseFloor: number; changeSteps: ChangeMapping['changeSteps'] }
+
+export function analyzePixels(pixels: Pixels, frame: Frame, region: Region, colorScale: ColorScale, mapping: SoundMapping, change?: RegionChangeInput): FrameAnalysis {
   const { width, height } = pixels
   const values: number[] = []
+  const changes: number[] = []
 
   for (const point of region.points) {
-    const value = valueAtPixel(pixels, Math.floor(point.x * width), Math.floor(point.y * height), colorScale)
+    const px = Math.floor(point.x * width)
+    const py = Math.floor(point.y * height)
+    const value = valueAtPixel(pixels, px, py, colorScale)
     if (value !== null) values.push(value)
+    if (change && value !== null) {
+      // A point counts towards the change only when the frame and its baseline can both be read there.
+      const normal = change.baseline ? valueAtPixel(change.baseline, px, py, colorScale) : 0
+      if (normal !== null) {
+        const diff = value - normal
+        changes.push(change.baseline && Math.abs(diff) < change.noiseFloor ? 0 : diff)
+      }
+    }
   }
 
   const sampled = region.points.length
   const valid = values.length
   const base = { frameId: frame.id, regionId: region.id, sampled, valid }
-  if (!valid || valid / sampled < mapping.minValidFraction) return { ...base, category: 'insufficient' }
+  const changed = change ? changeOf(changes, sampled, mapping.minValidFraction, change.changeSteps) : {}
+  if (!valid || valid / sampled < mapping.minValidFraction) return { ...base, ...changed, category: 'insufficient' }
 
   const medianValue = median(values)
-  return { ...base, medianValue, category: categoryFor(medianValue, mapping), shares: sharesOf(values, mapping) }
+  return { ...base, ...changed, medianValue, category: categoryFor(medianValue, mapping), shares: sharesOf(values, mapping) }
+}
+
+function changeOf(changes: number[], sampled: number, minValidFraction: number, steps: ChangeMapping['changeSteps']) {
+  if (!changes.length || changes.length / sampled < minValidFraction) return { changeStep: 'insufficient' as const }
+  const medianChange = median(changes)
+  return { changeStep: stepFor(medianChange, steps), medianChange }
 }
 
 export const GRID_COLS = 24

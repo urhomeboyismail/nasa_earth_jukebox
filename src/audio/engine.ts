@@ -8,10 +8,17 @@
 // The musical layer (docs/PLAN.md §5.7): in the "full" style a step can also sound a chord under the melody (pad), slide to
 // its note (glide) and ring a bell above it (bell), all through a little reverb. The "simple" style turns those off and plays
 // the melody as it always did. Live playback and WAV export share createVoices and scheduleSteps, so they sound the same.
+//
+// The "change" style (docs/PLAN.md §6.2, T114) adds the change bed, the contour voice and a compressor and limiter before the
+// speakers. Those nodes are built the first time the style is used, so "full" and "simple" make exactly the nodes they always made.
 
 import { Note } from 'tonal'
 import type { CategoryId, SoundMapping } from '../data'
+import type { Contour } from '../analysis/types'
 import type { SequenceStep, SoundEngine } from '.'
+import {
+  BED_HIGHEST, BED_LOWEST, bedFor, CONTOUR_HIGHEST, CONTOUR_LOWEST, contourEvents, END_HISS_MS, SAW_SHARE, stepIndexOf, type ChangeSounds,
+} from './changeVoice'
 import { aimPanner, createPanner, type Panner, type SpatialMode } from './pan'
 import type { SoundStyle } from './style'
 import { encodeWav } from './wav'
@@ -46,8 +53,25 @@ const WAV_MAX_S = 180
 
 const LOWEST_PAD_NOTE = 'C3'
 
+/** The mapping the engine reads: the usual one, plus (for a data set with a baseline) a note for each change step and contour level. */
+export type EngineMapping = SoundMapping & ChangeSounds
+
+/** The change bed holds its note until just before the next step, with this much left for the release. */
+const BED_GAP_S = 0.03
+const BED_LEVEL_DB = -10
+const BED_ENVELOPE = { attack: 0.05, decay: 0, sustain: 1, release: 0.3 }
+/** A contour takes this long per image width (so a line half as long as the image takes half as long), and 2 to 8 s whatever its length. */
+const TRACE_MS_PER_UNIT = 6000
+/** Where a contour sounds when the mapping has no note for its level: +1 at C5, +2 at G5 (PLAN.md §6.2). */
+const DEFAULT_CONTOUR_NOTES = { low: 'C5', high: 'G5' }
+const COMPRESSOR = { threshold: -18, ratio: 3, attack: 0.01, release: 0.25 }
+const LIMITER_DB = -1
+const ACCENT_MS = 40
+/** The contour tone is released this long after its last point. */
+const TRACE_TAIL_S = 0.1
+
 /** Checks every note in the mapping and that cooler categories are always lower. Throws a message naming the problem. */
-export function validateMapping(mapping: SoundMapping) {
+export function validateMapping(mapping: EngineMapping) {
   let previous = 0
   for (const category of mapping.categories) {
     const frequency = Note.freq(category.note)
@@ -62,13 +86,46 @@ export function validateMapping(mapping: SoundMapping) {
   for (const [label, note] of [['tick', mapping.tick.note]] as const) {
     if (Note.freq(note) === null) throw new Error(`The ${label} has "${note}", which is not a note name.`)
   }
+  validateChangeSounds(mapping)
+}
+
+/** The v2 notes, when the data set has them: each change step in C3 to C4 and higher than the step before, each contour level in C3 to C6. */
+function validateChangeSounds(mapping: ChangeSounds) {
+  const midi = (note: string) => Note.midi(note)
+  let previous = -Infinity
+  for (const step of mapping.changeSteps ?? []) {
+    const m = midi(step.note)
+    if (m === null) throw new Error(`Change step "${step.id}" has "${step.note}", which is not a note name.`)
+    if (m < midi(BED_LOWEST)! || m > midi(BED_HIGHEST)!) throw new Error(`Change step "${step.id}" (${step.note}) must be between ${BED_LOWEST} and ${BED_HIGHEST}.`)
+    if (m <= previous) throw new Error(`Change step "${step.id}" (${step.note}) must sound higher than the step before it.`)
+    previous = m
+  }
+  for (const level of mapping.contourLevels ?? []) {
+    const m = midi(level.note)
+    if (m === null) throw new Error(`Contour level ${level.value} has "${level.note}", which is not a note name.`)
+    if (m < midi(CONTOUR_LOWEST)! || m > midi(CONTOUR_HIGHEST)!) throw new Error(`Contour level ${level.value} (${level.note}) must be between ${CONTOUR_LOWEST} and ${CONTOUR_HIGHEST}.`)
+  }
 }
 
 type Synth = InstanceType<ToneModule['Synth']>
 
-/** Everything that makes sound: voices → panner → reverb → cut → master → speakers. */
-type Voices = {
+/** What only the "change" style uses. Built the first time it is needed. */
+type ChangeVoices = {
+  bedSine: Synth
+  bedSaw: Synth
+  bedFilter: InstanceType<ToneModule['Filter']>
+  bedLevel: InstanceType<ToneModule['Gain']>
+  contour: Synth
+  contourFilter: InstanceType<ToneModule['Filter']>
+  accent: Synth
+  compressor: InstanceType<ToneModule['Compressor']>
+  limiter: InstanceType<ToneModule['Limiter']>
+}
+
+/** Everything that makes sound: voices → panner → reverb → cut → master → speakers (in "change": cut → compressor → limiter → master). */
+export type Voices = {
   style: SoundStyle
+  change?: ChangeVoices
   melody: Synth
   tick: Synth
   missingNoise: InstanceType<ToneModule['NoiseSynth']>
@@ -86,8 +143,9 @@ type Voices = {
 type NoteOptions = { pan?: number; elevation?: number; durationMs?: number; pad?: CategoryId[]; glide?: boolean; bell?: boolean }
 
 /** Builds the voices on whatever audio context Tone is using now: the live one, or the offline one inside renderToWav. */
-function createVoices(t: ToneModule, style: SoundStyle, volume: number, spatial: SpatialMode): Voices {
-  const full = style === 'full'
+export function createVoices(t: ToneModule, style: SoundStyle, volume: number, spatial: SpatialMode): Voices {
+  // "change" keeps the full style's mallet, chord, slide, bell and reverb for a step that has no change step, so a data set without a baseline sounds as it does.
+  const full = style !== 'simple'
   const master = new t.Gain(volume).toDestination()
   const cut = new t.Gain(1).connect(master)
   // Not Tone.Reverb: it builds its impulse from random noise, which would break "same input, same output".
@@ -120,14 +178,52 @@ function createVoices(t: ToneModule, style: SoundStyle, volume: number, spatial:
     envelope: { attack: 0.3, release: 0.8 },
     volume: -18,
   }).connect(bus)
-  return { style, melody, tick, missingNoise, pad, bell, reverb, bus, panner, spatial, cut, master }
+  const voices: Voices = { style, melody, tick, missingNoise, pad, bell, reverb, bus, panner, spatial, cut, master }
+  if (style === 'change') ensureChangeVoices(t, voices)
+  return voices
+}
+
+/** Builds the change bed, contour voice, accent and the master chain once, and puts the chain in the path. */
+function ensureChangeVoices(t: ToneModule, voices: Voices): ChangeVoices {
+  if (voices.change) return voices.change
+  // The bed is centred, so it skips the panner, and it skips the reverb too: a held pure tone in a reverb is louder or quieter by pitch (the comb filters),
+  // which would undo the loudness matched across steps by bedFor.
+  const bedLevel = new t.Gain(1).connect(voices.cut)
+  const bedFilter = new t.Filter({ type: 'lowpass', frequency: 1000, Q: 1, rolloff: -12 }).connect(bedLevel)
+  const bedSine = new t.Synth({ oscillator: { type: 'sine' }, envelope: BED_ENVELOPE, volume: BED_LEVEL_DB }).connect(bedFilter)
+  const bedSaw = new t.Synth({ oscillator: { type: 'sawtooth' }, envelope: BED_ENVELOPE, volume: BED_LEVEL_DB + 20 * Math.log10(SAW_SHARE) }).connect(bedFilter)
+  const contourFilter = new t.Filter({ type: 'lowpass', frequency: 1000, Q: 1, rolloff: -12 }).connect(voices.bus)
+  const contour = new t.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.08, decay: 0, sustain: 1, release: 0.25 }, volume: -12 }).connect(contourFilter)
+  const accent = new t.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.002, decay: 0.03, sustain: 0, release: 0.02 }, volume: -14 }).connect(voices.bus)
+  const compressor = new t.Compressor(COMPRESSOR)
+  const limiter = new t.Limiter(LIMITER_DB)
+  compressor.connect(limiter)
+  voices.change = { bedSine, bedSaw, bedFilter, bedLevel, contour, contourFilter, accent, compressor, limiter }
+  routeMaster(voices, true)
+  return voices.change
+}
+
+/** The sound reaches the speakers through the compressor and limiter in the "change" style, and directly in the others. */
+function routeMaster(voices: Voices, through: boolean) {
+  const chain = voices.change
+  if (!chain) return
+  voices.cut.disconnect()
+  chain.limiter.disconnect()
+  if (through) {
+    voices.cut.connect(chain.compressor)
+    chain.limiter.connect(voices.master)
+  } else {
+    voices.cut.connect(voices.master)
+  }
 }
 
 /** Switches a built set of voices between the styles: the reverb and the melody's shape. The other layers check the style when they sound. */
-function applyStyle(voices: Voices, style: SoundStyle) {
+function applyStyle(t: ToneModule, voices: Voices, style: SoundStyle) {
   voices.style = style
-  voices.reverb.wet.value = style === 'full' ? REVERB.wet : 0
-  voices.melody.set({ envelope: style === 'full' ? MALLET_ENVELOPE : SIMPLE_ENVELOPE })
+  voices.reverb.wet.value = style !== 'simple' ? REVERB.wet : 0
+  voices.melody.set({ envelope: style !== 'simple' ? MALLET_ENVELOPE : SIMPLE_ENVELOPE })
+  if (style === 'change') ensureChangeVoices(t, voices)
+  routeMaster(voices, style === 'change')
 }
 
 /** Swaps the panner under live voices. The old one is disposed once it is out of the path. */
@@ -147,17 +243,17 @@ function setPan(voices: Voices, pan: number | undefined, elevation: number | und
 }
 
 /** The chord's notes: each category's note one octave down. Unknown categories are left out. */
-function padNotes(mapping: SoundMapping, ids: CategoryId[]): string[] {
+function padNotes(mapping: EngineMapping, ids: CategoryId[]): string[] {
   return ids.flatMap(id => {
     const category = mapping.categories.find(c => c.id === id)
     return category ? [Note.transpose(category.note, '-8P')] : []
   })
 }
 
-function sounding(voices: Voices, mapping: SoundMapping, id: CategoryId, opts: NoteOptions | undefined, time?: number) {
+function sounding(voices: Voices, mapping: EngineMapping, id: CategoryId, opts: NoteOptions | undefined, time?: number) {
   const category = mapping.categories.find(c => c.id === id)
   if (!category) return
-  const full = voices.style === 'full'
+  const full = voices.style !== 'simple'
   const seconds = (opts?.durationMs ?? DEFAULT_NOTE_MS) / 1000
   setPan(voices, opts?.pan, opts?.elevation, time)
   voices.melody.portamento = full && opts?.glide ? GLIDE_S : 0
@@ -168,15 +264,38 @@ function sounding(voices: Voices, mapping: SoundMapping, id: CategoryId, opts: N
   if (opts?.bell) voices.bell.triggerAttackRelease(BELL_NOTE, BELL_SECONDS, time === undefined ? `+${BELL_DELAY_S}` : time + BELL_DELAY_S)
 }
 
-function tickAt(voices: Voices, mapping: SoundMapping, time?: number) {
+function tickAt(voices: Voices, mapping: EngineMapping, time?: number) {
   setPan(voices, 0, 0, time)
   voices.tick.triggerAttackRelease(mapping.tick.note, mapping.tick.durationMs / 1000, time)
 }
 
-function missingAt(voices: Voices, mapping: SoundMapping, time?: number) {
+function missingAt(voices: Voices, mapping: EngineMapping, time?: number) {
   setPan(voices, 0, 0, time)
   const seconds = mapping.missingCue.durationMs / 1000
   voices.missingNoise.triggerAttackRelease(seconds, time)
+}
+
+/**
+ * The change bed for one step (PLAN.md §6.2): its own note, dry and centred (see ensureChangeVoices), with a cutoff and level from `bedFor`. Returns false when the step
+ * has no change step in this mapping, and the caller plays the category note instead.
+ */
+function bedAt(voices: Voices, mapping: EngineMapping, step: SequenceStep, seconds: number, time?: number): boolean {
+  const steps = mapping.changeSteps
+  const chain = voices.change
+  if (!steps || !chain || !step.changeStep || step.changeStep === 'insufficient') return false
+  const index = stepIndexOf(steps, step.changeStep)
+  if (index === -1) return false
+  const bed = bedFor(index, steps.length, step.medianChange, steps[index].range, steps[index].note)
+  if (time === undefined) {
+    chain.bedFilter.frequency.value = bed.cutoffHz
+    chain.bedLevel.gain.value = 10 ** (bed.gainDb / 20)
+  } else {
+    chain.bedFilter.frequency.setValueAtTime(bed.cutoffHz, time)
+    chain.bedLevel.gain.setValueAtTime(10 ** (bed.gainDb / 20), time)
+  }
+  chain.bedSine.triggerAttackRelease(bed.note, seconds, time)
+  chain.bedSaw.triggerAttackRelease(bed.note, seconds, time)
+  return true
 }
 
 /**
@@ -187,7 +306,7 @@ function missingAt(voices: Voices, mapping: SoundMapping, time?: number) {
 function scheduleSteps(
   t: ToneModule,
   voices: Voices,
-  mapping: SoundMapping,
+  mapping: EngineMapping,
   steps: SequenceStep[],
   opts: { tick?: boolean; before?: () => void; onStep?: (index: number, time: number) => void },
 ) {
@@ -195,19 +314,64 @@ function scheduleSteps(
   steps.forEach((step, index) => {
     const gap = index + 1 < steps.length ? (steps[index + 1].atMs - step.atMs) / 1000 : DEFAULT_NOTE_MS / 1000
     const noteSeconds = Math.min(DEFAULT_NOTE_MS / 1000, gap * NOTE_SHARE_OF_GAP)
+    const bedSeconds = index + 1 < steps.length ? Math.max(0.1, gap - BED_GAP_S) : DEFAULT_NOTE_MS / 1000
+    const change = voices.style === 'change' && step.changeStep !== undefined
+    // A date too short on data hisses; it never sounds like "normal".
+    const hiss = step.category === 'insufficient' || (change && step.changeStep === 'insufficient')
     transport.schedule(time => {
       opts.before?.()
-      if (step.category === 'insufficient') missingAt(voices, mapping, time)
-      else sounding(voices, mapping, step.category, { ...step, durationMs: noteSeconds * 1000 }, time)
+      if (hiss) missingAt(voices, mapping, time)
+      else if (!(change && bedAt(voices, mapping, step, bedSeconds, time))) sounding(voices, mapping, step.category, { ...step, durationMs: noteSeconds * 1000 }, time)
       if (opts.tick !== false) tickAt(voices, mapping, time + noteSeconds)
       opts.onStep?.(index, time)
     }, step.atMs / 1000)
   })
 }
 
+/** Where a level's line sounds: the mapping's note for it, else the nearest level's, else C5 for +1 and G5 above. */
+function contourNote(mapping: EngineMapping, level: number): string {
+  const levels = mapping.contourLevels ?? []
+  const nearest = levels.reduce<(typeof levels)[number] | undefined>((best, l) => (!best || Math.abs(l.value - level) < Math.abs(best.value - level) ? l : best), undefined)
+  return nearest?.note ?? (level < 1.5 ? DEFAULT_CONTOUR_NOTES.low : DEFAULT_CONTOUR_NOTES.high)
+}
+
+/**
+ * Puts the contour voice for one line on the Transport of whatever context the voices were built in (live, or the offline one in a
+ * measurement). One held tone at the level's note; at each point the place, the brightness, and where they apply a click and a hiss.
+ * `onPoint` runs with each point's index and audio time; `onEnd` runs once the tone is released.
+ */
+export function scheduleTrace(
+  t: ToneModule,
+  voices: Voices,
+  mapping: EngineMapping,
+  contour: Contour,
+  opts: { before?: () => void; onPoint?: (index: number, time: number) => void; onEnd?: (time: number) => void },
+) {
+  const chain = ensureChangeVoices(t, voices)
+  const note = contourNote(mapping, contour.level)
+  const { durationMs, events } = contourEvents(contour, note, TRACE_MS_PER_UNIT)
+  const transport = t.getTransport()
+  for (const event of events) {
+    transport.schedule(time => {
+      opts.before?.()
+      setPan(voices, event.pan, event.elevation, time)
+      chain.contourFilter.frequency.setValueAtTime(event.cutoffHz, time)
+      if (event.index === 0) chain.contour.triggerAttack(note, time)
+      if (event.accent) chain.accent.triggerAttackRelease(mapping.tick.note, ACCENT_MS / 1000, time)
+      if (event.hiss) voices.missingNoise.triggerAttackRelease(END_HISS_MS / 1000, time)
+      opts.onPoint?.(event.index, time)
+    }, event.atMs / 1000)
+  }
+  transport.schedule(time => {
+    chain.contour.triggerRelease(time)
+    opts.onEnd?.(time)
+  }, durationMs / 1000 + TRACE_TAIL_S)
+  return durationMs
+}
+
 const byTime = (steps: SequenceStep[]) => [...steps].sort((a, b) => a.atMs - b.atMs)
 
-export function createSoundEngine(mapping: SoundMapping): SoundEngine {
+export function createSoundEngine(mapping: EngineMapping): SoundEngine {
   validateMapping(mapping)
 
   let tone: ToneModule | null = null
@@ -244,6 +408,11 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
     voices.melody.triggerRelease()
     voices.bell.triggerRelease()
     voices.pad.releaseAll()
+    if (voices.change) {
+      voices.change.bedSine.triggerRelease()
+      voices.change.bedSaw.triggerRelease()
+      voices.change.contour.triggerRelease()
+    }
   }
 
   function silence() {
@@ -312,6 +481,30 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
     transport.start(`+${START_DELAY_S}`)
   }
 
+  /**
+   * The contour voice along one line (PLAN.md §6.2). It runs on the Transport like a sequence, so stop() and pause() end it, and it replaces
+   * whatever was playing. Only in the "change" style: anywhere else this does nothing.
+   */
+  function traceContour(contour: Contour, onPoint?: (index: number) => void) {
+    if (!unlocked || style !== 'change' || !contour.points.length) return
+    const t = tone!
+    resetTransport()
+    releaseAll()
+    const sequence = ++sequenceId
+    const draw = t.getDraw()
+    scheduleTrace(t, voices, mapping, contour, {
+      before: open,
+      onPoint: (index, time) => draw.schedule(() => {
+        if (sequence === sequenceId) onPoint?.(index)
+      }, time),
+      onEnd: time => draw.schedule(() => {
+        if (sequence === sequenceId && state === 'playing') state = 'idle'
+      }, time),
+    })
+    state = 'playing'
+    t.getTransport().start(`+${START_DELAY_S}`)
+  }
+
   function pause() {
     if (state !== 'playing') return
     tone!.getTransport().pause()
@@ -361,7 +554,7 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
     },
     setStyle(next) {
       style = next
-      if (unlocked) applyStyle(voices, next)
+      if (unlocked) applyStyle(tone!, voices, next)
     },
     setSpatial(next) {
       spatial = next
@@ -377,5 +570,6 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
       if (unlocked) open()
     },
     renderToWav,
+    traceContour,
   }
 }

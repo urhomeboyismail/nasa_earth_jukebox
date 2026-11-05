@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { useAssistantContext } from '../../assistant/context'
 import { AnnouncerProvider, Button, Legend, Notice, Slider } from '../../components'
+import type { ChangeVisualization } from '../../analysis'
 import type { Visualization } from '../../data'
+import { describeChange } from '../../describe'
 import { Description } from '../../describe/Description'
+import { useDescriptionDetail } from '../../describe/detail'
 import { ExplorerPanel, ExplorerSurface, useExplorer } from '../explore/Explorer'
 import { StoryPanel } from '../story/StoryPanel'
 import type { PageProps } from '../types'
@@ -20,6 +23,10 @@ const SPEEDS: { id: Speed; label: string }[] = [
 /** Where Space and the arrow keys already mean something, so the shortcuts keep out. */
 const isEditable = (target: EventTarget) => target instanceof HTMLElement && target.isContentEditable
 const isField = (target: EventTarget) => target instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
+/** Where typing letters is the point: a text box, a text area, a menu. A radio button or slider is not, so T still works there. */
+const isTyping = (target: EventTarget) =>
+  target instanceof HTMLElement &&
+  (['TEXTAREA', 'SELECT'].includes(target.tagName) || (target instanceof HTMLInputElement && !['radio', 'checkbox', 'range', 'button'].includes(target.type)))
 /** Space presses these natively. A range input is not here: Space does nothing on it, so the shortcut may use it. */
 const spaceActivates = (target: EventTarget) =>
   target instanceof HTMLElement &&
@@ -44,6 +51,7 @@ function Player({ visualization }: { visualization: Visualization }) {
   const { frames, source } = visualization
   const frame = frames[player.index]
   const playing = player.status === 'playing'
+  const [detail] = useDescriptionDetail()
   const explorer = useExplorer({ visualization, frame, engine: player.engine, vibrate: vibration.enabled })
 
   // Playing the dates takes the sound back from the explorer.
@@ -90,6 +98,8 @@ function Player({ visualization }: { visualization: Visualization }) {
       region: player.region.id,
       category: player.categoryAt(player.index) ?? 'unknown',
       playing,
+      // Only in the change style, so the context of every other style is exactly as it was.
+      ...(player.style === 'change' && player.results?.[player.index]?.changeStep && { changeStep: player.results[player.index].changeStep }),
     },
     player.finished ? `playback_finished:${visualization.id}` : undefined,
   )
@@ -101,6 +111,12 @@ function Player({ visualization }: { visualization: Visualization }) {
       event.preventDefault()
       if (playing) player.pause()
       else player.play()
+    } else if (event.key.toLowerCase() === 't' && player.style === 'change' && !isTyping(event.target)) {
+      // "Trace the warm edge", from anywhere in the player, the sound map included (it does not use this key).
+      event.preventDefault()
+      void player.traceWarmEdge()
+    } else if (event.key === 'Escape' && player.tracing) {
+      player.stopTrace()
     } else if (event.key === 'ArrowRight' && !isField(event.target)) {
       event.preventDefault()
       player.goTo(player.index + 1)
@@ -118,6 +134,9 @@ function Player({ visualization }: { visualization: Visualization }) {
       <ExplorerPanel visualization={visualization} explorer={explorer} />
 
       {player.results && <Description visualization={visualization} results={player.results} index={player.index} />}
+      {player.style === 'change' && player.score && (
+        <p className="player__change">{describeChange(visualization as ChangeVisualization, player.score, { detail })}</p>
+      )}
 
       <details className="player__legend">
         <summary>Colour legend</summary>
@@ -177,10 +196,37 @@ function Player({ visualization }: { visualization: Visualization }) {
       </div>
 
       <div className="player__sound">
-        <Button pressed={player.style === 'simple'} onClick={() => player.setStyle(player.style === 'simple' ? 'full' : 'simple')}>
-          Simple sound
-        </Button>
-        <span>Just the main note, without the chord and slides.</span>
+        {player.changeAvailable ? (
+          <div className="player__style" role="radiogroup" aria-labelledby="player-sound-label">
+            <span id="player-sound-label" className="player__style-label">Sound</span>
+            {([['full', 'Full'], ['simple', 'Simple'], ['change', 'Change from normal']] as const).map(([id, label]) => (
+              <label key={id} className="player__style-option">
+                <input type="radio" name="player-sound" value={id} checked={player.style === id} onChange={() => player.setStyle(id)} />
+                <span>{label}</span>
+              </label>
+            ))}
+            <span>
+              {player.style === 'change'
+                ? 'Hear how far each date is from its normal, not the temperature itself.'
+                : player.style === 'simple' ? 'Just the main note, without the chord and slides.' : 'The main note with a chord, slides and a bell.'}
+            </span>
+          </div>
+        ) : (
+          <>
+            <Button pressed={player.style === 'simple'} onClick={() => player.setStyle(player.style === 'simple' ? 'full' : 'simple')}>
+              Simple sound
+            </Button>
+            <span>Just the main note, without the chord and slides.</span>
+          </>
+        )}
+        {player.style === 'change' && (
+          <>
+            <Button disabled={!player.ready || !player.score?.contours.length} onClick={() => void player.traceWarmEdge()}>
+              Trace the warm edge
+            </Button>
+            <span>Plays each line of change on this date as a sound that moves across the map. Press T, or Escape to stop.</span>
+          </>
+        )}
         <Button pressed={player.spatial === '3d'} onClick={() => player.setSpatial(player.spatial === '3d' ? 'stereo' : '3d')}>
           3D sound (headphones)
         </Button>

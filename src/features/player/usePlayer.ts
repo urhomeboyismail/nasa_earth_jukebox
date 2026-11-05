@@ -2,30 +2,38 @@
 // date is the whole job: every change of date goes through here.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { analyzeAll, type FrameAnalysis } from '../../analysis'
+import { analyzeAll, analyzeChange, type ChangeVisualization, type Contour, type FrameAnalysis, type Score } from '../../analysis'
+import { hasChange } from '../../analysis/available'
 import { createSoundEngine, type SequenceStep, type SoundEngine } from '../../audio'
 import { elevationFor, panFor, useSpatialMode } from '../../audio/pan'
-import { useSoundStyle } from '../../audio/style'
+import { styleFor, useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
 import { useAnnounce } from '../../components/useAnnounce'
 import type { Region, SoundMapping, Visualization } from '../../data'
 import { dateFormatterFor } from '../../dates'
+import { describeContour } from '../../describe'
+import { useDescriptionDetail } from '../../describe/detail'
 import { onPlayerCommand } from './controls'
 
 export type Speed = 'slow' | 'normal' | 'fast'
 export type Status = 'idle' | 'playing' | 'paused'
+
+/** Silence between one traced line and the next. */
+const TRACE_GAP_MS = 600
 
 /** Time between dates. */
 export const STEP_MS: Record<Speed, number> = { slow: 1600, normal: 1000, fast: 500 }
 
 /** One step per date from `from` to `to`: its category, where the region sits (stereo pan and height) and the chord, slide and bell. Pure, so the sound regression test plays exactly what Listen plays. */
 export function sequenceSteps(
-  results: FrameAnalysis[], region: Pick<Region, 'points'>, mapping: SoundMapping, from: number, to: number, stepMs: number,
+  results: FrameAnalysis[], region: Pick<Region, 'points'>, mapping: SoundMapping, from: number, to: number, stepMs: number, withChange = false,
 ): SequenceStep[] {
   const pan = panFor(region)
   const elevation = elevationFor(region)
   return results.slice(from, to + 1).map((result, k) => ({
     category: result.category, atMs: k * stepMs, pan, elevation, ...voicingFor(results, from + k, mapping),
+    // The change style plays the change from normal; the others never carry it, so they sound as they always did.
+    ...(withChange && result.changeStep && { changeStep: result.changeStep, ...(result.medianChange !== undefined && { medianChange: result.medianChange }) }),
   }))
 }
 
@@ -43,10 +51,16 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
   const [speed, setSpeedState] = useState<Speed>('normal')
   const [volume, setVolumeState] = useState(0.8)
   const [finished, setFinished] = useState(false)
-  const [style, setStyle] = useSoundStyle()
+  const [chosenStyle, setStyle] = useSoundStyle()
+  // A remembered "change" is not used for a data set with no baseline: it plays as "full", exactly as before.
+  const changeAvailable = hasChange(visualization)
+  const style = styleFor(chosenStyle, changeAvailable)
+  const changeOn = style === 'change'
   const [spatial, setSpatial] = useSpatialMode()
   const [downloading, setDownloading] = useState(false)
   const [downloadError, setDownloadError] = useState('')
+  /** True while "Trace the warm edge" is playing its lines. */
+  const [tracing, setTracing] = useState(false)
 
   const { engine, engineError } = useMemo((): { engine: SoundEngine | null; engineError: string } => {
     try {
@@ -56,7 +70,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     }
   }, [mapping])
 
-  // The sound style (full or simple) is set on the engine whenever it or the style changes.
+  // The sound style (full, simple or change) is set on the engine whenever it or the style changes.
   useEffect(() => { engine?.setStyle(style) }, [engine, style])
   // Likewise stereo or 3D sound.
   useEffect(() => { engine?.setSpatial(spatial) }, [engine, spatial])
@@ -64,11 +78,27 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
   // Analyze every frame once, when the page opens. The page remounts for another visualization, so nothing is stale.
   useEffect(() => {
     let cancelled = false
-    analyzeAll(frames, region, colorScale, mapping)
-      .then(done => { if (!cancelled) setResults(done) })
+    // With a baseline each result also carries its change step. Without one the call is exactly what it was.
+    const done = changeAvailable ? analyzeAll(frames, region, colorScale, mapping, visualization as ChangeVisualization) : analyzeAll(frames, region, colorScale, mapping)
+    done
+      .then(all => { if (!cancelled) setResults(all) })
       .catch((error: unknown) => { if (!cancelled) setAnalysisError(error instanceof Error ? error.message : String(error)) })
     return () => { cancelled = true }
-  }, [frames, region, colorScale, mapping])
+  }, [frames, region, colorScale, mapping, visualization, changeAvailable])
+
+  // The change score of the date on screen (change style only): its contours decide whether "Trace the warm edge" can be used.
+  const [scored, setScore] = useState<Score | null>(null)
+  // A score for another date, or one kept from before the style changed, is not this date's.
+  const score = changeOn && scored?.frameId === frames[index].id ? scored : null
+  const [detail] = useDescriptionDetail()
+  useEffect(() => {
+    if (!changeOn) return
+    let cancelled = false
+    analyzeChange(frames[index], visualization as ChangeVisualization)
+      .then(done => { if (!cancelled) setScore(done) })
+      .catch(() => { /* No score for this date: the trace button stays disabled. */ })
+    return () => { cancelled = true }
+  }, [changeOn, frames, index, visualization])
 
   // Preload the next image so stepping forward never waits.
   useEffect(() => {
@@ -101,6 +131,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
   const cancelRun = useCallback(() => {
     run.current++
     window.clearTimeout(endTimer.current)
+    setTracing(false)
   }, [])
 
   // Silence everything when leaving the page.
@@ -111,8 +142,8 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
   /** One step per date from `from` to `to`: its category, where the region sits (stereo pan) and the chord, slide and bell. */
   const stepsFor = useCallback((from: number, to: number, stepMs: number): SequenceStep[] => {
     if (!results) return []
-    return sequenceSteps(results, region, mapping, from, Math.min(to, frames.length - 1), stepMs)
-  }, [results, frames, region, mapping])
+    return sequenceSteps(results, region, mapping, from, Math.min(to, frames.length - 1), stepMs, changeOn)
+  }, [results, frames, region, mapping, changeOn])
 
   /** The last date of the part being played, or null when the run goes to the end. Kept so a change of speed does not run past it. */
   const rangeEnd = useRef<number | null>(null)
@@ -163,8 +194,12 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     onDateRef.current?.(i, results[i].category)
     // Alone, a date has no earlier note to slide from or to jump from, so it gets the chord only.
     const { pad } = voicingFor(results, i, mapping)
-    engine.playSequence([{ category: results[i].category, atMs: 0, pan: panFor(region), elevation: elevationFor(region), ...(pad && { pad }) }], () => {})
-  }, [engine, results, region, mapping, speak, cancelRun])
+    const { changeStep, medianChange } = changeOn ? results[i] : ({} as Partial<FrameAnalysis>)
+    engine.playSequence([{
+      category: results[i].category, atMs: 0, pan: panFor(region), elevation: elevationFor(region), ...(pad && { pad }),
+      ...(changeStep && { changeStep, ...(medianChange !== undefined && { medianChange }) }),
+    }], () => {})
+  }, [engine, results, region, mapping, speak, cancelRun, changeOn])
 
   const play = useCallback(() => {
     if (!ready) return
@@ -213,6 +248,44 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     engine?.stop()
     setStatus('idle')
   }, [engine, cancelRun])
+
+  /**
+   * "Trace the warm edge" (F18): each contour of the date on screen in turn, then `describeContour` for it. Needs the change style, a score
+   * with at least one contour and a click or key press. Stop, Escape, a new date or leaving the page end it.
+   */
+  const traceWarmEdge = useCallback(async () => {
+    if (!engine || !changeOn || !score) return
+    if (!score.contours.length) { announce('There is no warm edge on this date.'); return }
+    cancelRun()
+    const mine = run.current
+    await engine.unlock()
+    if (mine !== run.current) return
+    engine.setVolume(volumeRef.current)
+    engine.stop()
+    setStatus('idle')
+    setTracing(true)
+    const lines: Contour[] = score.contours
+    const next = (k: number) => {
+      if (mine !== run.current) return
+      if (k >= lines.length) { setTracing(false); return }
+      const line = lines[k]
+      engine.traceContour(line, point => {
+        if (mine !== run.current || point !== line.points.length - 1) return
+        // The last point has sounded: say the line in words, then go on to the next one.
+        announce(describeContour(visualization as ChangeVisualization, line, { detail }))
+        endTimer.current = window.setTimeout(() => next(k + 1), TRACE_GAP_MS)
+      })
+    }
+    next(0)
+  }, [engine, changeOn, score, cancelRun, announce, visualization, detail])
+
+  /** Ends a trace at once. */
+  const stopTrace = useCallback(() => {
+    if (!tracing) return
+    cancelRun()
+    engine?.stop()
+    setTracing(false)
+  }, [tracing, cancelRun, engine])
 
   /** Saves the whole soundscape at the current speed as a WAV file. */
   const download = useCallback(async () => {
@@ -271,7 +344,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
   }), [frames])
 
   return {
-    engine, region, results, index, status, speed, volume, finished, ready, style, setStyle, spatial, setSpatial, downloading, downloadError,
+    engine, region, results, index, status, speed, volume, finished, ready, style, setStyle, changeAvailable, score, tracing, traceWarmEdge, stopTrace, spatial, setSpatial, downloading, downloadError,
     error: engineError || analysisError,
     loading: !engineError && !analysisError && !results,
     play, pause, stop, replay, goTo, halt, playRange, download, setSpeed, setVolume,

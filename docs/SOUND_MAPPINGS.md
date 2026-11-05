@@ -123,6 +123,18 @@ Each entry fits the `SoundMapping` shape. Categories are listed coolest or lowes
 - Does the timbre backup cue (filter brightness) help listeners who are weak at pitch?
 - Can listeners tell the missing-data cue apart from the coldest category?
 
+## 8. Sound pipeline v2: the change from normal (T114)
+
+The `"change"` style plays how far a date is from its baseline, not the temperature (docs/PLAN.md §6.2). It is opt-in; `"full"` and `"simple"` sound exactly as in §4 and §5. A data set with no baseline sounds as in §4 in every style.
+
+| Layer | Driven by | Sound | Job |
+|---|---|---|---|
+| Change bed | `changeStep`, `medianChange` | A held sine plus a quiet sawtooth (−12 dB) through a low-pass filter, **dry and centred**. **Pitch is the step's own note** (C3 to C4: five clear pitches). The cutoff is 3 × the fundamental at the bottom step and 1.5 × wider for each step up, and up to 25% wider inside a step as the median change rises, so the pitch heard never moves. Loudness is matched across steps and warmer is never louder | "How far from normal?" |
+| Contour voice | each `Contour` | A held triangle tone at its level's note (default +1 °C = C5, +2 °C = G5), moving across the stereo or 3D field from the line's x and y. A soft click at each sharp turn (over 45°, at least 125 ms apart, so at most 8 a second). A steeper front is brighter (cutoff 3 to 12 × the note). The trace is as long as the line, 2 to 8 s | "Where is the edge of the warm water, and what shape is it?" |
+| Missing-data hiss | `changeStep: "insufficient"`, or a contour end next to no data | The same pink-noise cue as §5; for a contour it sounds at the end that stops, at that end's place | "No data" never sounds like "normal" |
+
+Rules this layer follows: pitch means "further above normal" and position is never pitch; nothing below C3 or above C6; the bed uses no reverb on purpose (a held pure tone in a reverb gets louder or quieter by pitch, which would undo the matched loudness), and the other voices keep the one `Freeverb`; no randomness, so the same input gives the same sound and a WAV matches live playback; before the speakers there is a compressor and then a limiter at −1 dBFS, in this style only.
+
 ## Sources
 
 - Walker, B. N. & Mauney, L. M. (2010). [Universal Design of Auditory Graphs: A Comparison of Sonification Mappings for Visually Impaired and Sighted Listeners](https://wirelessrerc.gatech.edu/node/341.html). *ACM Transactions on Accessible Computing.*

@@ -67,7 +67,8 @@ export default function TestMode({ visualization, client: given }: { visualizati
     return () => { cancelled = true }
   }, [frames, regions, colorScale, mapping])
   const [soundStyle] = useSoundStyle()
-  useEffect(() => { engine?.setStyle(soundStyle) }, [engine, soundStyle])
+  // The listening test plays full or simple only, until the 13 Nov decision on the "change" style (docs/PLAN.md §6.2).
+  useEffect(() => { engine?.setStyle(soundStyle === 'change' ? 'full' : soundStyle) }, [engine, soundStyle])
   useEffect(() => () => engine?.stop(), [engine])
 
   // Move focus to each step's heading, but not on first load, so screen reader users know a new step began.

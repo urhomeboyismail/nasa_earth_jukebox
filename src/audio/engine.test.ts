@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../public/data/fixture/manifest.json'
+import type { Contour } from '../analysis/types'
 import type { SoundMapping, Visualization } from '../data'
 import { validateMapping } from './engine'
 import * as wav from './wav'
@@ -77,8 +78,10 @@ vi.mock('tone', () => ({
   Gain: mocks.make('Gain', ['disconnect'], ['gain']),
   Panner: mocks.make('Panner', ['dispose'], ['pan']),
   Panner3D: mocks.make('Panner3D', ['dispose'], ['positionX', 'positionY', 'positionZ']),
-  Filter: mocks.make('Filter'),
-  Synth: mocks.make('Synth', ['triggerAttackRelease', 'triggerRelease', 'set']),
+  Filter: mocks.make('Filter', [], ['frequency']),
+  Compressor: mocks.make('Compressor', ['disconnect']),
+  Limiter: mocks.make('Limiter', ['disconnect']),
+  Synth: mocks.make('Synth', ['triggerAttackRelease', 'triggerAttack', 'triggerRelease', 'set']),
   PolySynth: mocks.make('PolySynth', ['triggerAttackRelease', 'releaseAll']),
   Freeverb: mocks.make('Freeverb', [], ['wet']),
   Offline: mocks.offline,
@@ -632,5 +635,351 @@ describe('3D sound', () => {
     mocks.calls.length = 0
     await engine.renderToWav([{ category: 'warm', atMs: 0, pan: 1, elevation: 1 }])
     expect(mocks.calls.filter(c => c.node === 'Panner3D' && c.method === 'new')).toHaveLength(1)
+  })
+})
+
+describe('the nodes of the full and simple styles', () => {
+  // Recorded before the "change" style was added: T114 must leave these exactly as they were.
+  const BUILT = ['Gain', 'Gain', 'Freeverb', 'Panner', 'Gain', 'Synth', 'Synth', 'Filter', 'NoiseSynth', 'Synth', 'PolySynth']
+  const built = () => mocks.calls.filter(c => c.method === 'new').map(c => c.node)
+
+  it.each(['full', 'simple'] as const)('builds the same nodes as before in the %s style, and none for the change style', async style => {
+    const engine = createSoundEngine(mapping)
+    engine.setStyle(style)
+    await engine.unlock()
+    expect(built()).toEqual(BUILT)
+    engine.playSequence([{ category: 'cold', atMs: 0, changeStep: 'above', medianChange: 1 }], vi.fn())
+    mocks.transport.advance(1)
+    engine.setStyle(style === 'full' ? 'simple' : 'full')
+    expect(built()).toEqual(BUILT)
+  })
+
+  it('ignores the change fields in the full and simple styles: the category note plays', async () => {
+    for (const style of ['full', 'simple'] as const) {
+      const engine = await unlocked(changeMapping)
+      engine.setStyle(style)
+      engine.playSequence([{ category: 'cold', atMs: 0, changeStep: 'much-above', medianChange: 3 }], vi.fn(), { tick: false })
+      mocks.transport.advance(1)
+      expect(playedNotes()).toEqual(['C4'])
+      mocks.calls.length = 0
+    }
+  })
+})
+
+// The five change steps of the test data set, most below normal first, each with its note in C3 to C4, and the two contour levels.
+const changeMapping = {
+  ...mapping,
+  changeSteps: [
+    { id: 'much-below', range: [-10, -1], note: 'C3' },
+    { id: 'below', range: [-1, -0.25], note: 'E3' },
+    { id: 'near', range: [-0.25, 0.25], note: 'G3' },
+    { id: 'above', range: [0.25, 1], note: 'A3' },
+    { id: 'much-above', range: [1, 10], note: 'C4' },
+  ],
+  contourLevels: [{ value: 1, note: 'C5' }, { value: 2, note: 'G5' }],
+} as SoundMapping & import('./changeVoice').ChangeSounds
+
+describe('mapping validation for the change style', () => {
+  const withSteps = (steps: { id: string; range: [number, number]; note: string }[]) => ({ ...mapping, changeSteps: steps })
+  it('accepts the test mapping, and a data set with no change notes at all', () => {
+    expect(() => validateMapping(changeMapping)).not.toThrow()
+    expect(() => validateMapping(mapping)).not.toThrow()
+  })
+  it('rejects a change step whose note is not a note, is outside C3 to C4, or does not rise', () => {
+    const [a, b] = changeMapping.changeSteps!
+    expect(() => validateMapping(withSteps([{ ...a, note: 'X' }]))).toThrow('not a note name')
+    expect(() => validateMapping(withSteps([{ ...a, note: 'B2' }]))).toThrow('between C3 and C4')
+    expect(() => validateMapping(withSteps([{ ...a, note: 'D4' }]))).toThrow('between C3 and C4')
+    expect(() => validateMapping(withSteps([a, { ...b, note: 'C3' }]))).toThrow('higher than the step before')
+  })
+  it('rejects a contour level whose note is not a note or is outside C3 to C6', () => {
+    expect(() => validateMapping({ ...mapping, contourLevels: [{ value: 1, note: 'nope' }] })).toThrow('not a note name')
+    expect(() => validateMapping({ ...mapping, contourLevels: [{ value: 1, note: 'D6' }] })).toThrow('between C3 and C6')
+  })
+})
+
+describe('the change style', () => {
+  const synths = () => mocks.nodes.Synth as { options: { oscillator: { type: string } } }[]
+  const bedCalls = () => played().filter(c => c.node === 'Synth' && ['C3', 'E3', 'G3', 'A3', 'C4'].includes(c.args[0] as string))
+  const changeStepsOf = (...ids: (string | undefined)[]): SequenceStep[] => ids.map((id, k) => ({ category: 'mild', atMs: k * 1000, changeStep: id, medianChange: 0.5 }))
+
+  async function changing() {
+    const engine = await unlocked(changeMapping)
+    engine.setStyle('change')
+    mocks.calls.length = 0
+    return engine
+  }
+
+  describe('the master chain', () => {
+    it('is built on first use: a compressor, then a limiter at -1 dBFS, then the speakers', async () => {
+      const engine = await unlocked(changeMapping)
+      expect(mocks.nodes.Compressor).toBeUndefined()
+      engine.setStyle('change')
+      expect(mocks.nodes.Compressor).toHaveLength(1)
+      expect((mocks.nodes.Limiter[0] as { options: unknown }).options).toBe(-1)
+      const links = mocks.calls.filter(c => c.method === 'connect')
+      const [master, cut] = mocks.nodes.Gain
+      expect(links.some(c => c.node === 'Gain' && c.args[0] === mocks.nodes.Compressor[0])).toBe(true)
+      expect(links.some(c => c.node === 'Compressor' && c.args[0] === mocks.nodes.Limiter[0])).toBe(true)
+      expect(links.at(-1)).toMatchObject({ node: 'Limiter', args: [master] })
+      expect(master).not.toBe(cut)
+    })
+
+    it('is built straight away when chosen before unlock(), and renderToWav uses it too', async () => {
+      const engine = createSoundEngine(changeMapping)
+      engine.setStyle('change')
+      await engine.unlock()
+      expect(mocks.nodes.Compressor).toHaveLength(1)
+      mocks.calls.length = 0
+      await engine.renderToWav([{ category: 'mild', atMs: 0, changeStep: 'above' }])
+      expect(mocks.calls.filter(c => c.method === 'new' && c.node === 'Limiter')).toHaveLength(1)
+      expect(bedCalls().length).toBe(2)
+    })
+
+    it('goes round the chain again when the style goes back, and is not built twice', async () => {
+      const engine = await unlocked(changeMapping)
+      engine.setStyle('change')
+      engine.setStyle('full')
+      const gains = mocks.nodes.Gain as unknown[]
+      const cutToMaster = mocks.calls.filter(c => c.method === 'connect' && c.node === 'Gain' && c.args[0] === gains[0])
+      expect(cutToMaster.length).toBeGreaterThan(0)
+      engine.setStyle('change')
+      expect(mocks.nodes.Compressor).toHaveLength(1)
+      expect(mocks.nodes.Limiter).toHaveLength(1)
+    })
+  })
+
+  describe('the change bed', () => {
+    it('plays each step as its own note, a sine and a quiet sawtooth together, so pitch steps with the change', async () => {
+      const engine = await changing()
+      engine.playSequence(changeStepsOf('much-below', 'below', 'near', 'above', 'much-above'), vi.fn(), { tick: false })
+      mocks.transport.advance(5)
+      expect(bedCalls().map(c => c.args[0])).toEqual(['C3', 'C3', 'E3', 'E3', 'G3', 'G3', 'A3', 'A3', 'C4', 'C4'])
+      expect(played().some(c => c.node === 'NoiseSynth')).toBe(false)
+      const types = synths().map(s => s.options.oscillator?.type)
+      expect(types).toEqual(expect.arrayContaining(['sine', 'sawtooth']))
+    })
+
+    it('holds the note nearly to the next step, and the last step for the usual note length', async () => {
+      const engine = await changing()
+      engine.playSequence(changeStepsOf('near', 'above'), vi.fn(), { tick: false })
+      mocks.transport.advance(2)
+      const durations = bedCalls().map(c => c.args[1] as number)
+      expect(durations[0]).toBeCloseTo(0.97)
+      expect(durations[2]).toBeCloseTo(0.6)
+    })
+
+    it('opens the filter wider for each higher step, and a little for a larger change within one', async () => {
+      const engine = await changing()
+      const cutoffs = () => mocks.calls.filter(c => c.node === 'Filter' && c.method === 'frequency.setValueAtTime').map(c => c.args[0] as number)
+      engine.playSequence(changeStepsOf('much-below', 'below', 'near', 'above', 'much-above'), vi.fn(), { tick: false })
+      mocks.transport.advance(5)
+      const byStep = cutoffs()
+      expect(byStep).toHaveLength(5)
+      expect(byStep).toEqual([...byStep].sort((a, b) => a - b))
+      expect(new Set(byStep).size).toBe(5)
+
+      mocks.calls.length = 0
+      mocks.transport.reset()
+      engine.playSequence([{ category: 'mild', atMs: 0, changeStep: 'near', medianChange: -0.2 }, { category: 'mild', atMs: 1000, changeStep: 'near', medianChange: 0.2 }], vi.fn(), { tick: false })
+      mocks.transport.advance(2)
+      const [low, high] = cutoffs().slice(-2)
+      expect(high).toBeGreaterThan(low)
+      expect(bedCalls().slice(-4).map(c => c.args[0])).toEqual(['G3', 'G3', 'G3', 'G3'])
+    })
+
+    it('sets the level from the step, quieter where the filter is open, never above 0 dB', async () => {
+      const engine = await changing()
+      engine.playSequence(changeStepsOf('much-below', 'much-above'), vi.fn(), { tick: false })
+      mocks.transport.advance(2)
+      const gains = mocks.calls.filter(c => c.node === 'Gain' && c.method === 'gain.setValueAtTime').map(c => c.args[0] as number)
+      expect(gains).toHaveLength(2)
+      expect(Math.max(...gains)).toBeLessThanOrEqual(1)
+      expect(gains[1]).toBeLessThanOrEqual(gains[0])
+    })
+
+    it('keeps the bed centred and dry: it never goes through the panner, so a step\'s pan or elevation cannot move it', async () => {
+      const engine = await unlocked(changeMapping)
+      engine.setStyle('change')
+      // Gains in build order: master, cut, bus, then the bed's level. Its only output is the cut gain, ahead of the master chain.
+      const [, cut, , bedLevel] = mocks.nodes.Gain
+      expect(mocks.calls.filter(c => c.method === 'connect' && c.node === 'Gain' && c.args[0] === cut)).toHaveLength(1)
+      expect(bedLevel).toBeDefined()
+      mocks.calls.length = 0
+      engine.playSequence([{ category: 'mild', atMs: 0, changeStep: 'above', pan: 0.9, elevation: 1 }], vi.fn(), { tick: false })
+      mocks.transport.advance(1)
+      expect(bedCalls()).toHaveLength(2)
+      expect(mocks.calls.filter(c => (c.node === 'Panner' || c.node === 'Panner3D') && c.method.endsWith('setValueAtTime'))).toEqual([])
+    })
+
+    it('hisses for a date with too little data, and never plays a bed for it', async () => {
+      const engine = await changing()
+      engine.playSequence(changeStepsOf('insufficient'), vi.fn(), { tick: false })
+      mocks.transport.advance(1)
+      expect(played().map(c => c.node)).toEqual(['NoiseSynth'])
+    })
+
+    it('plays the category note for a step with no change step, or one this data set does not have, as today', async () => {
+      const engine = await changing()
+      engine.playSequence(changeStepsOf(undefined, 'not-a-step'), vi.fn(), { tick: false })
+      mocks.transport.advance(2)
+      expect(playedNotes()).toEqual(['G4', 'G4'])
+      expect(bedCalls()).toEqual([])
+    })
+
+    it('plays the category notes for a data set with no change steps at all', async () => {
+      const engine = await unlocked()
+      engine.setStyle('change')
+      mocks.calls.length = 0
+      engine.playSequence(changeStepsOf('above'), vi.fn(), { tick: false })
+      mocks.transport.advance(1)
+      expect(playedNotes()).toEqual(['G4'])
+    })
+
+    it('keeps the tick after each bed step, unless asked not to, and reports each step', async () => {
+      const engine = await changing()
+      const onStep = vi.fn()
+      engine.playSequence(changeStepsOf('near', 'above'), onStep, { tick: true })
+      mocks.transport.advance(2)
+      expect(onStep.mock.calls.map(c => c[0])).toEqual([0, 1])
+      expect(playedNotes().filter(n => n === 'C6')).toHaveLength(2)
+    })
+
+    it('renders the same notes as live playback', async () => {
+      const engine = await changing()
+      await engine.renderToWav(changeStepsOf('much-below', 'near', 'much-above'))
+      expect(bedCalls().map(c => c.args[0])).toEqual(['C3', 'C3', 'G3', 'G3', 'C4', 'C4'])
+    })
+  })
+
+  describe('the contour voice', () => {
+    const line = (extra: Partial<Contour> = {}): Contour => ({
+      level: 1,
+      closed: false,
+      brokenEnds: 0,
+      brokenStart: false,
+      brokenEnd: false,
+      points: Array.from({ length: 64 }, (_, k) => ({ x: k / 63, y: 0.5, turn: k === 20 ? Math.PI / 2 : 0, front: 1 })),
+      ...extra,
+    })
+    const panAt = () => mocks.calls.filter(c => c.node === 'Panner' && c.method === 'pan.setValueAtTime').map(c => c.args[0] as number)
+
+    it('does nothing outside the change style, or before unlock()', async () => {
+      const early = createSoundEngine(changeMapping)
+      early.setStyle('change')
+      early.traceContour(line())
+      expect(mocks.calls).toEqual([])
+      for (const style of ['full', 'simple'] as const) {
+        const engine = await unlocked(changeMapping)
+        engine.setStyle(style)
+        const onPoint = vi.fn()
+        engine.traceContour(line(), onPoint)
+        mocks.transport.advance(10)
+        expect(mocks.calls.filter(c => c.method === 'triggerAttack')).toEqual([])
+        expect(onPoint).not.toHaveBeenCalled()
+        expect(engine.isPlaying()).toBe(false)
+      }
+    })
+
+    it('holds one tone at the level\'s note while the line is traced, and releases it at the end', async () => {
+      const engine = await changing()
+      engine.traceContour(line())
+      expect(engine.isPlaying()).toBe(true)
+      mocks.transport.advance(10)
+      expect(mocks.calls.filter(c => c.method === 'triggerAttack').map(c => c.args[0])).toEqual(['C5'])
+      expect(mocks.calls.filter(c => c.node === 'Synth' && c.method === 'triggerRelease').length).toBeGreaterThan(0)
+      expect(engine.isPlaying()).toBe(false)
+    })
+
+    it('plays the +2 line at its own, higher note, and the nearest level\'s note for a level in between', async () => {
+      const engine = await changing()
+      engine.traceContour(line({ level: 2 }))
+      mocks.transport.advance(10)
+      engine.traceContour(line({ level: 1.9 }))
+      mocks.transport.advance(10)
+      expect(mocks.calls.filter(c => c.method === 'triggerAttack').map(c => c.args[0])).toEqual(['G5', 'G5'])
+    })
+
+    it('uses C5 and G5 when the data set names no notes for its levels', async () => {
+      const engine = await unlocked({ ...changeMapping, contourLevels: undefined } as typeof changeMapping)
+      engine.setStyle('change')
+      mocks.calls.length = 0
+      engine.traceContour(line({ level: 1 }))
+      mocks.transport.advance(10)
+      engine.traceContour(line({ level: 2 }))
+      mocks.transport.advance(10)
+      expect(mocks.calls.filter(c => c.method === 'triggerAttack').map(c => c.args[0])).toEqual(['C5', 'G5'])
+    })
+
+    it('reports each point in order as it sounds, and pans west to east along the line', async () => {
+      const engine = await changing()
+      const onPoint = vi.fn()
+      engine.traceContour(line(), onPoint)
+      mocks.transport.advance(10)
+      expect(onPoint.mock.calls.map(c => c[0])).toEqual(Array.from({ length: 64 }, (_, k) => k))
+      const pans = panAt()
+      expect(pans).toHaveLength(64)
+      expect(pans[0]).toBe(-1)
+      expect(pans.at(-1)).toBe(1)
+      expect(pans).toEqual([...pans].sort((a, b) => a - b))
+    })
+
+    it('sets the height from y in 3D, north up', async () => {
+      const engine = await changing()
+      engine.setSpatial('3d')
+      engine.traceContour(line({ points: [{ x: 0.5, y: 0, turn: 0, front: 1 }, { x: 0.5, y: 1, turn: 0, front: 1 }] }))
+      mocks.transport.advance(10)
+      const heights = mocks.calls.filter(c => c.node === 'Panner3D' && c.method === 'positionY.setValueAtTime').map(c => c.args[0] as number)
+      expect(heights.length).toBeGreaterThanOrEqual(2)
+      expect(heights[0]).toBeGreaterThan(0.5)
+      expect(heights.at(-1)).toBeLessThan(-0.5)
+    })
+
+    it('clicks at a sharp turn only', async () => {
+      const engine = await changing()
+      engine.traceContour(line())
+      mocks.transport.advance(10)
+      expect(played().filter(c => c.node === 'Synth' && c.args[0] === 'C6')).toHaveLength(1)
+    })
+
+    it('hisses at the end that stops at no data, and not at one that runs off the map', async () => {
+      const engine = await changing()
+      engine.traceContour(line())
+      mocks.transport.advance(10)
+      expect(played().some(c => c.node === 'NoiseSynth')).toBe(false)
+      engine.traceContour(line({ brokenEnds: 2, brokenStart: true, brokenEnd: true }))
+      mocks.transport.advance(10)
+      expect(played().filter(c => c.node === 'NoiseSynth')).toHaveLength(2)
+    })
+
+    it('brightens the tone where the front is steeper', async () => {
+      const engine = await changing()
+      const points = line().points.map((p: Contour['points'][number], k: number) => ({ ...p, front: k < 32 ? 0.1 : 3 }))
+      engine.traceContour(line({ points }))
+      mocks.transport.advance(10)
+      const cutoffs = mocks.calls.filter(c => c.node === 'Filter' && c.method === 'frequency.setValueAtTime').map(c => c.args[0] as number)
+      expect(cutoffs.at(-1)).toBeGreaterThan(cutoffs[0])
+    })
+
+    it('replaces a sequence, is ended by stop(), and does not report points after it', async () => {
+      const engine = await changing()
+      engine.playSequence(changeStepsOf('near', 'above'), vi.fn())
+      const onPoint = vi.fn()
+      engine.traceContour(line(), onPoint)
+      mocks.transport.advance(1)
+      expect(onPoint.mock.calls.length).toBeGreaterThan(0)
+      const heard = onPoint.mock.calls.length
+      engine.stop()
+      expect(engine.isPlaying()).toBe(false)
+      mocks.transport.advance(10)
+      expect(onPoint).toHaveBeenCalledTimes(heard)
+      expect(bedCalls()).toEqual([])
+    })
+
+    it('ignores a line with no points', async () => {
+      const engine = await changing()
+      engine.traceContour(line({ points: [] }))
+      expect(engine.isPlaying()).toBe(false)
+    })
   })
 })

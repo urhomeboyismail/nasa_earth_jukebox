@@ -74,6 +74,17 @@ describe('Test mode: missing data', () => {
   })
 })
 
+describe('Test mode: sound style', () => {
+  it('plays full or simple only, even if the change style was chosen on this device (until the 13 Nov decision)', async () => {
+    localStorage.setItem('earth-jukebox:sound-style', 'change')
+    render(<ComparePage visualization={visualization} />)
+    await screen.findByRole('checkbox', { name: /I agree to take part/ })
+    expect(engine.setStyle).toHaveBeenCalledWith('full')
+    expect(engine.setStyle).not.toHaveBeenCalledWith('change')
+    localStorage.removeItem('earth-jukebox:sound-style')
+  })
+})
+
 describe('Test mode: opening', () => {
   it('opens only from #compare?test=1', async () => {
     window.location.hash = '#compare'

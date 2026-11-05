@@ -45,3 +45,5 @@
   list-style: none;
 }
 .compare__images img { display: block; inline-size: 100%; block-size: auto; border-radius: 0.5rem; }
+
+.compare__style { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; }

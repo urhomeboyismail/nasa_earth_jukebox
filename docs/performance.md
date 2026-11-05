@@ -68,3 +68,56 @@ Open the Vercel site (or `npm run build && npm run preview`) with `?data=stress-
 |---|---|---|---|---|
 | Mid-range laptop (model, RAM): _not measured_ | | | | |
 | Phone (model, browser): _not measured_ | | | | |
+
+## Sound pipeline v2: `analyzeChange` (T112)
+
+One `analyzeChange` reads the frame and its baseline into two 180 × 90 fields (`readField`: nine pixels per cell, 16 200 cells, each
+through `valueAtPixel`), subtracts them and summarises the result (`scorePixels` in `src/analysis/score.ts`). Contours are not in
+this number yet; T113 adds them.
+
+**Measured by Claude** on the cloud machine (4 cores, Node, no browser, no CPU throttling): `scorePixels` on two synthetic
+1920 × 1080 frames already decoded to RGBA, median of 12 runs: **53 ms** (min 51, max 77). That is the maths only. It leaves out
+fetching and decoding the two PNGs, which in a browser costs more than the maths and is shared with `analyzeFrame` and
+`analyzeGrid` (the worker keeps the last two decoded images, so a frame and its baseline are each decoded once).
+
+| Where | One `analyzeChange` (maths only) | Over 200 ms? |
+|---|---|---|
+| Cloud machine, Node, unthrottled | 53 ms | no |
+| Mid-range laptop (model): _not measured_ | | |
+| Phone (model, browser): _not measured_ | | |
+
+**Read this before trusting it.** The cloud machine is not a phone. Scaling 53 ms by the ×6 slowdown used above for "a phone"
+gives about 320 ms, which would be over the ticket's 200 ms limit; that is a guess from a different kind of measurement, not a
+result. Measure on a real phone with `?data=stress-globe` once `synthetic-change`-style data with a baseline can be opened in
+Listen. **If it is over 200 ms on the phone, drop to 120 × 60 cells** (`CHANGE_COLS` in `src/analysis/score.ts`, one number; the
+golden file `src/data/__golden__/change.json` is rewritten with `npx vitest run -u src/data/change-regression.test.ts`) and write
+the new time here. Cutting the cells to two thirds of the width cuts the work to about 44%.
+
+**Contours (T113).** `traceContours` on a 180 × 90 field with 18 lines (a wavy test field, one level), cloud machine, Node, unthrottled:
+median **1.4 ms** over 30 runs (the slowest run was 12 ms, the first one, before the code was warmed up). The ticket's limit is 10 ms on a
+laptop; a real laptop and phone are _not measured_. `analyzeChange` now also smooths the field and traces each level, so its
+total is a little more than the 53 ms above; re-measure it on the real devices in T85.
+
+## Sound pipeline v2: the `"change"` style, measured offline (T114)
+
+**Measured by Claude** in headless Chromium on the cloud machine, rendering the real engine code offline (`Tone.Offline`, 44 100 Hz, stereo, the master
+compressor and limiter in the path). Each bed is one step alone for 600 ms (`renderToWav`, the same voices as live playback); the level is read from 0.1 s to
+0.55 s, after the 50 ms attack. Three changes per step (bottom, middle, top of its range).
+
+| Step | Note | Peak (dBFS) | RMS (dBFS) | Pitch measured |
+|---|---|---|---|---|
+| much-below | C3 | −6.7 to −6.9 | −10.9 to −11.1 | 130.75 Hz |
+| below | E3 | −6.6 to −6.7 | −11.2 to −11.3 | 164.75 Hz |
+| near | G3 | −7.3 | −11.3 to −11.4 | 196.0 Hz |
+| above | A3 | −6.8 | −11.4 | 220.0 Hz |
+| much-above | C4 | −7.1 | −11.4 | 261.75 Hz |
+
+- **Loudness:** the RMS of all fifteen beds is within **0.52 dB** (limit 1 dB); the highest peak is −6.6 dBFS (limit −1 dBFS). The first version routed the bed
+  through the shared reverb and measured **2.6 dB** apart: a held pure tone in `Freeverb` is louder or quieter by pitch. The bed now skips the reverb, and
+  `bedFor`'s levelling is enough.
+- **Pitch:** within 0.1% of each step's note (limit 1%), and the same at the bottom and top of a step while the cutoff moves.
+- **Contour trace** (64 points, 8 s, 8 accents and a hiss at both broken ends, the front going from soft to steep): peak **−3.8 dBFS** for a +1 line (C5) and
+  **−6.4 dBFS** for a +2 line (G5), limit −1 dBFS. The +2 line is about 4 dB quieter in RMS (−18.8 against −14.5): it sits higher and goes through the reverb. It is
+  not louder than the +1 line, which is the direction that matters.
+- **Not measured:** a real laptop or phone, and any listener. The numbers say nothing about whether the layers are *understood*; that is the 13 Nov listening check.
+  The harness is a throw-away script, not in the repository; it bundles `src/audio/engine.ts` with Vite and calls `renderToWav` and `scheduleTrace` in the page.
