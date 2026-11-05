@@ -8,7 +8,7 @@ export type { SoundStyle } from './style'
 
 /**
  * One sound in a sequence. `pad`, `glide` and `bell` are the musical layer (docs/PLAN.md §5.7): a chord under the note,
- * a slide from the previous note, a bell for a big jump. The engine accepts them from T64 and gives them sound in T68.
+ * a slide from the previous note, a bell for a big jump. The engine plays them in the "full" style (T80) and ignores them in "simple".
  */
 export type SequenceStep = {
   category: CategoryId | 'insufficient'
@@ -41,7 +41,7 @@ export type SoundEngine = {
   /** Pauses while the voice guide listens or speaks. Does not resume on its own. */
   duck(): void
   unduck(): void
-  /** Should-have (T08). */
+  /** The steps as a 16-bit stereo WAV file, in the current style. Rejects with a readable message above 3 minutes. */
   renderToWav(steps: SequenceStep[]): Promise<Blob>
 }
 

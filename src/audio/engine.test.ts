@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../public/data/fixture/manifest.json'
 import type { SoundMapping, Visualization } from '../data'
 import { validateMapping } from './engine'
+import * as wav from './wav'
 import { createSoundEngine, type SequenceStep } from '.'
 
 const mapping = (fixture as Visualization).mapping
@@ -59,7 +60,13 @@ const mocks = vi.hoisted(() => {
     reset() { this.events = []; this.position = 0; this.running = false; this.starts = [] },
   }
   const draw = { times: [] as number[], schedule(cb: () => void, time: number) { this.times.push(time); cb() } }
-  return { calls, nodes, make, transport, draw, start: vi.fn(async () => {}) }
+  // Offline runs the callback, then plays the Transport through, like a render; its buffer is two silent channels.
+  const offline = vi.fn(async (callback: () => void, duration: number) => {
+    callback()
+    transport.advance(duration)
+    return { getChannelData: () => new Float32Array(8) }
+  })
+  return { calls, nodes, make, transport, draw, offline, start: vi.fn(async () => {}) }
 })
 
 vi.mock('tone', () => ({
@@ -70,7 +77,10 @@ vi.mock('tone', () => ({
   Gain: mocks.make('Gain', [], ['gain']),
   Panner: mocks.make('Panner', [], ['pan']),
   Filter: mocks.make('Filter'),
-  Synth: mocks.make('Synth', ['triggerAttackRelease', 'triggerRelease']),
+  Synth: mocks.make('Synth', ['triggerAttackRelease', 'triggerRelease', 'set']),
+  PolySynth: mocks.make('PolySynth', ['triggerAttackRelease', 'releaseAll']),
+  Freeverb: mocks.make('Freeverb', [], ['wet']),
+  Offline: mocks.offline,
   NoiseSynth: mocks.make('NoiseSynth', ['triggerAttackRelease', 'triggerRelease']),
 }))
 
@@ -83,6 +93,7 @@ const steps: SequenceStep[] = [
 ]
 
 beforeEach(() => {
+  mocks.offline.mockClear()
   mocks.calls.length = 0
   for (const key of Object.keys(mocks.nodes)) delete mocks.nodes[key]
   mocks.transport.reset()
@@ -109,6 +120,12 @@ describe('mapping validation', () => {
   it('rejects categories where a cooler one is not lower', () => {
     const swapped = { ...mapping, categories: [mapping.categories[1], mapping.categories[0], ...mapping.categories.slice(2)] }
     expect(() => createSoundEngine(swapped)).toThrow(/higher/)
+  })
+
+  it('rejects a note whose chord note, an octave down, would sound under C3', () => {
+    const low = { ...mapping, categories: mapping.categories.map((c, i) => (i === 0 ? { ...c, note: 'B3' } : c)) }
+    expect(() => validateMapping(low)).toThrow(/cold.*too low/)
+    expect(() => validateMapping({ ...mapping, categories: mapping.categories.map((c, i) => (i === 0 ? { ...c, note: 'C4' } : c)) })).not.toThrow()
   })
 
   it('rejects a tick that is not a note', () => {
@@ -399,33 +416,157 @@ describe('sequences on the Transport', () => {
     expect(playedNotes()).toEqual(['C4', 'C6', 'G4', 'C6', 'C6'])
   })
 
-  // T68 gives these meaning. Until then the engine must accept them and sound exactly as before.
-  it('accepts a chord, a glide and a bell on a step, and sounds the same until T68', async () => {
-    const engine = await unlocked()
-    const voiced: SequenceStep[] = steps.map(step => ({ ...step, pad: ['cold', 'mild'], glide: true, bell: true }))
-    engine.playSequence(voiced, vi.fn())
-    mocks.transport.advance(3)
-    expect(played().map(c => c.node === 'Synth' ? c.args[0] : c.node)).toEqual(['C4', 'C6', 'G4', 'C6', 'NoiseSynth', 'C6'])
+})
+
+describe('the musical layer', () => {
+  const notes = () => played().map(c => c.node === 'Synth' ? c.args[0] : c.node)
+  const portamentos = () => (mocks.nodes.Synth as { portamento?: number }[])[0].portamento
+  const voiced: SequenceStep[] = [
+    { category: 'cold', atMs: 0 },
+    { category: 'hot', atMs: 1000, pad: ['warm', 'hot'], glide: true, bell: true },
+  ]
+
+  it('plays the chord an octave below the notes, as long as the melody note, on its own quiet voice', async () => {
+    const engine = createSoundEngine(mapping)
+    await engine.unlock() // keeps the construction calls, which unlocked() clears
+    engine.playSequence(voiced, vi.fn(), { tick: false })
+    mocks.transport.advance(1)
+    const chord = played().find(c => c.node === 'PolySynth')!
+    expect(chord.args[0]).toEqual(['C4', 'E4'])
+    const melody = played().filter(c => c.node === 'Synth')[1]
+    expect(chord.args[1]).toBe(melody.args[1])
+    expect(chord.args[2]).toBe(melody.args[2])
+    const padOptions = mocks.calls.find(c => c.node === 'PolySynth' && c.method === 'new')!.args[1] as { volume: number }
+    const [melodyVoice] = mocks.nodes.Synth as { options: { volume: number } }[]
+    expect(padOptions.volume).toBeLessThan(melodyVoice.options.volume)
   })
 
-  it('accepts a chord on a single note, and sounds the same until T68', async () => {
+  it('sets the slide before the note is triggered, and clears it on a step without one', async () => {
+    const engine = await unlocked()
+    const slides: (number | undefined)[] = []
+    const [melody] = mocks.nodes.Synth as { triggerAttackRelease: (...args: unknown[]) => void; portamento?: number }[]
+    const original = melody.triggerAttackRelease.bind(melody)
+    melody.triggerAttackRelease = (...args) => { slides.push(melody.portamento); original(...args) }
+    engine.playSequence(voiced, vi.fn(), { tick: false })
+    mocks.transport.advance(1)
+    expect(slides).toEqual([0, 0.12])
+    engine.playCategory('cold')
+    expect(portamentos()).toBe(0)
+  })
+
+  it('rings the bell on G5 just after the note', async () => {
+    const engine = await unlocked()
+    engine.playSequence(voiced, vi.fn(), { tick: false })
+    mocks.transport.advance(1)
+    const calls = played().filter(c => c.node === 'Synth')
+    expect(calls.map(c => c.args[0])).toEqual(['C4', 'E5', 'G5'])
+    expect(calls[2].args[2]).toBeCloseTo((calls[1].args[2] as number) + 0.05)
+  })
+
+  it('does not give a step without chord, slide or bell any of them', async () => {
+    const engine = await unlocked()
+    engine.playSequence(steps, vi.fn())
+    mocks.transport.advance(3)
+    expect(notes()).toEqual(['C4', 'C6', 'G4', 'C6', 'NoiseSynth', 'C6'])
+    expect(played().some(c => c.node === 'PolySynth')).toBe(false)
+  })
+
+  it('plays a chord on a single note too', async () => {
     const engine = await unlocked()
     engine.playCategory('cold', { pad: ['cold', 'mild'] })
-    expect(playedNotes()).toEqual(['C4'])
+    expect(played().find(c => c.node === 'PolySynth')?.args[0]).toEqual(['C3', 'G3'])
   })
 
-  it('accepts a sound style in either state, before and after unlock, without changing the sound until T68', async () => {
+  it('starts in the full style, with the reverb on', async () => {
+    await unlocked()
+    const reverb = mocks.nodes.Freeverb[0] as { options: { roomSize: number; wet: number } }
+    expect(reverb.options).toMatchObject({ roomSize: 0.6, wet: 0.2 })
+  })
+
+  describe('in the simple style', () => {
+    it('plays neither chord nor bell nor slide, and turns the reverb off', async () => {
+      const engine = await unlocked()
+      engine.setStyle('simple')
+      const reverb = mocks.nodes.Freeverb[0] as { wet: { value: number } }
+      expect(reverb.wet.value).toBe(0)
+      engine.playSequence(voiced, vi.fn(), { tick: false })
+      mocks.transport.advance(1)
+      expect(notes()).toEqual(['C4', 'E5'])
+      expect(played().some(c => c.node === 'PolySynth')).toBe(false)
+      expect(portamentos()).toBe(0)
+    })
+
+    it('keeps the melody, tick and missing cue as they were, with the original melody shape', async () => {
+      const engine = await unlocked()
+      engine.setStyle('simple')
+      const [melody] = mocks.nodes.Synth as { set: unknown }[]
+      expect(mocks.calls.filter(c => c.method === 'set').at(-1)?.args[0]).toEqual({ envelope: { attack: 0.03, decay: 0.15, sustain: 0.6, release: 0.4 } })
+      expect(melody).toBeDefined()
+      engine.playSequence(steps, vi.fn())
+      mocks.transport.advance(3)
+      expect(notes()).toEqual(['C4', 'C6', 'G4', 'C6', 'NoiseSynth', 'C6'])
+    })
+
+    it('takes effect when chosen before unlock(), and comes back to full', async () => {
+      const engine = createSoundEngine(mapping)
+      engine.setStyle('simple')
+      await engine.unlock()
+      const reverb = mocks.nodes.Freeverb[0] as { options: { wet: number }; wet: { value: number } }
+      expect(reverb.options.wet).toBe(0)
+      engine.setStyle('full')
+      expect(reverb.wet.value).toBe(0.2)
+      mocks.calls.length = 0
+      engine.playCategory('cold', { pad: ['cold'] })
+      expect(played().some(c => c.node === 'PolySynth')).toBe(true)
+    })
+  })
+
+  it('accepts a sound style before unlock without making a sound', () => {
     const engine = createSoundEngine(mapping)
     expect(() => { engine.setStyle('simple'); engine.setStyle('full') }).not.toThrow()
-    await engine.unlock()
-    mocks.calls.length = 0
-    engine.setStyle('simple')
-    engine.playCategory('cold')
-    expect(playedNotes()).toEqual(['C4'])
+    expect(mocks.calls).toEqual([])
+  })
+})
+
+describe('renderToWav', () => {
+  const encode = vi.spyOn(wav, 'encodeWav')
+
+  it('renders two channels at 44 100 Hz for the last step plus 1.5 s, then encodes them as a WAV', async () => {
+    encode.mockClear()
+    const engine = await unlocked()
+    const blob = await engine.renderToWav(steps)
+    expect(mocks.offline).toHaveBeenCalledWith(expect.any(Function), 3.5, 2, 44100)
+    expect(encode).toHaveBeenCalledTimes(1)
+    const [channels, rate] = encode.mock.calls[0]
+    expect(channels).toHaveLength(2)
+    expect(rate).toBe(44100)
+    expect(blob.type).toBe('audio/wav')
   })
 
-  it('reports WAV export as not built', async () => {
+  it('plays the same sound as live: the same voices, the steps in order and a tick after each', async () => {
     const engine = await unlocked()
-    await expect(engine.renderToWav(steps)).rejects.toThrow(/T08/)
+    await engine.renderToWav([{ category: 'hot', atMs: 1000, pad: ['hot'], bell: true }, { category: 'cold', atMs: 0 }])
+    expect(played().map(c => c.node === 'Synth' ? c.args[0] : c.node)).toEqual(['C4', 'C6', 'E5', 'PolySynth', 'G5', 'C6'])
+  })
+
+  it('works before unlock() and uses the current style', async () => {
+    const engine = createSoundEngine(mapping)
+    engine.setStyle('simple')
+    await engine.renderToWav([{ category: 'hot', atMs: 0, pad: ['hot'], bell: true }])
+    expect(played().some(c => c.node === 'PolySynth')).toBe(false)
+    expect((mocks.nodes.Freeverb[0] as { options: { wet: number } }).options.wet).toBe(0)
+  })
+
+  it('accepts a sequence up to 180 s and rejects one above it', async () => {
+    const engine = await unlocked()
+    await expect(engine.renderToWav([{ category: 'cold', atMs: 178_500 }])).resolves.toBeInstanceOf(Blob)
+    mocks.offline.mockClear()
+    await expect(engine.renderToWav([{ category: 'cold', atMs: 178_501 }])).rejects.toThrow('That is too long to download (over 3 minutes).')
+    expect(mocks.offline).not.toHaveBeenCalled()
+  })
+
+  it('rejects an empty sequence with a readable message', async () => {
+    const engine = await unlocked()
+    await expect(engine.renderToWav([])).rejects.toThrow(/nothing to download/)
   })
 })
