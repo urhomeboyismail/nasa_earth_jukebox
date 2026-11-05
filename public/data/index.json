@@ -8,5 +8,10 @@
     "id": "synthetic-ocean",
     "title": "Synthetic ocean",
     "summary": "Twelve made-up frames with known answers, for testing."
+  },
+  {
+    "id": "synthetic-globe",
+    "title": "Synthetic globe (made-up practice data)",
+    "summary": "Twelve made-up monthly frames of a pretend globe with a marine heatwave, for practice."
   }
 ]

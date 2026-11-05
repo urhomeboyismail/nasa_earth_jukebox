@@ -131,7 +131,7 @@
     }
   ],
   "mapping": {
-    "scale": "C major pentatonic",
+    "scale": "C major arpeggio",
     "summary": "median",
     "minValidFraction": 0.5,
     "categories": [
@@ -151,7 +151,7 @@
           6,
           12
         ],
-        "note": "D4"
+        "note": "E4"
       },
       {
         "id": "mild",
@@ -160,7 +160,7 @@
           12,
           18
         ],
-        "note": "E4"
+        "note": "G4"
       },
       {
         "id": "warm",
@@ -169,7 +169,7 @@
           18,
           24
         ],
-        "note": "G4"
+        "note": "C5"
       },
       {
         "id": "hot",
@@ -178,7 +178,7 @@
           24,
           30
         ],
-        "note": "A4"
+        "note": "E5"
       }
     ],
     "tick": {

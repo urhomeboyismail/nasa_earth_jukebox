@@ -1,16 +1,20 @@
 // Messages between the page and the analysis worker.
 
-import type { ColorScale, Frame, Region, SoundMapping } from '../data'
-import type { FrameAnalysis } from '.'
+import type { ColorScale, Frame, MapArea, Region, SoundMapping } from '../data'
+import type { FrameAnalysis, FrameGrid } from '.'
 
-export type WorkerRequest = {
+type Shared = {
   id: number
   /** Absolute URL of the frame image. */
   url: string
   frame: Frame
-  region: Region
   colorScale: ColorScale
   mapping: SoundMapping
 }
 
-export type WorkerResponse = { id: number; result: FrameAnalysis } | { id: number; error: string }
+/** `frame`: the median of a region's points. `grid`: the whole map, read into cells. */
+export type WorkerRequest =
+  | (Shared & { kind: 'frame'; region: Region })
+  | (Shared & { kind: 'grid'; area?: MapArea })
+
+export type WorkerResponse = { id: number; result: FrameAnalysis | FrameGrid } | { id: number; error: string }

@@ -42,10 +42,10 @@ describe('About the data page', () => {
     const rows = within(table).getAllByRole('row').slice(1)
     expect(rows.map(row => [...row.querySelectorAll('th, td')].map(cell => cell.textContent))).toEqual([
       ['Cold', '0 to 6', 'C4'],
-      ['Cool', '6 to 12', 'D4'],
-      ['Mild', '12 to 18', 'E4'],
-      ['Warm', '18 to 24', 'G4'],
-      ['Hot', '24 to 30', 'A4'],
+      ['Cool', '6 to 12', 'E4'],
+      ['Mild', '12 to 18', 'G4'],
+      ['Warm', '18 to 24', 'C5'],
+      ['Hot', '24 to 30', 'E5'],
       ['Missing data', 'Not enough readable points', 'A hiss, not a note'],
     ])
   })

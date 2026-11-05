@@ -15,6 +15,8 @@ A web app that turns NASA Earth Information Center imagery into sound in real ti
 
 **Competitive focus:** one complete, accessible experience, plus evidence that real listeners understood it.
 
+**Extended vision:** the same experience grows into an "Earth Information Jukebox": a palette role for harmony, a texture role for rhythm, a voice co-pilot for personalized narration and a low-latency interactive engine, plus optional extras such as 3D audio, haptics, time-travel scrubbing and shared exploration. See 6.1. The extras come after the must-haves.
+
 ## 2. Key dates
 
 | Date | Event |
@@ -35,6 +37,8 @@ A web app that turns NASA Earth Information Center imagery into sound in real ti
 | Sound | Tone.js, with Tonal for scales |
 | Image analysis | Web Worker + `OffscreenCanvas` + `getImageData`, run live in the browser |
 | Voice guide | Already merged (`078e196`): Gemini Live bridge ported from FinAssist |
+| Agents | "Agents" are roles (6.1). Image reading, sound mapping and descriptions stay deterministic code. A language model may only reword or speak, in the voice guide |
+| Not adopted | Next.js, Tailwind and OpenCV.js from the extended brief: they would replace working pieces for no gain. Texture uses a Sobel filter in the existing worker |
 
 **Out of scope:** live satellite feeds, user accounts, machine-learning models, multiple languages.
 
@@ -220,6 +224,49 @@ Descriptions come from rules, never from a language model: the same data always 
 | F15 | Vibration on supporting phones | Could | Roni |
 | F16 | A second visualization | Could | Dhruv |
 | F17 | Background drone from the whole-frame average | Could | Team leader |
+| F18 | Texture and density: edge density per grid cell sets rhythm (see 6.1) | Should | Team leader |
+| F19 | Persona narration: concise or rich descriptions; optional ADK rewording | Should (ADK: Could) | Roni + Mohammad |
+| F20 | 3D spatial audio: HRTF panning, elevation as pitch | Could | Bhavish |
+| F21 | Anomaly haptics on touch devices (extends F15) | Could | Roni |
+| F22 | Organic sound textures (a third sound style) | Could | Team leader |
+| F23 | Time-travel scrubbing: lock one cell, scrub the dates | Should | Mohammad |
+| F24 | Acoustic fire alarm: a flare on a sudden jump | Could | Team leader |
+| F25 | Sound buoys: shared exploration over WebSockets | Could, last | Mohammad + Team leader |
+
+### 6.1 The Earth Information Jukebox ensemble
+
+The Jukebox is described as four cooperating roles. They are **roles, not separate AI services**. Three run in the browser as deterministic code and fall under the boundary in 5.8; only the Co-Pilot may use a language model, and it sits outside the boundary.
+
+| Role | Does | Lives in | Uses a model? |
+|---|---|---|---|
+| Palette (harmonic base) | Reads colors, finds the dominant category, maps it to a note, a scale and a chord. Severe anomalies get minor voicings | `src/analysis/`, `src/audio/voicing.ts` (5.2, 5.7) | No |
+| Texture (rhythm and timbre) | Counts edge density per grid cell with a Sobel filter in the existing worker. Low density: slow quarter notes, pad. High density: fast sixteenths, arpeggio, layered rhythm | new `src/analysis/texture.ts`, `src/audio/` | No |
+| Co-Pilot (voice and narration) | Speaks to the listener. Concise spatial cues or rich narrative, chosen by the listener | `src/describe/` (facts), `server/app/assistant/` (voice, optional ADK) | Only to reword |
+| Interactive engine | Plays the note under the cursor, with no network round trip, while the guide talks on its own channel | `src/audio/` (Tone.js) | No |
+
+**Facts come from rules.** `describeFrame`, `describeCell` and `describeSweep` (5.8) gain a `detail: "concise" | "rich"` option, remembered like the sound style. The Co-Pilot may rephrase their output for the listener but never adds a number or a claim of its own. With the server off, the rules' words are used as they are.
+
+**How each feature fits the plan:**
+
+- **F18 Texture.** Adds `texture?: number` (0 to 1) to `GridCell` and a `rhythmFor(cell)` rule next to `voicingFor`. Same input, same rhythm. Canny and OpenCV.js are not adopted; Sobel on the data we already read gives the same signal with no new package.
+- **F20 3D audio.** Extends F13: `pan.ts` gains HRTF placement (`PannerNode`) and elevation, where north is a higher pitch. Stereo panning stays the fallback for speakers.
+- **F21 Haptics.** `navigator.vibrate` where it exists, a stronger pulse when a cell jumps two or more categories. Always paired with a sound, never the only cue.
+- **F22 Organic textures.** Adds `"organic"` to `SoundStyle` (5.7). This is an interface change: it needs agreement from everyone who uses `SoundStyle` before it merges. Timbres: crackle for the warmest category, a water sweep for the coolest.
+- **F23 Time travel.** In the sound map, a key locks the current cell and the date slider then plays that one cell across all dates. The root pitch stays fixed and the voicing follows the data, so a rising value is heard as harmony moving from calm to tense. The dates are those in the catalog: synthetic until 13 Nov, then whatever span the real data has. A 1980 to 2026 span is a goal, not a promise.
+- **F24 Fire alarm.** A plain rule: a flare plays when a cell or region moves by `alarmSteps` or more categories between two dates. It reuses the bell of 5.7. No statistics beyond that and no model. A methane-style outlier needs a dataset we do not have; if NASA offers one on 13 Nov, the same rule applies to it.
+- **F25 Sound buoys.** A room per visualization on the server: a sighted user drops a buoy on a cell, the others hear a ping that gets louder and brighter as their cursor nears it. It needs the server, so the app must stay fully usable without it. Built last and cut first.
+- **F19 ADK.** The decision in `docs/tickets/ticket.md` stays: a spike first, a build only if the must-haves are merged, and the first thing cut.
+
+**Priority order for the extension** (matches the roadmap in `docs/tickets/ticket.md`):
+
+1. Sound-map explorer: keyboard, touch and pointer, with no lag (T65, T67)
+2. Harmony and rhythm rules: pleasing, not noisy (T68, F18)
+3. Computed descriptions with concise and rich levels (T69, F19)
+4. WAV export and a fallback playlist, also the live-demo backup (T72, T74)
+5. The NASA data story, with real frames from 13 Nov (T61)
+6. Then, in this order if time allows: F23, F24, F20, F21, F22, F25
+
+Tickets for F18 to F25 are cut when T65 to T69 are merged, so they build on the real interfaces rather than the stubs.
 
 ## 7. Workstreams
 
@@ -282,3 +329,8 @@ Correctness checks that must always pass:
 | Render disk is wiped, or the free server is asleep at demo time | Export CSV after each session, attach a disk if possible, wake the server a minute before the demo |
 | No blind or low-vision testers | Recruit now; fallback is sighted volunteers with no screen; report honestly |
 | Live demo fails | Recorded backup video |
+| The extension (F18 to F25) eats the time for the must-haves | It starts only after T65 to T69 are merged; items are cut in the reverse of the order in 6.1 |
+| A language model changes a fact in a description | Facts come from `src/describe/`; the Co-Pilot only rewords, and the boundary test keeps models out of that folder |
+| Rhythm or texture sounds like noise | Rules pick from a small fixed set of patterns in the current scale; listen-check before merging |
+| Vibration or HRTF is missing on a device | Both are extras on top of sound: stereo panning and the plain tone always work |
+| Buoys need the server, which sleeps on the free tier | F25 is optional and last; nothing else depends on it |

@@ -1,8 +1,8 @@
 // Pure frame analysis (docs/PLAN.md §5.2): read the region's pixels, turn each into a value on NASA's
 // color scale, take the median, and name its category. No DOM, so it runs in a worker or a test.
 
-import type { ColorScale, Frame, Region, RGB, SoundMapping } from '../data'
-import type { FrameAnalysis } from '.'
+import type { CategoryId, ColorScale, Frame, MapArea, Region, RGB, SoundMapping } from '../data'
+import type { FrameAnalysis, FrameGrid, GridCell } from '.'
 
 /** The shape of `ImageData`: RGBA bytes, row by row. */
 export type Pixels = { data: ArrayLike<number>; width: number; height: number }
@@ -48,20 +48,38 @@ function categoryFor(value: number, mapping: SoundMapping): string {
   return (value < categories[0].range[0] ? categories[0] : categories[categories.length - 1]).id
 }
 
-export function analyzePixels(pixels: Pixels, frame: Frame, region: Region, colorScale: ColorScale, mapping: SoundMapping): FrameAnalysis {
+/**
+ * The value at one pixel of the image, or null when it cannot be read: transparent, no-data (grey land, cloud) or a color
+ * too far from the scale. Both `analyzePixels` and the grid read pixels through this, so a cell and a region never disagree.
+ */
+export function valueAtPixel(pixels: Pixels, px: number, py: number, colorScale: ColorScale): number | null {
   const { data, width, height } = pixels
+  const x = Math.min(width - 1, Math.max(0, px))
+  const y = Math.min(height - 1, Math.max(0, py))
+  const i = (y * width + x) * 4
+  if (data[i + 3] === 0) return null
+  const rgb: RGB = [data[i], data[i + 1], data[i + 2]]
+  if (colorScale.noData.some(c => distance(rgb, c) <= NO_DATA_DISTANCE)) return null
+  const match = matchScale(rgb, colorScale.stops)
+  if (!match || match.distance > colorScale.maxColorDistance) return null
+  return match.value
+}
+
+/** Fraction of the values in each category, for every category (zero included). */
+function sharesOf(values: number[], mapping: SoundMapping): Record<CategoryId, number> {
+  const counts = Object.fromEntries(mapping.categories.map(c => [c.id, 0])) as Record<CategoryId, number>
+  for (const value of values) counts[categoryFor(value, mapping)]++
+  for (const id of Object.keys(counts)) counts[id] /= values.length
+  return counts
+}
+
+export function analyzePixels(pixels: Pixels, frame: Frame, region: Region, colorScale: ColorScale, mapping: SoundMapping): FrameAnalysis {
+  const { width, height } = pixels
   const values: number[] = []
 
   for (const point of region.points) {
-    const x = Math.min(width - 1, Math.max(0, Math.floor(point.x * width)))
-    const y = Math.min(height - 1, Math.max(0, Math.floor(point.y * height)))
-    const i = (y * width + x) * 4
-    if (data[i + 3] === 0) continue
-    const rgb: RGB = [data[i], data[i + 1], data[i + 2]]
-    if (colorScale.noData.some(c => distance(rgb, c) <= NO_DATA_DISTANCE)) continue
-    const match = matchScale(rgb, colorScale.stops)
-    if (!match || match.distance > colorScale.maxColorDistance) continue
-    values.push(match.value)
+    const value = valueAtPixel(pixels, Math.floor(point.x * width), Math.floor(point.y * height), colorScale)
+    if (value !== null) values.push(value)
   }
 
   const sampled = region.points.length
@@ -70,5 +88,48 @@ export function analyzePixels(pixels: Pixels, frame: Frame, region: Region, colo
   if (!valid || valid / sampled < mapping.minValidFraction) return { ...base, category: 'insufficient' }
 
   const medianValue = median(values)
-  return { ...base, medianValue, category: categoryFor(medianValue, mapping) }
+  return { ...base, medianValue, category: categoryFor(medianValue, mapping), shares: sharesOf(values, mapping) }
+}
+
+export const GRID_COLS = 24
+const MIN_ROWS = 6
+const MAX_ROWS = 16
+/** Where in a cell, as fractions of its width and height, the 3 × 3 lattice of samples sits. */
+const LATTICE = [1 / 6, 1 / 2, 5 / 6]
+
+const WHOLE_IMAGE: MapArea = { x0: 0, y0: 0, x1: 1, y1: 1 }
+
+/** The grid's rows, kept near-square cells: 24 columns across the area, between 6 and 16 rows. */
+export function gridRows(widthPx: number, heightPx: number, area: MapArea = WHOLE_IMAGE): number {
+  const rows = Math.round((GRID_COLS * (area.y1 - area.y0) * heightPx) / ((area.x1 - area.x0) * widthPx))
+  return Math.min(MAX_ROWS, Math.max(MIN_ROWS, rows))
+}
+
+/** The map as a grid of cells, row-major, row 0 at the top. A cell with too few readable samples has no value, never a low one. */
+export function gridFromPixels(pixels: Pixels, frame: Frame, colorScale: ColorScale, mapping: SoundMapping, area: MapArea = WHOLE_IMAGE): FrameGrid {
+  const { width, height } = pixels
+  const cols = GRID_COLS
+  const rows = gridRows(width, height, area)
+  const cells: GridCell[] = []
+
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const values: number[] = []
+      for (const fy of LATTICE) {
+        for (const fx of LATTICE) {
+          const x = area.x0 + ((col + fx) / cols) * (area.x1 - area.x0)
+          const y = area.y0 + ((row + fy) / rows) * (area.y1 - area.y0)
+          const value = valueAtPixel(pixels, Math.floor(x * width), Math.floor(y * height), colorScale)
+          if (value !== null) values.push(value)
+        }
+      }
+      if (!values.length || values.length / (LATTICE.length ** 2) < mapping.minValidFraction) {
+        cells.push({ value: null, category: 'insufficient' })
+      } else {
+        const value = median(values)
+        cells.push({ value, category: categoryFor(value, mapping) })
+      }
+    }
+  }
+  return { frameId: frame.id, cols, rows, area, cells }
 }

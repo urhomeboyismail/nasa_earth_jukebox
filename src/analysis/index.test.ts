@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../public/data/fixture/manifest.json'
 import type { Visualization } from '../data'
-import { analyzePixels, type Pixels } from './analyze'
+import { analyzePixels, gridFromPixels, type Pixels } from './analyze'
 import type { WorkerRequest, WorkerResponse } from './protocol'
 
 const visualization = fixture as Visualization
@@ -76,7 +76,9 @@ class FakeWorker {
     queueMicrotask(async () => {
       if (FakeWorker.failWith) return this.onmessage?.({ data: { id: request.id, error: FakeWorker.failWith } } as MessageEvent<WorkerResponse>)
       const pixels = await readPixels(request.url)
-      const result = analyzePixels(pixels, request.frame, request.region, request.colorScale, request.mapping)
+      const result = request.kind === 'grid'
+        ? gridFromPixels(pixels, request.frame, request.colorScale, request.mapping, request.area)
+        : analyzePixels(pixels, request.frame, request.region, request.colorScale, request.mapping)
       this.onmessage?.({ data: { id: request.id, result } } as MessageEvent<WorkerResponse>)
     })
   }

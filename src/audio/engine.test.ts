@@ -284,7 +284,7 @@ describe('sequences on the Transport', () => {
     engine.playSequence(steps, vi.fn())
     mocks.transport.advance(3)
     expect(played().map(c => c.node === 'Synth' ? c.args[0] : c.node)).toEqual([
-      'C4', 'C6', 'E4', 'C6', 'NoiseSynth', 'C6',
+      'C4', 'C6', 'G4', 'C6', 'NoiseSynth', 'C6',
     ])
   })
 
@@ -380,7 +380,7 @@ describe('sequences on the Transport', () => {
     const onStep = vi.fn()
     engine.playSequence([steps[1], steps[0]], onStep)
     mocks.transport.advance(1)
-    expect(playedNotes().filter(note => note !== 'C6')).toEqual(['C4', 'E4'])
+    expect(playedNotes().filter(note => note !== 'C6')).toEqual(['C4', 'G4'])
     engine.playSequence([], onStep)
     expect(engine.isPlaying()).toBe(false)
   })
@@ -389,14 +389,14 @@ describe('sequences on the Transport', () => {
     const engine = await unlocked()
     engine.playSequence(steps, vi.fn(), { tick: false })
     mocks.transport.advance(3)
-    expect(played().map(c => c.node === 'Synth' ? c.args[0] : c.node)).toEqual(['C4', 'E4', 'NoiseSynth'])
+    expect(played().map(c => c.node === 'Synth' ? c.args[0] : c.node)).toEqual(['C4', 'G4', 'NoiseSynth'])
   })
 
   it('ticks by default, and when tick is true', async () => {
     const engine = await unlocked()
     engine.playSequence(steps, vi.fn(), { tick: true })
     mocks.transport.advance(3)
-    expect(playedNotes()).toEqual(['C4', 'C6', 'E4', 'C6', 'C6'])
+    expect(playedNotes()).toEqual(['C4', 'C6', 'G4', 'C6', 'C6'])
   })
 
   // T68 gives these meaning. Until then the engine must accept them and sound exactly as before.
@@ -405,7 +405,7 @@ describe('sequences on the Transport', () => {
     const voiced: SequenceStep[] = steps.map(step => ({ ...step, pad: ['cold', 'mild'], glide: true, bell: true }))
     engine.playSequence(voiced, vi.fn())
     mocks.transport.advance(3)
-    expect(played().map(c => c.node === 'Synth' ? c.args[0] : c.node)).toEqual(['C4', 'C6', 'E4', 'C6', 'NoiseSynth', 'C6'])
+    expect(played().map(c => c.node === 'Synth' ? c.args[0] : c.node)).toEqual(['C4', 'C6', 'G4', 'C6', 'NoiseSynth', 'C6'])
   })
 
   it('accepts a chord on a single note, and sounds the same until T68', async () => {
