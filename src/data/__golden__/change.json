@@ -8,7 +8,7 @@
       0
     ],
     "validFraction": 1,
-    "contours": 0
+    "contours": []
   },
   "july-season-only": {
     "frameId": "july-season-only",
@@ -19,7 +19,7 @@
       0
     ],
     "validFraction": 1,
-    "contours": 0
+    "contours": []
   },
   "july-planted-patch": {
     "frameId": "july-planted-patch",
@@ -30,7 +30,66 @@
       0
     ],
     "validFraction": 1,
-    "contours": 0
+    "contours": [
+      {
+        "level": 1,
+        "closed": false,
+        "brokenEnds": 0,
+        "points": 64,
+        "length": 0.989,
+        "box": [
+          0.599,
+          0.006,
+          0.599,
+          0.994
+        ],
+        "first": [
+          0.599,
+          0.994
+        ],
+        "last": [
+          0.599,
+          0.006
+        ],
+        "totalTurn": 0,
+        "meanFront": 1.49
+      }
+    ]
+  },
+  "july-warm-blob": {
+    "frameId": "july-warm-blob",
+    "step": "normal",
+    "medianChange": 0,
+    "shareAbove": [
+      0.078,
+      0
+    ],
+    "validFraction": 1,
+    "contours": [
+      {
+        "level": 1,
+        "closed": true,
+        "brokenEnds": 0,
+        "points": 64,
+        "length": 1.071,
+        "box": [
+          0.39,
+          0.28,
+          0.61,
+          0.721
+        ],
+        "first": [
+          0.481,
+          0.28
+        ],
+        "last": [
+          0.492,
+          0.28
+        ],
+        "totalTurn": 6.283,
+        "meanFront": 1.256
+      }
+    ]
   },
   "july-cold-patch": {
     "frameId": "july-cold-patch",
@@ -41,7 +100,7 @@
       0
     ],
     "validFraction": 1,
-    "contours": 0
+    "contours": []
   },
   "july-against-winter": {
     "frameId": "july-against-winter",
@@ -52,7 +111,7 @@
       1
     ],
     "validFraction": 1,
-    "contours": 0
+    "contours": []
   },
   "land-in-the-east": {
     "frameId": "land-in-the-east",
@@ -63,7 +122,7 @@
       0
     ],
     "validFraction": 0.833,
-    "contours": 0
+    "contours": []
   },
   "mostly-land": {
     "frameId": "mostly-land",
@@ -74,7 +133,7 @@
       0
     ],
     "validFraction": 0.056,
-    "contours": 0
+    "contours": []
   },
   "anomaly-product": {
     "frameId": "anomaly-product",
@@ -85,6 +144,30 @@
       0.678
     ],
     "validFraction": 1,
-    "contours": 0
+    "contours": [
+      {
+        "level": 2,
+        "closed": false,
+        "brokenEnds": 0,
+        "points": 64,
+        "length": 0.994,
+        "box": [
+          0.003,
+          0.328,
+          0.997,
+          0.328
+        ],
+        "first": [
+          0.997,
+          0.328
+        ],
+        "last": [
+          0.003,
+          0.328
+        ],
+        "totalTurn": 0,
+        "meanFront": 0.039
+      }
+    ]
   }
 }

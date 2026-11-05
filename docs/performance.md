@@ -92,3 +92,8 @@ result. Measure on a real phone with `?data=stress-globe` once `synthetic-change
 Listen. **If it is over 200 ms on the phone, drop to 120 × 60 cells** (`CHANGE_COLS` in `src/analysis/score.ts`, one number; the
 golden file `src/data/__golden__/change.json` is rewritten with `npx vitest run -u src/data/change-regression.test.ts`) and write
 the new time here. Cutting the cells to two thirds of the width cuts the work to about 44%.
+
+**Contours (T113).** `traceContours` on a 180 × 90 field with 18 lines (a wavy test field, one level), cloud machine, Node, unthrottled:
+median **1.4 ms** over 30 runs (the slowest run was 12 ms, the first one, before the code was warmed up). The ticket's limit is 10 ms on a
+laptop; a real laptop and phone are _not measured_. `analyzeChange` now also smooths the field and traces each level, so its
+total is a little more than the 53 ms above; re-measure it on the real devices in T85.

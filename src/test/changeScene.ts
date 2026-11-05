@@ -26,16 +26,17 @@ export const SCENE_MAPPING: ChangeMapping = {
 export const SCENE_SIZE = { width: 360, height: 180 }
 
 /** `landFrom`: columns from this one east are grey land. `patch`: +degrees over the western `patchShare` of the map. */
-export function scene(options: { season: number; patch?: number; patchShare?: number; landFrom?: number }): Pixels {
+/** `blob`: +`delta` degrees inside a circle (pixels) that only the frame has. */
+export function scene(options: { season: number; patch?: number; patchShare?: number; landFrom?: number; blob?: { x: number; y: number; r: number; delta: number } }): Pixels {
   const { width, height } = SCENE_SIZE
-  const { season, patch = 0, patchShare = 0.6, landFrom = width } = options
+  const { season, patch = 0, patchShare = 0.6, landFrom = width, blob } = options
   const data = new Uint8ClampedArray(width * height * 4)
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const i = (y * width + x) * 4
       if (x >= landFrom) data.set([128, 128, 128, 255], i)
       else {
-        const value = 1 + (y / height) * 3 + season + (x < width * patchShare ? patch : 0)
+        const value = 1 + (y / height) * 3 + season + (x < width * patchShare ? patch : 0) + (blob && Math.hypot(x - blob.x, y - blob.y) <= blob.r ? blob.delta : 0)
         const t = Math.min(1, Math.max(0, value / 10))
         data.set([Math.round(255 * t), 0, Math.round(255 * (1 - t)), 255], i)
       }
