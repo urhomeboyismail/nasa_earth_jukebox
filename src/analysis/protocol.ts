@@ -2,6 +2,7 @@
 
 import type { ColorScale, Frame, MapArea, Region, SoundMapping } from '../data'
 import type { FrameAnalysis, FrameGrid } from '.'
+import type { ChangeMapping, Score } from './types'
 
 type Shared = {
   id: number
@@ -12,9 +13,13 @@ type Shared = {
   mapping: SoundMapping
 }
 
-/** `frame`: the median of a region's points. `grid`: the whole map, read into cells. */
-export type WorkerRequest =
-  | (Shared & { kind: 'frame'; region: Region })
-  | (Shared & { kind: 'grid'; area?: MapArea })
+/** Where a frame's normal is: an image to read (null for an anomaly product), the noise floor and the steps. */
+export type ChangeSpec = { baselineUrl: string | null; noiseFloor: number; mapping: ChangeMapping }
 
-export type WorkerResponse = { id: number; result: FrameAnalysis | FrameGrid } | { id: number; error: string }
+/** `frame`: the median of a region's points (and its change step when `change` is given). `grid`: the whole map, read into cells. `change`: the whole map's change from its baseline. */
+export type WorkerRequest =
+  | (Shared & { kind: 'frame'; region: Region; change?: ChangeSpec })
+  | (Shared & { kind: 'grid'; area?: MapArea })
+  | (Shared & { kind: 'change'; area: MapArea; change: ChangeSpec })
+
+export type WorkerResponse = { id: number; result: FrameAnalysis | FrameGrid | Score } | { id: number; error: string }

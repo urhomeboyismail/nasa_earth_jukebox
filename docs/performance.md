@@ -68,3 +68,27 @@ Open the Vercel site (or `npm run build && npm run preview`) with `?data=stress-
 |---|---|---|---|---|
 | Mid-range laptop (model, RAM): _not measured_ | | | | |
 | Phone (model, browser): _not measured_ | | | | |
+
+## Sound pipeline v2: `analyzeChange` (T112)
+
+One `analyzeChange` reads the frame and its baseline into two 180 × 90 fields (`readField`: nine pixels per cell, 16 200 cells, each
+through `valueAtPixel`), subtracts them and summarises the result (`scorePixels` in `src/analysis/score.ts`). Contours are not in
+this number yet; T113 adds them.
+
+**Measured by Claude** on the cloud machine (4 cores, Node, no browser, no CPU throttling): `scorePixels` on two synthetic
+1920 × 1080 frames already decoded to RGBA, median of 12 runs: **53 ms** (min 51, max 77). That is the maths only. It leaves out
+fetching and decoding the two PNGs, which in a browser costs more than the maths and is shared with `analyzeFrame` and
+`analyzeGrid` (the worker keeps the last two decoded images, so a frame and its baseline are each decoded once).
+
+| Where | One `analyzeChange` (maths only) | Over 200 ms? |
+|---|---|---|
+| Cloud machine, Node, unthrottled | 53 ms | no |
+| Mid-range laptop (model): _not measured_ | | |
+| Phone (model, browser): _not measured_ | | |
+
+**Read this before trusting it.** The cloud machine is not a phone. Scaling 53 ms by the ×6 slowdown used above for "a phone"
+gives about 320 ms, which would be over the ticket's 200 ms limit; that is a guess from a different kind of measurement, not a
+result. Measure on a real phone with `?data=stress-globe` once `synthetic-change`-style data with a baseline can be opened in
+Listen. **If it is over 200 ms on the phone, drop to 120 × 60 cells** (`CHANGE_COLS` in `src/analysis/score.ts`, one number; the
+golden file `src/data/__golden__/change.json` is rewritten with `npx vitest run -u src/data/change-regression.test.ts`) and write
+the new time here. Cutting the cells to two thirds of the width cuts the work to about 44%.

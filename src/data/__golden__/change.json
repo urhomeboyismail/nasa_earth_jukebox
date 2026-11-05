@@ -1,0 +1,90 @@
+{
+  "january-normal": {
+    "frameId": "january-normal",
+    "step": "normal",
+    "medianChange": 0,
+    "shareAbove": [
+      0,
+      0
+    ],
+    "validFraction": 1,
+    "contours": 0
+  },
+  "july-season-only": {
+    "frameId": "july-season-only",
+    "step": "normal",
+    "medianChange": 0,
+    "shareAbove": [
+      0,
+      0
+    ],
+    "validFraction": 1,
+    "contours": 0
+  },
+  "july-planted-patch": {
+    "frameId": "july-planted-patch",
+    "step": "much-above",
+    "medianChange": 1.49,
+    "shareAbove": [
+      0.6,
+      0
+    ],
+    "validFraction": 1,
+    "contours": 0
+  },
+  "july-cold-patch": {
+    "frameId": "july-cold-patch",
+    "step": "much-below",
+    "medianChange": -1.49,
+    "shareAbove": [
+      0,
+      0
+    ],
+    "validFraction": 1,
+    "contours": 0
+  },
+  "july-against-winter": {
+    "frameId": "july-against-winter",
+    "step": "much-above",
+    "medianChange": 4,
+    "shareAbove": [
+      1,
+      1
+    ],
+    "validFraction": 1,
+    "contours": 0
+  },
+  "land-in-the-east": {
+    "frameId": "land-in-the-east",
+    "step": "much-above",
+    "medianChange": 1.49,
+    "shareAbove": [
+      1,
+      0
+    ],
+    "validFraction": 0.833,
+    "contours": 0
+  },
+  "mostly-land": {
+    "frameId": "mostly-land",
+    "step": "insufficient",
+    "medianChange": null,
+    "shareAbove": [
+      1,
+      0
+    ],
+    "validFraction": 0.056,
+    "contours": 0
+  },
+  "anomaly-product": {
+    "frameId": "anomaly-product",
+    "step": "much-above",
+    "medianChange": 2.49,
+    "shareAbove": [
+      1,
+      0.678
+    ],
+    "validFraction": 1,
+    "contours": 0
+  }
+}

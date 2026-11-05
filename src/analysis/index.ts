@@ -5,7 +5,11 @@
 import type { CategoryId, ColorScale, Frame, MapArea, Region, SoundMapping } from '../data'
 import { analyzePixels, GRID_COLS, gridFromPixels, gridRows } from './analyze'
 import { readPixels } from './pixels'
-import type { WorkerRequest, WorkerResponse } from './protocol'
+import type { ChangeSpec, WorkerRequest, WorkerResponse } from './protocol'
+import { scorePixels } from './score'
+import type { BaselineSource, ChangeFrame, ChangeMapping, ChangeStepId, ChangeVisualization, Score } from './types'
+
+export type { Contour, Score, ValueField } from './types'
 
 export type FrameAnalysis = {
   frameId: string
@@ -14,6 +18,9 @@ export type FrameAnalysis = {
   valid: number
   medianValue?: number
   category: CategoryId | 'insufficient'
+  /** v2, only for a data set with a baseline: the step of the median change from normal in this region. `category` is untouched. */
+  changeStep?: ChangeStepId | 'insufficient'
+  medianChange?: number
   /** The fraction of the valid points that fall in each category; sums to 1 when `valid` > 0. Left out when `valid` is 0. */
   shares?: Record<CategoryId, number>
 }
@@ -24,7 +31,7 @@ export type GridCell = { value: number | null; category: CategoryId | 'insuffici
 /** The whole map read into a grid, for exploring it by ear (PLAN.md §5.6). Row-major; row 0 is the top (north). */
 export type FrameGrid = { frameId: string; cols: number; rows: number; area: MapArea; cells: GridCell[] }
 
-type Pending = { resolve: (result: FrameAnalysis | FrameGrid) => void; reject: (error: Error) => void }
+type Pending = { resolve: (result: FrameAnalysis | FrameGrid | Score) => void; reject: (error: Error) => void }
 
 let worker: Worker | null = null
 let nextId = 0
@@ -58,7 +65,7 @@ const canUseWorker = () => typeof Worker !== 'undefined' && typeof OffscreenCanv
 /** What a request asks for, without the id the page adds when it sends it. */
 type Job = WorkerRequest extends infer R ? (R extends WorkerRequest ? Omit<R, 'id'> : never) : never
 
-function runInWorker<T extends FrameAnalysis | FrameGrid>(request: Job): Promise<T> {
+function runInWorker<T extends FrameAnalysis | FrameGrid | Score>(request: Job): Promise<T> {
   return new Promise((resolve, reject) => {
     const id = nextId++
     pending.set(id, { resolve: result => resolve(result as T), reject })
@@ -71,23 +78,58 @@ function runInWorker<T extends FrameAnalysis | FrameGrid>(request: Job): Promise
   })
 }
 
-async function runOnMainThread<T extends FrameAnalysis | FrameGrid>(request: Job): Promise<T> {
+async function runOnMainThread<T extends FrameAnalysis | FrameGrid | Score>(request: Job): Promise<T> {
   const pixels = await readPixels(request.url)
   const { frame, colorScale, mapping } = request
-  return (request.kind === 'grid'
-    ? gridFromPixels(pixels, frame, colorScale, mapping, request.area)
-    : analyzePixels(pixels, frame, request.region, colorScale, mapping)) as T
+  if (request.kind === 'grid') return gridFromPixels(pixels, frame, colorScale, mapping, request.area) as T
+  const baseline = request.change?.baselineUrl ? await readPixels(request.change.baselineUrl) : null
+  if (request.kind === 'change') {
+    const input = { frameId: frame.id, colorScale, mapping: request.change.mapping, area: request.area, noiseFloor: request.change.noiseFloor }
+    return scorePixels(pixels, baseline, input) as T
+  }
+  const change = request.change && { baseline, noiseFloor: request.change.noiseFloor, changeSteps: request.change.mapping.changeSteps }
+  return analyzePixels(pixels, frame, request.region, colorScale, mapping, change) as T
+}
+
+const absolute = (url: string) => new URL(url, document.baseURI).href
+
+/**
+ * Where a frame's normal is, or null when the data set has no baseline (v2 is then off and the data set plays as today).
+ * Anomaly product: nothing to read, the frame already is the change. Climatology: the frame's own `baselineImage`.
+ * Reference date: another frame of the same data set.
+ */
+export function baselineSource(frame: ChangeFrame, visualization: Pick<ChangeVisualization, 'baseline' | 'frames'>): BaselineSource | null {
+  const baseline = visualization.baseline
+  if (!baseline) return null
+  if (baseline.kind === 'anomaly-product') return { image: null, noiseFloor: 0 }
+  if (baseline.kind === 'climatology') {
+    if (!frame.baselineImage) throw new Error(`Frame ${frame.id} has no baselineImage.`)
+    return { image: frame.baselineImage, noiseFloor: baseline.noiseFloor }
+  }
+  const reference = visualization.frames.find(f => f.id === baseline.frameId)
+  if (!reference) throw new Error(`The reference frame ${baseline.frameId} does not exist.`)
+  return { image: reference.image, noiseFloor: baseline.noiseFloor }
+}
+
+function changeSpecFor(frame: ChangeFrame, visualization: ChangeVisualization): ChangeSpec | null {
+  const source = baselineSource(frame, visualization)
+  const { changeSteps, contourLevels } = visualization.mapping
+  if (!source || !changeSteps || !contourLevels) return null
+  const mapping: ChangeMapping = { minValidFraction: visualization.mapping.minValidFraction, changeSteps, contourLevels }
+  return { baselineUrl: source.image && absolute(source.image), noiseFloor: source.noiseFloor, mapping }
 }
 
 const cache = new Map<string, Promise<FrameAnalysis>>()
 
-export function analyzeFrame(frame: Frame, region: Region, colorScale: ColorScale, mapping: SoundMapping): Promise<FrameAnalysis> {
+/** `visualization` is optional: with a baseline it adds `changeStep` and `medianChange`; without one the result is exactly as before. */
+export function analyzeFrame(frame: Frame, region: Region, colorScale: ColorScale, mapping: SoundMapping, visualization?: ChangeVisualization): Promise<FrameAnalysis> {
+  const change = visualization ? changeSpecFor(frame, visualization) : null
   // The image is part of the key so two visualizations that reuse a frame id never share a result.
-  const key = `${frame.id}|${region.id}|${frame.image}`
+  const key = `${frame.id}|${region.id}|${frame.image}|${change?.baselineUrl ?? ''}|${change?.noiseFloor ?? ''}`
   const cached = cache.get(key)
   if (cached) return cached
 
-  const request: Job = { kind: 'frame', url: new URL(frame.image, document.baseURI).href, frame, region, colorScale, mapping }
+  const request: Job = { kind: 'frame', url: absolute(frame.image), frame, region, colorScale, mapping, ...(change && { change }) }
   const result = canUseWorker() ? runInWorker<FrameAnalysis>(request) : runOnMainThread<FrameAnalysis>(request)
   cache.set(key, result)
   // A failure is not cached, so a retry can succeed.
@@ -95,8 +137,8 @@ export function analyzeFrame(frame: Frame, region: Region, colorScale: ColorScal
   return result
 }
 
-export function analyzeAll(frames: Frame[], region: Region, colorScale: ColorScale, mapping: SoundMapping): Promise<FrameAnalysis[]> {
-  return Promise.all(frames.map(frame => analyzeFrame(frame, region, colorScale, mapping)))
+export function analyzeAll(frames: Frame[], region: Region, colorScale: ColorScale, mapping: SoundMapping, visualization?: ChangeVisualization): Promise<FrameAnalysis[]> {
+  return Promise.all(frames.map(frame => analyzeFrame(frame, region, colorScale, mapping, visualization)))
 }
 
 const gridCache = new Map<string, Promise<FrameGrid>>()
@@ -111,9 +153,30 @@ export function analyzeGrid(frame: Frame, colorScale: ColorScale, mapping: Sound
   const cached = gridCache.get(key)
   if (cached) return cached
 
-  const request: Job = { kind: 'grid', url: new URL(frame.image, document.baseURI).href, frame, colorScale, mapping, area: read }
+  const request: Job = { kind: 'grid', url: absolute(frame.image), frame, colorScale, mapping, area: read }
   const result = canUseWorker() ? runInWorker<FrameGrid>(request) : runOnMainThread<FrameGrid>(request)
   gridCache.set(key, result)
   result.catch(() => gridCache.delete(key))
+  return result
+}
+
+const scoreCache = new Map<string, Promise<Score>>()
+
+/**
+ * How far the whole map is from its baseline (PLAN.md §5.9): the change step, and `contours` (empty until T113 traces them).
+ * Same input, same `Score`. Rejects for a data set with no baseline.
+ */
+export function analyzeChange(frame: ChangeFrame, visualization: ChangeVisualization): Promise<Score> {
+  const change = changeSpecFor(frame, visualization)
+  if (!change) return Promise.reject(new Error('This data set has no baseline, so there is no change to score.'))
+  const area = visualization.mapArea ?? { x0: 0, y0: 0, x1: 1, y1: 1 }
+  const key = `${frame.id}|${frame.image}|${change.baselineUrl ?? ''}|${change.noiseFloor}|${area.x0},${area.y0},${area.x1},${area.y1}`
+  const cached = scoreCache.get(key)
+  if (cached) return cached
+
+  const request: Job = { kind: 'change', url: absolute(frame.image), frame, colorScale: visualization.colorScale, mapping: visualization.mapping, area, change }
+  const result = canUseWorker() ? runInWorker<Score>(request) : runOnMainThread<Score>(request)
+  scoreCache.set(key, result)
+  result.catch(() => scoreCache.delete(key))
   return result
 }

@@ -2,10 +2,11 @@
 // Pure: no DOM, no randomness, no imports beyond the pixel reader every other analysis uses.
 
 import type { ColorScale, MapArea } from '../data'
-import { median, valueAtPixel, type Pixels } from './analyze'
+import { valueAtPixel, type Pixels } from './analyze'
+import { median } from './median'
+import type { ValueField } from './types'
 
-/** Row-major, row 0 north. NaN = cannot be read (missing data, land, cloud, a color off the legend). */
-export type ValueField = { cols: number; rows: number; area: MapArea; values: Float32Array }
+export type { ValueField }
 
 /** Where in a cell, as fractions of its width and height, the 3 × 3 lattice of samples sits (the same lattice as the sound grid). */
 const LATTICE = [1 / 6, 1 / 2, 5 / 6]

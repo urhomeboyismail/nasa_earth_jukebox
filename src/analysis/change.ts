@@ -1,18 +1,10 @@
 // Sound pipeline v2 (docs/PLAN.md §5.9): how far a frame is from its baseline, and which step that is.
 // Pure: same input, same output; NaN means "cannot be read" and never turns into a number by accident.
 
-import { median } from './analyze'
-import type { ValueField } from './field'
+import { median } from './median'
+import type { ChangeMapping, ChangeSummary, ValueField } from './types'
 
-/** The part of `SoundMapping` this file needs. Structural until T111 adds `changeSteps` and `contourLevels` to `src/data/types.ts`. */
-export type ChangeMapping = {
-  minValidFraction: number
-  /** Most below normal first; each starts where the one before ends. */
-  changeSteps: { id: string; range: [number, number] }[]
-  contourLevels: { value: number }[]
-}
-
-export type ChangeSummary = { step: string | 'insufficient'; medianChange?: number; shareAbove: number[]; validFraction: number }
+export type { ChangeMapping, ChangeSummary }
 
 /**
  * frame − baseline. NaN if either cell is NaN; a change smaller than `noiseFloor` is legend rounding, so it is 0.
@@ -49,7 +41,7 @@ export function smoothField(field: ValueField): ValueField {
 }
 
 /** The step whose range holds `value`. A value on a shared edge goes to the step above (the rule `categoryFor` uses); outside every range, to the nearest end. */
-function stepFor(value: number, steps: ChangeMapping['changeSteps']): string {
+export function stepFor(value: number, steps: ChangeMapping['changeSteps']): string {
   const found = steps.find(s => value >= s.range[0] && value < s.range[1])
   if (found) return found.id
   return (value < steps[0].range[0] ? steps[0] : steps[steps.length - 1]).id

@@ -1,6 +1,7 @@
 // Runs frame analysis off the main thread, so analyzing a whole visualization never freezes the page.
 
 import { analyzePixels, gridFromPixels } from './analyze'
+import { scorePixels } from './score'
 import { readPixels, rememberLast } from './pixels'
 import type { WorkerRequest, WorkerResponse } from './protocol'
 
@@ -14,7 +15,13 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
     const pixels = await read(request.url)
     const result = request.kind === 'grid'
       ? gridFromPixels(pixels, request.frame, request.colorScale, request.mapping, request.area)
-      : analyzePixels(pixels, request.frame, request.region, request.colorScale, request.mapping)
+      : request.kind === 'change'
+        ? scorePixels(pixels, request.change.baselineUrl ? await read(request.change.baselineUrl) : null, {
+          frameId: request.frame.id, colorScale: request.colorScale, mapping: request.change.mapping, area: request.area, noiseFloor: request.change.noiseFloor,
+        })
+        : analyzePixels(pixels, request.frame, request.region, request.colorScale, request.mapping, request.change && {
+          baseline: request.change.baselineUrl ? await read(request.change.baselineUrl) : null, noiseFloor: request.change.noiseFloor, changeSteps: request.change.mapping.changeSteps,
+        })
     response = { id: request.id, result }
   } catch (error) {
     response = { id: request.id, error: error instanceof Error ? error.message : String(error) }

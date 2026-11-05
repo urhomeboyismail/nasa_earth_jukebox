@@ -3,6 +3,7 @@ import fixture from '../../public/data/fixture/manifest.json'
 import type { Visualization } from '../data'
 import { analyzePixels, gridFromPixels, type Pixels } from './analyze'
 import type { WorkerRequest, WorkerResponse } from './protocol'
+import { scorePixels } from './score'
 
 const visualization = fixture as Visualization
 const region = visualization.regions[0]
@@ -78,7 +79,9 @@ class FakeWorker {
       const pixels = await readPixels(request.url)
       const result = request.kind === 'grid'
         ? gridFromPixels(pixels, request.frame, request.colorScale, request.mapping, request.area)
-        : analyzePixels(pixels, request.frame, request.region, request.colorScale, request.mapping)
+        : request.kind === 'frame'
+          ? analyzePixels(pixels, request.frame, request.region, request.colorScale, request.mapping)
+          : scorePixels(pixels, null, { frameId: request.frame.id, colorScale: request.colorScale, mapping: request.change.mapping, area: request.area, noiseFloor: request.change.noiseFloor })
       this.onmessage?.({ data: { id: request.id, result } } as MessageEvent<WorkerResponse>)
     })
   }

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { changeField, smoothField, summarizeChange, type ChangeMapping } from '../analysis/change'
-import { readField, type ValueField } from '../analysis/field'
-import type { ColorScale } from '../data'
+import { changeField, smoothField, summarizeChange, type ChangeMapping } from './change'
+import type { ValueField } from './types'
 
 const area = { x0: 0, y0: 0, x1: 1, y1: 1 }
 const field = (cols: number, rows: number, v: number[]): ValueField => ({ cols, rows, area, values: Float32Array.from(v) })
@@ -78,28 +77,5 @@ describe('summarizeChange', () => {
   })
   it('answers at exactly minValidFraction', () => {
     expect(summarizeChange(field(2, 1, [0, NaN]), mapping).step).toBe('normal')
-  })
-})
-
-describe('readField', () => {
-  const scale: ColorScale = {
-    stops: [{ value: 0, rgb: [0, 0, 255] }, { value: 10, rgb: [255, 0, 0] }],
-    noData: [[128, 128, 128]],
-    maxColorDistance: 30,
-  } as ColorScale
-  const image = (w: number, h: number, paint: (x: number, y: number) => number[]) => {
-    const data = new Uint8ClampedArray(w * h * 4)
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) data.set([...paint(x, y), 255], (y * w + x) * 4)
-    return { data, width: w, height: h }
-  }
-  it('reads each cell as the median of its lattice, NaN for no-data and off-scale colors', () => {
-    const f = readField(image(6, 3, x => (x < 2 ? [0, 0, 255] : x < 4 ? [128, 128, 128] : [0, 255, 0])), scale, area, 3, 1)
-    expect(f.values[0]).toBeCloseTo(0, 0)
-    expect(f.values[1]).toBeNaN()
-    expect(f.values[2]).toBeNaN()
-  })
-  it('gives the same field twice', () => {
-    const px = image(6, 3, x => [x * 40, 0, 255 - x * 40])
-    expect(Array.from(readField(px, scale, area, 3, 1).values)).toEqual(Array.from(readField(px, scale, area, 3, 1).values))
   })
 })
