@@ -2,6 +2,8 @@
 
 Written 5 Nov 2026 from [`docs/PLAN.md`](PLAN.md). It replaces the old `docs/tickets/` folder, so it is the only ticket list. It lists only work that is **not built yet**, checked against the code on `main` (`4b3ea13`). Where this file and the plan disagree, fix the plan first.
 
+**Sound pipeline v2 (added 5 Nov, T111 to T115).** The sound moves from the absolute value to the change from a baseline, in three layers (PLAN.md §6.2). It is built **alongside** the current sound as a new `"change"` style, so the working demo is never at risk. T111 to T113 are pure code that changes nothing a listener hears, so they may start before the cut line, but only after their owners' Must tickets (including those in `docs/PRE-HACKATHON-TICKETS.md`). T114 and T115 come after the cut line. T105 to T107 in `docs/PRE-HACKATHON-TICKETS.md` are superseded by T114.
+
 Hand a ticket to your own AI like this:
 
 > Read `AGENTS.md`, `docs/PLAN.md` and ticket `<ID>` in `docs/TICKETS.md`. Do only that ticket (or only its part A or part B), on branch `feature/<ID>-short-name`, and open a PR into `main`.
@@ -32,16 +34,21 @@ F1 to F13, F15 and F12's ducking are on `main`, as are the dataset picker, legen
 | T85 | Real NASA data | Dhruv + Team leader | 10 Nov (speed), 14 Nov (data) | Must | F16, real `mapArea`, story text, comparisons, speed |
 | T86 | Voice guide on ADK, rewording only | Mohammad (Roni reviews) | after 12 Nov | Could, cut first | F19 ADK |
 | T87 | Evidence, write-up and submission | Roni, Team leader, Bhavish, Dhruv | 12 to 15 Nov | Must | F11 evidence, playlist, creative process, README, demo |
+| T111 | v2: baseline in the manifest, and a synthetic data set with a known change | Dhruv (team leader reviews `types.ts`) | 9 Nov | Should (v2 core) | F26, PLAN.md §5.1 |
+| T112 | v2: change field and change steps | Team leader | 11 Nov | Should (v2 core) | F27, PLAN.md §5.2, §5.9 |
+| T113 | v2: contour tracing (marching squares) | Bhavish suggested (team leader reviews) | 12 Nov | Should | F18 analysis, PLAN.md §5.9 |
+| T114 | v2: the `"change"` sound style (bed, contour voice, hiss) | Team leader (engine), Bhavish (spatial path, listening check) | 13 Nov | Should | F28 sound, F18 sound, PLAN.md §6.2 |
+| T115 | v2: wiring, Compare, descriptions and Learn | Mohammad (Listen, explorer, Compare), Roni (describe, Learn, About) | 14 Nov | Should | F28 wiring, F18 trace button |
 
 ### Integration lines
 
 | Line | File | Done by whichever merges second of |
 |---|---|---|
-| The explorer passes `rhythm: rhythmFor(cell)` when it plays a cell | `src/features/explore/Explorer.tsx` | T80 B (F18) and T81 A |
+| `analyzeChange` adds `contours: pickContours(...)` to the `Score` | `src/analysis/worker.ts` | T112 and T113 |
 | The explorer passes `elevation` from the cell's row | `src/features/explore/Explorer.tsx` | T84 and T81 A |
 | The explorer pulses on a jump of two or more categories between cells | `src/features/explore/Explorer.tsx` | T82 B (F21) and T81 A |
 | The explorer's announcements use the listener's detail level | `src/features/explore/Explorer.tsx` | T82 A and T81 A |
-| The "Simple sound" toggle becomes a three-way choice with "Organic" | `src/features/player/index.tsx` | T80 B (F22) and T81 A |
+| The sound control gains "Reef" after "Change from normal" | `src/features/player/index.tsx` | T80 B (F22) and T115 |
 
 ## Order and cut line
 
@@ -50,7 +57,7 @@ F1 to F13, F15 and F12's ducking are on `main`, as are the dataset picker, legen
 - **From 13 Nov:** T85's real data, then T87's playlist, final check and demo.
 - **Features freeze 6 hours before the deadline** (PLAN.md §8).
 
-**If time runs out, cut in this order** (first cut at the top): T86; T81 B F25; T80 B F22; T84; T82 B; T80 B F24; T80 B F18; T81 B F23; T83; T81 A pointer and touch drag (keep keyboard, sliders and sweeps); T81 A's Download button (keep `renderToWav`, so the playlist can still be made).
+**If time runs out, cut in this order** (first cut at the top): T86; T81 B F25; T80 B F22 (reef); the contour voice (T113, T114 step 3, T115's trace button and Learn card); T84; T82 B; T80 B F24; T81 B F23; the rest of v2 (T111, T112, T114, T115: v1 ships unchanged); T83; T81 A pointer and touch drag (keep keyboard, sliders and sweeps); T81 A's Download button (keep `renderToWav`, so the playlist can still be made).
 
 **Never cut:** T80 A, T81 A keyboard and sliders, T85, T87.
 
@@ -87,8 +94,8 @@ F1 to F13, F15 and F12's ducking are on `main`, as are the dataset picker, legen
 
 **Part B: after the cut line, Should (F24, F18) and Could (F22).** One PR each, in this order.
 1. **F24 alarm.** A stronger version of the bell, not a new system: when the category moves `ALARM_STEPS` (3) or more steps, `voicingFor` also sets `alarm: true` and the engine plays a brighter, longer flare instead of the bell. Add `alarm?: boolean` to `SequenceStep` (interface change). It flows into Listen through `voicingFor` with no caller change. Test: a three-step jump gives `alarm`, a two-step jump gives only `bell`.
-2. **F18 texture and rhythm.** In the worker, count edge density per grid cell with a Sobel filter on the values already read, and add `texture?: number` (0 to 1) to `GridCell`. Add a pure `rhythmFor(cell)` next to `voicingFor` that picks one of three fixed patterns in the current scale: slow quarter notes, eighths, or sixteenths with an arpeggio. Add `rhythm?` to `playCategory`'s options. Integration line: the explorer passes it (see the table). Listen-check before merging: if it sounds like noise, merge it behind the Full style only, or drop it (PLAN.md §11).
-3. **F22 organic style.** Add `'organic'` to `SoundStyle`. This is an interface change: agree it with Mohammad and Roni first. Timbres: crackle for the warmest category, a water sweep for the coolest; everything else as Full. `readSoundStyle` accepts the new value. Integration line: the style control in Listen (see the table).
+2. **F18 is now the contour voice** (sound pipeline v2, PLAN.md §6.2): see T113 and T114. The Sobel texture and `rhythmFor` are dropped.
+3. **F22 reef style (Could, after T114 passes its listening check).** Add `'reef'` to `SoundStyle` (interface change, agreed with Mohammad and Roni). It replaces only the change bed's sound source (PLAN.md §6.1 F22): a granular reef recording (`Tone.GrainPlayer`) that thins and breaks up as the change step rises, with the same steps, pitch anchor and loudness match as the bed, and a seeded generator for any randomness so WAV renders repeat. Recordings: public domain or CC BY only, credited in the manifest and on About. Integration line: the sound control (see the table). Same listening check as T114 step 7; off by default.
 
 ---
 
@@ -272,9 +279,129 @@ F1 to F13, F15 and F12's ducking are on `main`, as are the dataset picker, legen
 
 ---
 
+## T111: v2: baseline in the manifest, and a synthetic data set with a known change (Dhruv)
+
+**Should (v2 core), M, by 9 Nov, after T91's Must steps.** Team leader reviews `src/data/types.ts`. Covers F26 and PLAN.md §5.1.
+
+**Files:** `src/data/types.ts`, `src/data/schema.ts`, `src/data/schema.test.ts`, `src/data/check.ts` and its test, `scripts/make_synthetic.py` (or a new `scripts/make_synthetic_change.py`), `scripts/convert_frames.py` and its test, `public/data/synthetic-change/` (new), `public/data/index.json`, `docs/data-sources.md`.
+
+**Do:**
+1. **Types and schema** exactly as PLAN.md §5.1: `baseline`, `frames[].baselineImage`, `mapping.changeSteps`, `mapping.contourLevels`. All optional, and the three mapping and baseline fields come together or not at all. `changeSteps` follow the same no-gap, no-overlap rule as `categories`; contour notes between C3 and C6. Every existing manifest must still validate unchanged.
+2. **`check-data` rules,** each with a readable message:
+   - `climatology`: every frame has a `baselineImage`; it exists, has the frame's width and height, and at least `minValidFraction` of its `mapArea` reads through the same legend.
+   - `reference-date`: `frameId` names a real frame; no frame has a `baselineImage`.
+   - `anomaly-product`: no `baselineImage`; the legend's range spans both signs (it is a change, not a temperature).
+   - `noiseFloor` is at least twice the legend's rounding: the largest change in value per unit of RGB distance along any legend segment.
+   - Never resample a mismatched image: reject it.
+3. **A new synthetic data set, `synthetic-change`** (made-up, CC0). Do **not** change synthetic-ocean or synthetic-globe: T88's golden files must stay byte-for-byte the same.
+   - Twelve monthly frames = a seasonal cycle **plus** a planted warm patch (+1.5 °C) that grows in the east over months 8 to 10.
+   - `baseline: { kind: "climatology" }`, where each month's `baselineImage` is the seasonal cycle alone.
+   - Five `changeSteps` (≤ −1, −1 to −0.25, ±0.25, +0.25 to +1, ≥ +1 °C) and `contourLevels` +1 °C (C5) and +2 °C (G5).
+   - **At least two comparisons where the absolute answer and the change answer differ** (for example a normal August against a March that is 1.5 °C above normal). These are the test that v2 plays the change and not the season.
+4. **Converter:** `--baseline-dir <dir>` pairs each frame with the file of the same name, writes `baselineImage`, and refuses a pair whose sizes differ. `--baseline-kind` and `--baseline-label` fill `baseline`; without them the converter writes no baseline.
+5. `docs/data-sources.md`: a short section "Baselines", with the three kinds, the order to prefer them, and that a reference date is "change since <date>", never "anomaly".
+
+**Done when:** schema tests cover each rule above, and the old manifests still pass; `npm run check-data` passes on all data sets and rejects a deliberately mismatched baseline image with a readable message; `synthetic-change` is in `index.json` and plays in Listen with today's sound (v1 ignores the new fields); the T88 golden files are unchanged.
+
+---
+
+## T112: v2: change field and change steps (Team leader)
+
+**Should (v2 core), M, by 11 Nov, after T90 and T96 steps 1 and 2.** Covers F27 and PLAN.md §5.2 and §5.9. Pure code: nothing a listener hears changes.
+
+**Files:** `src/analysis/field.ts` (new) and its test, `src/analysis/change.ts` (new) and its test, `src/analysis/analyze.ts` (region `changeStep`), `src/analysis/protocol.ts` and `worker.ts` (message kind `'change'`), `src/analysis/index.ts` (`analyzeChange`), `src/data/sound-regression.test.ts` (one added test), `src/data/__golden__/change.json` (new), `docs/performance.md`.
+
+**Do:**
+1. **Types first, in their own commit,** so T113 can build on them: `ValueField`, `Contour`, `Score` as in PLAN.md §5.9.
+2. **`readField`**: each cell the median of a 3 × 3 lattice through `valueAtPixel`, so a field cell, a grid cell and a region never disagree about a pixel. About 180 × 90 over `mapArea`.
+3. **`changeField`, `smoothField`, `summarizeChange`** exactly as §5.9. A point counts only if it is readable in **both** the frame and the baseline. `anomaly-product` passes the frame field through unchanged.
+4. **Regions:** `analyzeFrame` adds `changeStep` and `medianChange` when the data set has a baseline: the median of (frame − baseline) over the region's lattice points that are readable in both, with the noise floor applied, then `changeSteps` ranges. `category` is untouched.
+5. **Worker:** `analyzeChange(frame, visualization)` fetches the frame and its baseline (the `baselineImage`, the reference frame, or none) and returns a `Score` with `contours: []` until T113 merges (integration line).
+
+**Done when:**
+- Tests: NaN in either input gives NaN; |change| below the noise floor is 0; smoothing never turns a NaN cell into a value unless it has readable neighbours; a field with too few readable cells gives `"insufficient"`; each step boundary goes to the step above (the same rule as `categoryFor`); same input, same `Score`.
+- **The season test:** on `synthetic-change`, the change steps follow the planted patch and **not** the seasonal cycle, and the comparisons from T111 step 3 come out with the change answer.
+- `change.json` records each data set's `Score`; the T88 golden files are unchanged.
+- `docs/performance.md` gives the time of one `analyzeChange` on the 1920 × 1080 stress frames (frame and baseline) on a mid-range laptop and a phone. Over 200 ms on the phone: drop to 120 × 60 cells and write that down.
+
+---
+
+## T113: v2: contour tracing with marching squares (Bhavish suggested; team leader reviews)
+
+**Should, M, by 12 Nov.** `src/analysis/` is the team leader's, so the team leader reviews; Bhavish is suggested because his load is light and the output feeds his spatial code. Covers F18 (analysis) and PLAN.md §5.9. Builds on the types from T112 step 1 only; it can be developed and tested on hand-written fields before T112's functions merge.
+
+**Files:** `src/analysis/contour.ts` (new), `src/analysis/contour.test.ts` (new); integration line in `src/analysis/worker.ts` (see the table).
+
+**Do:**
+1. **`traceContours(field, level)`**: classic marching squares. A corner counts as "above" when its value is **≥** `level` (one rule, written in the code). Linear interpolation along each crossed edge. Saddle cells resolved by the average of the four corners. A cell with any NaN corner gives no segment.
+2. **Join** the segments into polylines in a fixed order (row-major scan from the north-west), so the output never depends on the order of a hash map. A line that closes on itself is `closed`. Count `brokenEnds`: an open end that stops next to a NaN cell (an end at the map's edge is not broken).
+3. **Resample** each line to 64 points evenly spaced along its length. Convert to 0 to 1 fractions of the **whole image** (through `area`), the same space `panForPoint` uses.
+4. Per point: `turn`, the signed turning angle from the previous to the next point; `front`, the change in value across the line (the field's gradient at that point, in variable units per cell).
+5. **`pickContours(contours, perLevel = 1)`**: the longest line of each level; ties go to the first found.
+
+**Done when:**
+- Tests on hand-written fields: one raised cell gives one small closed loop; a straight front gives one open line with `turn` near 0 everywhere; an L-shaped front gives one `turn` near ±π/2; a saddle cell gives the same result every run; a NaN hole splits a line into two with `brokenEnds` 1 each; the map's edge gives `brokenEnds` 0; no point of any line lies inside a NaN cell; `pickContours` keeps the longest per level.
+- On `synthetic-change`, the +1 °C line on months 8 to 10 outlines the planted patch (a golden file entry in `change.json`).
+- One `traceContours` call on a 180 × 90 field takes under 10 ms on a laptop (written in the PR).
+
+---
+
+## T114: v2: the `"change"` sound style (Team leader, Bhavish)
+
+**Should, L, after the cut line, by 13 Nov.** Team leader: `src/audio/`. Bhavish: the spatial path and the listening check. Depends on T112 (and T113 for step 3). Covers F28 and F18 (sound) and PLAN.md §6.2. Supersedes T105 to T107.
+
+**Files:** `src/audio/style.ts` and its test, `src/audio/changeVoice.ts` (new, pure) and its test, `src/audio/engine.ts` and its test, `src/audio/index.ts`, `src/audio/pan.ts` only if a helper is needed (Bhavish), `src/data/sound-regression.test.ts` (additive), `src/data/__golden__/change.json`, `src/features/compare/TestMode.tsx` (never `"change"` yet; Mohammad reviews), `docs/PLAN.md` §5.3 and §5.7, `docs/SOUND_MAPPINGS.md`, `docs/performance.md`.
+
+**Do:**
+1. **The style.** Add `'change'` to `SoundStyle` (agreed with Mohammad and Roni). The default stays `'full'`; `readSoundStyle` returns `'change'` only if it was chosen on this device. `'full'` and `'simple'` must build exactly the same nodes as before (an engine test records them before and after), and the T88 golden files stay unchanged. TestMode plays full or simple only until the 13 Nov decision.
+2. **The change bed.** A pure `bedFor(stepIndex, stepCount, medianChange, stepRange)` in `changeVoice.ts` returns `{ note, cutoffHz, gainDb }`:
+   - `note` is the step's `note` (C3 to C4 register): pitch steps with the change.
+   - The cutoff rises strictly with the step, and within a step a little with `medianChange`, never below 3 times the fundamental.
+   - `gainDb` matches loudness across steps (measured in step 6).
+   - In the engine: a sustained voice (sine plus a quiet sawtooth through a low-pass `Tone.Filter`), centred and wide, played for the step's length in sequences and Compare. A step with `changeStep: "insufficient"` plays the existing hiss. A step with no `changeStep` plays the category note as today.
+3. **The contour voice.** A pure `contourEvents(contour, note, msPerUnit)` returns timed events:
+   - duration from the line's length, clamped to 2 to 8 s;
+   - at each point: `pan = panForPoint(x)`, and `elevation` from y (heard in 3D mode only);
+   - an accent where |`turn`| > π/4, at least 125 ms apart (at most 8 a second);
+   - brightness from `front`;
+   - a short hiss at each broken end.
+
+   `engine.traceContour(contour, onPoint)` plays them on one gliding voice at the level's note. Bhavish checks that the movement is heard where it should be, in stereo and in 3D.
+4. **Master chain** for the `"change"` style only: a compressor, then a `Tone.Limiter` at −1 dBFS, so warmer is never louder and nothing clips. `dispose()` disposes them; T96's leak test passes in this style.
+5. Same input, same sound: no randomness; `Freeverb` only; `renderToWav` uses the same voices, so a WAV of a sequence in this style matches live playback.
+6. **Measured offline** (as T105 step 4), in the PR and `docs/performance.md`: every step's bed alone, 600 ms: peak at or below −1 dBFS, RMS within 1 dB of each other; a contour trace with accents: peak at or below −1 dBFS; the bed's pitch stays within 1% while the cutoff moves.
+7. **Listening check, 13 Nov (Bhavish runs it).** At least three listeners on headphones, at least one who did not write the code, none told what the layers mean beyond one Learn-style sentence each.
+   - 12 pairs from `synthetic-change` in v1 (full) and 12 in the change bed, alternating which block comes first: "Which date is further above normal?" Include T111's pairs where the absolute and change answers differ.
+   - 6 contour traces: "Is the warm edge mostly on the left, in the middle or on the right?"
+   - Comfort, 1 to 5, after one minute of sequences and three traces.
+   - **Pass:** each listener scores at least 10 of 12 with the bed; at least 4 of 6 traces; every comfort rating 3 or more. Write the scores and headphone models in the PR, no names.
+   - **Decision (PLAN.md §6.2):** pass → `"change"` becomes the default for data sets with a baseline and is used in the final listening test. Fail → it stays an opt-in style, or the contour voice alone is removed if only the traces failed.
+
+**Done when:** the tests pass; `full` and `simple` are provably unchanged; the measurements and the listening results are in the PR; `docs/SOUND_MAPPINGS.md` has a v2 section with the cue table from PLAN.md §6.2.
+
+---
+
+## T115: v2: wiring, Compare, descriptions and Learn (Mohammad, Roni)
+
+**Should, M, after the cut line, by 14 Nov.** Mohammad: Listen, the explorer, Compare. Roni: `src/describe/`, Learn, About. Depends on T114 (the fake engine lets most of it be built against T112's `Score` before T114 merges). Covers the wiring of F28 and the trace button of F18.
+
+**Files:** `src/features/player/usePlayer.ts`, `src/features/player/index.tsx`, `src/features/player/player.test.tsx`, `src/features/explore/Explorer.tsx` and its test, `src/features/compare/judge.ts` and its test, `src/features/compare/index.tsx`, `src/features/compare/TestMode.tsx`, `src/describe/index.ts`, `src/describe/describe.test.ts`, `src/features/learn/index.tsx` and its test, `src/features/about/index.tsx`, `docs/PLAN.md` §5.4 (the `player` context gains `changeStep`).
+
+**Do:**
+1. **Listen.** The sound control becomes a radio group "Sound: Full, Simple, Change from normal". The third option shows only for a data set with a baseline, with the hint "Hear how far each date is from its normal, not the temperature itself." In that style, steps carry `changeStep` and `medianChange` from the analysis.
+2. **"Trace the warm edge"** button (44 px, change style only, disabled when the current date has no contour) calls `engine.traceContour` for each picked contour in turn and announces `describeContour` after. In the sound map, `T` does the same. Escape or Stop ends it.
+3. **Compare.** `judge` ranks by `changeStep` when both dates have one, otherwise by `category` as today. Question wording for a data set with a baseline: "Which date is further above its normal?" The reveal names the baseline's `label`.
+4. **Descriptions (Roni).** `describeChange` and `describeContour` as in PLAN.md §5.8, rules only, with the concise and rich levels from T82. A `reference-date` baseline always says "change since <date>"; nothing ever says "anomaly" unless the kind is `anomaly-product` or `climatology`. Places are compass sectors, never sea or country names.
+5. **Learn (Roni).** Two cards, shown only with the change style available: "Change from normal" (play the five bed steps in order, then two dates) and "The warm edge" (trace one line from `synthetic-change`, then its description).
+6. **About (Roni).** For each data set: the baseline kind and label, and one line on why we play the change, not the temperature.
+
+**Done when:** the player test shows steps carry `changeStep` in the change style and not in the others; the trace button calls `traceContour` and announces; `judge` tests cover change ranking, the fallback to category, and `"insufficient"`; describe tests cover both functions at both detail levels and the "change since" wording; the a11y check passes; layout is checked at 360, 768, 1024 and 1280 px; a keyboard-only run of Listen → trace → Compare is in the PR.
+
+---
+
 ## Left out on purpose
 
-- **F17 background drone.** The T80 chord comes from the data and does the same job; a drone would be one more layer to mix under the melody. Mark F17 cut in PLAN.md §6 when T80 A merges.
+- **F17 background drone.** Cut. Its idea returns as the v2 change bed (T114), which carries data (the change step) rather than a whole-frame average.
 - **Region picker on Listen.** The explorer covers "listen somewhere else" across the whole map.
 - **Compare with A in one ear and B in the other.** Too big a change to the listening test this close to it.
 - **Speech inside story mode.** Screen-reader users have their own voice; two would talk over each other.
