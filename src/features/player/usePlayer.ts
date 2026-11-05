@@ -8,7 +8,7 @@ import { elevationFor, panFor, useSpatialMode } from '../../audio/pan'
 import { useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
 import { useAnnounce } from '../../components/useAnnounce'
-import type { Visualization } from '../../data'
+import type { Region, SoundMapping, Visualization } from '../../data'
 import { dateFormatterFor } from '../../dates'
 import { onPlayerCommand } from './controls'
 
@@ -17,6 +17,17 @@ export type Status = 'idle' | 'playing' | 'paused'
 
 /** Time between dates. */
 export const STEP_MS: Record<Speed, number> = { slow: 1600, normal: 1000, fast: 500 }
+
+/** One step per date from `from` to `to`: its category, where the region sits (stereo pan and height) and the chord, slide and bell. Pure, so the sound regression test plays exactly what Listen plays. */
+export function sequenceSteps(
+  results: FrameAnalysis[], region: Pick<Region, 'points'>, mapping: SoundMapping, from: number, to: number, stepMs: number,
+): SequenceStep[] {
+  const pan = panFor(region)
+  const elevation = elevationFor(region)
+  return results.slice(from, to + 1).map((result, k) => ({
+    category: result.category, atMs: k * stepMs, pan, elevation, ...voicingFor(results, from + k, mapping),
+  }))
+}
 
 /** `onDate` is called each time the player lands on a date: at every step of a sequence, and when one date is played alone. */
 export function usePlayer(visualization: Visualization, onDate?: (index: number, category: string | null) => void) {
@@ -100,11 +111,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
   /** One step per date from `from` to `to`: its category, where the region sits (stereo pan) and the chord, slide and bell. */
   const stepsFor = useCallback((from: number, to: number, stepMs: number): SequenceStep[] => {
     if (!results) return []
-    const pan = panFor(region)
-    const elevation = elevationFor(region)
-    return frames.slice(from, to + 1).map((_, k) => ({
-      category: results[from + k].category, atMs: k * stepMs, pan, elevation, ...voicingFor(results, from + k, mapping),
-    }))
+    return sequenceSteps(results, region, mapping, from, Math.min(to, frames.length - 1), stepMs)
   }, [results, frames, region, mapping])
 
   /** The last date of the part being played, or null when the run goes to the end. Kept so a change of speed does not run past it. */

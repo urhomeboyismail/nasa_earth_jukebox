@@ -1,0 +1,531 @@
+{
+  "notes": {
+    "categories": {
+      "cold": "C4",
+      "cool": "E4",
+      "mild": "G4",
+      "warm": "C5",
+      "hot": "E5"
+    },
+    "missingCue": "noise"
+  },
+  "regions": [
+    {
+      "id": "open-ocean",
+      "frames": [
+        {
+          "frame": "2024-01-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "cold",
+          "medianValue": 2.99,
+          "shares": {
+            "cold": 1,
+            "cool": 0,
+            "mild": 0,
+            "warm": 0,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-02-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "cold",
+          "medianValue": 5,
+          "shares": {
+            "cold": 1,
+            "cool": 0,
+            "mild": 0,
+            "warm": 0,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-03-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "cool",
+          "medianValue": 8,
+          "shares": {
+            "cold": 0,
+            "cool": 1,
+            "mild": 0,
+            "warm": 0,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-04-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "cool",
+          "medianValue": 10.5,
+          "shares": {
+            "cold": 0,
+            "cool": 1,
+            "mild": 0,
+            "warm": 0,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-05-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "mild",
+          "medianValue": 14.5,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 1,
+            "warm": 0,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-06-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "warm",
+          "medianValue": 19.5,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 0,
+            "warm": 1,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-07-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "mild",
+          "medianValue": 16,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 1,
+            "warm": 0,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-08-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "mild",
+          "medianValue": 13,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 1,
+            "warm": 0,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-09-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "cool",
+          "medianValue": 9.5,
+          "shares": {
+            "cold": 0,
+            "cool": 1,
+            "mild": 0,
+            "warm": 0,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-10-15",
+          "sampled": 30,
+          "valid": 5,
+          "category": "insufficient",
+          "medianValue": null,
+          "shares": null
+        },
+        {
+          "frame": "2024-11-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "mild",
+          "medianValue": 15,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 1,
+            "warm": 0,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-12-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "mild",
+          "medianValue": 15.4,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 1,
+            "warm": 0,
+            "hot": 0
+          }
+        }
+      ],
+      "steps": [
+        {
+          "frame": "2024-01-15",
+          "category": "cold",
+          "pan": -0.4,
+          "elevation": 0.16000000000000003,
+          "pad": [
+            "cold"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-02-15",
+          "category": "cold",
+          "pan": -0.4,
+          "elevation": 0.16000000000000003,
+          "pad": [
+            "cold"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-03-15",
+          "category": "cool",
+          "pan": -0.4,
+          "elevation": 0.16000000000000003,
+          "pad": [
+            "cool"
+          ],
+          "glide": true,
+          "bell": false
+        },
+        {
+          "frame": "2024-04-15",
+          "category": "cool",
+          "pan": -0.4,
+          "elevation": 0.16000000000000003,
+          "pad": [
+            "cool"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-05-15",
+          "category": "mild",
+          "pan": -0.4,
+          "elevation": 0.16000000000000003,
+          "pad": [
+            "mild"
+          ],
+          "glide": true,
+          "bell": false
+        },
+        {
+          "frame": "2024-06-15",
+          "category": "warm",
+          "pan": -0.4,
+          "elevation": 0.16000000000000003,
+          "pad": [
+            "warm"
+          ],
+          "glide": true,
+          "bell": false
+        },
+        {
+          "frame": "2024-07-15",
+          "category": "mild",
+          "pan": -0.4,
+          "elevation": 0.16000000000000003,
+          "pad": [
+            "mild"
+          ],
+          "glide": true,
+          "bell": false
+        },
+        {
+          "frame": "2024-08-15",
+          "category": "mild",
+          "pan": -0.4,
+          "elevation": 0.16000000000000003,
+          "pad": [
+            "mild"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-09-15",
+          "category": "cool",
+          "pan": -0.4,
+          "elevation": 0.16000000000000003,
+          "pad": [
+            "cool"
+          ],
+          "glide": true,
+          "bell": false
+        },
+        {
+          "frame": "2024-10-15",
+          "category": "insufficient",
+          "pan": -0.4,
+          "elevation": 0.16000000000000003,
+          "pad": null,
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-11-15",
+          "category": "mild",
+          "pan": -0.4,
+          "elevation": 0.16000000000000003,
+          "pad": [
+            "mild"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-12-15",
+          "category": "mild",
+          "pan": -0.4,
+          "elevation": 0.16000000000000003,
+          "pad": [
+            "mild"
+          ],
+          "glide": false,
+          "bell": false
+        }
+      ]
+    }
+  ],
+  "grids": [
+    {
+      "frame": "2024-01-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "cold insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient cold cold cold cold cold cold cold insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient insufficient insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient insufficient insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient"
+      ]
+    },
+    {
+      "frame": "2024-02-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "cold insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient cold cold cold cold cold cold cold insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient insufficient insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient insufficient insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient insufficient insufficient",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold insufficient"
+      ]
+    },
+    {
+      "frame": "2024-03-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "cool insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient"
+      ]
+    },
+    {
+      "frame": "2024-04-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "cool insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient"
+      ]
+    },
+    {
+      "frame": "2024-05-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient"
+      ]
+    },
+    {
+      "frame": "2024-06-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "warm insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient warm warm warm warm warm warm warm insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient insufficient insufficient insufficient",
+        "warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient insufficient insufficient insufficient",
+        "warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient insufficient insufficient",
+        "warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient insufficient insufficient",
+        "warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient insufficient",
+        "warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient",
+        "warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm insufficient"
+      ]
+    },
+    {
+      "frame": "2024-07-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient"
+      ]
+    },
+    {
+      "frame": "2024-08-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient"
+      ]
+    },
+    {
+      "frame": "2024-09-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "cool insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool insufficient"
+      ]
+    },
+    {
+      "frame": "2024-10-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient"
+      ]
+    },
+    {
+      "frame": "2024-11-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient"
+      ]
+    },
+    {
+      "frame": "2024-12-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient"
+      ]
+    }
+  ]
+}

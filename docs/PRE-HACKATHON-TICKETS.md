@@ -134,6 +134,11 @@ Most of the request is already on `main`. These tickets are audits and gap fills
 - `npm test` passes with the golden files committed, in under 10 s.
 - A test that changes one legend stop of the fixture in memory shows the comparison fails, so the check is known to work.
 
+**Done (5 Nov).** `src/data/sound-regression.test.ts` and `src/data/__golden__/{fixture,synthetic-ocean,synthetic-globe}.json`, generated from the current code and committed data. To regenerate after a change you meant to make: `npx vitest run -u src/data/sound-regression.test.ts`, then read the diff of `__golden__/` (the PR says why; the team leader approves).
+- Verified: `npm test` 647 passed (642 before; 5 new), the file runs in about 1.5 s. Changing the fixture's `mild` note to A4 in `manifest.json` made the test fail with a line diff (`- "mild": "G4"` / `+ "mild": "A4"`); reverted. The in-memory legend-stop test (stop value 15 to 25) also checks the comparison notices a change.
+- Readings of the steps: (1) `stepsFor` in `usePlayer.ts` is now the exported pure `sequenceSteps(results, region, mapping, from, to, stepMs)`; the hook calls it, same output, and Mohammad reviews. (2) "For each region" records the steps for every region in the manifest, though Listen plays `regions[0]` only. (3) Steps are recorded at normal speed (speed only moves `atMs`, which is left out). (4) Grid rows are one line of category ids each, so a diff shows which cell moved. (5) `pad`, `glide` and `bell` are written as `null`/`false` when absent so a missing key cannot hide a change.
+- Not done: nothing was listened to by ear; the baseline records what the code decides, not how it sounds. `src/analysis/` and `src/audio/` were read, not changed.
+
 ---
 
 ## T89: Manifest contract, template and one check command (Dhruv)
