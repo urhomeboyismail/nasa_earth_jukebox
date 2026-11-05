@@ -7,7 +7,7 @@ import type { SequenceStep, SoundEngine } from '../../audio'
 import { elevationForPoint, panForPoint } from '../../audio/pan'
 import { useAnnounce } from '../../components'
 import type { Frame, MapArea, Visualization } from '../../data'
-import { describeCell, describeCellOverTime, describePlace, describeSweep } from '../../describe'
+import { describeCell, describeCellOverTime, describePlace, describeSweep, edgeMessage, explorerMessage, sweepEndMessage, type Edge } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
 import { shortcutFor } from '../player/shortcuts'
 import { vibrateForDate } from '../player/vibration'
@@ -25,7 +25,6 @@ const BIG_STEP = 4
 const WHOLE_MAP: MapArea = { x0: 0, y0: 0, x1: 1, y1: 1 }
 
 type Cursor = { col: number; row: number }
-type Edge = 'West' | 'East' | 'North' | 'South'
 type Line = 'row' | 'column'
 
 type MapRead = { frame: Frame; colorScale: Visualization['colorScale']; mapping: Visualization['mapping']; mapArea: MapArea | undefined; grid: FrameGrid | null; error: string }
@@ -73,6 +72,8 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   const playTimer = useRef<number | undefined>(undefined)
   const lastPlayed = useRef(-Infinity)
   const sweepEnd = useRef<number | undefined>(undefined)
+  /** True until the first message after turning on, or after the date changed, has been said: that message starts with the date. */
+  const needDate = useRef(true)
   // A linked cell counts as already placed, so the first read keeps it (unless it is off the map).
   const placed = useRef(start !== null)
   /** Opened by a link: the audio is not unlocked yet. The first key press or touch does it and then plays the cell it lands on. */
@@ -101,6 +102,7 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   useEffect(() => {
     if (!on) return
     let cancelled = false
+    needDate.current = true
     const { mapArea } = visualization
     analyzeGrid(frame, colorScale, mapping, mapArea)
       .then(done => {
@@ -137,10 +139,15 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   const announceCell = useCallback((at: Cursor, delay: number) => {
     window.clearTimeout(announceTimer.current)
     if (!grid) return
-    const say = () => announce(describeCell(visualization, grid, at.col, at.row, { detail }))
+    const say = () => {
+      // The date goes in the first message after turning on or after a date change; later moves leave it out.
+      const date = needDate.current ? formatDate(frame.date) : undefined
+      needDate.current = false
+      announce(explorerMessage(describeCell(visualization, grid, at.col, at.row, { detail }), detail, date))
+    }
     if (delay <= 0) say()
     else announceTimer.current = window.setTimeout(say, delay)
-  }, [grid, visualization, announce, detail])
+  }, [grid, visualization, announce, detail, formatDate, frame.date])
 
   /** Sounds a cell now, or after the pause between plays; a newer cell replaces one that is waiting. */
   const soundCell = useCallback((at: Cursor) => {
@@ -181,7 +188,7 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   const hitEdge = useCallback((edge: Edge) => {
     stopSweep()
     window.clearTimeout(announceTimer.current)
-    announceTimer.current = window.setTimeout(() => announce(`${edge} edge.`), ANNOUNCE_AFTER_MS)
+    announceTimer.current = window.setTimeout(() => announce(edgeMessage(edge)), ANNOUNCE_AFTER_MS)
   }, [stopSweep, announce])
 
   /** A move by key. Plays and announces the new cell like `moveTo`; if the cursor cannot move, it says which edge instead. */
@@ -221,7 +228,7 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
         sweepEnd.current = window.setTimeout(() => {
           if (mine !== sweepId.current) return
           setSweeping(false)
-          announce(describeSweep(visualization, grid, { kind, index: kind === 'row' ? at.row : at.col }, { detail }))
+          announce(sweepEndMessage(describeSweep(visualization, grid, { kind, index: kind === 'row' ? at.row : at.col }, { detail }), detail))
         }, SWEEP_STEP_MS)
       }
     }, { tick: false })

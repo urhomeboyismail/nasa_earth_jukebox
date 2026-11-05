@@ -10,6 +10,7 @@ import type { Detail } from './detail'
 
 export type { Detail } from './detail'
 export { describeChange, describeContour } from './change'
+export * from './announcements'
 
 /** `detail` is 'rich' (the full sentences, and the default, so every existing call is unchanged) or 'concise'. */
 export type DescribeOptions = { detail?: Detail }
@@ -33,7 +34,7 @@ function datesIn(names: string[]): string {
 }
 
 /** A value with its unit: "21 °C", "21%". */
-const withUnit = (value: number, unit: string) => `${Math.round(value)}${unit === '%' ? '' : ' '}${unit}`
+export const withUnit = (value: number, unit: string) => `${Math.round(value)}${unit === '%' ? '' : ' '}${unit}`
 
 /** A visualization's own words: category labels, dates, the unit. Shared by all four descriptions. */
 function vocabulary(visualization: Visualization) {

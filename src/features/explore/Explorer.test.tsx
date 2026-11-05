@@ -5,7 +5,7 @@ import fixture from '../../../public/data/fixture/manifest.json'
 import type { FrameGrid } from '../../analysis'
 import { elevationForPoint, panForPoint } from '../../audio/pan'
 import type { Visualization } from '../../data'
-import { describeCell, describeSweep } from '../../describe'
+import { describeCell, describeSweep, explorerMessage, sweepEndMessage } from '../../describe'
 import { expectNoA11yViolations } from '../../test/a11y'
 import PlayerPage from '../player'
 import { AnnouncerProvider } from '../../components'
@@ -78,6 +78,8 @@ async function exploring() {
   return { user, ...view }
 }
 const START = { col: 12, row: 6 }
+/** The first message after turning the explorer on starts with the date (the fixture's first frame). */
+const first = (cell: string) => `January 2024. ${cell}`
 /** Elevation of a row: the top row is the northernmost, so the highest. */
 const heightOf = (row: number) => elevationForPoint((row + 0.5) / ROWS)
 
@@ -329,7 +331,7 @@ describe('Explorer: keys at the edges', () => {
     await tick(130)
     await user.keyboard('{ArrowLeft}')
     await tick(400)
-    expect(liveText()).toBe(describeCell(visualization, grid, 0, START.row))
+    expect(liveText()).toBe(first(describeCell(visualization, grid, 0, START.row)))
   })
 
   it('still plays the cell again with Space at an edge', async () => {
@@ -339,7 +341,7 @@ describe('Explorer: keys at the edges', () => {
     await user.keyboard(' ')
     expect(engine.playCategory).toHaveBeenCalledTimes(2)
     await tick(400)
-    expect(liveText()).toBe(describeCell(visualization, grid, 0, START.row))
+    expect(liveText()).toBe(first(describeCell(visualization, grid, 0, START.row)))
   })
 
   it('does nothing, and throws nothing, for keys pressed before the map has loaded', async () => {
@@ -489,14 +491,46 @@ describe('Explorer: announcements', () => {
     await tick(399)
     expect(liveText()).toBe('')
     await tick(1)
+    expect(liveText()).toBe(first(describeCell(visualization, grid, START.col + 2, START.row)))
+  })
+
+  it('puts the date in the first message only, and leaves it out of later moves', async () => {
+    const { user } = await exploring()
+    await user.keyboard('{ArrowRight}')
+    await tick(400)
+    expect(liveText()).toBe(first(describeCell(visualization, grid, START.col + 1, START.row)))
+    await user.keyboard('{ArrowRight}')
+    await tick(400)
     expect(liveText()).toBe(describeCell(visualization, grid, START.col + 2, START.row))
+    expect(liveText()).not.toContain('January')
+  })
+
+  it('puts the date back in the first message after the date changes, and after turning the explorer off and on', async () => {
+    const { user } = await exploring()
+    await user.keyboard('{ArrowRight}')
+    await tick(400)
+    fireEvent.change(dateSlider(), { target: { value: '1' } })
+    await tick(0)
+    await user.click(surface())
+    await user.keyboard('{ArrowRight}')
+    await tick(400)
+    expect(liveText()).toBe(explorerMessage(describeCell(visualization, grid, START.col + 2, START.row), 'rich', 'July 2024'))
+    await user.keyboard('{ArrowRight}')
+    await tick(400)
+    expect(liveText()).not.toContain('July')
+    await user.click(screen.getByRole('button', { name: 'Explore the map' }))
+    await user.click(screen.getByRole('button', { name: 'Explore the map' }))
+    await tick(0)
+    await user.keyboard('{ArrowRight}')
+    await tick(400)
+    expect(liveText()).toMatch(/^July 2024\. /)
   })
 
   it('says a cell without data in words', async () => {
     const { user } = await exploring()
     await user.keyboard('{End}')
     await tick(400)
-    expect(liveText()).toMatch(/^Not enough data/)
+    expect(liveText()).toMatch(/^January 2024\. Not enough data \(land, cloud or labels\)/)
   })
 })
 
@@ -507,8 +541,9 @@ describe('Explorer: concise or rich announcements', () => {
     expect(screen.getByRole('slider', { name: 'Column, west to east' })).toHaveAttribute('aria-valuetext', describeCell(visualization, grid, START.col, START.row, { detail: 'concise' }))
     await user.keyboard('{ArrowRight}')
     await tick(400)
-    expect(liveText()).toBe(describeCell(visualization, grid, START.col + 1, START.row, { detail: 'concise' }))
+    expect(liveText()).toBe(first(describeCell(visualization, grid, START.col + 1, START.row, { detail: 'concise' })))
     expect(liveText()).not.toContain('column')
+    expect(liveText().length).toBeLessThanOrEqual(60)
   })
 
   it('says the short form of the sweep too', async () => {
@@ -518,7 +553,8 @@ describe('Explorer: concise or rich announcements', () => {
     const [steps, onStep] = engine.playSequence.mock.calls[0]
     for (let k = 0; k < steps.length; k++) act(() => onStep(k))
     await tick(250)
-    expect(liveText()).toBe(describeSweep(visualization, grid, { kind: 'row', index: START.row }, { detail: 'concise' }))
+    expect(liveText()).toBe(sweepEndMessage(describeSweep(visualization, grid, { kind: 'row', index: START.row }, { detail: 'concise' }), 'concise'))
+    expect(liveText().length).toBeLessThanOrEqual(60)
   })
 })
 
@@ -538,7 +574,7 @@ describe('Explorer: pointer and touch', () => {
     expect(engine.playCategory).toHaveBeenLastCalledWith(cellOf(grid, 17, 0).category, { pan: panForPoint(17.5 / COLS), elevation: heightOf(0), durationMs: 300 })
     expect(liveText()).toBe('')
     fireEvent.pointerUp(surface(), { clientX: 175, clientY: 5, pointerId: 1 })
-    expect(liveText()).toBe(describeCell(visualization, grid, 17, 0))
+    expect(liveText()).toBe(first(describeCell(visualization, grid, 17, 0)))
   })
 
   it('gives the last column and row for a pointer at the exact right and bottom edge, and the first for the top left', async () => {

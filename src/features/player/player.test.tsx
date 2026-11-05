@@ -182,15 +182,39 @@ describe('Player: playing', () => {
     expect(liveText()).toBe('January 2024: cold')
     expect(screen.getByText('January 2024')).toBeInTheDocument()
 
+    // The image and the slider follow every step, but the live region speaks at most once per 1.5 s: July waits for its turn.
     await tick(1000)
-    expect(liveText()).toBe('July 2024: mild')
     expect(dateText()).toBe('July 2024: mild')
     expect(screen.getByRole('img')).toHaveAttribute('src', expect.stringContaining('2024-07-15'))
+    expect(liveText()).toBe('January 2024: cold')
+    await tick(500)
+    expect(liveText()).toBe('July 2024: mild')
 
-    await tick(1000)
-    expect(liveText()).toBe('December 2024: hot')
-    await tick(1000)
-    expect(liveText()).toBe('March 2025: not enough data')
+    // December comes at 2000 ms and is replaced by March at 3000 ms before it was due: older messages are dropped, not queued.
+    await tick(1500)
+    expect(liveText()).toBe('March 2025: not enough data, so you hear the hiss')
+  })
+
+  it('says a date during playback only when its category differs from the last one said', async () => {
+    analyzeAll.mockImplementation(async () => visualization.frames.map((frame, i) => ({
+      frameId: frame.id, regionId: 'centre', sampled: 9, valid: 9, category: ['cold', 'cold', 'hot', 'hot'][i],
+    })))
+    const { user } = await renderReady()
+    const seen: string[] = []
+    const watcher = new MutationObserver(() => seen.push(liveText()))
+    watcher.observe(document.querySelector('[aria-live="polite"]')!, { childList: true, characterData: true, subtree: true })
+    await user.click(screen.getByRole('button', { name: 'Play' }))
+    await tick(0)
+    expect(seen).toEqual(['January 2024: cold'])
+    await tick(1000) // July: still cold, so nothing is said
+    expect(dateText()).toBe('July 2024: cold')
+    expect(seen).toHaveLength(1)
+    await tick(1000) // December: hot
+    expect(dateText()).toBe('December 2024: hot')
+    await tick(1000) // March 2025: hot again, nothing new
+    expect(dateText()).toBe('March 2025: hot')
+    expect(seen).toEqual(['January 2024: cold', 'December 2024: hot'])
+    watcher.disconnect()
   })
 
   it('keeps the slider, the image and the sound on the same date throughout', async () => {
@@ -243,6 +267,8 @@ describe('Player: pause, stop, replay', () => {
     await user.click(screen.getByRole('button', { name: 'Play' }))
     await tick(1000)
     await user.click(screen.getByRole('button', { name: 'Pause' }))
+    // Pausing always says the current date, even one second after the last update.
+    expect(liveText()).toBe('Paused at July 2024: mild.')
     await tick(5000)
     expect(dateText()).toBe('July 2024: mild')
     expect(screen.getByRole('button', { name: 'Resume' })).toBeInTheDocument()
@@ -256,6 +282,7 @@ describe('Player: pause, stop, replay', () => {
     await user.click(screen.getByRole('button', { name: 'Play' }))
     await tick(2000)
     await user.click(screen.getByRole('button', { name: 'Stop' }))
+    expect(liveText()).toBe('Stopped at December 2024: hot.')
     await tick(5000)
     expect(screen.getByRole('slider', { name: 'Date' })).toHaveValue('0')
     expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument()
@@ -700,14 +727,16 @@ describe('Player: hear the legend (F39)', () => {
     expect((await openLegend(user))).toHaveAccessibleName('Hear the legend, coolest to warmest')
   })
 
-  it('stops with Stop, and nothing more is announced', async () => {
+  it('stops with Stop: it says where it stopped (T93), and no more labels are announced', async () => {
     const { user } = await renderReady()
-    const labels = visualization.mapping.categories.map(category => category.label)
     await user.click(await openLegend(user))
     await tick(0)
     await user.click(screen.getByRole('button', { name: 'Stop' }))
+    await tick(0)
+    const afterStop = liveText()
+    expect(afterStop).toMatch(/^Stopped at /)
     await tick(5000)
-    expect(liveText()).toBe(labels[0])
+    expect(liveText()).toBe(afterStop)
   })
 
   it('has no accessibility violations with the legend open', async () => {
@@ -925,5 +954,84 @@ describe('Player: the keyboard shortcuts dialog (F41)', () => {
     await user.click(opener())
     vi.useRealTimers() // axe waits on real timers
     await expectNoA11yViolations(container)
+  })
+})
+
+describe('Player: how often the live region changes (T93)', () => {
+  // Twelve monthly dates; the category changes at every one, so every date is a candidate to be said.
+  const twelve: Visualization = {
+    ...visualization,
+    frames: Array.from({ length: 12 }, (_, i) => ({
+      ...visualization.frames[0], id: `m${i + 1}`, date: `2024-${String(i + 1).padStart(2, '0')}-15`, image: `/data/fixture/m${i + 1}.png`,
+    })),
+  }
+  const CYCLE = ['cold', 'mild', 'hot', 'warm']
+  const analysisTwelve = () => twelve.frames.map((frame, i) => ({ frameId: frame.id, regionId: 'centre', sampled: 9, valid: 9, category: CYCLE[i % 4] }))
+
+  /** Every change of the live region with the time it happened, on the fake clock. */
+  function recordUpdates() {
+    const updates: { at: number; text: string }[] = []
+    const region = document.querySelector('[aria-live="polite"]')!
+    const watcher = new MutationObserver(() => updates.push({ at: Date.now(), text: liveText() }))
+    watcher.observe(region, { childList: true, characterData: true, subtree: true })
+    return { updates, stop: () => watcher.disconnect() }
+  }
+
+  async function playTwelveAtFast() {
+    analyzeAll.mockImplementation(async () => analysisTwelve())
+    const user = setup()
+    render(<PlayerPage visualization={twelve} />, { wrapper: AnnouncerProvider })
+    await tick(0)
+    await user.click(screen.getByRole('button', { name: 'Fast' }))
+    const { updates, stop } = recordUpdates()
+    await user.click(screen.getByRole('button', { name: 'Play' }))
+    await tick(0)
+    return { user, updates, stop }
+  }
+
+  it('changes at most once per 1.5 s during a 12-date run at Fast, and says the last date', async () => {
+    const { updates, stop } = await playTwelveAtFast()
+    // In small steps, so React commits each update when it happens and the clock reads right.
+    for (let t = 0; t < 12 * 500 - 100; t += 100) await tick(100)
+    const during = [...updates]
+    expect(during.length).toBeGreaterThanOrEqual(3)
+    expect(during.length).toBeLessThanOrEqual(Math.ceil((11 * 500) / 1500) + 1)
+    for (let i = 1; i < during.length; i++) expect(during[i].at - during[i - 1].at).toBeGreaterThanOrEqual(1500)
+    // Every update is a real date line, never a stale or merged one.
+    for (const update of during) expect(update.text).toMatch(/^[A-Z][a-z]+ 2024: (cold|mild|hot|warm)/)
+    // The end-of-run line is not held back: the last date is always said, whatever was waiting.
+    await tick(1000)
+    expect(liveText()).toBe('Finished at December 2024: warm.')
+    expect(updates.at(-1)!.text).toBe('Finished at December 2024: warm.')
+    stop()
+  })
+
+  it('says the last date even when its category is the same as the one before', async () => {
+    analyzeAll.mockImplementation(async () => twelve.frames.map((frame, i) => ({ frameId: frame.id, regionId: 'centre', sampled: 9, valid: 9, category: i < 6 ? 'cold' : 'hot' })))
+    const user = setup()
+    render(<PlayerPage visualization={twelve} />, { wrapper: AnnouncerProvider })
+    await tick(0)
+    await user.click(screen.getByRole('button', { name: 'Fast' }))
+    await user.click(screen.getByRole('button', { name: 'Play' }))
+    await tick(0)
+    await tick(12 * 500 + 500)
+    expect(liveText()).toBe('Finished at December 2024: hot.')
+  })
+
+  it('says only the date and label in concise detail', async () => {
+    localStorage.setItem('earth-jukebox:detail', 'concise')
+    try {
+      analyzeAll.mockImplementation(async () => analysis())
+      const { user } = await renderReady()
+      await user.click(screen.getByRole('button', { name: 'Play' }))
+      await tick(0)
+      expect(liveText()).toBe('January 2024: cold')
+      await tick(3000)
+      await user.click(screen.getByRole('button', { name: 'Replay this date' }))
+      await tick(0)
+      expect(liveText()).toBe('March 2025: not enough data')
+    } finally {
+      localStorage.clear()
+    }
   })
 })
