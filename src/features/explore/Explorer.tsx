@@ -20,9 +20,12 @@ const ANNOUNCE_AFTER_MS = 400
 const SWEEP_STEP_MS = 250
 const CELL_NOTE_MS = 300
 const BIG_STEP = 4
+/** Keys the sound map owns. Before the map has loaded they still do nothing here, and are kept from the player's shortcuts. */
+const MAP_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', ' ', 'Enter', 'Escape'])
 const WHOLE_MAP: MapArea = { x0: 0, y0: 0, x1: 1, y1: 1 }
 
 type Cursor = { col: number; row: number }
+type Edge = 'West' | 'East' | 'North' | 'South'
 type Line = 'row' | 'column'
 
 type Options = {
@@ -141,6 +144,22 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
     if (speak) announceCell(next, ANNOUNCE_AFTER_MS)
   }, [grid, stopSweep, place, soundCell, announceCell])
 
+  /** A key that pushes against the edge of the map: no sound, and the edge is named once the keys rest, so a held key is not heard as a stall. */
+  const hitEdge = useCallback((edge: Edge) => {
+    stopSweep()
+    window.clearTimeout(announceTimer.current)
+    announceTimer.current = window.setTimeout(() => announce(`${edge} edge.`), ANNOUNCE_AFTER_MS)
+  }, [stopSweep, announce])
+
+  /** A move by key. Plays and announces the new cell like `moveTo`; if the cursor cannot move, it says which edge instead. */
+  const moveByKey = useCallback((col: number, row: number, edge: Edge) => {
+    if (!grid) return
+    const at = cursorRef.current
+    const target = { col: Math.min(grid.cols - 1, Math.max(0, col)), row: Math.min(grid.rows - 1, Math.max(0, row)) }
+    if (target.col === at.col && target.row === at.row) hitEdge(edge)
+    else moveTo(target.col, target.row)
+  }, [grid, moveTo, hitEdge])
+
   /** Plays a row west to east, or a column north to south, one cell at a time, then says what it passed over. */
   const sweep = useCallback((kind: Line) => {
     if (!engine || !grid) return
@@ -193,26 +212,30 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
 
   /** The keyboard. Every key handled here is also stopped from reaching the player's own shortcuts. */
   const onKeyDown = useCallback((event: KeyboardEvent) => {
-    if (event.ctrlKey || event.metaKey || event.altKey || !grid) return
+    if (event.ctrlKey || event.metaKey || event.altKey) return
+    if (!grid) {
+      if (MAP_KEYS.has(event.key)) event.preventDefault()
+      return
+    }
     const { col, row } = cursorRef.current
     const jump = event.shiftKey ? BIG_STEP : 1
     let handled = true
     switch (event.key) {
-      case 'ArrowLeft': moveTo(col - jump, row); break
-      case 'ArrowRight': moveTo(col + jump, row); break
-      case 'ArrowUp': moveTo(col, row - jump); break
-      case 'ArrowDown': moveTo(col, row + jump); break
-      case 'Home': moveTo(0, row); break
-      case 'End': moveTo(grid.cols - 1, row); break
-      case 'PageUp': moveTo(col, 0); break
-      case 'PageDown': moveTo(col, grid.rows - 1); break
+      case 'ArrowLeft': moveByKey(col - jump, row, 'West'); break
+      case 'ArrowRight': moveByKey(col + jump, row, 'East'); break
+      case 'ArrowUp': moveByKey(col, row - jump, 'North'); break
+      case 'ArrowDown': moveByKey(col, row + jump, 'South'); break
+      case 'Home': moveByKey(0, row, 'West'); break
+      case 'End': moveByKey(grid.cols - 1, row, 'East'); break
+      case 'PageUp': moveByKey(col, 0, 'North'); break
+      case 'PageDown': moveByKey(col, grid.rows - 1, 'South'); break
       case ' ': moveTo(col, row); break
       case 'Enter': sweep(event.shiftKey ? 'column' : 'row'); break
       case 'Escape': stopSound(); break
       default: handled = false
     }
     if (handled) event.preventDefault()
-  }, [grid, moveTo, sweep, stopSound])
+  }, [grid, moveByKey, moveTo, sweep, stopSound])
 
   /** The cell under a pointer, from its place on the surface (which covers just the map area). */
   const cellFromPointer = useCallback((event: PointerEvent<HTMLElement>): Cursor | null => {

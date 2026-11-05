@@ -245,6 +245,154 @@ describe('Explorer: the keyboard', () => {
   })
 })
 
+describe('Explorer: keys at the edges', () => {
+  const column = () => screen.getByRole('slider', { name: 'Column, west to east' }) as HTMLInputElement
+  const row = () => screen.getByRole('slider', { name: 'Row, north to south' }) as HTMLInputElement
+  const sounds = () => engine.playCategory.mock.calls.length + engine.playMissing.mock.calls.length
+  const place = () => [Number(column().value), Number(row().value)]
+
+  it('lands on the edge when a Shift jump would go past it', async () => {
+    const { user } = await exploring()
+    await user.keyboard('{Home}{ArrowRight}{ArrowRight}')
+    expect(column()).toHaveValue('2')
+    await user.keyboard('{Shift>}{ArrowLeft}{/Shift}')
+    expect(column()).toHaveValue('0')
+    await user.keyboard('{PageDown}{ArrowUp}')
+    expect(row()).toHaveValue(String(ROWS - 2))
+    await user.keyboard('{Shift>}{ArrowDown}{/Shift}')
+    expect(row()).toHaveValue(String(ROWS - 1))
+  })
+
+  const corners = [
+    { name: 'north-west', keys: '{Home}{PageUp}', col: 0, row: 0 },
+    { name: 'north-east', keys: '{End}{PageUp}', col: COLS - 1, row: 0 },
+    { name: 'south-west', keys: '{Home}{PageDown}', col: 0, row: ROWS - 1 },
+    { name: 'south-east', keys: '{End}{PageDown}', col: COLS - 1, row: ROWS - 1 },
+  ]
+  it.each(corners)('goes to the right place with Home, End, Page Up and Page Down from the $name corner', async ({ keys, col, row: r }) => {
+    const { user } = await exploring()
+    await user.keyboard(keys)
+    expect(place()).toEqual([col, r])
+    const results = { '{Home}': [0, r], '{End}': [COLS - 1, r], '{PageUp}': [col, 0], '{PageDown}': [col, ROWS - 1] } as const
+    for (const [key, expected] of Object.entries(results)) {
+      await user.keyboard(keys) // back to the corner
+      await user.keyboard(key)
+      expect(place()).toEqual(expected)
+    }
+  })
+
+  it.each([
+    { key: '{ArrowLeft}', start: '{Home}', word: 'West' },
+    { key: '{ArrowRight}', start: '{End}', word: 'East' },
+    { key: '{ArrowUp}', start: '{PageUp}', word: 'North' },
+    { key: '{ArrowDown}', start: '{PageDown}', word: 'South' },
+    { key: '{Home}', start: '{Home}', word: 'West' },
+    { key: '{End}', start: '{End}', word: 'East' },
+    { key: '{PageUp}', start: '{PageUp}', word: 'North' },
+    { key: '{PageDown}', start: '{PageDown}', word: 'South' },
+  ])('says "$word edge." after 400 ms, and plays nothing, when $key is pressed at the edge', async ({ key, start, word }) => {
+    const { user } = await exploring()
+    await user.keyboard(start)
+    await tick(500)
+    const played = sounds()
+    const before = liveText()
+    await user.keyboard(key)
+    expect(sounds()).toBe(played)
+    await tick(399)
+    expect(liveText()).toBe(before)
+    await tick(1)
+    expect(liveText()).toBe(`${word} edge.`)
+    await tick(1000)
+    expect(sounds()).toBe(played)
+  })
+
+  it('says the edge once for a held key, and does not play again', async () => {
+    const { user } = await exploring()
+    await user.keyboard('{Home}')
+    await tick(500)
+    const played = sounds()
+    await user.keyboard('{ArrowLeft}{ArrowLeft}{ArrowLeft}')
+    await tick(130)
+    await user.keyboard('{ArrowLeft}')
+    await tick(399)
+    expect(liveText()).not.toBe('West edge.')
+    await tick(1)
+    expect(liveText()).toBe('West edge.')
+    expect(sounds()).toBe(played)
+    expect(column()).toHaveValue('0')
+  })
+
+  it('says the cell, not an edge, when the move reached the edge', async () => {
+    const { user } = await exploring()
+    await user.keyboard('{Home}{ArrowRight}')
+    await tick(130)
+    await user.keyboard('{ArrowLeft}')
+    await tick(400)
+    expect(liveText()).toBe(describeCell(visualization, grid, 0, START.row))
+  })
+
+  it('still plays the cell again with Space at an edge', async () => {
+    const { user } = await exploring()
+    await user.keyboard('{Home}')
+    await tick(200)
+    await user.keyboard(' ')
+    expect(engine.playCategory).toHaveBeenCalledTimes(2)
+    await tick(400)
+    expect(liveText()).toBe(describeCell(visualization, grid, 0, START.row))
+  })
+
+  it('does nothing, and throws nothing, for keys pressed before the map has loaded', async () => {
+    analyzeGrid.mockImplementation(() => new Promise(() => {}))
+    const user = userEvent.setup({ delay: null })
+    render(<PlayerPage visualization={visualization} />)
+    await tick(0)
+    await user.click(screen.getByRole('button', { name: 'Explore the map' }))
+    expect(surface()).toHaveFocus()
+    await tick(1000)
+    const sequences = engine.playSequence.mock.calls.length
+    for (const key of ['{ArrowLeft}', '{ArrowDown}', '{Home}', '{End}', '{PageUp}', '{PageDown}', ' ', '{Enter}', '{Escape}']) {
+      await user.keyboard(key)
+    }
+    await tick(1000)
+    expect(sounds()).toBe(0)
+    expect(engine.playSequence.mock.calls.length).toBe(sequences)
+    expect(liveText()).toBe('')
+  })
+
+  it.each(['ctrlKey', 'altKey', 'metaKey'])('does not handle an arrow pressed with %s, so browser and player shortcuts still work', async modifier => {
+    await exploring()
+    const notStopped = fireEvent.keyDown(surface(), { key: 'ArrowRight', [modifier]: true })
+    expect(notStopped).toBe(true)
+    expect(sounds()).toBe(0)
+    expect(column()).toHaveValue(String(START.col))
+    await tick(1000)
+    expect(liveText()).toBe('')
+    // The same key without a modifier is handled and stopped.
+    expect(fireEvent.keyDown(surface(), { key: 'ArrowRight' })).toBe(false)
+  })
+
+  it('puts the cursor back in the middle when a new date has fewer rows than the cursor needs', async () => {
+    const small = (frameId: string): FrameGrid => ({ ...makeGrid(frameId), rows: 6, cells: makeGrid(frameId).cells.slice(0, COLS * 6) })
+    const { user } = await exploring()
+    await user.keyboard('{Home}{PageDown}{ArrowUp}')
+    expect(row()).toHaveValue(String(ROWS - 2))
+    analyzeGrid.mockImplementation(async (frame: { id: string }) => small(frame.id))
+    fireEvent.change(dateSlider(), { target: { value: '1' } })
+    await tick(0)
+    expect(row()).toHaveValue('3')
+    expect(row()).toHaveAttribute('max', '5')
+    expect(column()).toHaveValue(String(START.col))
+  })
+
+  it('keeps the cursor when a new date has a grid the cursor still fits in', async () => {
+    const { user } = await exploring()
+    await user.keyboard('{Home}{PageDown}')
+    fireEvent.change(dateSlider(), { target: { value: '1' } })
+    await tick(0)
+    expect(place()).toEqual([0, ROWS - 1])
+  })
+})
+
 describe('Explorer: sweeps', () => {
   it('sweeps the row from west to east on Enter: 24 steps, rising pan, no tick', async () => {
     const { user } = await exploring()
@@ -390,6 +538,19 @@ describe('Explorer: pointer and touch', () => {
     expect(liveText()).toBe('')
     fireEvent.pointerUp(surface(), { clientX: 175, clientY: 5, pointerId: 1 })
     expect(liveText()).toBe(describeCell(visualization, grid, 17, 0))
+  })
+
+  it('gives the last column and row for a pointer at the exact right and bottom edge, and the first for the top left', async () => {
+    await exploring()
+    sized()
+    fireEvent.pointerDown(surface(), { clientX: 240, clientY: 120, pointerId: 1 })
+    expect(screen.getByRole('slider', { name: 'Column, west to east' })).toHaveValue(String(COLS - 1))
+    expect(screen.getByRole('slider', { name: 'Row, north to south' })).toHaveValue(String(ROWS - 1))
+    fireEvent.pointerUp(surface(), { clientX: 240, clientY: 120, pointerId: 1 })
+    await tick(200)
+    fireEvent.pointerDown(surface(), { clientX: 0, clientY: 0, pointerId: 1 })
+    expect(screen.getByRole('slider', { name: 'Column, west to east' })).toHaveValue('0')
+    expect(screen.getByRole('slider', { name: 'Row, north to south' })).toHaveValue('0')
   })
 
   it('ignores a pointer that moves without being pressed', async () => {

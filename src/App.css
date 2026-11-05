@@ -92,9 +92,10 @@
     --bottom-nav-height: calc(64px + env(safe-area-inset-bottom));
   }
 
-  /* Keep a focused or scrolled-to control clear of the fixed bar instead of landing underneath it. */
+  /* Keep a focused or scrolled-to control clear of the fixed bar, and of the voice guide panel while it is open (VoiceAssistant.tsx
+     sets its height), instead of landing underneath them. */
   html {
-    scroll-padding-bottom: calc(var(--bottom-nav-height) + 16px);
+    scroll-padding-bottom: calc(var(--bottom-nav-height) + 16px + var(--voice-panel-space, 0px));
   }
 
   .app-header {
@@ -132,6 +133,7 @@
   }
 
   .app-main {
-    padding: 24px 16px calc(var(--bottom-nav-height) + 24px);
+    /* The voice guide panel floats over the end of the page, so the page gets room to scroll clear of it. */
+    padding: 24px 16px calc(var(--bottom-nav-height) + 24px + var(--voice-panel-space, 0px));
   }
 }

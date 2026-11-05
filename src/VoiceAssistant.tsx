@@ -22,9 +22,19 @@ export default function VoiceAssistant({ assistant, onClose }: { assistant: Assi
   const [draft, setDraft] = useState("");
   const log = useRef<HTMLOListElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
+  const panel = useRef<HTMLElement>(null);
   const active = status === "connecting" || status === "listening" || status === "speaking";
 
   useEffect(() => { title.current?.focus(); }, []);
+  // The panel floats over the page, so the page keeps a focused control clear of it (App.css reads --voice-panel-space on a phone: its height and 16 px of room).
+  useEffect(() => {
+    const root = document.documentElement;
+    const measure = () => { if (panel.current) root.style.setProperty("--voice-panel-space", `${panel.current.offsetHeight + 16}px`); };
+    measure();
+    const watch = typeof ResizeObserver === "undefined" || !panel.current ? undefined : new ResizeObserver(measure);
+    if (panel.current) watch?.observe(panel.current);
+    return () => { watch?.disconnect(); root.style.removeProperty("--voice-panel-space"); };
+  }, []);
   useEffect(() => { log.current?.scrollTo({ top: log.current.scrollHeight }); }, [transcript]);
 
   const statusText = {
@@ -41,7 +51,7 @@ export default function VoiceAssistant({ assistant, onClose }: { assistant: Assi
     if (assistant.sendText(draft)) setDraft("");
   }
 
-  return <section className="voice-assistant" role="region" aria-labelledby="voice-assistant-title">
+  return <section ref={panel} className="voice-assistant" role="region" aria-labelledby="voice-assistant-title">
     <header className="voice-assistant__header">
       <span className={`voice-assistant__orb voice-assistant__orb--${status}${micMuted ? " is-muted" : ""}`} aria-hidden="true"
         style={status === "listening" && !micMuted ? { boxShadow: `0 0 0 ${Math.round(Math.min(1, level * 4) * 10)}px var(--accent-bg)` } : undefined}><Icon name={status === "speaking" ? "volume" : "mic"} size={22} /></span>
