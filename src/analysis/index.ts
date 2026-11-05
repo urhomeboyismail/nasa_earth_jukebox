@@ -3,7 +3,7 @@
 // code runs on the main thread. Results are cached per frame and region.
 
 import type { CategoryId, ColorScale, Frame, MapArea, Region, SoundMapping } from '../data'
-import { analyzePixels } from './analyze'
+import { analyzePixels, GRID_COLS, gridFromPixels, gridRows } from './analyze'
 import { readPixels } from './pixels'
 import type { WorkerRequest, WorkerResponse } from './protocol'
 
@@ -24,7 +24,7 @@ export type GridCell = { value: number | null; category: CategoryId | 'insuffici
 /** The whole map read into a grid, for exploring it by ear (PLAN.md §5.6). Row-major; row 0 is the top (north). */
 export type FrameGrid = { frameId: string; cols: number; rows: number; area: MapArea; cells: GridCell[] }
 
-type Pending = { resolve: (result: FrameAnalysis) => void; reject: (error: Error) => void }
+type Pending = { resolve: (result: FrameAnalysis | FrameGrid) => void; reject: (error: Error) => void }
 
 let worker: Worker | null = null
 let nextId = 0
@@ -55,12 +55,15 @@ function getWorker(): Worker {
 
 const canUseWorker = () => typeof Worker !== 'undefined' && typeof OffscreenCanvas !== 'undefined'
 
-function runInWorker(request: Omit<WorkerRequest, 'id'>): Promise<FrameAnalysis> {
+/** What a request asks for, without the id the page adds when it sends it. */
+type Job = WorkerRequest extends infer R ? (R extends WorkerRequest ? Omit<R, 'id'> : never) : never
+
+function runInWorker<T extends FrameAnalysis | FrameGrid>(request: Job): Promise<T> {
   return new Promise((resolve, reject) => {
     const id = nextId++
-    pending.set(id, { resolve, reject })
+    pending.set(id, { resolve: result => resolve(result as T), reject })
     try {
-      getWorker().postMessage({ ...request, id } satisfies WorkerRequest)
+      getWorker().postMessage({ ...request, id } as WorkerRequest)
     } catch (error) {
       pending.delete(id)
       reject(error instanceof Error ? error : new Error(String(error)))
@@ -68,8 +71,12 @@ function runInWorker(request: Omit<WorkerRequest, 'id'>): Promise<FrameAnalysis>
   })
 }
 
-async function runOnMainThread({ url, frame, region, colorScale, mapping }: Omit<WorkerRequest, 'id'>): Promise<FrameAnalysis> {
-  return analyzePixels(await readPixels(url), frame, region, colorScale, mapping)
+async function runOnMainThread<T extends FrameAnalysis | FrameGrid>(request: Job): Promise<T> {
+  const pixels = await readPixels(request.url)
+  const { frame, colorScale, mapping } = request
+  return (request.kind === 'grid'
+    ? gridFromPixels(pixels, frame, colorScale, mapping, request.area)
+    : analyzePixels(pixels, frame, request.region, colorScale, mapping)) as T
 }
 
 const cache = new Map<string, Promise<FrameAnalysis>>()
@@ -80,8 +87,8 @@ export function analyzeFrame(frame: Frame, region: Region, colorScale: ColorScal
   const cached = cache.get(key)
   if (cached) return cached
 
-  const request = { url: new URL(frame.image, document.baseURI).href, frame, region, colorScale, mapping }
-  const result = canUseWorker() ? runInWorker(request) : runOnMainThread(request)
+  const request: Job = { kind: 'frame', url: new URL(frame.image, document.baseURI).href, frame, region, colorScale, mapping }
+  const result = canUseWorker() ? runInWorker<FrameAnalysis>(request) : runOnMainThread<FrameAnalysis>(request)
   cache.set(key, result)
   // A failure is not cached, so a retry can succeed.
   result.catch(() => cache.delete(key))
@@ -92,27 +99,21 @@ export function analyzeAll(frames: Frame[], region: Region, colorScale: ColorSca
   return Promise.all(frames.map(frame => analyzeFrame(frame, region, colorScale, mapping)))
 }
 
-const STUB_COLS = 24
-const STUB_ROWS = 12
+const gridCache = new Map<string, Promise<FrameGrid>>()
 
 /**
- * The map of one frame as a grid. This is a stub (T64) so the explorer can be built against it: it ignores the pixels and
- * runs from the coolest category in the west to the warmest in the east, with the last two columns without data.
- * T65 replaces it behind the same signature. `area` defaults to the whole image.
+ * The whole map of one frame, read into a grid for exploring it by ear (PLAN.md §5.6). It reads pixels the same way
+ * `analyzeFrame` does, so a cell and a region never disagree. `area` defaults to the whole image.
  */
-export function analyzeGrid(frame: Frame, _colorScale: ColorScale, mapping: SoundMapping, area: MapArea = { x0: 0, y0: 0, x1: 1, y1: 1 }): Promise<FrameGrid> {
-  const { categories } = mapping
-  const readable = STUB_COLS - 2
-  const cells: GridCell[] = []
-  for (let row = 0; row < STUB_ROWS; row++) {
-    for (let col = 0; col < STUB_COLS; col++) {
-      if (col >= readable) {
-        cells.push({ value: null, category: 'insufficient' })
-        continue
-      }
-      const category = categories[Math.min(categories.length - 1, Math.floor((col / readable) * categories.length))]
-      cells.push({ value: (category.range[0] + category.range[1]) / 2, category: category.id })
-    }
-  }
-  return Promise.resolve({ frameId: frame.id, cols: STUB_COLS, rows: STUB_ROWS, area, cells })
+export function analyzeGrid(frame: Frame, colorScale: ColorScale, mapping: SoundMapping, area?: MapArea): Promise<FrameGrid> {
+  const read = area ?? { x0: 0, y0: 0, x1: 1, y1: 1 }
+  const key = `${frame.id}|${frame.image}|${read.x0},${read.y0},${read.x1},${read.y1}|${GRID_COLS}×${gridRows(frame.width, frame.height, read)}`
+  const cached = gridCache.get(key)
+  if (cached) return cached
+
+  const request: Job = { kind: 'grid', url: new URL(frame.image, document.baseURI).href, frame, colorScale, mapping, area: read }
+  const result = canUseWorker() ? runInWorker<FrameGrid>(request) : runOnMainThread<FrameGrid>(request)
+  gridCache.set(key, result)
+  result.catch(() => gridCache.delete(key))
+  return result
 }
