@@ -67,7 +67,7 @@ Each person owns these folders. Only edit files your ticket lists; for anything 
 | Path | Contents | Owner |
 |---|---|---|
 | `src/data/types.ts`, `src/analysis/`, `src/audio/` (except `pan.ts`), `src/config.ts`, `server/app/study/` | Shared types, frame analysis, sound engine, study API | Team leader |
-| `src/App.tsx`, `src/pages.ts`, `src/features/player/`, `src/features/compare/` | Shell, Listen, Compare, test mode | Mohammad |
+| `src/App.tsx`, `src/pages.ts`, `src/features/player/`, `src/features/explore/`, `src/features/compare/` | Shell, Listen, sound-map explorer, Compare, test mode | Mohammad |
 | `src/assistant/`, `src/hooks/useVoiceAssistant.ts`, `server/app/assistant/`, `server/app/api/` | Voice guide | Mohammad |
 | `src/audio/pan.ts`, `.github/`, `render.yaml`, `vercel.json`, root `README.md` | Panning, CI, deployment, submission README | Bhavish |
 | `src/data/` (except `types.ts`), `scripts/` (data scripts), `public/data/` | Schema checks, synthetic and NASA data | Dhruv |

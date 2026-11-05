@@ -5,6 +5,8 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { analyzeAll, type FrameAnalysis } from '../../analysis'
 import { createSoundEngine, type SoundEngine } from '../../audio'
+import { useSoundStyle } from '../../audio/style'
+import { voicingFor } from '../../audio/voicing'
 import { Button, Card, Notice } from '../../components'
 import type { Comparison, Visualization } from '../../data'
 import { dateFormatterFor } from '../../dates'
@@ -64,6 +66,8 @@ export default function TestMode({ visualization, client: given }: { visualizati
       .catch((error: unknown) => { if (!cancelled) setAnalysisError(error instanceof Error ? error.message : String(error)) })
     return () => { cancelled = true }
   }, [frames, regions, colorScale, mapping])
+  const [soundStyle] = useSoundStyle()
+  useEffect(() => { engine?.setStyle(soundStyle) }, [engine, soundStyle])
   useEffect(() => () => engine?.stop(), [engine])
 
   // Move focus to each step's heading, but not on first load, so screen reader users know a new step began.
@@ -192,7 +196,12 @@ function Question({ comparison, number, of, visualization, engine, results, show
     await engine.unlock()
     engine.stop()
     if (result.category === 'insufficient') engine.playMissing()
-    else engine.playCategory(result.category)
+    else {
+      // The chord, without the slide or bell: the two dates are not neighbours in a run.
+      const pad = voicingFor(results!, results!.indexOf(result), visualization.mapping).pad
+      if (pad) engine.playCategory(result.category, { pad })
+      else engine.playCategory(result.category)
+    }
   }
 
   function submit(event: FormEvent) {

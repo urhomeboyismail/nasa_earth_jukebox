@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { analyzeAll, type FrameAnalysis } from '../../analysis'
 import { createSoundEngine, type SoundEngine } from '../../audio'
+import { useSoundStyle } from '../../audio/style'
+import { voicingFor } from '../../audio/voicing'
 import { useAssistantContext } from '../../assistant/context'
 import { AnnouncerProvider, Button, Card, Notice } from '../../components'
 import { useAnnounce } from '../../components/useAnnounce'
@@ -68,6 +70,9 @@ function Compare({ visualization }: { visualization: Visualization }) {
     return () => { cancelled = true }
   }, [frames, regions, colorScale, mapping])
 
+  const [soundStyle] = useSoundStyle()
+  useEffect(() => { engine?.setStyle(soundStyle) }, [engine, soundStyle])
+
   // Silence the sounds when leaving the page.
   useEffect(() => () => engine?.stop(), [engine])
 
@@ -118,7 +123,12 @@ function Compare({ visualization }: { visualization: Visualization }) {
       await engine.unlock()
       engine.stop()
       if (result.category === 'insufficient') engine.playMissing()
-      else engine.playCategory(result.category)
+      else {
+        // The chord, without the slide or bell: the two dates are not neighbours in a run.
+        const pad = voicingFor(results!, results!.indexOf(result), mapping).pad
+        if (pad) engine.playCategory(result.category, { pad })
+        else engine.playCategory(result.category)
+      }
       setPlayError('')
       announce(`Played date ${which}.`)
     } catch (error) {

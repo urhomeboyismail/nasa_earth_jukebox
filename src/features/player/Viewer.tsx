@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { Frame, Region, Visualization } from '../../data'
 
 type Props = {
@@ -6,10 +7,12 @@ type Props = {
   dateText: string
   region: Region
   source: Visualization['source']
+  /** Drawn over the image, for example the sound-map explorer. */
+  children?: ReactNode
 }
 
 /** The frame image with its region outline, the date written out, the frame's note and the source credit. */
-export function Viewer({ frame, dateText, region, source }: Props) {
+export function Viewer({ frame, dateText, region, source, children }: Props) {
   const { width, height } = frame
   const xs = region.points.map(p => p.x * width)
   const ys = region.points.map(p => p.y * height)
@@ -27,6 +30,7 @@ export function Viewer({ frame, dateText, region, source }: Props) {
           {box && <rect x={box.x - pad} y={box.y - pad} width={box.w + pad * 2} height={box.h + pad * 2} rx={pad} />}
           {region.points.map((p, i) => <circle key={i} cx={p.x * width} cy={p.y * height} r={pad / 3} />)}
         </svg>
+        {children}
       </div>
       <figcaption>
         <strong className="player__date">{dateText}</strong>

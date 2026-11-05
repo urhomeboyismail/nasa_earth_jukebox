@@ -1,8 +1,9 @@
-import type { KeyboardEvent } from 'react'
+import { useEffect, type KeyboardEvent } from 'react'
 import { useAssistantContext } from '../../assistant/context'
 import { AnnouncerProvider, Button, Legend, Notice, Slider } from '../../components'
 import type { Visualization } from '../../data'
 import { Description } from '../../describe/Description'
+import { ExplorerPanel, ExplorerSurface, useExplorer } from '../explore/Explorer'
 import type { PageProps } from '../types'
 import './player.css'
 import { usePlayer, type Speed } from './usePlayer'
@@ -42,6 +43,20 @@ function Player({ visualization }: { visualization: Visualization }) {
   const { frames, source } = visualization
   const frame = frames[player.index]
   const playing = player.status === 'playing'
+  const explorer = useExplorer({ visualization, frame, engine: player.engine, vibrate: vibration.enabled })
+
+  // Playing the dates takes the sound back from the explorer.
+  const { on: exploring, turnOff: stopExploring } = explorer
+  useEffect(() => { if (playing && exploring) stopExploring() }, [playing, exploring, stopExploring])
+
+  function toggleExplorer() {
+    if (exploring) {
+      explorer.turnOff()
+    } else {
+      player.halt()
+      explorer.turnOn()
+    }
+  }
 
   useAssistantContext(
     'player',
@@ -73,7 +88,10 @@ function Player({ visualization }: { visualization: Visualization }) {
 
   return (
     <section className="player" aria-label="Player" onKeyDown={onKeyDown}>
-      <Viewer frame={frame} dateText={player.formatDate(frame.date)} region={player.region} source={source} />
+      <Viewer frame={frame} dateText={player.formatDate(frame.date)} region={player.region} source={source}>
+        <ExplorerSurface explorer={explorer} />
+      </Viewer>
+      <ExplorerPanel visualization={visualization} explorer={explorer} />
 
       {player.results && <Description visualization={visualization} results={player.results} index={player.index} />}
 
@@ -84,6 +102,7 @@ function Player({ visualization }: { visualization: Visualization }) {
 
       {player.error && <Notice variant="error">The sounds could not be prepared. {player.error}</Notice>}
       {player.loading && <Notice>Analyzing the images…</Notice>}
+      {player.downloadError && <Notice variant="error">The audio could not be prepared. {player.downloadError}</Notice>}
       {player.finished && <Notice>That is the last date. Press Play to hear it again.</Notice>}
 
       <div className="player__controls" role="group" aria-label="Playback">
@@ -92,6 +111,7 @@ function Player({ visualization }: { visualization: Visualization }) {
         </Button>
         <Button disabled={!player.ready} onClick={player.stop}>Stop</Button>
         <Button disabled={!player.ready} onClick={player.replay}>Replay this date</Button>
+        <Button disabled={!player.ready || !visualization.mapping} pressed={exploring} onClick={toggleExplorer}>Explore the map</Button>
       </div>
 
       <div className="player__slider">
@@ -121,6 +141,16 @@ function Player({ visualization }: { visualization: Visualization }) {
           onChange={value => player.setVolume(value / 100)}
           describe={value => `${value} percent`}
         />
+      </div>
+
+      <div className="player__sound">
+        <Button pressed={player.style === 'simple'} onClick={() => player.setStyle(player.style === 'simple' ? 'full' : 'simple')}>
+          Simple sound
+        </Button>
+        <span>Just the main note, without the chord and slides.</span>
+        <Button disabled={!player.ready || player.downloading} onClick={() => void player.download()}>
+          {player.downloading ? 'Preparing the audio…' : 'Download this soundscape (WAV)'}
+        </Button>
       </div>
 
       {vibration.supported && (

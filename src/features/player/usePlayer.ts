@@ -3,7 +3,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { analyzeAll, type FrameAnalysis } from '../../analysis'
-import { createSoundEngine, type SoundEngine } from '../../audio'
+import { createSoundEngine, type SequenceStep, type SoundEngine } from '../../audio'
+import { panFor } from '../../audio/pan'
+import { useSoundStyle } from '../../audio/style'
+import { voicingFor } from '../../audio/voicing'
 import { useAnnounce } from '../../components/useAnnounce'
 import type { Visualization } from '../../data'
 import { dateFormatterFor } from '../../dates'
@@ -29,6 +32,9 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
   const [speed, setSpeedState] = useState<Speed>('normal')
   const [volume, setVolumeState] = useState(0.8)
   const [finished, setFinished] = useState(false)
+  const [style, setStyle] = useSoundStyle()
+  const [downloading, setDownloading] = useState(false)
+  const [downloadError, setDownloadError] = useState('')
 
   const { engine, engineError } = useMemo((): { engine: SoundEngine | null; engineError: string } => {
     try {
@@ -37,6 +43,9 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
       return { engine: null, engineError: error instanceof Error ? error.message : String(error) }
     }
   }, [mapping])
+
+  // The sound style (full or simple) is set on the engine whenever it or the style changes.
+  useEffect(() => { engine?.setStyle(style) }, [engine, style])
 
   // Analyze every frame once, when the page opens. The page remounts for another visualization, so nothing is stale.
   useEffect(() => {
@@ -85,6 +94,15 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
 
   const ready = !!engine && !!results && results.length === frames.length
 
+  /** One step per date from `from` to `to`: its category, where the region sits (stereo pan) and the chord, slide and bell. */
+  const stepsFor = useCallback((from: number, to: number, stepMs: number): SequenceStep[] => {
+    if (!results) return []
+    const pan = panFor(region)
+    return frames.slice(from, to + 1).map((_, k) => ({
+      category: results[from + k].category, atMs: k * stepMs, pan, ...voicingFor(results, from + k, mapping),
+    }))
+  }, [results, frames, region, mapping])
+
   /** Plays dates from `from` to the end. Needs a click or key press, which is where every caller comes from. */
   const startFrom = useCallback(async (from: number, speedNow: Speed) => {
     if (!engine || !results) return
@@ -95,7 +113,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     engine.setVolume(volumeRef.current)
     engine.stop()
     const stepMs = STEP_MS[speedNow]
-    const steps = frames.slice(from).map((_, k) => ({ category: results[from + k].category, atMs: k * stepMs }))
+    const steps = stepsFor(from, frames.length - 1, stepMs)
     setFinished(false)
     setStatus('playing')
     engine.playSequence(steps, k => {
@@ -111,7 +129,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
         }, stepMs)
       }
     })
-  }, [engine, results, frames, speak, cancelRun])
+  }, [engine, results, frames, stepsFor, speak, cancelRun])
 
   /** Sounds one date on its own and leaves the player stopped there. */
   const playOne = useCallback(async (i: number, force = false) => {
@@ -126,8 +144,10 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     setIndex(i)
     speak(i, force)
     onDateRef.current?.(i, results[i].category)
-    engine.playSequence([{ category: results[i].category, atMs: 0 }], () => {})
-  }, [engine, results, speak, cancelRun])
+    // Alone, a date has no earlier note to slide from or to jump from, so it gets the chord only.
+    const { pad } = voicingFor(results, i, mapping)
+    engine.playSequence([{ category: results[i].category, atMs: 0, pan: panFor(region), ...(pad && { pad }) }], () => {})
+  }, [engine, results, region, mapping, speak, cancelRun])
 
   const play = useCallback(() => {
     if (!ready) return
@@ -170,6 +190,36 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     }
   }, [ready, frames.length, status, speed, startFrom, playOne, speak])
 
+  /** Stops the sound and any run but stays on the same date, for the sound-map explorer to take over. */
+  const halt = useCallback(() => {
+    cancelRun()
+    engine?.stop()
+    setStatus('idle')
+  }, [engine, cancelRun])
+
+  /** Saves the whole soundscape at the current speed as a WAV file. */
+  const download = useCallback(async () => {
+    if (!engine || !results) return
+    setDownloading(true)
+    setDownloadError('')
+    try {
+      const blob = await engine.renderToWav(stepsFor(0, frames.length - 1, STEP_MS[speed]))
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `earth-jukebox-${visualization.id}-${region.id}.wav`
+      document.body.append(link)
+      link.click()
+      link.remove()
+      // Some browsers cancel the save if the address goes away at once.
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+    } catch (error) {
+      setDownloadError(error instanceof Error ? error.message : String(error))
+    } finally {
+      setDownloading(false)
+    }
+  }, [engine, results, stepsFor, frames.length, speed, visualization.id, region.id])
+
   const setSpeed = useCallback((next: Speed) => {
     setSpeedState(next)
     if (status === 'playing') void startFrom(index, next)
@@ -199,10 +249,10 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
   }), [frames])
 
   return {
-    region, results, index, status, speed, volume, finished, ready,
+    engine, region, results, index, status, speed, volume, finished, ready, style, setStyle, downloading, downloadError,
     error: engineError || analysisError,
     loading: !engineError && !analysisError && !results,
-    play, pause, stop, replay, goTo, setSpeed, setVolume,
+    play, pause, stop, replay, goTo, halt, download, setSpeed, setVolume,
     describeDate, formatDate,
     categoryAt: (i: number) => results?.[i]?.category ?? null,
   }
