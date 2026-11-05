@@ -270,15 +270,15 @@ F18 to F25 are part B of the tickets in `docs/TICKETS.md` (or T84). Part B start
 
 ## 7. Workstreams
 
-Open tickets are in [`docs/TICKETS.md`](TICKETS.md). The per-person files in [`docs/tickets/`](tickets/README.md) record the earlier tickets, now built. In short:
+Tickets are in [`docs/TICKETS.md`](TICKETS.md): one file, listing only the work not yet built. Who owns what now:
 
-| Person | Load | Covers |
+| Person | Load | Tickets |
 |---|---|---|
-| Team leader | Heavy | T00 shared interfaces; frame analysis (F3); sound engine (F4, ducking for F12, F14); study API (F11 server); re-plan; demo |
-| Mohammad | Heavy | Page links; player (F2, F5, F10); Compare (F7, F10); test mode UI (F11); voice playback tools (F12) |
-| Bhavish | Light | Stereo panning values (F13); CI; deployment; results summary; submission README |
-| Dhruv | Medium | Schema checks (F1); synthetic frames; NASA research, conversion and check; real comparisons |
-| Roni | Medium | Test helpers and shared UI (F9); Learn (F6); About (F8); accessibility audit; testers; integration checks; vibration (F15) |
+| Team leader | Heavy | T80 musical engine and WAV rendering; T85 analysis changes; T87 creative process, re-plan, demo |
+| Mohammad | Heavy | T81 sound-map explorer and player wiring; T86 voice guide on ADK (Could) |
+| Bhavish | Light | T83 story mode; T84 3D audio; T87 playlist release and submission README |
+| Dhruv | Medium | T85 real NASA data and speed test; T87 playlist tracks |
+| Roni | Medium | T82 Learn cards and description detail; T87 testers, practice test, final check |
 
 ## 8. Milestones
 
@@ -316,7 +316,7 @@ Correctness checks that must always pass:
 - Stay inside your workstream's folders (§4). If you need an interface in §5 changed, raise it with the other owner first. Don't change it silently.
 - Don't reformat or refactor code outside your ticket.
 - Never paste API keys into prompts or code; use `server/.env`.
-- Keep a short note of AI-tool use for the submission's AI disclosure (Bhavish collects these for T24).
+- Keep a short note of AI-tool use for the submission's AI disclosure (Bhavish collects these for the README in T87).
 
 ## 11. Risks
 

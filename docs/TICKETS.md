@@ -1,6 +1,6 @@
 # Tickets: the work left in the plan
 
-Written 5 Nov 2026 from [`docs/PLAN.md`](PLAN.md). This file replaces `docs/tickets/ticket.md`. It lists only work that is **not built yet**, checked against the code on `main` (`4b3ea13`). Where this file and the plan disagree, fix the plan first.
+Written 5 Nov 2026 from [`docs/PLAN.md`](PLAN.md). It replaces the old `docs/tickets/` folder, so it is the only ticket list. It lists only work that is **not built yet**, checked against the code on `main` (`4b3ea13`). Where this file and the plan disagree, fix the plan first.
 
 Hand a ticket to your own AI like this:
 
