@@ -4,7 +4,7 @@
 `GEMINI_API_KEY`, which the machine this was run on did not have. Everything that could be measured without one is below.
 Per the ticket, the build (steps 2 and 3) has **not** been started.
 
-Run on Python 3.12.13 (Render uses 3.12.7), `google-adk` **2.13.0** with `google-genai` 2.34.0 (the version the server uses
+Run on Python 3.12.3 (Render uses 3.12.7), `google-adk` **2.13.0** with `google-genai` 2.34.0 (the version the server uses
 already). Nothing in `server/` was changed.
 
 ## Answers
