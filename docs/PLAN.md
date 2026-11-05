@@ -118,20 +118,21 @@ Rules: no-data and unmatched colors are left out, never guessed. If fewer than `
 ```ts
 SoundEngine {
   unlock(): Promise<void>            // call from a click or key press
-  playCategory(id: CategoryId, opts?: { pan?: number; durationMs?: number; pad?: CategoryId[] }): void
+  playCategory(id: CategoryId, opts?: { pan?: number; elevation?: number; durationMs?: number; pad?: CategoryId[] }): void
   playTick(): void
   playMissing(): void
   playSequence(steps: SequenceStep[], onStep: (index: number) => void, opts?: { tick?: boolean }): void
   setStyle(style: "full" | "simple"): void   // see 5.7
+  setSpatial(mode: "stereo" | "3d"): void    // F20; "3d" is an HRTF panner for headphones
   setVolume(zeroToOne: number): void
   pause(): void; resume(): void; stop(): void
   isPlaying(): boolean
   renderToWav(steps: ...): Promise<Blob>   // should-have (F14)
 }
-SequenceStep { category: CategoryId | "insufficient"; atMs: number; pan?: number
+SequenceStep { category: CategoryId | "insufficient"; atMs: number; pan?: number; elevation?: number
                pad?: CategoryId[]; glide?: boolean; bell?: boolean }   // the last three are the musical layer, see 5.7
 ```
-`pan` runs from -1 (west) to +1 (east). A tick follows each sound unless `opts.tick` is `false`; sweeping across a map is not a run of dates, so it passes `tick: false`.
+`pan` runs from -1 (west) to +1 (east). `elevation` runs from -1 (south) to +1 (north) and is heard only in 3D mode, as height, never as pitch. A tick follows each sound unless `opts.tick` is `false`; sweeping across a map is not a run of dates, so it passes `tick: false`.
 
 ### 5.4 Voice guide screen context and playback commands (Mohammad)
 
@@ -226,7 +227,7 @@ Descriptions come from rules, never from a language model: the same data always 
 | F17 | Background drone from the whole-frame average | Could | Team leader |
 | F18 | Texture and density: edge density per grid cell sets rhythm (see 6.1) | Should | Team leader |
 | F19 | Persona narration: concise or rich descriptions; optional ADK rewording | Should (ADK: Could) | Roni + Mohammad |
-| F20 | 3D spatial audio: HRTF panning, elevation as pitch | Could | Bhavish |
+| F20 | 3D spatial audio: HRTF panning, elevation as height in space (never pitch) | Could | Bhavish |
 | F21 | Anomaly haptics on touch devices (extends F15) | Could | Roni |
 | F22 | Organic sound textures (a third sound style) | Could | Team leader |
 | F23 | Time-travel scrubbing: lock one cell, scrub the dates | Should | Mohammad |
@@ -249,7 +250,7 @@ The Jukebox is described as four cooperating roles. They are **roles, not separa
 **How each feature fits the plan:**
 
 - **F18 Texture.** Adds `texture?: number` (0 to 1) to `GridCell` and a `rhythmFor(cell)` rule next to `voicingFor`. Same input, same rhythm. Canny and OpenCV.js are not adopted; Sobel on the data we already read gives the same signal with no new package.
-- **F20 3D audio.** Extends F13: `pan.ts` gains HRTF placement (`PannerNode`) and elevation, where north is a higher pitch. Stereo panning stays the fallback for speakers.
+- **F20 3D audio.** Extends F13: `pan.ts` gains HRTF placement (`PannerNode`) and an `elevation`, where north sounds above the listener and south below. Elevation is a place in space, not a pitch: pitch already means "warmer", the main cue, so a higher-pitched north would make a cool northern cell sound like a warm southern one. Stereo panning stays the default and the fallback for speakers; 3D is a toggle for headphones, off by default.
 - **F21 Haptics.** `navigator.vibrate` where it exists, a stronger pulse when a cell jumps two or more categories. Always paired with a sound, never the only cue.
 - **F22 Organic textures.** Adds `"organic"` to `SoundStyle` (5.7). This is an interface change: it needs agreement from everyone who uses `SoundStyle` before it merges. Timbres: crackle for the warmest category, a water sweep for the coolest.
 - **F23 Time travel.** In the sound map, a key locks the current cell and the date slider then plays that one cell across all dates. The root pitch stays fixed and the voicing follows the data, so a rising value is heard as harmony moving from calm to tense. The dates are those in the catalog: synthetic until 13 Nov, then whatever span the real data has. A 1980 to 2026 span is a goal, not a promise.

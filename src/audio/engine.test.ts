@@ -74,8 +74,9 @@ vi.mock('tone', () => ({
   now: () => 0,
   getTransport: () => mocks.transport,
   getDraw: () => mocks.draw,
-  Gain: mocks.make('Gain', [], ['gain']),
-  Panner: mocks.make('Panner', [], ['pan']),
+  Gain: mocks.make('Gain', ['disconnect'], ['gain']),
+  Panner: mocks.make('Panner', ['dispose'], ['pan']),
+  Panner3D: mocks.make('Panner3D', ['dispose'], ['positionX', 'positionY', 'positionZ']),
   Filter: mocks.make('Filter'),
   Synth: mocks.make('Synth', ['triggerAttackRelease', 'triggerRelease', 'set']),
   PolySynth: mocks.make('PolySynth', ['triggerAttackRelease', 'releaseAll']),
@@ -568,5 +569,61 @@ describe('renderToWav', () => {
   it('rejects an empty sequence with a readable message', async () => {
     const engine = await unlocked()
     await expect(engine.renderToWav([])).rejects.toThrow(/nothing to download/)
+  })
+})
+
+describe('3D sound', () => {
+  const panner3d = () => mocks.nodes.Panner3D?.[0] as { options: { panningModel: string }; positionX: { value: number }; positionY: { value: number } }
+
+  it("starts in stereo: a stereo panner and no HRTF panner, and elevation is ignored", async () => {
+    const engine = await unlocked()
+    expect(mocks.nodes.Panner).toHaveLength(1)
+    expect(mocks.nodes.Panner3D).toBeUndefined()
+    engine.playCategory('warm', { pan: 0.4, elevation: 1 })
+    expect((mocks.nodes.Panner[0] as { pan: { value: number } }).pan.value).toBe(0.4)
+  })
+
+  it("setSpatial('3d') replaces the stereo panner with an HRTF one, and back again, while the voices stay the same", async () => {
+    const engine = await unlocked()
+    const voicesBefore = mocks.nodes.Synth.length
+    engine.setSpatial('3d')
+    expect(panner3d().options.panningModel).toBe('HRTF')
+    expect(mocks.calls.some(c => c.node === 'Panner' && c.method === 'dispose')).toBe(true)
+    engine.setSpatial('stereo')
+    expect(mocks.nodes.Panner).toHaveLength(2)
+    expect(mocks.calls.some(c => c.node === 'Panner3D' && c.method === 'dispose')).toBe(true)
+    expect(mocks.nodes.Synth).toHaveLength(voicesBefore)
+  })
+
+  it('sets the place from pan and elevation in 3D: north is up, and the pitch is the same as in stereo', async () => {
+    const engine = await unlocked()
+    engine.setSpatial('3d')
+    engine.playCategory('warm', { pan: 1, elevation: 1 })
+    const note3d = playedNotes()[0]
+    expect(panner3d().positionX.value).toBeGreaterThan(0.5)
+    expect(panner3d().positionY.value).toBeGreaterThan(0.5)
+    engine.playCategory('warm', { pan: -1, elevation: -1 })
+    expect(panner3d().positionX.value).toBeLessThan(-0.5)
+    expect(panner3d().positionY.value).toBeLessThan(-0.5)
+    expect(playedNotes()[1]).toBe(note3d)
+  })
+
+  it('is set before unlock() too, and in a step the place is set at the step time', async () => {
+    const engine = createSoundEngine(mapping)
+    engine.setSpatial('3d')
+    await engine.unlock()
+    expect(panner3d().options.panningModel).toBe('HRTF')
+    engine.playSequence([{ category: 'warm', atMs: 0, pan: -1, elevation: 1 }], vi.fn())
+    mocks.transport.advance(0.1)
+    const set = mocks.calls.find(c => c.node === 'Panner3D' && c.method === 'positionY.setValueAtTime')
+    expect(set?.args[0]).toBeGreaterThan(0.5)
+  })
+
+  it('renders with the current mode', async () => {
+    const engine = await unlocked()
+    engine.setSpatial('3d')
+    mocks.calls.length = 0
+    await engine.renderToWav([{ category: 'warm', atMs: 0, pan: 1, elevation: 1 }])
+    expect(mocks.calls.filter(c => c.node === 'Panner3D' && c.method === 'new')).toHaveLength(1)
   })
 })

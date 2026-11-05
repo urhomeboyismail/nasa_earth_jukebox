@@ -5,7 +5,7 @@ import fixture from '../../../public/data/fixture/manifest.json'
 import { subscribeContext, type ContextUpdate } from '../../assistant/context'
 import type { Visualization } from '../../data'
 import { expectNoA11yViolations } from '../../test/a11y'
-import { panFor } from '../../audio/pan'
+import { elevationFor, panFor } from '../../audio/pan'
 import { sendPlayerCommand } from './controls'
 import PlayerPage from '.'
 
@@ -31,6 +31,7 @@ const fake = vi.hoisted(() => {
     unlock: async () => {},
     setVolume: (_v: number) => {},
     setStyle: vi.fn((_style: string) => {}),
+    setSpatial: vi.fn((_mode: string) => {}),
     renderToWav: vi.fn(async (_steps: unknown[]): Promise<Blob> => new Blob(['wav'])),
     playSequence(steps: Step[], onStep: (i: number) => void) {
       engine.sequences.push(steps)
@@ -520,6 +521,30 @@ describe('Player: sound', () => {
     expect(toggle).toHaveAttribute('aria-pressed', 'true')
     await user.click(toggle)
     expect(fake.setStyle).toHaveBeenLastCalledWith('full')
+  })
+
+  it('puts the region in space: each step carries a height, north above and south below', async () => {
+    const { user } = await renderReady()
+    await user.click(screen.getByRole('button', { name: 'Play' }))
+    await tick(0)
+    const elevation = elevationFor(visualization.regions[0])
+    fake.sequences[0].forEach(step => expect(step).toMatchObject({ elevation }))
+  })
+
+  it('has stereo sound to begin with, and switches to 3D with its toggle, which is remembered', async () => {
+    window.localStorage.removeItem('earth-jukebox:spatial-mode')
+    const { user } = await renderReady()
+    expect(fake.setSpatial).toHaveBeenLastCalledWith('stereo')
+    const toggle = screen.getByRole('button', { name: '3D sound (headphones)' })
+    expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByText(/Use headphones/)).toBeInTheDocument()
+    await user.click(toggle)
+    expect(fake.setSpatial).toHaveBeenLastCalledWith('3d')
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    expect(window.localStorage.getItem('earth-jukebox:spatial-mode')).toBe('3d')
+    await user.click(toggle)
+    expect(fake.setSpatial).toHaveBeenLastCalledWith('stereo')
+    window.localStorage.clear()
   })
 })
 

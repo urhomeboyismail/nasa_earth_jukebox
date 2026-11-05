@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { analyzeAll, type FrameAnalysis } from '../../analysis'
 import { createSoundEngine, type SequenceStep, type SoundEngine } from '../../audio'
-import { panFor } from '../../audio/pan'
+import { elevationFor, panFor, useSpatialMode } from '../../audio/pan'
 import { useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
 import { useAnnounce } from '../../components/useAnnounce'
@@ -33,6 +33,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
   const [volume, setVolumeState] = useState(0.8)
   const [finished, setFinished] = useState(false)
   const [style, setStyle] = useSoundStyle()
+  const [spatial, setSpatial] = useSpatialMode()
   const [downloading, setDownloading] = useState(false)
   const [downloadError, setDownloadError] = useState('')
 
@@ -46,6 +47,8 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
 
   // The sound style (full or simple) is set on the engine whenever it or the style changes.
   useEffect(() => { engine?.setStyle(style) }, [engine, style])
+  // Likewise stereo or 3D sound.
+  useEffect(() => { engine?.setSpatial(spatial) }, [engine, spatial])
 
   // Analyze every frame once, when the page opens. The page remounts for another visualization, so nothing is stale.
   useEffect(() => {
@@ -98,8 +101,9 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
   const stepsFor = useCallback((from: number, to: number, stepMs: number): SequenceStep[] => {
     if (!results) return []
     const pan = panFor(region)
+    const elevation = elevationFor(region)
     return frames.slice(from, to + 1).map((_, k) => ({
-      category: results[from + k].category, atMs: k * stepMs, pan, ...voicingFor(results, from + k, mapping),
+      category: results[from + k].category, atMs: k * stepMs, pan, elevation, ...voicingFor(results, from + k, mapping),
     }))
   }, [results, frames, region, mapping])
 
@@ -152,7 +156,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     onDateRef.current?.(i, results[i].category)
     // Alone, a date has no earlier note to slide from or to jump from, so it gets the chord only.
     const { pad } = voicingFor(results, i, mapping)
-    engine.playSequence([{ category: results[i].category, atMs: 0, pan: panFor(region), ...(pad && { pad }) }], () => {})
+    engine.playSequence([{ category: results[i].category, atMs: 0, pan: panFor(region), elevation: elevationFor(region), ...(pad && { pad }) }], () => {})
   }, [engine, results, region, mapping, speak, cancelRun])
 
   const play = useCallback(() => {
@@ -260,7 +264,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
   }), [frames])
 
   return {
-    engine, region, results, index, status, speed, volume, finished, ready, style, setStyle, downloading, downloadError,
+    engine, region, results, index, status, speed, volume, finished, ready, style, setStyle, spatial, setSpatial, downloading, downloadError,
     error: engineError || analysisError,
     loading: !engineError && !analysisError && !results,
     play, pause, stop, replay, goTo, halt, playRange, download, setSpeed, setVolume,

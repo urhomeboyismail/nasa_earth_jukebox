@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { analyzeGrid, type FrameGrid } from '../../analysis'
 import type { SequenceStep, SoundEngine } from '../../audio'
-import { panForPoint } from '../../audio/pan'
+import { elevationForPoint, panForPoint } from '../../audio/pan'
 import { Button, Notice, Slider, useAnnounce } from '../../components'
 import type { Frame, MapArea, Visualization } from '../../data'
 import { describeCell, describeSweep } from '../../describe'
@@ -96,6 +96,8 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
   const cellAt = useCallback((col: number, row: number) => grid?.cells[row * grid.cols + col], [grid])
   /** The middle of a column as a fraction of the whole image (not just of the map), so the pan matches the picture. */
   const centreX = useCallback((col: number) => grid ? area.x0 + ((col + 0.5) / grid.cols) * (area.x1 - area.x0) : 0.5, [grid, area])
+  /** The height of a row: north is up, as a fraction of the whole image like the pan. Heard only in 3D mode. */
+  const elevationAt = useCallback((row: number) => elevationForPoint(grid ? area.y0 + ((row + 0.5) / grid.rows) * (area.y1 - area.y0) : 0.5), [grid, area])
 
   const announceCell = useCallback((at: Cursor, delay: number) => {
     window.clearTimeout(announceTimer.current)
@@ -115,13 +117,13 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
       const cell = grid.cells[at.row * grid.cols + at.col]
       if (!cell) return
       if (cell.category === 'insufficient') engine.playMissing()
-      else engine.playCategory(cell.category, { pan: panForPoint(centreX(at.col)), durationMs: CELL_NOTE_MS })
+      else engine.playCategory(cell.category, { pan: panForPoint(centreX(at.col)), elevation: elevationAt(at.row), durationMs: CELL_NOTE_MS })
       if (vibrate) vibrateForDate(cell.category, mapping)
     }
     const wait = PLAY_EVERY_MS - (Date.now() - lastPlayed.current)
     if (wait <= 0) play()
     else playTimer.current = window.setTimeout(play, wait)
-  }, [engine, grid, centreX, vibrate, mapping])
+  }, [engine, grid, centreX, elevationAt, vibrate, mapping])
 
   const stopSweep = useCallback(() => {
     sweepId.current++
@@ -153,6 +155,7 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
       category: grid.cells[cell.row * grid.cols + cell.col].category,
       atMs: k * SWEEP_STEP_MS,
       pan: panForPoint(centreX(cell.col)),
+      elevation: elevationAt(cell.row),
     }))
     setSweeping(true)
     engine.playSequence(steps, k => {
@@ -166,7 +169,7 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
         }, SWEEP_STEP_MS)
       }
     }, { tick: false })
-  }, [engine, grid, centreX, stopSweep, place, announce, visualization, detail])
+  }, [engine, grid, centreX, elevationAt, stopSweep, place, announce, visualization, detail])
 
   /** Stops the sound of a sweep or cell, keeping the cursor where it is. */
   const stopSound = useCallback(() => {

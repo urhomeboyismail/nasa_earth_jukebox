@@ -12,6 +12,7 @@
 import { Note } from 'tonal'
 import type { CategoryId, SoundMapping } from '../data'
 import type { SequenceStep, SoundEngine } from '.'
+import { aimPanner, createPanner, type Panner, type SpatialMode } from './pan'
 import type { SoundStyle } from './style'
 import { encodeWav } from './wav'
 
@@ -75,31 +76,35 @@ type Voices = {
   pad: InstanceType<ToneModule['PolySynth']>
   bell: Synth
   reverb: InstanceType<ToneModule['Freeverb']>
-  panner: InstanceType<ToneModule['Panner']>
+  /** Every voice feeds this; it is joined to whichever panner is current, so the spatial mode can change while playing. */
+  bus: InstanceType<ToneModule['Gain']>
+  panner: Panner
+  spatial: SpatialMode
   cut: InstanceType<ToneModule['Gain']>
   master: InstanceType<ToneModule['Gain']>
 }
 
-type NoteOptions = { pan?: number; durationMs?: number; pad?: CategoryId[]; glide?: boolean; bell?: boolean }
+type NoteOptions = { pan?: number; elevation?: number; durationMs?: number; pad?: CategoryId[]; glide?: boolean; bell?: boolean }
 
 /** Builds the voices on whatever audio context Tone is using now: the live one, or the offline one inside renderToWav. */
-function createVoices(t: ToneModule, mapping: SoundMapping, style: SoundStyle, volume: number): Voices {
+function createVoices(t: ToneModule, mapping: SoundMapping, style: SoundStyle, volume: number, spatial: SpatialMode): Voices {
   const full = style === 'full'
   const master = new t.Gain(volume).toDestination()
   const cut = new t.Gain(1).connect(master)
   // Not Tone.Reverb: it builds its impulse from random noise, which would break "same input, same output".
   const reverb = new t.Freeverb({ roomSize: REVERB.roomSize, wet: full ? REVERB.wet : 0 }).connect(cut)
-  const panner = new t.Panner(0).connect(reverb)
+  const panner = createPanner(t, spatial).connect(reverb)
+  const bus = new t.Gain(1).connect(panner)
   const melody = new t.Synth({
     oscillator: { type: 'triangle' },
     envelope: full ? MALLET_ENVELOPE : SIMPLE_ENVELOPE,
     volume: -6,
-  }).connect(panner)
+  }).connect(bus)
   const tick = new t.Synth({
     oscillator: { type: 'sine' },
     envelope: { attack: 0.005, decay: 0.04, sustain: 0, release: 0.02 },
     volume: -18,
-  }).connect(panner)
+  }).connect(bus)
   let missingSynth: Synth | null = null
   let missingNoise: Voices['missingNoise'] = null
   if (mapping.missingCue.type === 'note') {
@@ -107,9 +112,9 @@ function createVoices(t: ToneModule, mapping: SoundMapping, style: SoundStyle, v
       oscillator: { type: 'sawtooth' },
       envelope: { attack: 0.02, decay: 0.1, sustain: 0.5, release: 0.2 },
       volume: -14,
-    }).connect(panner)
+    }).connect(bus)
   } else {
-    const filter = new t.Filter({ type: 'bandpass', frequency: 900, Q: 1.2 }).connect(panner)
+    const filter = new t.Filter({ type: 'bandpass', frequency: 900, Q: 1.2 }).connect(bus)
     missingNoise = new t.NoiseSynth({
       noise: { type: 'pink' },
       envelope: { attack: 0.02, decay: 0.2, sustain: 0.3, release: 0.1 },
@@ -120,13 +125,13 @@ function createVoices(t: ToneModule, mapping: SoundMapping, style: SoundStyle, v
     oscillator: { type: 'sine' },
     envelope: { attack: 0.002, decay: 0.5, sustain: 0, release: 0.1 },
     volume: -16,
-  }).connect(panner)
+  }).connect(bus)
   const pad = new t.PolySynth(t.Synth, {
     oscillator: { type: 'sine' },
     envelope: { attack: 0.3, release: 0.8 },
     volume: -18,
-  }).connect(panner)
-  return { style, melody, tick, missingNoise, missingSynth, pad, bell, reverb, panner, cut, master }
+  }).connect(bus)
+  return { style, melody, tick, missingNoise, missingSynth, pad, bell, reverb, bus, panner, spatial, cut, master }
 }
 
 /** Switches a built set of voices between the styles: the reverb and the melody's shape. The other layers check the style when they sound. */
@@ -136,11 +141,20 @@ function applyStyle(voices: Voices, style: SoundStyle) {
   voices.melody.set({ envelope: style === 'full' ? MALLET_ENVELOPE : SIMPLE_ENVELOPE })
 }
 
+/** Swaps the panner under live voices. The old one is disposed once it is out of the path. */
+function applySpatial(t: ToneModule, voices: Voices, spatial: SpatialMode) {
+  if (voices.spatial === spatial) return
+  const old = voices.panner
+  voices.bus.disconnect()
+  voices.panner = createPanner(t, spatial).connect(voices.reverb)
+  voices.bus.connect(voices.panner)
+  voices.spatial = spatial
+  old.dispose()
+}
+
 /** `time` is an audio-clock time from the Transport; without it the sound is immediate. */
-function setPan(voices: Voices, pan: number | undefined, time?: number) {
-  const clamped = Math.min(1, Math.max(-1, pan ?? 0))
-  if (time === undefined) voices.panner.pan.value = clamped
-  else voices.panner.pan.setValueAtTime(clamped, time)
+function setPan(voices: Voices, pan: number | undefined, elevation: number | undefined, time?: number) {
+  aimPanner(voices.panner, pan ?? 0, elevation ?? 0, time)
 }
 
 /** The chord's notes: each category's note one octave down. Unknown categories are left out. */
@@ -156,7 +170,7 @@ function sounding(voices: Voices, mapping: SoundMapping, id: CategoryId, opts: N
   if (!category) return
   const full = voices.style === 'full'
   const seconds = (opts?.durationMs ?? DEFAULT_NOTE_MS) / 1000
-  setPan(voices, opts?.pan, time)
+  setPan(voices, opts?.pan, opts?.elevation, time)
   voices.melody.portamento = full && opts?.glide ? GLIDE_S : 0
   voices.melody.triggerAttackRelease(category.note, seconds, time)
   if (!full) return
@@ -166,12 +180,12 @@ function sounding(voices: Voices, mapping: SoundMapping, id: CategoryId, opts: N
 }
 
 function tickAt(voices: Voices, mapping: SoundMapping, time?: number) {
-  setPan(voices, 0, time)
+  setPan(voices, 0, 0, time)
   voices.tick.triggerAttackRelease(mapping.tick.note, mapping.tick.durationMs / 1000, time)
 }
 
 function missingAt(voices: Voices, mapping: SoundMapping, time?: number) {
-  setPan(voices, 0, time)
+  setPan(voices, 0, 0, time)
   const seconds = mapping.missingCue.durationMs / 1000
   if (voices.missingSynth) voices.missingSynth.triggerAttackRelease('B1', seconds, time)
   else voices.missingNoise?.triggerAttackRelease(seconds, time)
@@ -213,6 +227,7 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
   let unlocked = false
   let volume = 1
   let style: SoundStyle = 'full'
+  let spatial: SpatialMode = 'stereo'
   let voices: Voices
 
   // Sequence state.
@@ -225,7 +240,7 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
       const t = await import('tone')
       await t.start()
       tone = t
-      voices = createVoices(t, mapping, style, volume)
+      voices = createVoices(t, mapping, style, volume, spatial)
       unlocked = true
     })()
     return unlocking
@@ -250,7 +265,7 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
     releaseAll()
   }
 
-  function playCategory(id: CategoryId, opts?: { pan?: number; durationMs?: number; pad?: CategoryId[] }) {
+  function playCategory(id: CategoryId, opts?: { pan?: number; elevation?: number; durationMs?: number; pad?: CategoryId[] }) {
     if (!unlocked) return
     open()
     sounding(voices, mapping, id, opts)
@@ -325,7 +340,7 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
     const t = tone ?? (await import('tone'))
     // Full level whatever the listening volume is: the file is played back on the listener's own volume.
     const buffer = await t.Offline(() => {
-      scheduleSteps(t, createVoices(t, mapping, style, 1), mapping, sorted, {})
+      scheduleSteps(t, createVoices(t, mapping, style, 1, spatial), mapping, sorted, {})
       t.getTransport().start(0)
     }, seconds, 2, WAV_SAMPLE_RATE)
     return encodeWav([buffer.getChannelData(0), buffer.getChannelData(1)], WAV_SAMPLE_RATE)
@@ -360,6 +375,10 @@ export function createSoundEngine(mapping: SoundMapping): SoundEngine {
     setStyle(next) {
       style = next
       if (unlocked) applyStyle(voices, next)
+    },
+    setSpatial(next) {
+      spatial = next
+      if (unlocked) applySpatial(tone!, voices, next)
     },
     isPlaying() { return state === 'playing' },
     duck() {

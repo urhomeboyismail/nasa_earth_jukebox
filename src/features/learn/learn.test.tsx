@@ -18,6 +18,7 @@ const engine = vi.hoisted(() => ({
   playSequence: vi.fn((_steps: unknown, _onStep: (i: number) => void) => { calls.push('sequence') }),
   stop: vi.fn(() => { calls.push('stop') }),
   setStyle: vi.fn(),
+  setSpatial: vi.fn(),
 }))
 const createSoundEngine = vi.hoisted(() => vi.fn((_mapping: unknown) => engine))
 vi.mock('../../audio', () => ({ createSoundEngine }))

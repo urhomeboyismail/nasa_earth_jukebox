@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
 import type { FrameGrid } from '../../analysis'
-import { panForPoint } from '../../audio/pan'
+import { elevationForPoint, panForPoint } from '../../audio/pan'
 import type { Visualization } from '../../data'
 import { describeCell, describeSweep } from '../../describe'
 import { expectNoA11yViolations } from '../../test/a11y'
@@ -18,6 +18,7 @@ const ROWS = 12
 const engine = vi.hoisted(() => ({
   unlock: vi.fn(async () => {}),
   setStyle: vi.fn(),
+  setSpatial: vi.fn(),
   setVolume: vi.fn(),
   playCategory: vi.fn(),
   playMissing: vi.fn(),
@@ -76,6 +77,8 @@ async function exploring() {
   return { user, ...view }
 }
 const START = { col: 12, row: 6 }
+/** Elevation of a row: the top row is the northernmost, so the highest. */
+const heightOf = (row: number) => elevationForPoint((row + 0.5) / ROWS)
 
 describe('Explorer: turning it on and off', () => {
   it('reads the map of the date on screen, shows a notice while it waits, and puts focus on the sound map', async () => {
@@ -168,7 +171,7 @@ describe('Explorer: the keyboard', () => {
     expect(engine.playCategory).toHaveBeenCalledTimes(1)
     const [category, options] = engine.playCategory.mock.calls[0]
     expect(category).toBe(next.category)
-    expect(options).toEqual({ pan: panForPoint((START.col + 1.5) / COLS), durationMs: 300 })
+    expect(options).toEqual({ pan: panForPoint((START.col + 1.5) / COLS), elevation: heightOf(START.row), durationMs: 300 })
     await tick(200)
     await user.keyboard('{ArrowRight}')
     expect(engine.playCategory.mock.calls[1][1].pan).toBeGreaterThan(options.pan)
@@ -264,6 +267,8 @@ describe('Explorer: sweeps', () => {
     await user.keyboard('{Shift>}{Enter}{/Shift}')
     const [steps] = engine.playSequence.mock.calls[0]
     expect(steps).toHaveLength(ROWS)
+    // North to south, so the height falls from the top of the map to the bottom.
+    expect(steps.map((s: { elevation: number }) => s.elevation)).toEqual(Array.from({ length: ROWS }, (_, row) => heightOf(row)))
     expect(new Set(steps.map((s: { pan: number }) => s.pan)).size).toBe(1)
   })
 
@@ -312,7 +317,7 @@ describe('Explorer: sliders for phones and screen readers', () => {
   it('moves the same cursor and plays the cell when a slider is moved', async () => {
     await exploring()
     fireEvent.change(screen.getByRole('slider', { name: 'Column, west to east' }), { target: { value: '3' } })
-    expect(engine.playCategory).toHaveBeenCalledWith('cold', { pan: panForPoint(3.5 / COLS), durationMs: 300 })
+    expect(engine.playCategory).toHaveBeenCalledWith('cold', { pan: panForPoint(3.5 / COLS), elevation: heightOf(START.row), durationMs: 300 })
     expect(screen.getByRole('slider', { name: 'Row, north to south' })).toHaveAttribute('aria-valuetext', describeCell(visualization, grid, 3, START.row))
     // The slider is read by the screen reader itself, so the live region does not say it a second time.
     await tick(500)
@@ -378,10 +383,10 @@ describe('Explorer: pointer and touch', () => {
     await exploring()
     sized()
     fireEvent.pointerDown(surface(), { clientX: 5, clientY: 5, pointerId: 1 })
-    expect(engine.playCategory).toHaveBeenLastCalledWith('cold', { pan: panForPoint(0.5 / COLS), durationMs: 300 })
+    expect(engine.playCategory).toHaveBeenLastCalledWith('cold', { pan: panForPoint(0.5 / COLS), elevation: heightOf(0), durationMs: 300 })
     await tick(200)
     fireEvent.pointerMove(surface(), { clientX: 175, clientY: 5, pointerId: 1 })
-    expect(engine.playCategory).toHaveBeenLastCalledWith(cellOf(grid, 17, 0).category, { pan: panForPoint(17.5 / COLS), durationMs: 300 })
+    expect(engine.playCategory).toHaveBeenLastCalledWith(cellOf(grid, 17, 0).category, { pan: panForPoint(17.5 / COLS), elevation: heightOf(0), durationMs: 300 })
     expect(liveText()).toBe('')
     fireEvent.pointerUp(surface(), { clientX: 175, clientY: 5, pointerId: 1 })
     expect(liveText()).toBe(describeCell(visualization, grid, 17, 0))

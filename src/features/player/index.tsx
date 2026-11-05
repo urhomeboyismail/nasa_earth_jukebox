@@ -181,6 +181,10 @@ function Player({ visualization }: { visualization: Visualization }) {
           Simple sound
         </Button>
         <span>Just the main note, without the chord and slides.</span>
+        <Button pressed={player.spatial === '3d'} onClick={() => player.setSpatial(player.spatial === '3d' ? 'stereo' : '3d')}>
+          3D sound (headphones)
+        </Button>
+        <span>Places the sound in space: west to east, and north above, south below. Use headphones; on speakers it is not reliable.</span>
         <Button disabled={!player.ready || player.downloading} onClick={() => void player.download()}>
           {player.downloading ? 'Preparing the audio…' : 'Download this soundscape (WAV)'}
         </Button>

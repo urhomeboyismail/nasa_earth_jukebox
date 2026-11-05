@@ -21,6 +21,7 @@ const visualization: Visualization = {
 const engine = vi.hoisted(() => ({
   unlock: vi.fn(async () => {}),
   setStyle: vi.fn(),
+  setSpatial: vi.fn(),
   setVolume: vi.fn(),
   playCategory: vi.fn(),
   playMissing: vi.fn(),
