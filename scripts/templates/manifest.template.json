@@ -1,0 +1,55 @@
+{
+  "id": "TODO: from the source page",
+  "title": "TODO: from the source page",
+  "summary": "TODO: from the source page",
+  "description": "TODO: from the source page",
+  "variable": { "name": "TODO: from the source page", "unit": "TODO: from the source page" },
+  "source": {
+    "name": "TODO: from the source page",
+    "url": "TODO: from the source page",
+    "credit": "TODO: from the source page",
+    "license": "TODO: from the source page",
+    "retrievedOn": "TODO: from the source page"
+  },
+  "colorScale": {
+    "stops": [
+      { "value": 0, "rgb": [0, 0, 255] },
+      { "value": 30, "rgb": [255, 0, 0] }
+    ],
+    "noData": [[128, 128, 128]],
+    "maxColorDistance": 40
+  },
+  "regions": [
+    {
+      "id": "TODO: from the source page",
+      "name": "TODO: from the source page",
+      "description": "TODO: from the source page",
+      "points": [{ "x": 0.5, "y": 0.5 }]
+    }
+  ],
+  "frames": [
+    {
+      "id": "2000-01-01",
+      "date": "2000-01-01",
+      "image": "frames/2000-01-01.png",
+      "width": 1200,
+      "height": 600,
+      "altText": "TODO: from the source page"
+    }
+  ],
+  "mapping": {
+    "scale": "C major arpeggio",
+    "summary": "median",
+    "minValidFraction": 0.5,
+    "categories": [
+      { "id": "cold", "label": "Cold", "range": [0, 6], "note": "C4" },
+      { "id": "cool", "label": "Cool", "range": [6, 12], "note": "E4" },
+      { "id": "mild", "label": "Mild", "range": [12, 18], "note": "G4" },
+      { "id": "warm", "label": "Warm", "range": [18, 24], "note": "C5" },
+      { "id": "hot", "label": "Hot", "range": [24, 30], "note": "E5" }
+    ],
+    "tick": { "note": "C6", "durationMs": 60 },
+    "missingCue": { "type": "noise", "durationMs": 300 }
+  },
+  "comparisons": []
+}

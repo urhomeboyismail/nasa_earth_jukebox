@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import type { z } from 'zod'
 import fixture from '../../public/data/fixture/manifest.json'
@@ -47,6 +50,18 @@ describe('visualizationSchema', () => {
     )
   })
 
+  it('rejects a gap between category ranges, because a value in it would be sent to the coolest or warmest category', () => {
+    expect(errorAfter(v => { v.mapping.categories[2].range = [14, 18] })).toBe(
+      'mapping.categories.2.range: "mild" starts at 14 but "cool" ends at 12; each category starts where the one before it ends, with no gap',
+    )
+  })
+
+  it('does not call a rounding difference in a category edge a gap', () => {
+    const v: any = valid()
+    v.mapping.categories[1].range = [6 + 1e-12, 12]
+    expect(visualizationSchema.safeParse(v).success).toBe(true)
+  })
+
   it('rejects categories that are not coolest first', () => {
     expect(errorAfter(v => v.mapping.categories.reverse())).toMatch(/mapping\.categories\.\d\.range: /)
   })
@@ -59,6 +74,15 @@ describe('visualizationSchema', () => {
     expect(errorAfter(v => { v.comparisons[0].frameA = 'nope' })).toBe('comparisons.0.frameA: there is no frame "nope"')
     expect(errorAfter(v => { v.comparisons[0].frameB = 'nope' })).toBe('comparisons.0.frameB: there is no frame "nope"')
     expect(errorAfter(v => { v.comparisons[0].regionId = 'nope' })).toBe('comparisons.0.regionId: there is no region "nope"')
+  })
+
+  it('rejects a comparison in any region but the first, until Compare uses the comparison\'s own region', () => {
+    expect(errorAfter(v => {
+      v.regions.push({ ...v.regions[0], id: 'second' })
+      v.comparisons[0].regionId = 'second'
+    })).toBe(
+      `comparisons.0.regionId: is "second" but must be "${valid().regions[0].id}", the first region, because Compare and the listening test use the first region only`,
+    )
   })
 
   it('rejects region points outside the image', () => {
@@ -94,6 +118,29 @@ describe('visualizationSchema', () => {
   it('summarises a long list of problems', () => {
     const text = errorAfter(v => { v.frames.forEach((f: any) => { f.width = 'x' }); v.frames.push({ ...v.frames[0], id: 'extra' }) })
     expect(text).toContain('frames.0.width')
+  })
+})
+
+describe('the manifest template (scripts/templates/manifest.template.json)', () => {
+  const template: unknown = JSON.parse(readFileSync(resolve(fileURLToPath(import.meta.url), '../../../scripts/templates/manifest.template.json'), 'utf8'))
+
+  it('is a valid manifest, so it cannot go stale', () => {
+    const result = visualizationSchema.safeParse(template)
+    expect(result.success ? '' : describeIssues(result.error, 10)).toBe('')
+  })
+
+  it('has the five standard categories with C4 E4 G4 C5 E5 and the noise cue', () => {
+    const v = visualizationSchema.parse(template)
+    expect(v.mapping.categories.map(c => c.note)).toEqual(['C4', 'E4', 'G4', 'C5', 'E5'])
+    expect(v.mapping.missingCue.type).toBe('noise')
+    expect(v.frames).toHaveLength(1)
+  })
+
+  it('marks every field a person fills in with TODO', () => {
+    const v = visualizationSchema.parse(template)
+    for (const text of [v.title, v.summary, v.description, v.variable.name, v.source.name, v.source.url, v.source.credit, v.source.license, v.source.retrievedOn, v.regions[0].name, v.frames[0].altText]) {
+      expect(text).toContain('TODO')
+    }
   })
 })
 

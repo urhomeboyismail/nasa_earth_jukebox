@@ -7,6 +7,7 @@ export type RGB = [number, number, number]
 /** A category id from `mapping.categories`, for example "warm". */
 export type CategoryId = string
 
+/** The request's "LegendMetadata". */
 export type ColorScale = {
   /** Ordered by value, from NASA's legend. */
   stops: { value: number; rgb: RGB }[]
@@ -16,6 +17,7 @@ export type ColorScale = {
   maxColorDistance: number
 }
 
+/** A region's `points` are the request's "SamplingPoint"s. */
 export type Region = {
   id: string
   name: string
@@ -36,6 +38,7 @@ export type Frame = {
   note?: string
 }
 
+/** The request's "DataCategory". */
 export type Category = {
   id: CategoryId
   label: string
@@ -70,6 +73,7 @@ export type MapArea = { x0: number; y0: number; x1: number; y1: number }
 /** One chapter of the story mode. fromFrame and toFrame are frame ids; fromFrame comes first in date order. */
 export type StoryChapter = { id: string; title: string; text: string; fromFrame: string; toFrame: string }
 
+/** The request's "FrameManifest": one data set's manifest.json. */
 export type Visualization = {
   id: string
   title: string

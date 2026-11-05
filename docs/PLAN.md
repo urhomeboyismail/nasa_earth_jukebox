@@ -100,7 +100,7 @@ Visualization {
 loadCatalog(): Promise<{ id: string; title: string; summary: string }[]>   // reads public/data/index.json
 loadVisualization(id: string): Promise<Visualization>                     // throws DataError with a readable message
 ```
-`mapArea` leaves out legend bars, titles and logos, so only the map is read. It must stay inside 0 to 1 with `x0 < x1` and `y0 < y1`. A `story` chapter runs from `fromFrame` to `toFrame`, both real frame ids, forward in time; chapter ids are unique. The schema (`src/data/schema.ts`) rejects anything else with a readable message.
+`mapArea` leaves out legend bars, titles and logos, so only the map is read. It must stay inside 0 to 1 with `x0 < x1` and `y0 < y1`. A `story` chapter runs from `fromFrame` to `toFrame`, both real frame ids, forward in time; chapter ids are unique. Category ranges go coolest first, each starting exactly where the one before ends (no overlap and no gap, because `categoryFor` would send a value in a gap to the coolest or warmest category). Every comparison's `regionId` must be the first region's until T98, because Compare and the listening test analyse `regions[0]` only. The schema (`src/data/schema.ts`) rejects anything else with a readable message; `npm run check-data` adds the checks on the files themselves (`src/data/check.ts`).
 
 ### 5.2 Frame analysis: `src/analysis/` (team leader)
 

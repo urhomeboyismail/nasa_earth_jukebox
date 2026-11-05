@@ -8,6 +8,9 @@ const fraction = z.number().min(0).max(1)
 const nonEmpty = z.string().min(1, 'must not be empty')
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'must be a date written YYYY-MM-DD')
 
+/** Category edges are written by hand or by a converter, so two numbers that differ only by rounding count as equal. */
+const RANGE_EDGE_TOLERANCE = 1e-9
+
 const colorScale = z.object({
   stops: z.array(z.object({ value: z.number(), rgb })).min(2, 'needs at least two stops'),
   noData: z.array(rgb),
@@ -96,8 +99,12 @@ export const visualizationSchema = z
     data.mapping.categories.forEach((c, i, categories) => {
       const [low, high] = c.range
       if (low >= high) problem(['mapping', 'categories', i, 'range'], `"${c.id}" must run from a lower to a higher value, not ${low} to ${high}`)
-      if (i > 0 && low < categories[i - 1].range[1]) {
-        problem(['mapping', 'categories', i, 'range'], `"${c.id}" starts at ${low}, inside "${categories[i - 1].id}" (which ends at ${categories[i - 1].range[1]}); categories go coolest first without overlapping`)
+      const before = categories[i - 1]
+      if (before && low < before.range[1]) {
+        problem(['mapping', 'categories', i, 'range'], `"${c.id}" starts at ${low}, inside "${before.id}" (which ends at ${before.range[1]}); categories go coolest first without overlapping`)
+      } else if (before && low > before.range[1] + RANGE_EDGE_TOLERANCE) {
+        // categoryFor (src/analysis/analyze.ts) would send a value in the gap to the coolest or warmest category.
+        problem(['mapping', 'categories', i, 'range'], `"${c.id}" starts at ${low} but "${before.id}" ends at ${before.range[1]}; each category starts where the one before it ends, with no gap`)
       }
     })
 
@@ -121,6 +128,10 @@ export const visualizationSchema = z
       if (!frameIds.has(c.frameA)) problem(['comparisons', i, 'frameA'], `there is no frame "${c.frameA}"`)
       if (!frameIds.has(c.frameB)) problem(['comparisons', i, 'frameB'], `there is no frame "${c.frameB}"`)
       if (!regionIds.has(c.regionId)) problem(['comparisons', i, 'regionId'], `there is no region "${c.regionId}"`)
+      // Compare and the listening test analyse regions[0] only (until T98), so a comparison elsewhere would play the wrong place.
+      else if (c.regionId !== data.regions[0].id) {
+        problem(['comparisons', i, 'regionId'], `is "${c.regionId}" but must be "${data.regions[0].id}", the first region, because Compare and the listening test use the first region only`)
+      }
     })
 
     const dateOf = new Map(data.frames.map(f => [f.id, f.date]))

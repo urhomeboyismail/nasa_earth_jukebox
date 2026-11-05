@@ -11,7 +11,7 @@ const frame = frames[0] // 200 × 100 px in the manifest, so 24 × 12 cells
 const picture: Pixels = (() => {
   const data = new Uint8ClampedArray(48 * 24 * 4)
   for (let y = 0; y < 24; y++) {
-    for (let x = 0; x < 48; x++) data.set(y >= 22 ? [128, 128, 128, 255] : x < 24 ? [0, 0, 255, 255] : [255, 0, 0, 255], (y * 48 + x) * 4)
+    for (let x = 0; x < 48; x++) data.set(y >= 22 ? [200, 200, 200, 255] : x < 24 ? [0, 0, 255, 255] : [255, 0, 0, 255], (y * 48 + x) * 4)
   }
   return { data, width: 48, height: 24 }
 })()

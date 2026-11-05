@@ -39,3 +39,27 @@ Fill these in from the released resources or the page itself. Do not assume.
 - Our method (see `docs/PLAN.md`) needs a **fixed colour legend with readable values** and the **same region at the same pixel position on every frame**. A video, a changing legend or a moving projection would each need extra work in T33.
 - Sea ice is often shown as **ice or no ice** (white on dark), not as a gradient. If we pick it, the sound mapping may need to follow area or concentration, not a colour scale.
 - SST legends seen run **0 to 32 °C**, wider than our synthetic data's 0 to 30; the category ranges in `mapping` would need to be rescaled.
+
+## Manifest fields (T89)
+
+Start from `scripts/templates/manifest.template.json`. Every `TODO` is something a person fills in from the source page. `npm run check-data` fails while any `TODO` is left, and also checks the frame files and sizes, date order, that each legend stop reads back as its own value, that no no-data colour lies on the legend line, and that the categories cover the legend. Each message names the file and the field. "Converter" means `scripts/convert_frames.py` (T91); until it exists, a person fills those fields too.
+
+| Field | Filled by | Where it comes from |
+|---|---|---|
+| `id` | person | The folder name under `public/data/`; also the id in `index.json` |
+| `title`, `summary`, `description` | person | Written in plain language from the source page |
+| `variable.name`, `variable.unit` | person | The source page or colour bar label |
+| `source.name`, `source.url`, `source.credit`, `source.license` | person | Copied exactly from the source page. `url` is empty only for made-up data |
+| `source.retrievedOn` | person | The day the frames were downloaded, YYYY-MM-DD |
+| `colorScale.stops` | converter, from `legend.json` | Read off the colour bar, in order of value, each stop's colour exactly as in the image |
+| `colorScale.noData` | person | Colours of land, labels and missing pixels; none may lie within `maxColorDistance` of the legend line |
+| `colorScale.maxColorDistance` | person | Start at 40; lower it if land is read as a value |
+| `regions` (`id`, `name`, `description`, `points`) | person | `points` are fractions 0 to 1 of the image, over water the legend colours; the first region is the one Compare and the listening test use |
+| `frames` (`id`, `date`, `image`, `width`, `height`) | converter | From the file names and the PNG header; frames in date order, one per date |
+| `frames[].altText`, `frames[].note` | person | Describe the picture; `note` only for a frame with missing data |
+| `mapping.scale`, `tick`, `missingCue` | template | Leave as in the template: missing data is always the noise hiss |
+| `mapping.minValidFraction` | template | 0.5 unless there is a reason |
+| `mapping.categories` | person | Five, coolest first, each starting where the one before ends, covering the legend's lowest to highest value; notes C4 E4 G4 C5 E5 |
+| `comparisons` | person | Checked against the NASA source (T85 step 5). `regionId` must be the first region's until T98 |
+| `mapArea` | converter or person | The map without legend bar or titles, as fractions 0 to 1 |
+| `story` | person | Optional chapters; each runs forward in time |

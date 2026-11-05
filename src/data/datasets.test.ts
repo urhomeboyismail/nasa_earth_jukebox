@@ -1,6 +1,10 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { Note } from 'tonal'
 import { describe, expect, it } from 'vitest'
 import catalogJson from '../../public/data/index.json'
+import { checkCatalogEntry, checkDataset, describeProblem } from './check'
 import { catalogSchema, describeIssues, visualizationSchema } from './schema'
 import type { Visualization } from './types'
 
@@ -13,13 +17,14 @@ const images = Object.keys(import.meta.glob('../../public/data/*/frames/*.png'))
 type Expected = { frames: { frameId: string; regionId: string; valid: number; medianValue: number | null; category: string }[] }
 
 const catalog = catalogSchema.parse(catalogJson)
+const dataDir = resolve(fileURLToPath(import.meta.url), '../../../public/data')
 const manifestFor = (id: string) => manifests[`../../public/data/${id}/manifest.json`]
 const expectedFor = (id: string) => expectations[`../../public/data/${id}/expected.json`]
 
 describe('the data sets on disk', () => {
   it('lists each one in the catalog, and each catalog entry has a manifest', () => {
-    // stress-* folders are local, gitignored load-test data (scripts/make_synthetic_globe.py) and are never listed.
-    const onDisk = Object.keys(manifests).map(path => path.split('/').at(-2)!).filter(id => !id.startsWith('stress-')).sort()
+    // stress-* and rehearsal-* folders are local, gitignored data (scripts/make_synthetic_globe.py, the T91 rehearsal) and are never listed.
+    const onDisk = Object.keys(manifests).map(path => path.split('/').at(-2)!).filter(id => !/^(stress|rehearsal)-/.test(id)).sort()
     expect(catalog.map(entry => entry.id).sort()).toEqual(onDisk)
   })
 
@@ -30,6 +35,14 @@ describe('the data sets on disk', () => {
 
       it('is a valid manifest', () => {
         expect(parsed.success ? '' : describeIssues(parsed.error, 10)).toBe('')
+      })
+
+      it('passes the data checks: image files and sizes, date order, legend round trip, categories, no TODO left', () => {
+        const problems = [
+          ...checkCatalogEntry(catalog.find(entry => entry.id === id)),
+          ...checkDataset(v!, image => readFileSync(`${dataDir}/${id}/${image}`)),
+        ]
+        if (problems.length) expect.fail(`\n${problems.map(describeProblem).join('\n')}`)
       })
 
       it('has an image on disk for every frame', () => {

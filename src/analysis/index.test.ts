@@ -13,7 +13,7 @@ const SOLID: Record<string, [number, number, number]> = {
   '2024-01-15': [0, 0, 255],
   '2024-07-15': [255, 255, 0],
   '2024-12-15': [255, 0, 0],
-  '2025-03-15': [128, 128, 128],
+  '2025-03-15': [200, 200, 200],
 }
 const readPixels = vi.fn(async (url: string): Promise<Pixels> => {
   const [r, g, b] = SOLID[/(\d{4}-\d{2}-\d{2})\.png/.exec(url)![1]]

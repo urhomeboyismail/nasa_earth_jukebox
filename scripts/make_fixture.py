@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "public" / "data" / "fixture"
 WIDTH, HEIGHT = 200, 100
 
-BLUE, YELLOW, RED, GRAY = (0, 0, 255), (255, 255, 0), (255, 0, 0), (128, 128, 128)
+BLUE, YELLOW, RED, GRAY = (0, 0, 255), (255, 255, 0), (255, 0, 0), (200, 200, 200)
 
 # Dates are chosen so T00's stub analysis (category from the month) agrees with what real pixel
 # analysis of these colors will give: blue = cold, yellow = mild, red = hot, gray = missing data.

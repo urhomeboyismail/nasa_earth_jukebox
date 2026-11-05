@@ -30,6 +30,7 @@ Stack: React + TypeScript, built with Vite. A small FastAPI server (`server/`) r
 - Lint: `npm run lint` (oxlint)
 - Test: `npm test` (Vitest + Testing Library, jsdom); `npm run test:watch` while working
 - Preview build: `npm run preview`
+- Check every data set in `public/data/index.json`: `npm run check-data` (schema, images, legend, no `TODO` left; see `docs/data-sources.md`)
 - Regenerate the fixture dataset: `python3 -I scripts/make_fixture.py` (writes `public/data/fixture/`)
 - Regenerate the synthetic dataset (needs Pillow and NumPy): `python3 -m venv .venv && .venv/bin/pip install -r scripts/requirements.txt && .venv/bin/python -I scripts/make_synthetic.py` (writes `public/data/synthetic-ocean/`)
 
