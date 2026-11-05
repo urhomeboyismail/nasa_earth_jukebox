@@ -30,6 +30,15 @@ describe('sound style', () => {
     expect(readSoundStyle()).toBe('full')
   })
 
+  it('returns the change style only when it was chosen on this device', () => {
+    expect(readSoundStyle()).toBe('full')
+    const { result } = renderHook(() => useSoundStyle())
+    act(() => result.current[1]('change'))
+    expect(localStorage.getItem(KEY)).toBe('change')
+    expect(readSoundStyle()).toBe('change')
+    expect(renderHook(() => useSoundStyle()).result.current[0]).toBe('change')
+  })
+
   it('ignores anything stored that is not a style', () => {
     localStorage.setItem(KEY, 'loud')
     expect(readSoundStyle()).toBe('full')

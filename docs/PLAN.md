@@ -137,19 +137,19 @@ SoundEngine {
   playTick(): void
   playMissing(): void
   playSequence(steps: SequenceStep[], onStep: (index: number) => void, opts?: { tick?: boolean }): void
-  setStyle(style: "full" | "simple"): void   // see 5.7
+  setStyle(style: "full" | "simple" | "change"): void   // see 5.7 and 6.2
   setSpatial(mode: "stereo" | "3d"): void    // F20; "3d" is an HRTF panner for headphones
   setVolume(zeroToOne: number): void
   pause(): void; resume(): void; stop(): void
   isPlaying(): boolean
   renderToWav(steps: ...): Promise<Blob>   // should-have (F14)
-  traceContour(contour: Contour, onPoint?: (index: number) => void): void   // v2 (F18): the contour voice along one line, see 6.2
+  traceContour(contour: Contour, onPoint?: (index: number) => void): void   // v2 (F18): the contour voice along one line, see 6.2; 2 to 8 s; only in the "change" style, otherwise it does nothing
 }
 SequenceStep { category: CategoryId | "insufficient"; atMs: number; pan?: number; elevation?: number
                pad?: CategoryId[]; glide?: boolean; bell?: boolean   // the musical layer, see 5.7
                changeStep?: ChangeStepId | "insufficient"; medianChange?: number }   // v2: used only in the "change" style
 ```
-In the `"change"` style a step with a `changeStep` plays the change bed (6.2) instead of the category note; a step without one plays the category note as before, so a data set with no baseline still sounds.
+In the `"change"` style a step with a `changeStep` plays the change bed (6.2) instead of the category note; a step without one plays the category note as before, so a data set with no baseline still sounds. A `changeStep` of `"insufficient"` plays the hiss. The engine reads the note of each change step and contour level from `mapping.changeSteps[].note` and `mapping.contourLevels[].note` (T111 adds them to the manifest); `validateMapping` checks that steps are in C3 to C4 and rise, and levels in C3 to C6.
 `pan` runs from -1 (west) to +1 (east). `elevation` runs from -1 (south) to +1 (north) and is heard only in 3D mode, as height, never as pitch. A tick follows each sound unless `opts.tick` is `false`; sweeping across a map is not a run of dates, so it passes `tick: false`.
 
 ### 5.4 Voice guide screen context and playback commands (Mohammad)
@@ -244,6 +244,7 @@ summarizeChange(change, mapping): { step: ChangeStepId | "insufficient"; medianC
 traceContours(field, level: number): Contour[]          // contour.ts: marching squares
 pickContours(contours, perLevel = 1): Contour[]         // the longest line of each level
 Contour { level: number; closed: boolean; brokenEnds: number   // ends that stop at a NaN cell (0, 1 or 2)
+          brokenStart: boolean; brokenEnd: boolean              // which ends: the first and the last point (T114, so the hiss marks the right one)
           points: { x: number; y: number                       // 0 to 1 fractions of the whole image, like panForPoint
                     turn: number                               // turning angle at this point, radians, −π to π
                     front: number }[] }                        // how steeply the change rises across the line, variable units per cell

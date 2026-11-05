@@ -113,6 +113,21 @@ describe('traceContours', () => {
     expect(hole.map(l => l.brokenEnds)).toEqual([1, 1])
   })
 
+  it('says which end is broken, so a sound can mark the right one', () => {
+    const hole = traceContours(field('11000', '11000', '11x00', '11000', '11000'), 0.5)
+    for (const line of hole) {
+      const [first, last] = [line.points[0], line.points.at(-1)!]
+      // The hole is in the middle row, so the end next to it is the one nearer the middle of the map.
+      const brokenIsFirst = Math.abs(first.y - 0.5) < Math.abs(last.y - 0.5)
+      expect([line.brokenStart, line.brokenEnd]).toEqual(brokenIsFirst ? [true, false] : [false, true])
+      expect(Number(line.brokenStart) + Number(line.brokenEnd)).toBe(line.brokenEnds)
+    }
+    const edge = traceContours(field('1100', '1100', '1100'), 0.5)[0]
+    expect([edge.brokenStart, edge.brokenEnd]).toEqual([false, false])
+    const loop = traceContours(field('000', '010', '000'), 0.5)[0]
+    expect([loop.closed, loop.brokenStart, loop.brokenEnd]).toEqual([true, false, false])
+  })
+
   it('gives no line for a field that is all one side, and no line through NaN', () => {
     expect(traceContours(field('000', '000', '000'), 0.5)).toEqual([])
     expect(traceContours(field('xxx', 'xxx', 'xxx'), 0.5)).toEqual([])

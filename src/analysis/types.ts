@@ -39,6 +39,9 @@ export type Contour = {
   closed: boolean
   /** Ends that stop at a NaN cell (0, 1 or 2). */
   brokenEnds: number
+  /** Which ends those are, so a sound can mark the right one: the first point, the last point. Both false for a closed line. */
+  brokenStart: boolean
+  brokenEnd: boolean
   points: ContourPoint[]
 }
 

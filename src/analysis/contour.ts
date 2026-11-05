@@ -98,8 +98,9 @@ export function traceContours(field: ValueField, level: number): Contour[] {
       const after = k < fronts.length ? fronts[k] : undefined
       return before === undefined ? after! : after === undefined ? before : (before + after) / 2
     })
-    const brokenEnds = closed ? 0 : [edges[0], edges[n - 1]].filter(e => neighbours(e) === 2).length
-    return { level, closed, brokenEnds, points: resample(xy, vertexFront, closed, field) }
+    const brokenStart = !closed && neighbours(edges[0]) === 2
+    const brokenEnd = !closed && neighbours(edges[n - 1]) === 2
+    return { level, closed, brokenEnds: Number(brokenStart) + Number(brokenEnd), brokenStart, brokenEnd, points: resample(xy, vertexFront, closed, field) }
   })
 }
 

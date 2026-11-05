@@ -1,16 +1,17 @@
 // How rich the sound is (docs/PLAN.md §5.7). "Full" adds a chord, slides and a bell (T68); "simple" is just the main note,
-// the tick and the cue for missing data. The choice is remembered on this device.
+// the tick and the cue for missing data; "change" (T114) plays the change from normal in three layers (§6.2). The choice is remembered on this device.
 
 import { useCallback, useState } from 'react'
 
-export type SoundStyle = 'full' | 'simple'
+export type SoundStyle = 'full' | 'simple' | 'change'
 
 const KEY = 'earth-jukebox:sound-style'
 
 /** The remembered style, or 'full'. Storage can be blocked (private windows), so every access is guarded. */
 export function readSoundStyle(): SoundStyle {
   try {
-    return localStorage.getItem(KEY) === 'simple' ? 'simple' : 'full'
+    const stored = localStorage.getItem(KEY)
+    return stored === 'simple' || stored === 'change' ? stored : 'full'
   } catch {
     return 'full'
   }
