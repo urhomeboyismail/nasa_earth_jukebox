@@ -12,6 +12,8 @@ Every PR must meet the definition of done in PLAN.md §9, including the layout r
 
 ## Already built (no ticket)
 
+**Status check, 7 Nov (from `git log` on `main` at `b995ddc`):** T80 A, T81 A, T82 A, T83, T84 and T112 to T115 are merged; T85 step 1 and the T86 spike note are in. **Open:** T111 (blocks all of v2: no `baseline` in the schema or any data set, so the "change" style never plays), T85 real data, T87, T81 B F23. **Cut 7 Nov:** T86 build, F21, F22, F24, F25 (none had code; see `docs/planning/FEATURE-REVIEW.md`). The ticket text below is kept for reference.
+
 F1 to F13, F15 and F12's ducking are on `main`, as are the dataset picker, legend, date formatter, Home page, the interfaces and stubs in PLAN.md §5.6 to §5.8 (T64), the synthetic globe with its story (T66), the real value grid and shares (T65), the computed descriptions (T69) and the WAV encoder `encodeWav` (T72a).
 
 ## How these tickets stay independent
@@ -26,15 +28,15 @@ F1 to F13, F15 and F12's ducking are on `main`, as are the dataset picker, legen
 
 | ID | Title | Owner | Part A due | Priority | Covers |
 |---|---|---|---|---|---|
-| T80 | Musical engine and WAV rendering | Team leader | 9 Nov | A Must; B Should/Could | §5.7, F14 engine; B: F24, F18, F22 |
-| T81 | Listen: sound-map explorer and player wiring | Mohammad | 10 Nov | A Must; B Should/Could | §5.6 explorer, F13 in use, F14 button, style toggle; B: F23, F25 |
-| T82 | Learn the new sounds, and concise or rich descriptions | Roni | 11 Nov | A Must (Learn), Should (detail); B Could | Learn cards, F19 rules; B: F21 |
+| T80 | Musical engine and WAV rendering | Team leader | 9 Nov | A Must (built); B Should | §5.7, F14 engine; B: F18 (F22, F24 cut) |
+| T81 | Listen: sound-map explorer and player wiring | Mohammad | 10 Nov | A Must (built); B Should | §5.6 explorer, F13 in use, F14 button, style toggle; B: F23 (F25 cut) |
+| T82 | Learn the new sounds, and concise or rich descriptions | Roni | 11 Nov | A Must (built) | Learn cards, F19 rules (F21 cut) |
 | T83 | Story mode | Bhavish | 11 Nov | Should | `story` chapters (§5.1) |
 | T84 | 3D spatial audio | Bhavish | after 12 Nov | Could | F20 |
 | T85 | Real NASA data | Dhruv + Team leader | 10 Nov (speed), 14 Nov (data) | Must | F16, real `mapArea`, story text, comparisons, speed |
-| T86 | Voice guide on ADK, rewording only | Mohammad (Roni reviews) | after 12 Nov | Could, cut first | F19 ADK |
+| ~~T86~~ | ~~Voice guide on ADK~~ Cut 7 Nov after the spike | — | — | Cut | — |
 | T87 | Evidence, write-up and submission | Roni, Team leader, Bhavish, Dhruv | 12 to 15 Nov | Must | F11 evidence, playlist, creative process, README, demo |
-| T111 | v2: baseline in the manifest, and a synthetic data set with a known change | Dhruv (team leader reviews `types.ts`) | 9 Nov | Should (v2 core) | F26, PLAN.md §5.1 |
+| T111 | v2: baseline in the manifest, and a synthetic data set with a known change. **Top open item: without it v2 never plays** | Dhruv (team leader reviews `types.ts`) | 9 Nov (late) | Must for v2 | F26, PLAN.md §5.1 |
 | T112 | v2: change field and change steps | Team leader | 11 Nov | Should (v2 core) | F27, PLAN.md §5.2, §5.9 |
 | T113 | v2: contour tracing (marching squares) | Bhavish suggested (team leader reviews) | 12 Nov | Should | F18 analysis, PLAN.md §5.9 |
 | T114 | v2: the `"change"` sound style (bed, contour voice, hiss) | Team leader (engine), Bhavish (spatial path, listening check) | 13 Nov | Should | F28 sound, F18 sound, PLAN.md §6.2 |
@@ -46,18 +48,16 @@ F1 to F13, F15 and F12's ducking are on `main`, as are the dataset picker, legen
 |---|---|---|
 | `analyzeChange` adds `contours: pickContours(...)` to the `Score` | `src/analysis/worker.ts` | T112 and T113 |
 | The explorer passes `elevation` from the cell's row | `src/features/explore/Explorer.tsx` | T84 and T81 A |
-| The explorer pulses on a jump of two or more categories between cells | `src/features/explore/Explorer.tsx` | T82 B (F21) and T81 A |
 | The explorer's announcements use the listener's detail level | `src/features/explore/Explorer.tsx` | T82 A and T81 A |
-| The sound control gains "Reef" after "Change from normal" | `src/features/player/index.tsx` | T80 B (F22) and T115 |
 
 ## Order and cut line
 
 - **By 12 Nov (M3, feature complete and deployed):** T80 A, T81 A (keyboard, sliders and row sweep at least), T82 A (Learn cards at least), T83, the T85 speed measurements, and the T87 steps marked "now".
-- **After 12 Nov:** only part B, T84, T86, data, text, fixes and tests.
+- **After 12 Nov:** only part B, data, text, fixes and tests.
 - **From 13 Nov:** T85's real data, then T87's playlist, final check and demo.
 - **Features freeze 6 hours before the deadline** (PLAN.md §8).
 
-**If time runs out, cut in this order** (first cut at the top): T86; T81 B F25; T80 B F22 (reef); the contour voice (T113, T114 step 3, T115's trace button and Learn card); T84; T82 B; T80 B F24; T81 B F23; the rest of v2 (T111, T112, T114, T115: v1 ships unchanged); T83; T81 A pointer and touch drag (keep keyboard, sliders and sweeps); T81 A's Download button (keep `renderToWav`, so the playlist can still be made).
+**If time runs out, cut in this order** (first cut at the top; T86, F25, F22, F21 and F24 were already cut on 7 Nov): the contour voice (T113, T114 step 3, T115's trace button and Learn card); T84 (built; hide its toggle); T81 B F23; the rest of v2 (T111, T112, T114, T115: v1 ships unchanged); T83; T81 A pointer and touch drag (keep keyboard, sliders and sweeps); T81 A's Download button (keep `renderToWav`, so the playlist can still be made).
 
 **Never cut:** T80 A, T81 A keyboard and sliders, T85, T87.
 
@@ -92,10 +92,7 @@ F1 to F13, F15 and F12's ducking are on `main`, as are the dataset picker, legen
 - The existing engine, player, compare and learn tests pass unchanged.
 - You have listened to synthetic-globe on headphones and on a phone speaker, and the PR says in one line whether the melody is still clearly the loudest sound.
 
-**Part B: after the cut line, Should (F24, F18) and Could (F22).** One PR each, in this order.
-1. **F24 alarm.** A stronger version of the bell, not a new system: when the category moves `ALARM_STEPS` (3) or more steps, `voicingFor` also sets `alarm: true` and the engine plays a brighter, longer flare instead of the bell. Add `alarm?: boolean` to `SequenceStep` (interface change). It flows into Listen through `voicingFor` with no caller change. Test: a three-step jump gives `alarm`, a two-step jump gives only `bell`.
-2. **F18 is now the contour voice** (sound pipeline v2, PLAN.md §6.2): see T113 and T114. The Sobel texture and `rhythmFor` are dropped.
-3. **F22 reef style (Could, after T114 passes its listening check).** Add `'reef'` to `SoundStyle` (interface change, agreed with Mohammad and Roni). It replaces only the change bed's sound source (PLAN.md §6.1 F22): a granular reef recording (`Tone.GrainPlayer`) that thins and breaks up as the change step rises, with the same steps, pitch anchor and loudness match as the bed, and a seeded generator for any randomness so WAV renders repeat. Recordings: public domain or CC BY only, credited in the manifest and on About. Integration line: the sound control (see the table). Same listening check as T114 step 7; off by default.
+**Part B.** F18 is now the contour voice (sound pipeline v2, PLAN.md §6.2): see T113 and T114 (built). F24 (alarm) and F22 (reef) were cut on 7 Nov; see `docs/planning/FEATURE-REVIEW.md`.
 
 ---
 
@@ -130,7 +127,7 @@ F1 to F13, F15 and F12's ducking are on `main`, as are the dataset picker, legen
 
 **Part B: after the cut line.**
 1. **F23 time travel (Should).** In the explorer, `L` (and a "Lock this place" toggle button for touch) locks the current cell. While locked, the date slider and Play play that one cell across all dates, using `analyzeGrid` for each date (cached), with `voicingFor`-style glide and bell computed from the cell's own categories. The announcement says "Locked on north-east, column 19, row 3". Unlock with `L` again or Escape. Test: locked playback calls `playSequence` with one step per date for that cell.
-2. **F25 sound buoys (Could, last, with the team leader for the server).** A room per visualization over a WebSocket on the server; a sighted user drops a buoy on a cell, and the others hear a ping that gets louder and brighter as their cursor nears it. The explorer must work exactly as before when the server is off or asleep, and nothing else may depend on this. Keep the WebSocket code out of `src/analysis/`, `src/audio/` and `src/describe/` (the boundary test checks this).
+2. ~~F25 sound buoys~~ cut on 7 Nov.
 
 ---
 
@@ -155,7 +152,7 @@ F1 to F13, F15 and F12's ducking are on `main`, as are the dataset picker, legen
 
 **Done when:** the Learn tests check each new button calls the engine with the expected `pad`, `glide` or `bell`, and that Simple hides the cards; `describe.test.ts` covers concise for each function and shows the default is unchanged; same input, same words; a11y checks pass; layout checked at the three widths.
 
-**Part B: after the cut line, Could. F21 anomaly haptics.** In `src/features/player/vibration.ts`, add `vibrateForJump(previous, next, mapping)`: a stronger, longer pulse when the category moves two or more steps, and the normal pulse otherwise. Use it on Listen for date-to-date changes (one line in `usePlayer.ts`; Mohammad reviews). Integration line: the explorer between cells (see the table). Always paired with a sound, never the only cue; iOS Safari has no vibration API, so say so on About. Test with a stubbed `navigator.vibrate`.
+**Part B:** ~~F21 anomaly haptics~~ cut on 7 Nov. F15 vibration stays; iOS Safari has no vibration API, so say so on About.
 
 ---
 
@@ -222,6 +219,8 @@ F1 to F13, F15 and F12's ducking are on `main`, as are the dataset picker, legen
 ---
 
 ## T86: Voice guide on ADK, rewording only (Mohammad, Roni reviews)
+
+**CUT on 7 Nov.** The spike (`docs/adk-spike.md`) could not prove live voice or tool calls, and the planning repo's own ADK eval failed on free-tier quota (every call 503/429). The voice guide stays on the current bridge. Text below kept for the record only.
 
 **After the cut line, Could, first to be cut.** The voice guide already works on the current bridge; this changes how it is built, not what judges see. Start only if T81 A is merged.
 

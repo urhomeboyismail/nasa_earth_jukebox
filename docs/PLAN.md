@@ -206,7 +206,7 @@ voicingFor(results: FrameAnalysis[], index: number, mapping): { pad?: CategoryId
 //   glide: the note slides from the previous one, when the value changed
 //   bell:  a bell above the note, when the value jumped by two or more steps
 type SoundStyle = "full" | "simple" | "change"   // "simple" is the main note, the tick and the missing cue only
-                                               // "change" (v2, T114) is the three layers of 6.2; "reef" (F22) may follow
+                                               // "change" (v2, T114) is the three layers of 6.2; "reef" (F22) was cut 7 Nov
 useSoundStyle(): [SoundStyle, (style: SoundStyle) => void]   // remembered in localStorage "earth-jukebox:sound-style"; "full" if unset or storage is blocked
 ```
 `voicingFor` is pure: the same results always give the same voicing. Adding `"change"` is an interface change agreed by everyone who uses `SoundStyle`; `readSoundStyle` returns it only when it was chosen on this device, and TestMode never uses it until the 13 Nov decision (6.2).
@@ -281,13 +281,13 @@ Rules:
 | F16 | A second visualization | Could | Dhruv |
 | F17 | ~~Background drone from the whole-frame average~~ Replaced by the change bed (F28) | Cut | Team leader |
 | F18 | **Contour voice and rhythm** (replaces Sobel texture): trace the fixed change levels with marching squares; the line is heard moving in space, and its sharp turns set the rhythm (5.9, 6.2) | Should | Team leader + Bhavish (`contour.ts`, spatial path) |
-| F19 | Persona narration: concise or rich descriptions; optional ADK rewording | Should (ADK: Could) | Roni + Mohammad |
-| F20 | 3D spatial audio: HRTF panning, elevation as height in space (never pitch) | Could | Bhavish |
-| F21 | Anomaly haptics on touch devices (extends F15) | Could | Roni |
-| F22 | **Reef style** (replaces organic textures): a granular reef soundscape as the bed's sound source, thinning as the change step rises; same inputs as F28 (6.2) | Could | Team leader |
+| F19 | Persona narration: concise or rich descriptions (built, T82). ~~Optional ADK rewording~~ cut 7 Nov (see `docs/planning/FEATURE-REVIEW.md`) | Should | Roni + Mohammad |
+| F20 | 3D spatial audio: HRTF panning, elevation as height in space (never pitch). Built (T84), off by default | Could | Bhavish |
+| F21 | ~~Anomaly haptics on touch devices~~ Cut 7 Nov: Android-only, and F15 already vibrates | Cut | — |
+| F22 | ~~Reef style~~ Cut 7 Nov: needs licensed recordings, a new sound source and its own listening check; the change bed is not yet reachable (T111) | Cut | — |
 | F23 | Time-travel scrubbing: lock one cell, scrub the dates | Should | Mohammad |
-| F24 | Acoustic fire alarm: a flare on a sudden jump | Could | Team leader |
-| F25 | Sound buoys: shared exploration over WebSockets | Could, last | Mohammad + Team leader |
+| F24 | ~~Acoustic fire alarm~~ Cut 7 Nov: the bell (5.7) already marks a two-step jump; a second, louder cue adds noise, not data | Cut | — |
+| F25 | ~~Sound buoys~~ Cut 7 Nov: needs the sleeping free-tier server and a second user; judges test alone | Cut | — |
 | F26 | **Baseline in the manifest**: `baseline`, `changeSteps`, `contourLevels`, `baselineImage`; `check-data` rules; a synthetic baseline with a known answer (5.1) | Should (v2 core) | Dhruv |
 | F27 | **Change field and change steps**: `readField`, `changeField`, `smoothField`, `summarizeChange`, `changeStep` in `FrameAnalysis` (5.2, 5.9) | Should (v2 core) | Team leader |
 | F28 | **Change sound style**: the change bed and the hiss in the `"change"` style; Compare judges by change step; `describeChange` (6.2) | Should (v2 core) | Team leader + Mohammad + Roni |
@@ -309,23 +309,19 @@ The Jukebox is described as four cooperating roles. They are **roles, not separa
 
 - **F18 Contour voice.** Replaces the Sobel texture: edge density says "something is busy here", while a contour says "this is the edge of the warm water, and this is its shape", which a scientist can check. Same input, same line, same rhythm (5.9, 6.2).
 - **F20 3D audio.** Extends F13: `pan.ts` gains HRTF placement (`PannerNode`) and an `elevation`, where north sounds above the listener and south below. Elevation is a place in space, not a pitch: pitch already means "warmer", the main cue, so a higher-pitched north would make a cool northern cell sound like a warm southern one. Stereo panning stays the default and the fallback for speakers; 3D is a toggle for headphones, off by default.
-- **F21 Haptics.** `navigator.vibrate` where it exists, a stronger pulse when a cell jumps two or more categories. Always paired with a sound, never the only cue.
-- **F22 Reef style.** Replaces the organic textures. Adds `"reef"` to `SoundStyle` after `"change"` exists: the same change steps drive a granular reef soundscape instead of the plain bed (fewer, sparser snapping-shrimp and fish sounds and more broken grains as the step rises). It claims only what is documented: reefs bleach under heat sustained above their normal summer maximum, and degraded reefs sound quieter and less varied. Recordings must be public domain or CC BY with the credit in the manifest; grain randomness uses a seeded generator so renders repeat; off by default.
+- **F21, F22, F24, F25, ADK rewording: cut on 7 Nov.** None had code. Reasons and revive conditions are in `docs/planning/FEATURE-REVIEW.md`.
 - **F23 Time travel.** In the sound map, a key locks the current cell and the date slider then plays that one cell across all dates. The root pitch stays fixed and the voicing follows the data, so a rising value is heard as harmony moving from calm to tense. The dates are those in the catalog: synthetic until 13 Nov, then whatever span the real data has. A 1980 to 2026 span is a goal, not a promise.
-- **F24 Fire alarm.** A plain rule: a flare plays when a cell or region moves by `alarmSteps` or more categories between two dates. It reuses the bell of 5.7. No statistics beyond that and no model. A methane-style outlier needs a dataset we do not have; if NASA offers one on 13 Nov, the same rule applies to it.
-- **F25 Sound buoys.** A room per visualization on the server: a sighted user drops a buoy on a cell, the others hear a ping that gets louder and brighter as their cursor nears it. It needs the server, so the app must stay fully usable without it. Built last and cut first.
-- **F19 ADK.** A spike first, a build only if the must-haves are merged, and the first thing cut (T86 in `docs/TICKETS.md`).
+- **F19 ADK.** Cut 7 Nov. The T86 spike (`docs/adk-spike.md`) could not prove live voice or tool calls, and the voice guide already works on the current bridge.
 
-**Priority order for the extension** (matches the cut order in `docs/TICKETS.md`):
+**Priority order for what is left** (7 Nov; matches `docs/TICKETS.md`). Items 1 to 4 are built; the work is to improve them:
 
-1. Sound-map explorer: keyboard, touch and pointer, with no lag (T81)
-2. Harmony rules: pleasing, not noisy (T80); then the v2 core and the contour voice (F26 to F28, F18; 6.2)
-3. Computed descriptions with concise and rich levels (T82, F19)
-4. WAV export and a fallback playlist, also the live-demo backup (T80, T81, T87)
-5. The NASA data story, with real frames from 13 Nov (T85)
-6. Then, in this order if time allows: F23, F24, F20, F21, F22, F25
+1. **T111: make v2 reachable.** T112 to T115 are merged, but no schema field or data set has a `baseline`, so `hasChange()` is always false and the "change" style never plays. Without T111, v2 is dead code
+2. The NASA data story, with real frames from 13 Nov (T85)
+3. Evidence: testers, listening test, playlist, write-up (T87)
+4. Tune what is built by ear and with testers: explorer (T81), harmony (T80), descriptions (T82), story (T83), 3D audio (T84)
+5. Then, if time allows: F23 time travel
 
-F18 to F25 are part B of the tickets in `docs/TICKETS.md` (or T84). Part B starts only after its part A is merged and the 12 Nov cut line is met. The v2 tickets (T111 to T115, F18, F26 to F28) are the exception, explained in 6.2.
+F18 to F23 are part B of the tickets in `docs/TICKETS.md` (or T84). Part B starts only after its part A is merged and the 12 Nov cut line is met. The v2 tickets (T111 to T115, F18, F26 to F28) are the exception, explained in 6.2.
 
 ### 6.2 Sound pipeline v2: the change from normal, in three layers
 
@@ -364,7 +360,7 @@ Tickets are in [`docs/TICKETS.md`](TICKETS.md): one file, listing only the work 
 | Person | Load | Tickets |
 |---|---|---|
 | Team leader | Heavy | T80 musical engine and WAV rendering; T85 analysis changes; T87 creative process, re-plan, demo; v2: T112 change field, T114 change style |
-| Mohammad | Heavy | T81 sound-map explorer and player wiring; T86 voice guide on ADK (Could); v2: T115 wiring |
+| Mohammad | Heavy | T81 sound-map explorer and player wiring; v2: T115 wiring (T86 ADK cut 7 Nov) |
 | Bhavish | Light | T83 story mode; T84 3D audio; T87 playlist release and submission README; v2: T113 contours (suggested), T114 spatial path |
 | Dhruv | Medium | T85 real NASA data and speed test; T87 playlist tracks; v2: T111 baseline in the manifest |
 | Roni | Medium | T82 Learn cards and description detail; T87 testers, practice test, final check; v2: T115 descriptions and Learn |
@@ -420,7 +416,7 @@ Correctness checks that must always pass:
 | Render disk is wiped, or the free server is asleep at demo time | Export CSV after each session, attach a disk if possible, wake the server a minute before the demo |
 | No blind or low-vision testers | Recruit now; fallback is sighted volunteers with no screen; report honestly |
 | Live demo fails | Recorded backup video |
-| The extension (F18 to F25) eats the time for the must-haves | It is part B of each ticket and starts only after the 12 Nov cut line; items are cut in the order in `docs/TICKETS.md` |
+| The extension (F18 to F23) eats the time for the must-haves | It is part B of each ticket and starts only after the 12 Nov cut line; items are cut in the order in `docs/TICKETS.md` |
 | A language model changes a fact in a description | Facts come from `src/describe/`; the Co-Pilot only rewords, and the boundary test keeps models out of that folder |
 | Rhythm or texture sounds like noise | Rules pick from a small fixed set of patterns in the current scale; listen-check before merging |
 | Vibration or HRTF is missing on a device | Both are extras on top of sound: stereo panning and the plain tone always work |
@@ -430,4 +426,4 @@ Correctness checks that must always pass:
 | NASA offers no baseline on 13 Nov | Use `reference-date`, labelled honestly, or keep that data set on v1. v1 stays working throughout |
 | v2 adds work to an already heavy team-leader load | `contour.ts` suggested for Bhavish (light load), the baseline schema for Dhruv; T105 to T107 dropped; T113 and the contour voice are cut before the bed |
 | The contour voice sounds like noise or a siren | One or two lines per frame, fixed pitches, at most 8 accents a second; listen-check before merging (T114) |
-| Buoys need the server, which sleeps on the free tier | F25 is optional and last; nothing else depends on it |
+| v2 is merged but never plays, because no data set has a baseline (T111 not built) | T111 is now the top open item; until it lands, say "v1 sound" in the demo and README, not "change from normal" |

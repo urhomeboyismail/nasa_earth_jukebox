@@ -1,5 +1,7 @@
 # ADK spike (T86, step 1)
 
+**Decision, 7 Nov: T86 is cut.** See `docs/planning/FEATURE-REVIEW.md`. The voice guide stays on the current bridge.
+
 **Result so far: not finished, and not a yes.** The two things that decide it (a live voice session and tool calls) need a
 `GEMINI_API_KEY`, which the machine this was run on did not have. Everything that could be measured without one is below.
 Per the ticket, the build (steps 2 and 3) has **not** been started.
