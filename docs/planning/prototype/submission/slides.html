@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Earth, Out Loud: 7 slides</title>
+<style>
+  :root { color-scheme: light dark; --bg:#ffffff; --fg:#111111; --muted:#444444; --accent:#0b4f9c; --warn:#7a4a00; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#101214; --fg:#f2f2f2; --muted:#c4c4c4; --accent:#8ec1ff; --warn:#ffd479; } }
+  html, body { margin:0; background:var(--bg); color:var(--fg); font:1.25rem/1.5 system-ui, sans-serif; }
+  main { max-width: 64rem; margin: 0 auto; padding: 1rem; }
+  section.slide { min-height: 80vh; padding: 1.5rem 0; border-bottom: 2px solid var(--muted); }
+  h1 { font-size: 2.4rem; margin: .2rem 0 .8rem; }
+  h2 { font-size: 1.9rem; margin: .2rem 0 .8rem; }
+  .num { color: var(--muted); font-size: 1rem; }
+  .row { display:flex; gap:1.5rem; flex-wrap:wrap; align-items:flex-start; }
+  .row > * { flex: 1 1 18rem; }
+  img { max-width:100%; height:auto; image-rendering: pixelated; border:2px solid var(--muted); }
+  img.shot { image-rendering:auto; }
+  .big { font-size: 1.6rem; }
+  .warn { color: var(--warn); font-weight: 600; }
+  nav { position: sticky; top: 0; background: var(--bg); padding:.5rem 0; display:flex; gap:.5rem; align-items:center; border-bottom:1px solid var(--muted); }
+  button { font: inherit; min-height:44px; min-width:44px; padding:.3rem 1rem; border:2px solid var(--muted); background:var(--bg); color:var(--fg); border-radius:6px; cursor:pointer; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  table { border-collapse:collapse; } th, td { border:1px solid var(--muted); padding:.3rem .6rem; text-align:left; }
+  @media print { nav { display:none; } section.slide { page-break-after: always; min-height:auto; border:none; } }
+</style>
+</head>
+<body>
+<main>
+<nav aria-label="Slide controls">
+  <button type="button" id="prev">Previous</button>
+  <button type="button" id="next">Next</button>
+  <span id="where" role="status" aria-live="polite">Slide 1 of 7</span>
+</nav>
+
+<section class="slide" id="s1" aria-labelledby="h1">
+  <p class="num">1 of 7</p>
+  <h1 id="h1">Earth, Out Loud</h1>
+  <p class="big">Hear a NASA Earth data story. Know when there is no data.</p>
+  <p>Working title. NASA Space Apps 2026, Port Louis, Mauritius. Challenge: The Earth Information Jukebox.</p>
+</section>
+
+<section class="slide" id="s2" aria-labelledby="h2">
+  <p class="num">2 of 7</p>
+  <h2 id="h2">The problem</h2>
+  <ul>
+    <li>Earth data is told with pictures. People who cannot see the picture are left out.</li>
+    <li>Sound that hides gaps, or invents notes where there is no data, is worse than silence.</li>
+    <li>Our rule: <strong>no data is silence, and we say so.</strong></li>
+  </ul>
+</section>
+
+<section class="slide" id="s3" aria-labelledby="h3">
+  <p class="num">3 of 7</p>
+  <h2 id="h3">Frame in, sound out</h2>
+  <div class="row">
+    <figure style="margin:0">
+      <img src="../app/stories/frames/mur-sst-mauritius-2023-00.png" width="320" height="320" alt="NASA GIBS map of sea surface temperature around Mauritius on 2023-01-23. Land is blank.">
+      <figcaption>2023-01-23. Warm colours are warmer water.</figcaption>
+    </figure>
+    <figure style="margin:0">
+      <img src="../app/stories/frames/mur-sst-mauritius-2023-18.png" width="320" height="320" alt="The same area on 2023-07-22, in cooler colours.">
+      <figcaption>2023-07-22. Cooler.</figcaption>
+    </figure>
+  </div>
+  <p>One map in, one pitch out: the average of the sea points in the box, from <strong>27.12 °C</strong> (2023-01-23) to <strong>24.77 °C</strong> (2023-08-01). Higher pitch is warmer water.</p>
+  <p>Data: NASA GIBS, GHRSST MUR sea surface temperature. No matching EIC visualization verified; the app says so.</p>
+</section>
+
+<section class="slide" id="s4" aria-labelledby="h4">
+  <p class="num">4 of 7</p>
+  <h2 id="h4">Two sides of the same data</h2>
+  <table>
+    <caption>The two modes</caption>
+    <thead><tr><th scope="col">Musical mode</th><th scope="col">Strict data mode</th></tr></thead>
+    <tbody><tr>
+      <td>Notes snap to a scale. Values are rounded to about 0.8 °C. The app says so.</td>
+      <td>A plain tone and a click per step. Each map point is only known to within 0.15 °C. The app says so.</td>
+    </tr></tbody>
+  </table>
+  <p>The switch changes mode silently and leaves playback paused. The screen reader announces it. The app never talks over it.</p>
+</section>
+
+<section class="slide" id="s5" aria-labelledby="h5">
+  <p class="num">5 of 7</p>
+  <h2 id="h5">Silence means no data</h2>
+  <div class="row">
+    <img class="shot" src="video-assets/3-gap.png" alt="Screenshot of the app: the message 'Step 2 of 20, 2023-02-02: no data, not zero' above a hatched panel reading 'No map was published for this date. No data, not zero.'">
+    <div>
+      <p>2023-02-02 is a real gap. NASA's own date list skips it, and the server returns an empty image for it.</p>
+      <p>The pitch stops. A click keeps time. One message says <strong>no data, not zero</strong>. The app waits for Continue.</p>
+      <p>The pipeline stops if the date list and the image ever disagree.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s6" aria-labelledby="h6">
+  <p class="num">6 of 7</p>
+  <h2 id="h6">What the sound hides, and the honest test result</h2>
+  <ul>
+    <li>"What the sound hides": the same readings with a coarse mapping next to the honest one. You hear what a careless mapping loses.</li>
+    <li>Every answer in the app shows its source fact. If the record does not say, it says "Not in this record".</li>
+  </ul>
+  <p class="warn">Test result: not yet tested with blind users. No session has been run. The listener test for "what the sound hides" has not been run either.</p>
+  <p>What has been checked: automated tests, an accessibility scan, and a real-browser run on desktop Chrome, including offline. See <code>proof/automated-checks.md</code>.</p>
+</section>
+
+<section class="slide" id="s7" aria-labelledby="h7">
+  <p class="num">7 of 7</p>
+  <h2 id="h7">Data, credits, AI use, code</h2>
+  <ul>
+    <li><strong>NASA data:</strong> GHRSST Level 4 MUR SST v4.1 through NASA GIBS. 20 dates, every 10 days from 2023-01-23 to 2023-08-01, a box around Mauritius. Each colour matched exactly to NASA's colour map.</li>
+    <li><strong>Credits:</strong> JPL MUR MEaSUREs Project, 2015, doi:10.5067/GHGMR-4FJ04. "We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS)."</li>
+    <li><strong>AI use:</strong> AI (Claude, via Claude Code) helped write code, tests and documents. It did not create any data value, pitch or sound. Sentences are built by code from the data; a code checker rejects any number not in the data. A person has not yet signed off every sentence.</li>
+    <li><strong>Third-party code:</strong> Tone.js (MIT). Test and build tools: jsdom, axe-core, numpy, Pillow, jsonschema.</li>
+    <li><strong>Public link, no login:</strong> [to be added after deploy]</li>
+  </ul>
+</section>
+</main>
+<script>
+  const slides = [...document.querySelectorAll("section.slide")];
+  let i = 0;
+  const where = document.getElementById("where");
+  function go(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides[i].scrollIntoView({ block: "start" });
+    where.textContent = `Slide ${i + 1} of ${slides.length}`;
+  }
+  document.getElementById("next").onclick = () => go(i + 1);
+  document.getElementById("prev").onclick = () => go(i - 1);
+  document.addEventListener("keydown", (e) => {
+    if (e.target.closest("button")) return;
+    if (e.key === "ArrowRight" || e.key === "PageDown") go(i + 1);
+    if (e.key === "ArrowLeft" || e.key === "PageUp") go(i - 1);
+  });
+</script>
+</body>
+</html>

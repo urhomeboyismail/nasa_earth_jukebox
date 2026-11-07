@@ -1,0 +1,19 @@
+{
+  "story_id": "mur-sst-mauritius-2023",
+  "title": "Sea surface temperature around Mauritius, 2023",
+  "series_label": "sea surface temperature",
+  "region_name": "Mauritius",
+  "layer": "GHRSST_L4_MUR_Sea_Surface_Temperature",
+  "colormap_url": "https://gibs.earthdata.nasa.gov/colormaps/v1.3/GHRSST_Sea_Surface_Temperature.xml",
+  "bbox": { "west": 56.8, "south": -21.0, "east": 58.4, "north": -19.4 },
+  "size": { "width": 160, "height": 160 },
+  "start": "2023-01-23",
+  "stride_days": 10,
+  "count": 20,
+  "domain": [22, 30],
+  "coverage_rest_below": 50,
+  "low_confidence_below": 80,
+  "out_dir": "app/stories",
+  "frames_dir": "app/stories/frames",
+  "report_path": "pipeline/day1-report-mur-mauritius.json"
+}

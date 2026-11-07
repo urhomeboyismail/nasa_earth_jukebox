@@ -1,0 +1,14 @@
+[
+  {
+    "id": "mur-sst-mauritius-2023",
+    "title": "Sea surface temperature around Mauritius, 2023",
+    "url": "mur-sst-mauritius-2023.story.json",
+    "facts": "mur-sst-mauritius-2023.facts.json",
+    "answers": "answers.json"
+  },
+  {
+    "id": "fixture-a",
+    "title": "FIXTURE: invented values, not NASA data",
+    "url": "fixture-a.story.json"
+  }
+]

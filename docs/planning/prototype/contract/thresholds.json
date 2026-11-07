@@ -1,0 +1,6 @@
+{
+  "_status": "DRAFT from brainstorm/t0-lockin.md section A. [assumption] until the red team signs. Change only by logging it in brainstorm/decisions.md.",
+  "coverage_rest_below": 50,
+  "low_confidence_below": 80,
+  "baseline_mean_tolerance": 1e-6
+}

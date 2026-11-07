@@ -1,0 +1,162 @@
+{
+  "story_id": "mur-sst-mauritius-2023",
+  "check1_colour_key_decoded": {
+    "min_exact_match_pct": 100.0,
+    "threshold": 95.0,
+    "pass": true,
+    "how": "share of sea pixels whose colour equals a colour-map entry exactly"
+  },
+  "check2_real_gaps": {
+    "gap_dates": [
+      "2023-02-02"
+    ],
+    "agreement": "capabilities date list and blank server image agree for every date (the script stops otherwise)",
+    "pass": true
+  },
+  "check3_cross_check": {
+    "pass": null,
+    "note": "No independent cross-check series was found for this layer; check 3 is not applicable and is NOT reported as passed."
+  },
+  "rows": [
+    {
+      "date": "2023-01-23",
+      "published": true,
+      "value": 27.12,
+      "coverage_pct": 93.75,
+      "exact_match_pct": 100.0
+    },
+    {
+      "date": "2023-02-02",
+      "published": false,
+      "value": null,
+      "coverage_pct": 0.0,
+      "exact_match_pct": null
+    },
+    {
+      "date": "2023-02-12",
+      "published": true,
+      "value": 27.8,
+      "coverage_pct": 93.75,
+      "exact_match_pct": 100.0
+    },
+    {
+      "date": "2023-02-22",
+      "published": true,
+      "value": 27.5,
+      "coverage_pct": 93.75,
+      "exact_match_pct": 100.0
+    },
+    {
+      "date": "2023-03-04",
+      "published": true,
+      "value": 28.37,
+      "coverage_pct": 93.75,
+      "exact_match_pct": 100.0
+    },
+    {
+      "date": "2023-03-14",
+      "published": true,
+      "value": 28.02,
+      "coverage_pct": 93.75,
+      "exact_match_pct": 100.0
+    },
+    {
+      "date": "2023-03-24",
+      "published": true,
+      "value": 28.36,
+      "coverage_pct": 93.75,
+      "exact_match_pct": 100.0
+    },
+    {
+      "date": "2023-04-03",
+      "published": true,
+      "value": 28.51,
+      "coverage_pct": 93.75,
+      "exact_match_pct": 100.0
+    },
+    {
+      "date": "2023-04-13",
+      "published": true,
+      "value": 28.26,
+      "coverage_pct": 93.75,
+      "exact_match_pct": 100.0
+    },
+    {
+      "date": "2023-04-23",
+      "published": true,
+      "value": 28.11,
+      "coverage_pct": 93.75,
+      "exact_match_pct": 100.0
+    },
+    {
+      "date": "2023-05-03",
+      "published": true,
+      "value": 27.72,
+      "coverage_pct": 93.75,
+      "exact_match_pct": 100.0
+    },
+    {
+      "date": "2023-05-13",
+      "published": true,
+      "value": 27.4,
+      "coverage_pct": 93.75,
+      "exact_match_pct": 100.0
+    },
+    {
+      "date": "2023-05-23",
+      "published": true,
+      "value": 27.58,
+      "coverage_pct": 93.75,
+      "exact_match_pct": 100.0
+    },
+    {
+      "date": "2023-06-02",
+      "published": true,
+      "value": 27.14,
+      "coverage_pct": 93.75,
+      "exact_match_pct": 100.0
+    },
+    {
+      "date": "2023-06-12",
+      "published": true,
+      "value": 26.41,
+      "coverage_pct": 93.75,
+      "exact_match_pct": 100.0
+    },
+    {
+      "date": "2023-06-22",
+      "published": true,
+      "value": 25.92,
+      "coverage_pct": 93.75,
+      "exact_match_pct": 100.0
+    },
+    {
+      "date": "2023-07-02",
+      "published": true,
+      "value": 25.52,
+      "coverage_pct": 93.75,
+      "exact_match_pct": 100.0
+    },
+    {
+      "date": "2023-07-12",
+      "published": true,
+      "value": 25.0,
+      "coverage_pct": 93.75,
+      "exact_match_pct": 100.0
+    },
+    {
+      "date": "2023-07-22",
+      "published": true,
+      "value": 24.69,
+      "coverage_pct": 93.75,
+      "exact_match_pct": 100.0
+    },
+    {
+      "date": "2023-08-01",
+      "published": true,
+      "value": 24.77,
+      "coverage_pct": 93.75,
+      "exact_match_pct": 100.0
+    }
+  ]
+}

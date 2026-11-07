@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Earth, Out Loud: hear a data story</title>
+<link rel="stylesheet" href="player/styles.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b4f9c">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+</head>
+<body>
+<main id="main">
+  <h1>Earth, Out Loud</h1>
+  <p id="intro">Hear a data story as sound. Everything you hear is also written on this page.</p>
+
+  <form id="story-form" onsubmit="return false">
+    <fieldset id="story-picker">
+      <legend>Choose a story</legend>
+    </fieldset>
+  </form>
+
+  <section aria-labelledby="play-h">
+    <h2 id="play-h">Play</h2>
+    <div class="row">
+      <button type="button" id="play">Play</button>
+      <button type="button" id="pause">Pause</button>
+      <button type="button" id="continue" aria-disabled="true">Continue</button>
+      <button type="button" id="replay">Replay</button>
+      <button type="button" id="where">Where am I</button>
+    </div>
+
+    <div class="field">
+      <label for="step">Step</label>
+      <input type="range" id="step" min="0" max="0" step="1" value="0">
+    </div>
+
+    <div class="field">
+      <input type="checkbox" id="strict" role="switch" aria-describedby="mode-desc">
+      <label for="strict">Strict data mode</label>
+      <p id="mode-desc"></p>
+    </div>
+
+    <div class="row">
+      <button type="button" id="both">Hear this step both ways</button>
+      <button type="button" id="reference">Reference tone</button>
+      <button type="button" id="test">Test sound</button>
+    </div>
+  </section>
+
+  <section id="ask-section" aria-labelledby="ask-h" hidden>
+    <h2 id="ask-h">Ask a question</h2>
+    <p id="ask-hint">Choose a question below, or type your own. Answers come only from this story's fact sheet and always show their source.</p>
+    <form id="ask-form" onsubmit="return false">
+      <div class="field">
+        <label for="ask-filter">Type a question, or a word to filter the list</label>
+        <input type="search" id="ask-filter" autocomplete="off" aria-describedby="ask-hint">
+      </div>
+      <div class="row">
+        <button type="submit" id="ask-go">Ask</button>
+        <button type="button" id="ask-more" aria-disabled="true">Read more</button>
+      </div>
+    </form>
+    <ul id="ask-list" aria-label="Questions"></ul>
+  </section>
+
+  <section aria-labelledby="msg-h">
+    <h2 id="msg-h">Latest message</h2>
+    <div id="live" role="status" aria-live="polite" aria-atomic="true"></div>
+  </section>
+
+  <section aria-labelledby="pic-h" id="picture-section">
+    <h2 id="pic-h">Picture</h2>
+    <p id="pic-caption"></p>
+    <div class="pic-wrap">
+      <img id="pic-frame" width="160" height="160" alt="" aria-describedby="pic-desc" hidden>
+      <div id="pic-box" class="pic-box" aria-hidden="true" hidden><span>Whole box</span></div>
+      <div id="pic-panel" class="pic-panel" hidden></div>
+    </div>
+    <p id="pic-desc"></p>
+    <p id="pic-legend"></p>
+    <p id="pic-region"></p>
+    <button type="button" id="pic-table-toggle" aria-expanded="false" aria-controls="pic-table-wrap">Show data table</button>
+    <div id="pic-table-wrap" hidden>
+      <table id="pic-table"></table>
+      <p id="pic-sources"></p>
+    </div>
+  </section>
+
+  <section aria-labelledby="hides-h" id="hides-section">
+    <h2 id="hides-h">What the sound hides</h2>
+    <p>Two versions of the same readings. One of them hides the change. Listen to both, choose one, then press Reveal.</p>
+    <p id="hides-round"></p>
+    <div class="row">
+      <button type="button" id="hides-play-1">Play version 1</button>
+      <button type="button" id="hides-play-2">Play version 2</button>
+    </div>
+    <fieldset>
+      <legend>Which version hides the change?</legend>
+      <div><input type="radio" name="hides-guess" id="hides-guess-1" value="1"><label for="hides-guess-1">Version 1</label></div>
+      <div><input type="radio" name="hides-guess" id="hides-guess-2" value="2"><label for="hides-guess-2">Version 2</label></div>
+    </fieldset>
+    <div class="row">
+      <button type="button" id="hides-reveal">Reveal</button>
+      <button type="button" id="hides-next">New round</button>
+    </div>
+    <p id="hides-result" hidden></p>
+    <table id="hides-log">
+      <caption>Practice log of your guesses</caption>
+      <thead><tr><th scope="col">Round</th><th scope="col">Your guess</th><th scope="col">Version that hides the change</th><th scope="col">Correct</th></tr></thead>
+      <tbody id="hides-log-body"></tbody>
+    </table>
+    <p id="hides-summary"></p>
+  </section>
+
+  <section aria-labelledby="about-h">
+    <h2 id="about-h">About this story</h2>
+    <p id="about-orientation"></p>
+    <p id="about-legend"></p>
+    <h3>How to read the sound</h3>
+    <ul>
+      <li id="about-side-a"></li>
+      <li id="about-side-b"></li>
+    </ul>
+    <h3>Where the data comes from</h3>
+    <p id="about-eic"></p>
+    <ul id="about-sources"></ul>
+  </section>
+</main>
+<script src="vendor/Tone.js"></script>
+<script type="module" src="player/main.js"></script>
+<script>
+  // Offline support. If it fails (for example http on a non-local host), the app still works online.
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>

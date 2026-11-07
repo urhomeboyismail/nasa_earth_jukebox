@@ -1,0 +1,289 @@
+{
+  "schema_version": "1.0.0-draft",
+  "meta": {
+    "story_id": "mur-sst-mauritius-2023",
+    "title": "Sea surface temperature around Mauritius, 2023",
+    "is_fixture": false,
+    "series_label": "sea surface temperature",
+    "unit": "°C",
+    "region": {
+      "name": "Mauritius",
+      "bbox": {
+        "west": 56.8,
+        "south": -21.0,
+        "east": 58.4,
+        "north": -19.4
+      },
+      "grid": {
+        "width": 160,
+        "height": 160
+      }
+    },
+    "sources": [
+      {
+        "id": "MUR",
+        "name": "GHRSST Level 4 MUR Global Foundation Sea Surface Temperature Analysis (v4.1), shown through NASA GIBS",
+        "url": "https://podaac.jpl.nasa.gov/dataset/MUR-JPL-L4-GLOB-v4.1",
+        "credit": "JPL MUR MEaSUREs Project. 2015. GHRSST Level 4 MUR Global Foundation Sea Surface Temperature Analysis. doi:10.5067/GHGMR-4FJ04. NASA PO.DAAC."
+      },
+      {
+        "id": "GIBS",
+        "name": "NASA Global Imagery Browse Services (GIBS)",
+        "url": "https://nasa-gibs.github.io/gibs-api-docs/",
+        "credit": "We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS)."
+      },
+      {
+        "id": "CMAP",
+        "name": "GIBS colour map for this layer",
+        "url": "https://gibs.earthdata.nasa.gov/colormaps/v1.3/GHRSST_Sea_Surface_Temperature.xml",
+        "credit": "The colour map published by NASA GIBS for the layer. It links each map colour to a temperature range."
+      }
+    ],
+    "eic_visualization": {
+      "status": "none_verified",
+      "text": "No matching EIC visualization verified. The maps come from NASA GIBS (Global Imagery Browse Services)."
+    }
+  },
+  "encoding": {
+    "domain_min": 22,
+    "domain_max": 30,
+    "colour_key": {
+      "source_id": "CMAP",
+      "bin_width": 0.15
+    },
+    "side_a": {
+      "rounding_statement": "Side A snaps each pitch to a musical scale, so values are rounded to about 0.8 °C."
+    },
+    "side_b": {
+      "coarseness_statement": "Side B plays the value as a plain tone. The colour key only gives ranges of 0.15 °C for each map point, so the value is not exact."
+    }
+  },
+  "baseline": {
+    "step_indices": [
+      0,
+      2,
+      3,
+      4,
+      5
+    ],
+    "value": 27.762,
+    "statement": "The reference tone is the average of steps 1, 3, 4, 5 and 6, the first five with data: 27.76 °C."
+  },
+  "steps": [
+    {
+      "index": 0,
+      "label": "2023-01-23",
+      "coverage_pct": 93.75,
+      "state": "data",
+      "value": 27.12,
+      "source_id": "MUR",
+      "frame": "frames/mur-sst-mauritius-2023-00.png"
+    },
+    {
+      "index": 1,
+      "label": "2023-02-02",
+      "coverage_pct": 0.0,
+      "state": "rest",
+      "value": null,
+      "rest_reason": "no_frame"
+    },
+    {
+      "index": 2,
+      "label": "2023-02-12",
+      "coverage_pct": 93.75,
+      "state": "data",
+      "value": 27.8,
+      "source_id": "MUR",
+      "frame": "frames/mur-sst-mauritius-2023-02.png"
+    },
+    {
+      "index": 3,
+      "label": "2023-02-22",
+      "coverage_pct": 93.75,
+      "state": "data",
+      "value": 27.5,
+      "source_id": "MUR",
+      "frame": "frames/mur-sst-mauritius-2023-03.png"
+    },
+    {
+      "index": 4,
+      "label": "2023-03-04",
+      "coverage_pct": 93.75,
+      "state": "data",
+      "value": 28.37,
+      "source_id": "MUR",
+      "frame": "frames/mur-sst-mauritius-2023-04.png"
+    },
+    {
+      "index": 5,
+      "label": "2023-03-14",
+      "coverage_pct": 93.75,
+      "state": "data",
+      "value": 28.02,
+      "source_id": "MUR",
+      "frame": "frames/mur-sst-mauritius-2023-05.png"
+    },
+    {
+      "index": 6,
+      "label": "2023-03-24",
+      "coverage_pct": 93.75,
+      "state": "data",
+      "value": 28.36,
+      "source_id": "MUR",
+      "frame": "frames/mur-sst-mauritius-2023-06.png"
+    },
+    {
+      "index": 7,
+      "label": "2023-04-03",
+      "coverage_pct": 93.75,
+      "state": "data",
+      "value": 28.51,
+      "source_id": "MUR",
+      "frame": "frames/mur-sst-mauritius-2023-07.png"
+    },
+    {
+      "index": 8,
+      "label": "2023-04-13",
+      "coverage_pct": 93.75,
+      "state": "data",
+      "value": 28.26,
+      "source_id": "MUR",
+      "frame": "frames/mur-sst-mauritius-2023-08.png"
+    },
+    {
+      "index": 9,
+      "label": "2023-04-23",
+      "coverage_pct": 93.75,
+      "state": "data",
+      "value": 28.11,
+      "source_id": "MUR",
+      "frame": "frames/mur-sst-mauritius-2023-09.png"
+    },
+    {
+      "index": 10,
+      "label": "2023-05-03",
+      "coverage_pct": 93.75,
+      "state": "data",
+      "value": 27.72,
+      "source_id": "MUR",
+      "frame": "frames/mur-sst-mauritius-2023-10.png"
+    },
+    {
+      "index": 11,
+      "label": "2023-05-13",
+      "coverage_pct": 93.75,
+      "state": "data",
+      "value": 27.4,
+      "source_id": "MUR",
+      "frame": "frames/mur-sst-mauritius-2023-11.png"
+    },
+    {
+      "index": 12,
+      "label": "2023-05-23",
+      "coverage_pct": 93.75,
+      "state": "data",
+      "value": 27.58,
+      "source_id": "MUR",
+      "frame": "frames/mur-sst-mauritius-2023-12.png"
+    },
+    {
+      "index": 13,
+      "label": "2023-06-02",
+      "coverage_pct": 93.75,
+      "state": "data",
+      "value": 27.14,
+      "source_id": "MUR",
+      "frame": "frames/mur-sst-mauritius-2023-13.png"
+    },
+    {
+      "index": 14,
+      "label": "2023-06-12",
+      "coverage_pct": 93.75,
+      "state": "data",
+      "value": 26.41,
+      "source_id": "MUR",
+      "frame": "frames/mur-sst-mauritius-2023-14.png"
+    },
+    {
+      "index": 15,
+      "label": "2023-06-22",
+      "coverage_pct": 93.75,
+      "state": "data",
+      "value": 25.92,
+      "source_id": "MUR",
+      "frame": "frames/mur-sst-mauritius-2023-15.png"
+    },
+    {
+      "index": 16,
+      "label": "2023-07-02",
+      "coverage_pct": 93.75,
+      "state": "data",
+      "value": 25.52,
+      "source_id": "MUR",
+      "frame": "frames/mur-sst-mauritius-2023-16.png"
+    },
+    {
+      "index": 17,
+      "label": "2023-07-12",
+      "coverage_pct": 93.75,
+      "state": "data",
+      "value": 25.0,
+      "source_id": "MUR",
+      "frame": "frames/mur-sst-mauritius-2023-17.png"
+    },
+    {
+      "index": 18,
+      "label": "2023-07-22",
+      "coverage_pct": 93.75,
+      "state": "data",
+      "value": 24.69,
+      "source_id": "MUR",
+      "frame": "frames/mur-sst-mauritius-2023-18.png"
+    },
+    {
+      "index": 19,
+      "label": "2023-08-01",
+      "coverage_pct": 93.75,
+      "state": "data",
+      "value": 24.77,
+      "source_id": "MUR",
+      "frame": "frames/mur-sst-mauritius-2023-19.png"
+    }
+  ],
+  "gaps": [
+    {
+      "start_index": 1,
+      "end_index": 1,
+      "reason": "no_frame",
+      "message": "Step 2 (2023-02-02): no data, not zero. NASA published no map for this date."
+    }
+  ],
+  "key_moments": [
+    {
+      "step_index": 0,
+      "title": "Start",
+      "message": "Step 1 (2023-01-23): sea surface temperature 27.12 °C. This is the first reading."
+    },
+    {
+      "step_index": 14,
+      "title": "Biggest fall",
+      "message": "Step 15 (2023-06-12): 26.41 °C, down 0.73 °C from 27.14 °C at Step 14 (2023-06-02). This is the largest fall between two readings."
+    },
+    {
+      "step_index": 18,
+      "title": "Lowest",
+      "message": "Step 19 (2023-07-22): 24.69 °C, the lowest reading."
+    },
+    {
+      "step_index": 19,
+      "title": "End",
+      "message": "Step 20 (2023-08-01): 24.77 °C. This is the last reading."
+    }
+  ],
+  "text": {
+    "orientation": "Sea surface temperature around Mauritius. One reading every 10 days, from 2023-01-23 to 2023-08-01. It goes from 27.12 to 24.77 °C. No data for 2023-02-02.",
+    "alt_short": "Sea temperature map around Mauritius: 27.12 to 24.77 °C.",
+    "alt_long": "A map of the sea around Mauritius, coloured by temperature, for 19 dates between 2023-01-23 and 2023-08-01. Warm water is shown in warm colours. The area-wide reading is 27.12 °C on 2023-01-23 and 24.77 °C on 2023-08-01. Land has no sea temperature and is left blank.",
+    "legend": "Higher pitch means warmer water. Silence means no map was published for that date. Each reading is the average of the sea points in the area."
+  }
+}
