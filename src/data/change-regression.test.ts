@@ -1,6 +1,7 @@
 // Change regression baseline (docs/PLAN.md §5.9, T112 and T113). Records the `Score` (the change step and the contour lines) of made-up scenes with a known answer in
-// src/data/__golden__/change.json, so any change to the change maths shows in a diff. Data sets with a baseline are added to
-// the golden file when T111 lands `synthetic-change` (a data set in index.json with a `baseline` and no entry here fails the last test).
+// src/data/__golden__/change.json, so any change to the change maths shows in a diff. Data sets with a baseline are scored from their real
+// files and added to the same golden file under "<id>/<frame>" (T111 added synthetic-change); a data set in index.json with a `baseline`
+// and no entry here fails the last test.
 //
 // If this fails, the maths changed. A PR that rewrites change.json must say why, and the team leader approves it. To rewrite it after
 // a change you meant to make: `npx vitest run -u src/data/change-regression.test.ts`, then read the diff before you commit it.
@@ -11,7 +12,9 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { scorePixels, type ScoreInput } from '../analysis/score'
 import type { Score } from '../analysis/types'
+import { decodePng } from '../analysis/png'
 import { scene, SCENE_MAPPING, SCENE_SCALE } from '../test/changeScene'
+import { visualizationSchema } from './schema'
 
 const dataDir = resolve(fileURLToPath(import.meta.url), '../../../public/data')
 const area = { x0: 0, y0: 0, x1: 1, y1: 1 }
@@ -56,6 +59,27 @@ const cases = {
   'land-in-the-east': () => scorePixels(scene({ season: 1.5, landFrom: 300 }), scene({ season: 0, landFrom: 300 }), input('land-in-the-east')),
   'mostly-land': () => scorePixels(scene({ season: 1.5, landFrom: 20 }), scene({ season: 0, landFrom: 20 }), input('mostly-land')),
   'anomaly-product': () => scorePixels(scene({ season: 0 }), null, input('anomaly-product', 0)),
+  // synthetic-change (T111): February is the warmest month but has no patch; the patch grows through August, September and October, then goes.
+  'synthetic-change/2024-02-15': () => datasetScore('synthetic-change', '2024-02-15'),
+  'synthetic-change/2024-08-15': () => datasetScore('synthetic-change', '2024-08-15'),
+  'synthetic-change/2024-09-15': () => datasetScore('synthetic-change', '2024-09-15'),
+  'synthetic-change/2024-10-15': () => datasetScore('synthetic-change', '2024-10-15'),
+  'synthetic-change/2024-11-15': () => datasetScore('synthetic-change', '2024-11-15'),
+}
+
+/** A data set with a baseline, scored from its real PNGs and manifest: the frame against its own normal, as Listen and Compare read them. */
+function datasetScore(id: string, frameId: string): Score {
+  const v = visualizationSchema.parse(JSON.parse(readFileSync(`${dataDir}/${id}/manifest.json`, 'utf8')))
+  const frame = v.frames.find(f => f.id === frameId)!
+  const { baseline, mapping } = v
+  if (baseline?.kind !== 'climatology' || !mapping.changeSteps || !mapping.contourLevels) throw new Error(`${id} is not a climatology data set with change steps.`)
+  return scorePixels(decodePng(readFileSync(`${dataDir}/${id}/${frame.image}`)), decodePng(readFileSync(`${dataDir}/${id}/${frame.baselineImage}`)), {
+    frameId: `${id}/${frameId}`,
+    colorScale: v.colorScale,
+    mapping: { minValidFraction: mapping.minValidFraction, changeSteps: mapping.changeSteps, contourLevels: mapping.contourLevels },
+    area: v.mapArea ?? area,
+    noiseFloor: baseline.noiseFloor,
+  })
 }
 
 const text = JSON.stringify(Object.fromEntries(Object.entries(cases).map(([id, run]) => [id, plain(run())])), null, 2) + '\n'
@@ -100,7 +124,8 @@ describe('change regression baseline', () => {
 
   it('has an entry for every data set in index.json that has a baseline', () => {
     const catalog = JSON.parse(readFileSync(`${dataDir}/index.json`, 'utf8')) as { id: string }[]
-    const withBaseline = catalog.filter(({ id }) => 'baseline' in JSON.parse(readFileSync(`${dataDir}/${id}/manifest.json`, 'utf8')))
-    expect(withBaseline.map(({ id }) => id)).toEqual([]) // T111 adds synthetic-change; then record its Scores here and update this test.
+    const withBaseline = catalog.filter(({ id }) => 'baseline' in JSON.parse(readFileSync(`${dataDir}/${id}/manifest.json`, 'utf8'))).map(({ id }) => id)
+    expect(withBaseline).toEqual(['synthetic-change']) // add a data set with a baseline here, and record its Scores in `cases`
+    for (const id of withBaseline) expect(Object.keys(cases).some(key => key.startsWith(`${id}/`)), id).toBe(true)
   })
 })

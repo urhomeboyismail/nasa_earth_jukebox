@@ -295,13 +295,13 @@ describe('concise detail (F19)', () => {
 // ---- describeChange and describeContour (T115) ----
 
 const changeSteps = [
-  { id: 'much-below', range: [-Infinity, -2] as [number, number] },
-  { id: 'below', range: [-2, -0.5] as [number, number] },
-  { id: 'near-normal', range: [-0.5, 0.5] as [number, number] },
-  { id: 'above', range: [0.5, 2] as [number, number] },
-  { id: 'much-above', range: [2, Infinity] as [number, number] },
+  { id: 'much-below', label: 'Much below normal', range: [-Infinity, -2] as [number, number], note: 'C3' },
+  { id: 'below', label: 'Below normal', range: [-2, -0.5] as [number, number], note: 'E3' },
+  { id: 'near-normal', label: 'Near normal', range: [-0.5, 0.5] as [number, number], note: 'G3' },
+  { id: 'above', label: 'Above normal', range: [0.5, 2] as [number, number], note: 'A3' },
+  { id: 'much-above', label: 'Much above normal', range: [2, Infinity] as [number, number], note: 'C4' },
 ]
-const contourLevels = [{ value: 1 }, { value: 2 }]
+const contourLevels = [{ value: 1, note: 'C5' }, { value: 2, note: 'G5' }]
 type Baseline = NonNullable<ChangeVisualization['baseline']>
 const withBaseline = (baseline: Baseline): ChangeVisualization =>
   ({ ...(visualization as unknown as ChangeVisualization), baseline, mapping: { ...visualization.mapping, changeSteps, contourLevels } })

@@ -10,7 +10,7 @@ describe('DatasetPicker', () => {
     render(<DatasetPicker catalog={catalog} value="synthetic-ocean" onChange={() => {}} />)
     const select = screen.getByRole('combobox', { name: 'Data set' })
     expect(select).toHaveValue('synthetic-ocean')
-    expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual(['Fixture ocean', 'Synthetic ocean', 'Synthetic globe (made-up practice data)'])
+    expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual(['Fixture ocean', 'Synthetic ocean', 'Synthetic globe (made-up practice data)', 'Synthetic change (made-up practice data)'])
   })
 
   it('describes the chosen data set', () => {

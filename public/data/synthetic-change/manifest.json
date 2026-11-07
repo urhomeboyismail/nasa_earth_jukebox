@@ -1,0 +1,634 @@
+{
+  "id": "synthetic-change",
+  "title": "Synthetic change (made-up practice data)",
+  "summary": "Twelve made-up monthly frames, each with its own normal, where a warm patch grows in the east, for practising the change from normal.",
+  "description": "A pretend sea through one year: it is warmest in February and coolest in August, a little warmer in the north, with grey land on the west edge and a small island. From August to October a warm patch grows in the east, up to 1.5 °C above normal in October, then goes. Each month comes with its own normal, the same picture without the patch, so the change from normal is known exactly. The season is bigger than the patch, so the warmest date is not the date furthest above normal. Every temperature is chosen by us. None of it is real data.",
+  "variable": {
+    "name": "Sea surface temperature",
+    "unit": "°C"
+  },
+  "source": {
+    "name": "Synthetic test data",
+    "url": "",
+    "credit": "Earth Jukebox team",
+    "license": "CC0",
+    "retrievedOn": "2026-11-07"
+  },
+  "colorScale": {
+    "stops": [
+      {
+        "value": 0,
+        "rgb": [
+          8,
+          48,
+          160
+        ]
+      },
+      {
+        "value": 5,
+        "rgb": [
+          30,
+          120,
+          220
+        ]
+      },
+      {
+        "value": 10,
+        "rgb": [
+          60,
+          190,
+          230
+        ]
+      },
+      {
+        "value": 15,
+        "rgb": [
+          120,
+          215,
+          150
+        ]
+      },
+      {
+        "value": 20,
+        "rgb": [
+          250,
+          230,
+          60
+        ]
+      },
+      {
+        "value": 24,
+        "rgb": [
+          250,
+          160,
+          40
+        ]
+      },
+      {
+        "value": 27,
+        "rgb": [
+          235,
+          90,
+          40
+        ]
+      },
+      {
+        "value": 30,
+        "rgb": [
+          180,
+          20,
+          30
+        ]
+      }
+    ],
+    "noData": [
+      [
+        128,
+        128,
+        128
+      ]
+    ],
+    "maxColorDistance": 40
+  },
+  "regions": [
+    {
+      "id": "east-patch",
+      "name": "East patch",
+      "description": "A grid of 30 points in the east, inside the warm patch that grows from August to October.",
+      "points": [
+        {
+          "x": 0.7375,
+          "y": 0.2625
+        },
+        {
+          "x": 0.7525,
+          "y": 0.2625
+        },
+        {
+          "x": 0.7675,
+          "y": 0.2625
+        },
+        {
+          "x": 0.7825,
+          "y": 0.2625
+        },
+        {
+          "x": 0.7975,
+          "y": 0.2625
+        },
+        {
+          "x": 0.8125,
+          "y": 0.2625
+        },
+        {
+          "x": 0.7375,
+          "y": 0.2875
+        },
+        {
+          "x": 0.7525,
+          "y": 0.2875
+        },
+        {
+          "x": 0.7675,
+          "y": 0.2875
+        },
+        {
+          "x": 0.7825,
+          "y": 0.2875
+        },
+        {
+          "x": 0.7975,
+          "y": 0.2875
+        },
+        {
+          "x": 0.8125,
+          "y": 0.2875
+        },
+        {
+          "x": 0.7375,
+          "y": 0.3125
+        },
+        {
+          "x": 0.7525,
+          "y": 0.3125
+        },
+        {
+          "x": 0.7675,
+          "y": 0.3125
+        },
+        {
+          "x": 0.7825,
+          "y": 0.3125
+        },
+        {
+          "x": 0.7975,
+          "y": 0.3125
+        },
+        {
+          "x": 0.8125,
+          "y": 0.3125
+        },
+        {
+          "x": 0.7375,
+          "y": 0.3375
+        },
+        {
+          "x": 0.7525,
+          "y": 0.3375
+        },
+        {
+          "x": 0.7675,
+          "y": 0.3375
+        },
+        {
+          "x": 0.7825,
+          "y": 0.3375
+        },
+        {
+          "x": 0.7975,
+          "y": 0.3375
+        },
+        {
+          "x": 0.8125,
+          "y": 0.3375
+        },
+        {
+          "x": 0.7375,
+          "y": 0.3625
+        },
+        {
+          "x": 0.7525,
+          "y": 0.3625
+        },
+        {
+          "x": 0.7675,
+          "y": 0.3625
+        },
+        {
+          "x": 0.7825,
+          "y": 0.3625
+        },
+        {
+          "x": 0.7975,
+          "y": 0.3625
+        },
+        {
+          "x": 0.8125,
+          "y": 0.3625
+        }
+      ]
+    },
+    {
+      "id": "open-sea",
+      "name": "Open sea",
+      "description": "A grid of 30 points in open water west of the patch, which follows the seasons and nothing else.",
+      "points": [
+        {
+          "x": 0.3,
+          "y": 0.4
+        },
+        {
+          "x": 0.35,
+          "y": 0.4
+        },
+        {
+          "x": 0.4,
+          "y": 0.4
+        },
+        {
+          "x": 0.45,
+          "y": 0.4
+        },
+        {
+          "x": 0.5,
+          "y": 0.4
+        },
+        {
+          "x": 0.55,
+          "y": 0.4
+        },
+        {
+          "x": 0.3,
+          "y": 0.44
+        },
+        {
+          "x": 0.35,
+          "y": 0.44
+        },
+        {
+          "x": 0.4,
+          "y": 0.44
+        },
+        {
+          "x": 0.45,
+          "y": 0.44
+        },
+        {
+          "x": 0.5,
+          "y": 0.44
+        },
+        {
+          "x": 0.55,
+          "y": 0.44
+        },
+        {
+          "x": 0.3,
+          "y": 0.48
+        },
+        {
+          "x": 0.35,
+          "y": 0.48
+        },
+        {
+          "x": 0.4,
+          "y": 0.48
+        },
+        {
+          "x": 0.45,
+          "y": 0.48
+        },
+        {
+          "x": 0.5,
+          "y": 0.48
+        },
+        {
+          "x": 0.55,
+          "y": 0.48
+        },
+        {
+          "x": 0.3,
+          "y": 0.52
+        },
+        {
+          "x": 0.35,
+          "y": 0.52
+        },
+        {
+          "x": 0.4,
+          "y": 0.52
+        },
+        {
+          "x": 0.45,
+          "y": 0.52
+        },
+        {
+          "x": 0.5,
+          "y": 0.52
+        },
+        {
+          "x": 0.55,
+          "y": 0.52
+        },
+        {
+          "x": 0.3,
+          "y": 0.56
+        },
+        {
+          "x": 0.35,
+          "y": 0.56
+        },
+        {
+          "x": 0.4,
+          "y": 0.56
+        },
+        {
+          "x": 0.45,
+          "y": 0.56
+        },
+        {
+          "x": 0.5,
+          "y": 0.56
+        },
+        {
+          "x": 0.55,
+          "y": 0.56
+        }
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "id": "2024-01-15",
+      "date": "2024-01-15",
+      "image": "frames/2024-01-15.png",
+      "width": 800,
+      "height": 400,
+      "altText": "Synthetic change map, January 2024. Made-up practice data: grey land on the west edge and a small island in the south-east. The east patch is yellow to orange, warm, about 21 °C, about its normal for the month.",
+      "baselineImage": "baselines/2024-01-15.png"
+    },
+    {
+      "id": "2024-02-15",
+      "date": "2024-02-15",
+      "image": "frames/2024-02-15.png",
+      "width": 800,
+      "height": 400,
+      "altText": "Synthetic change map, February 2024. Made-up practice data: grey land on the west edge and a small island in the south-east. The east patch is yellow to orange, warm, about 21 °C, about its normal for the month.",
+      "baselineImage": "baselines/2024-02-15.png"
+    },
+    {
+      "id": "2024-03-15",
+      "date": "2024-03-15",
+      "image": "frames/2024-03-15.png",
+      "width": 800,
+      "height": 400,
+      "altText": "Synthetic change map, March 2024. Made-up practice data: grey land on the west edge and a small island in the south-east. The east patch is yellow to orange, warm, about 21 °C, about its normal for the month.",
+      "baselineImage": "baselines/2024-03-15.png"
+    },
+    {
+      "id": "2024-04-15",
+      "date": "2024-04-15",
+      "image": "frames/2024-04-15.png",
+      "width": 800,
+      "height": 400,
+      "altText": "Synthetic change map, April 2024. Made-up practice data: grey land on the west edge and a small island in the south-east. The east patch is yellow to orange, warm, about 19 °C, about its normal for the month.",
+      "baselineImage": "baselines/2024-04-15.png"
+    },
+    {
+      "id": "2024-05-15",
+      "date": "2024-05-15",
+      "image": "frames/2024-05-15.png",
+      "width": 800,
+      "height": 400,
+      "altText": "Synthetic change map, May 2024. Made-up practice data: grey land on the west edge and a small island in the south-east. The east patch is green, mild, about 17 °C, about its normal for the month.",
+      "baselineImage": "baselines/2024-05-15.png"
+    },
+    {
+      "id": "2024-06-15",
+      "date": "2024-06-15",
+      "image": "frames/2024-06-15.png",
+      "width": 800,
+      "height": 400,
+      "altText": "Synthetic change map, June 2024. Made-up practice data: grey land on the west edge and a small island in the south-east. The east patch is green, mild, about 15 °C, about its normal for the month.",
+      "baselineImage": "baselines/2024-06-15.png"
+    },
+    {
+      "id": "2024-07-15",
+      "date": "2024-07-15",
+      "image": "frames/2024-07-15.png",
+      "width": 800,
+      "height": 400,
+      "altText": "Synthetic change map, July 2024. Made-up practice data: grey land on the west edge and a small island in the south-east. The east patch is green, mild, about 14 °C, about its normal for the month.",
+      "baselineImage": "baselines/2024-07-15.png"
+    },
+    {
+      "id": "2024-08-15",
+      "date": "2024-08-15",
+      "image": "frames/2024-08-15.png",
+      "width": 800,
+      "height": 400,
+      "altText": "Synthetic change map, August 2024. Made-up practice data: grey land on the west edge and a small island in the south-east. The east patch is green, mild, about 14 °C, about 0.5 °C above its normal for the month.",
+      "baselineImage": "baselines/2024-08-15.png"
+    },
+    {
+      "id": "2024-09-15",
+      "date": "2024-09-15",
+      "image": "frames/2024-09-15.png",
+      "width": 800,
+      "height": 400,
+      "altText": "Synthetic change map, September 2024. Made-up practice data: grey land on the west edge and a small island in the south-east. The east patch is green, mild, about 14 °C, about 0.7 °C above its normal for the month.",
+      "baselineImage": "baselines/2024-09-15.png"
+    },
+    {
+      "id": "2024-10-15",
+      "date": "2024-10-15",
+      "image": "frames/2024-10-15.png",
+      "width": 800,
+      "height": 400,
+      "altText": "Synthetic change map, October 2024. Made-up practice data: grey land on the west edge and a small island in the south-east. The east patch is green, mild, about 17 °C, about 1.5 °C above its normal for the month.",
+      "baselineImage": "baselines/2024-10-15.png"
+    },
+    {
+      "id": "2024-11-15",
+      "date": "2024-11-15",
+      "image": "frames/2024-11-15.png",
+      "width": 800,
+      "height": 400,
+      "altText": "Synthetic change map, November 2024. Made-up practice data: grey land on the west edge and a small island in the south-east. The east patch is green, mild, about 17 °C, about its normal for the month.",
+      "baselineImage": "baselines/2024-11-15.png"
+    },
+    {
+      "id": "2024-12-15",
+      "date": "2024-12-15",
+      "image": "frames/2024-12-15.png",
+      "width": 800,
+      "height": 400,
+      "altText": "Synthetic change map, December 2024. Made-up practice data: grey land on the west edge and a small island in the south-east. The east patch is yellow to orange, warm, about 19 °C, about its normal for the month.",
+      "baselineImage": "baselines/2024-12-15.png"
+    }
+  ],
+  "mapping": {
+    "scale": "C major arpeggio",
+    "summary": "median",
+    "minValidFraction": 0.5,
+    "categories": [
+      {
+        "id": "cold",
+        "label": "Cold",
+        "range": [
+          0,
+          6
+        ],
+        "note": "C4"
+      },
+      {
+        "id": "cool",
+        "label": "Cool",
+        "range": [
+          6,
+          12
+        ],
+        "note": "E4"
+      },
+      {
+        "id": "mild",
+        "label": "Mild",
+        "range": [
+          12,
+          18
+        ],
+        "note": "G4"
+      },
+      {
+        "id": "warm",
+        "label": "Warm",
+        "range": [
+          18,
+          24
+        ],
+        "note": "C5"
+      },
+      {
+        "id": "hot",
+        "label": "Hot",
+        "range": [
+          24,
+          30
+        ],
+        "note": "E5"
+      }
+    ],
+    "tick": {
+      "note": "C6",
+      "durationMs": 60
+    },
+    "missingCue": {
+      "type": "noise",
+      "durationMs": 300
+    },
+    "changeSteps": [
+      {
+        "id": "much-below",
+        "label": "Much below normal",
+        "range": [
+          -50,
+          -1
+        ],
+        "note": "C3"
+      },
+      {
+        "id": "below",
+        "label": "Below normal",
+        "range": [
+          -1,
+          -0.25
+        ],
+        "note": "D3"
+      },
+      {
+        "id": "normal",
+        "label": "Near normal",
+        "range": [
+          -0.25,
+          0.25
+        ],
+        "note": "F3"
+      },
+      {
+        "id": "above",
+        "label": "Above normal",
+        "range": [
+          0.25,
+          1
+        ],
+        "note": "A3"
+      },
+      {
+        "id": "much-above",
+        "label": "Much above normal",
+        "range": [
+          1,
+          50
+        ],
+        "note": "C4"
+      }
+    ],
+    "contourLevels": [
+      {
+        "value": 1,
+        "note": "C5"
+      },
+      {
+        "value": 2,
+        "note": "G5"
+      }
+    ]
+  },
+  "comparisons": [
+    {
+      "id": "february-vs-october",
+      "regionId": "east-patch",
+      "frameA": "2024-02-15",
+      "frameB": "2024-10-15",
+      "question": "Which date shows warmer water in the east patch?",
+      "answer": "a",
+      "explanation": "Date A (15 February) is about 21 °C, warm; date B (15 October) is about 17 °C, mild. By temperature, date A is warmer."
+    },
+    {
+      "id": "august-vs-march",
+      "regionId": "east-patch",
+      "frameA": "2024-08-15",
+      "frameB": "2024-03-15",
+      "question": "Which date shows warmer water in the east patch?",
+      "answer": "b",
+      "explanation": "Date A (15 August) is about 14 °C, mild; date B (15 March) is about 21 °C, warm. By temperature, date B is warmer."
+    },
+    {
+      "id": "june-vs-september",
+      "regionId": "east-patch",
+      "frameA": "2024-06-15",
+      "frameB": "2024-09-15",
+      "question": "Which date shows warmer water in the east patch?",
+      "answer": "same",
+      "explanation": "Date A (15 June) is about 15 °C, mild; date B (15 September) is about 14 °C, mild. By temperature, the two are about the same."
+    },
+    {
+      "id": "january-vs-march",
+      "regionId": "east-patch",
+      "frameA": "2024-01-15",
+      "frameB": "2024-03-15",
+      "question": "Which date shows warmer water in the east patch?",
+      "answer": "same",
+      "explanation": "Date A (15 January) is about 21 °C, warm; date B (15 March) is about 21 °C, warm. By temperature, the two are about the same."
+    },
+    {
+      "id": "june-vs-february",
+      "regionId": "east-patch",
+      "frameA": "2024-06-15",
+      "frameB": "2024-02-15",
+      "question": "Which date shows warmer water in the east patch?",
+      "answer": "b",
+      "explanation": "Date A (15 June) is about 15 °C, mild; date B (15 February) is about 21 °C, warm. By temperature, date B is warmer."
+    }
+  ],
+  "mapArea": {
+    "x0": 0,
+    "y0": 0,
+    "x1": 1,
+    "y1": 0.88
+  },
+  "baseline": {
+    "kind": "climatology",
+    "label": "the made-up normal for each month",
+    "noiseFloor": 0.2
+  }
+}

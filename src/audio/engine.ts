@@ -54,7 +54,8 @@ const WAV_MAX_S = 180
 const LOWEST_PAD_NOTE = 'C3'
 
 /** The mapping the engine reads: the usual one, plus (for a data set with a baseline) a note for each change step and contour level. */
-export type EngineMapping = SoundMapping & ChangeSounds
+/** The data's mapping, asking only for what the engine reads from the v2 fields: a note on each step and each level. */
+export type EngineMapping = Omit<SoundMapping, 'changeSteps' | 'contourLevels'> & ChangeSounds
 
 /** The change bed holds its note until just before the next step, with this much left for the release. */
 const BED_GAP_S = 0.03

@@ -354,3 +354,191 @@ def test_main_prints_a_readable_error_and_returns_1(tmp_path, capsys):
                     "--legend", str(write_legend(tmp_path))])
     assert code == 1
     assert "convert_frames.py: error: --frames" in capsys.readouterr().err
+
+
+# --- baselines (v2, T111) -------------------------------------------------------------------------------------------------
+
+CLIMATOLOGY = ["--baseline-kind", "climatology", "--baseline-label", "the made-up normal for each month"]
+
+
+@pytest.fixture
+def with_normals(tmp_path, three_frames):
+    """The three frames, and a folder of their normals under the same file names (a different level, so a mix-up would show)."""
+    folder = tmp_path / "normals"
+    save(folder, "sst_2024-03-15.png", frame_pixels(22))
+    save(folder, "sst_2024-01-15.png", frame_pixels(4))
+    save(folder, "sst_20240215.png", frame_pixels(14))
+    return three_frames, folder
+
+
+def test_without_baseline_options_nothing_changes(tmp_path, three_frames):
+    result = run(tmp_path, three_frames)
+    m = manifest(tmp_path)
+    assert "baseline" not in m and "changeSteps" not in m["mapping"] and "contourLevels" not in m["mapping"]
+    assert all("baselineImage" not in f for f in m["frames"])
+    assert not (tmp_path / "out" / "baselines").exists()
+    assert result.baseline_count == 0
+
+
+def test_a_climatology_pairs_each_frame_with_the_file_of_the_same_name(tmp_path, with_normals):
+    frames, normals = with_normals
+    result = run(tmp_path, frames, extra=[*CLIMATOLOGY, "--baseline-dir", str(normals)])
+    m = manifest(tmp_path)
+    assert result.baseline_count == 3
+    assert m["baseline"] == {"kind": "climatology", "label": "the made-up normal for each month", "noiseFloor": 0.1}
+    assert [f["baselineImage"] for f in m["frames"]] == ["baselines/2024-01-15.png", "baselines/2024-02-15.png", "baselines/2024-03-15.png"]
+    assert sorted(p.name for p in (tmp_path / "out" / "baselines").iterdir()) == ["2024-01-15.png", "2024-02-15.png", "2024-03-15.png"]
+    # Each baseline is its own frame's normal, not another frame's: January's is the level-4 picture, March's the level-22 one.
+    january = np.asarray(Image.open(tmp_path / "out" / "baselines" / "2024-01-15.png"))
+    march = np.asarray(Image.open(tmp_path / "out" / "baselines" / "2024-03-15.png"))
+    assert tuple(january[15, 5]) == tuple(legend_rgb(np.array(4.0)))
+    assert tuple(march[15, 5]) == tuple(legend_rgb(np.array(22.0)))
+
+
+def test_a_baseline_brings_the_default_steps_and_levels_the_schema_needs_with_it(tmp_path, with_normals):
+    frames, normals = with_normals
+    run(tmp_path, frames, extra=[*CLIMATOLOGY, "--baseline-dir", str(normals)])
+    mapping = manifest(tmp_path)["mapping"]
+    assert [s["id"] for s in mapping["changeSteps"]] == ["much-below", "below", "normal", "above", "much-above"]
+    # The ranges run on from one step to the next, and the notes rise, as the schema and the engine require.
+    for before, step in zip(mapping["changeSteps"], mapping["changeSteps"][1:]):
+        assert before["range"][1] == step["range"][0]
+    assert [s["note"] for s in mapping["changeSteps"]] == ["C3", "D3", "F3", "A3", "C4"]
+    assert mapping["contourLevels"] == [{"value": 1, "note": "C5"}, {"value": 2, "note": "G5"}]
+
+
+def test_baseline_pictures_are_written_like_frames_plain_8_bit_png_with_nothing_else(tmp_path, with_normals):
+    frames, normals = with_normals
+    run(tmp_path, frames, extra=[*CLIMATOLOGY, "--baseline-dir", str(normals)])
+    assert [name for name, _ in chunks(tmp_path / "out" / "baselines" / "2024-01-15.png")] == ["IHDR", "IDAT", "IEND"]
+
+
+def test_a_baseline_is_never_resampled(tmp_path, with_normals):
+    frames, normals = with_normals
+    odd = frame_pixels(4)
+    odd[3, 7] = (13, 77, 201)  # a colour that is on no legend: resampling or colour changes would lose or blend it
+    save(normals, "sst_2024-01-15.png", odd)
+    run(tmp_path, frames, extra=[*CLIMATOLOGY, "--baseline-dir", str(normals)])
+    assert np.array_equal(np.asarray(Image.open(tmp_path / "out" / "baselines" / "2024-01-15.png")), odd)
+
+
+def test_rejects_a_baseline_of_another_size_and_writes_nothing(tmp_path, with_normals):
+    frames, normals = with_normals
+    save(normals, "sst_20240215.png", frame_pixels(14)[:, :38])
+    with pytest.raises(cf.ConvertError, match=r'"sst_20240215.png" is 38 x 30 pixels but its frame "sst_20240215.png" is 40 x 30; a baseline must be exactly '
+                                              r"the same size as its frame \(the converter never resamples one\)"):
+        run(tmp_path, frames, extra=[*CLIMATOLOGY, "--baseline-dir", str(normals)])
+    assert not (tmp_path / "out").exists()
+
+
+def test_names_the_frames_that_have_no_baseline_and_writes_nothing(tmp_path, with_normals):
+    frames, normals = with_normals
+    (normals / "sst_2024-01-15.png").unlink()
+    with pytest.raises(cf.ConvertError, match=r"no baseline for 1 frame\(s\): sst_2024-01-15.png"):
+        run(tmp_path, frames, extra=[*CLIMATOLOGY, "--baseline-dir", str(normals)])
+    assert not (tmp_path / "out").exists()
+
+
+def test_a_baseline_may_be_a_different_file_type_from_its_frame(tmp_path, with_normals):
+    frames, normals = with_normals
+    (normals / "sst_2024-01-15.png").unlink()
+    Image.fromarray(frame_pixels(4)).save(normals / "sst_2024-01-15.jpg", quality=100)
+    run(tmp_path, frames, extra=[*CLIMATOLOGY, "--baseline-dir", str(normals)])
+    assert manifest(tmp_path)["frames"][0]["baselineImage"] == "baselines/2024-01-15.png"
+
+
+def test_rejects_a_baseline_with_transparent_pixels(tmp_path, with_normals):
+    frames, normals = with_normals
+    rgba = np.dstack([frame_pixels(4), np.full((H, W), 255, dtype=np.uint8)])
+    rgba[0, 0, 3] = 0
+    save(normals, "sst_2024-01-15.png", rgba)
+    with pytest.raises(cf.ConvertError, match="has transparent pixels"):
+        run(tmp_path, frames, extra=[*CLIMATOLOGY, "--baseline-dir", str(normals)])
+    assert not (tmp_path / "out").exists()
+
+
+def test_scaling_down_gives_the_frames_and_their_baselines_the_same_size(tmp_path, with_normals):
+    frames, normals = with_normals
+    run(tmp_path, frames, extra=[*CLIMATOLOGY, "--baseline-dir", str(normals), "--max-width", "20"])
+    assert Image.open(tmp_path / "out" / "frames" / "2024-01-15.png").size == Image.open(tmp_path / "out" / "baselines" / "2024-01-15.png").size == (20, 15)
+
+
+def test_a_rerun_with_force_removes_baselines_from_an_earlier_run(tmp_path, with_normals):
+    frames, normals = with_normals
+    run(tmp_path, frames, extra=[*CLIMATOLOGY, "--baseline-dir", str(normals)])
+    (tmp_path / "out" / "baselines" / "1999-01-01.png").write_bytes(b"old")
+    run(tmp_path, frames, extra=[*CLIMATOLOGY, "--baseline-dir", str(normals), "--force"])
+    assert sorted(p.name for p in (tmp_path / "out" / "baselines").iterdir()) == ["2024-01-15.png", "2024-02-15.png", "2024-03-15.png"]
+
+
+def test_running_twice_gives_identical_baseline_files(tmp_path, with_normals):
+    frames, normals = with_normals
+    run(tmp_path, frames, out="a", extra=[*CLIMATOLOGY, "--baseline-dir", str(normals)])
+    run(tmp_path, frames, out="b", extra=[*CLIMATOLOGY, "--baseline-dir", str(normals)])
+    for name in ("2024-01-15.png", "2024-03-15.png"):
+        assert (tmp_path / "a" / "baselines" / name).read_bytes() == (tmp_path / "b" / "baselines" / name).read_bytes()
+    assert (tmp_path / "a" / "manifest.json").read_text() == (tmp_path / "b" / "manifest.json").read_text()
+
+
+def test_a_reference_date_names_a_real_frame_and_writes_no_pictures(tmp_path, three_frames):
+    result = run(tmp_path, three_frames, extra=["--baseline-kind", "reference-date", "--baseline-label", "January 2024", "--baseline-frame", "2024-01-15"])
+    m = manifest(tmp_path)
+    assert m["baseline"] == {"kind": "reference-date", "frameId": "2024-01-15", "label": "January 2024", "noiseFloor": 0.1}
+    assert all("baselineImage" not in f for f in m["frames"])
+    assert not (tmp_path / "out" / "baselines").exists() and result.baseline_count == 0
+    assert "changeSteps" in m["mapping"] and "contourLevels" in m["mapping"]
+
+
+def test_rejects_a_reference_date_that_is_not_a_frame(tmp_path, three_frames):
+    with pytest.raises(cf.ConvertError, match=r"--baseline-frame 2030-01-01: there is no frame with that date; the dates are 2024-01-15, 2024-02-15, 2024-03-15"):
+        run(tmp_path, three_frames, extra=["--baseline-kind", "reference-date", "--baseline-label", "x", "--baseline-frame", "2030-01-01"])
+    assert not (tmp_path / "out").exists()
+
+
+def test_an_anomaly_product_needs_a_legend_that_spans_both_signs(tmp_path, three_frames):
+    with pytest.raises(cf.ConvertError, match=r"runs from 0 to 30, which does not span both signs"):
+        run(tmp_path, three_frames, extra=["--baseline-kind", "anomaly-product"])
+    assert not (tmp_path / "out").exists()
+    signed = [(-15, (0, 0, 255)), (0, (0, 200, 0)), (15, (255, 0, 0))]
+    run(tmp_path, three_frames, extra=["--baseline-kind", "anomaly-product", "--legend", str(write_legend(tmp_path, signed))])
+    m = manifest(tmp_path)
+    assert m["baseline"] == {"kind": "anomaly-product"} and all("baselineImage" not in f for f in m["frames"])
+
+
+def test_the_noise_floor_defaults_to_twice_the_legend_rounding_and_a_smaller_one_is_rejected(tmp_path, with_normals):
+    frames, normals = with_normals
+    # This legend moves 15 degrees over a colour distance of about 324, so one colour step is about 0.046 and twice that is 0.093.
+    assert cf.legend_rounding([{"value": v, "rgb": list(c)} for v, c in STOPS]) == pytest.approx(15 / np.hypot(200, 255))
+    assert cf.default_noise_floor([{"value": v, "rgb": list(c)} for v, c in STOPS]) == 0.1
+    with pytest.raises(cf.ConvertError, match=r"--baseline-noise-floor 0.05 is below twice the legend's rounding \(0.0463 per colour step\).*at least 0.1"):
+        run(tmp_path, frames, extra=[*CLIMATOLOGY, "--baseline-dir", str(normals), "--baseline-noise-floor", "0.05"])
+    run(tmp_path, frames, extra=[*CLIMATOLOGY, "--baseline-dir", str(normals), "--baseline-noise-floor", "0.3"])
+    assert manifest(tmp_path)["baseline"]["noiseFloor"] == 0.3
+
+
+@pytest.mark.parametrize("extra, message", [
+    (["--baseline-dir", "x"], "--baseline-dir needs --baseline-kind"),
+    (["--baseline-label", "x"], "--baseline-label needs --baseline-kind"),
+    (["--baseline-frame", "2024-01-15"], "--baseline-frame needs --baseline-kind"),
+    (["--baseline-noise-floor", "0.5"], "--baseline-noise-floor needs --baseline-kind"),
+    (["--baseline-kind", "climatology", "--baseline-label", "x"], "needs --baseline-dir"),
+    (["--baseline-kind", "climatology", "--baseline-dir", "x"], "needs --baseline-label"),
+    (["--baseline-kind", "climatology", "--baseline-dir", "x", "--baseline-label", "x", "--baseline-frame", "2024-01-15"], "--baseline-frame is for --baseline-kind reference-date"),
+    (["--baseline-kind", "reference-date", "--baseline-label", "x"], "needs --baseline-frame"),
+    (["--baseline-kind", "reference-date", "--baseline-label", "x", "--baseline-frame", "2024-01-15", "--baseline-dir", "x"], "--baseline-dir is for --baseline-kind climatology"),
+    (["--baseline-kind", "anomaly-product", "--baseline-label", "x"], "an anomaly product has no --baseline-label"),
+    (["--baseline-kind", "anomaly-product", "--baseline-noise-floor", "0.2"], "an anomaly product has no --baseline-noise-floor"),
+    (["--baseline-kind", "reference-date", "--baseline-label", "x", "--baseline-frame", "2024-01-15", "--baseline-noise-floor", "0"], "must be above 0"),
+])
+def test_rejects_options_that_do_not_fit_together_and_writes_nothing(tmp_path, three_frames, extra, message):
+    with pytest.raises(cf.ConvertError, match=message):
+        run(tmp_path, three_frames, extra=extra)
+    assert not (tmp_path / "out").exists()
+
+
+def test_the_report_says_what_baseline_was_written_and_what_to_check(tmp_path, with_normals):
+    frames, normals = with_normals
+    args = cf.parse_args(["--id", "test-set", "--frames", str(frames), "--out", str(tmp_path / "out"), "--legend", str(write_legend(tmp_path)), *CLIMATOLOGY, "--baseline-dir", str(normals)])
+    text = cf.report(args, cf.convert(args))
+    assert "Baseline: climatology, 3 baseline pictures, one per frame; noise floor 0.1." in text
+    assert "mapping.changeSteps and mapping.contourLevels: defaults for a change in degrees C" in text

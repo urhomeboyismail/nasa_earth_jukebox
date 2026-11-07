@@ -12,7 +12,7 @@ Every PR must meet the definition of done in PLAN.md §9, including the layout r
 
 ## Already built (no ticket)
 
-**Status check, 7 Nov (from `git log` on `main` at `b995ddc`):** T80 A, T81 A, T82 A, T83, T84 and T112 to T115 are merged; T85 step 1 and the T86 spike note are in. **Open:** T111 (blocks all of v2: no `baseline` in the schema or any data set, so the "change" style never plays), T85 real data, T87, T81 B F23. **Cut 7 Nov:** T86 build, F21, F22, F24, F25 (none had code; see `docs/planning/FEATURE-REVIEW.md`). The ticket text below is kept for reference.
+**Status check, 7 Nov (from `git log` on `main` at `b995ddc`):** T80 A, T81 A, T82 A, T83, T84 and T112 to T115 are merged; T85 step 1 and the T86 spike note are in. **T111 built 7 Nov** (baseline in the schema, `check-data` rules, converter flags, the `synthetic-change` data set; v2 now plays on that data set). **Open:** T85 real data (each with a baseline kind chosen, see `docs/data-sources.md` "Baselines"), T87, T81 B F23. **Cut 7 Nov:** T86 build, F21, F22, F24, F25 (none had code; see `docs/planning/FEATURE-REVIEW.md`). The ticket text below is kept for reference.
 
 F1 to F13, F15 and F12's ducking are on `main`, as are the dataset picker, legend, date formatter, Home page, the interfaces and stubs in PLAN.md §5.6 to §5.8 (T64), the synthetic globe with its story (T66), the real value grid and shares (T65), the computed descriptions (T69) and the WAV encoder `encodeWav` (T72a).
 
@@ -36,7 +36,7 @@ F1 to F13, F15 and F12's ducking are on `main`, as are the dataset picker, legen
 | T85 | Real NASA data | Dhruv + Team leader | 10 Nov (speed), 14 Nov (data) | Must | F16, real `mapArea`, story text, comparisons, speed |
 | ~~T86~~ | ~~Voice guide on ADK~~ Cut 7 Nov after the spike | — | — | Cut | — |
 | T87 | Evidence, write-up and submission | Roni, Team leader, Bhavish, Dhruv | 12 to 15 Nov | Must | F11 evidence, playlist, creative process, README, demo |
-| T111 | v2: baseline in the manifest, and a synthetic data set with a known change. **Top open item: without it v2 never plays** | Dhruv (team leader reviews `types.ts`) | 9 Nov (late) | Must for v2 | F26, PLAN.md §5.1 |
+| ~~T111~~ | v2: baseline in the manifest, and a synthetic data set with a known change. **Built 7 Nov**; `types.ts` still needs the team leader's review | Dhruv (team leader reviews `types.ts`) | done | Built | F26, PLAN.md §5.1 |
 | T112 | v2: change field and change steps | Team leader | 11 Nov | Should (v2 core) | F27, PLAN.md §5.2, §5.9 |
 | T113 | v2: contour tracing (marching squares) | Bhavish suggested (team leader reviews) | 12 Nov | Should | F18 analysis, PLAN.md §5.9 |
 | T114 | v2: the `"change"` sound style (bed, contour voice, hiss) | Team leader (engine), Bhavish (spatial path, listening check) | 13 Nov | Should | F28 sound, F18 sound, PLAN.md §6.2 |

@@ -48,6 +48,11 @@ export async function loadVisualization(id: string): Promise<Visualization> {
   const visualization = parsed.data
   return {
     ...visualization,
-    frames: visualization.frames.map(frame => ({ ...frame, image: dataUrl(`${id}/${frame.image}`) })),
+    // `baselineImage` is resolved the same way as `image`. The analysis reads it as a URL, so a relative path would be read against the page, not the data set.
+    frames: visualization.frames.map(frame => ({
+      ...frame,
+      image: dataUrl(`${id}/${frame.image}`),
+      ...(frame.baselineImage && { baselineImage: dataUrl(`${id}/${frame.baselineImage}`) }),
+    })),
   }
 }

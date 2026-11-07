@@ -7,7 +7,7 @@ import { elevationForPoint, panForPoint } from './pan'
 
 /**
  * What the "change" style needs from a data set's mapping, on top of `SoundMapping`: a note for each change step and for each contour
- * level. They are optional, so a data set with no baseline still sounds. T111 puts them in the manifest; until then they are read from here.
+ * level. They are optional, so a data set with no baseline still sounds. A data set's `SoundMapping` (src/data/types.ts) fits this.
  */
 export type ChangeSounds = {
   changeSteps?: { id: string; range: [number, number]; note: string }[]

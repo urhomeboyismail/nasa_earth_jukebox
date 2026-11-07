@@ -15,6 +15,12 @@ What it guarantees, so the browser and the test decoder read the same colours:
 What it rejects, with a readable message: two frames with the same date, frames of different sizes, a file name without a
 date, a colour bar that changes between frames (more than 3 per channel), and frames with transparent pixels.
 
+Baselines (v2, T111): `--baseline-kind` with `--baseline-label` (and `--baseline-dir` for a climatology) adds a baseline, so the
+data set can play the change from normal. `--baseline-dir` pairs each frame with the file of the same name, writes
+`baselines/<date>.png` and `frames[].baselineImage`, and refuses a pair whose sizes differ (it never resamples). Without those
+options the converter writes no baseline, exactly as before. With one it also writes default `mapping.changeSteps` and
+`mapping.contourLevels` (the schema needs all three together; they are for a change in degrees C, so check them).
+
 Usage and the checklist: docs/data-sources.md, "Converting frames (T91)".
 """
 from __future__ import annotations
@@ -23,6 +29,7 @@ import argparse
 import copy
 import datetime as dt
 import json
+import math
 import re
 import sys
 from dataclasses import dataclass
@@ -39,6 +46,18 @@ DEFAULT_DATE_PATTERN = r"(?P<year>\d{4})[-_.]?(?P<month>\d{2})[-_.]?(?P<day>\d{2
 LEGEND_TOLERANCE = 3  # per channel: how far the colour bar may differ between frames (T85 step 3)
 LATTICE_COLUMNS, LATTICE_ROWS = 6, 5  # the default region: 30 points inside the map area
 DEFAULT_LEGEND_STEPS = 9
+
+BASELINE_KINDS = ("climatology", "reference-date", "anomaly-product")
+# The v2 mapping a data set with a baseline needs. Five steps of "how far from normal", most below normal first, for a change in degrees C;
+# notes in the change bed's register (C3 to C4), each higher than the one before. Two contour levels, +1 and +2. The same as synthetic-change.
+DEFAULT_CHANGE_STEPS = [
+    {"id": "much-below", "label": "Much below normal", "range": [-50, -1], "note": "C3"},
+    {"id": "below", "label": "Below normal", "range": [-1, -0.25], "note": "D3"},
+    {"id": "normal", "label": "Near normal", "range": [-0.25, 0.25], "note": "F3"},
+    {"id": "above", "label": "Above normal", "range": [0.25, 1], "note": "A3"},
+    {"id": "much-above", "label": "Much above normal", "range": [1, 50], "note": "C4"},
+]
+DEFAULT_CONTOUR_LEVELS = [{"value": 1, "note": "C5"}, {"value": 2, "note": "G5"}]
 
 
 class ConvertError(Exception):
@@ -91,6 +110,19 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--map-area", help="x0,y0,x1,y1: the map without legend bar, titles or logos. Fractions 0 to 1 of the image, "
                                        "or pixels of the original frames if any number is above 1. Default: the whole image")
     p.add_argument("--max-width", type=int, help="scale frames wider than this down to this width, nearest-neighbour only")
+    p.add_argument("--baseline-kind", choices=BASELINE_KINDS,
+                   help="what the change is measured against (v2). climatology: the same month's long-term average, one picture per frame "
+                        "(needs --baseline-dir and --baseline-label). reference-date: one earlier frame (needs --baseline-frame and "
+                        "--baseline-label; always called 'change since <date>', never 'anomaly'). anomaly-product: the legend already shows the "
+                        "change, so it must run below and above 0. Without this option no baseline is written")
+    p.add_argument("--baseline-dir", type=Path, help="folder with one baseline picture per frame, each with the same file name as its frame "
+                                                      "(climatology only). Same size as the frame: the converter never resamples one")
+    p.add_argument("--baseline-label", help="what the baseline is, in words, as it is said and shown: 'the 1991 to 2020 August average' "
+                                             "(climatology) or 'January 2024' (reference-date)")
+    p.add_argument("--baseline-frame", help="reference-date only: the date, YYYY-MM-DD, of the frame everything is compared with")
+    p.add_argument("--baseline-noise-floor", type=float,
+                   help="a change smaller than this is legend rounding and counts as 0, in the variable's unit. Default: twice the legend's "
+                        "rounding, rounded up to 0.01. Smaller than that is rejected")
     p.add_argument("--force", action="store_true", help="overwrite an existing manifest.json in --out (loses anything filled in there)")
     return p.parse_args(argv)
 
@@ -293,6 +325,107 @@ def check_legend_unchanged(frames: list[Frame], box: tuple[int, int, int, int], 
 
 
 # ---------------------------------------------------------------------------------------------------------------------
+# Baselines (v2)
+
+
+def legend_rounding(stops: list[dict]) -> float:
+    """How far a value can move for one step of colour: the largest change in value per unit of RGB distance along any segment.
+    The same number `npm run check-data` uses (legendRounding in src/data/check.ts)."""
+    worst = 0.0
+    for before, after in zip(stops, stops[1:]):
+        length = math.dist(before["rgb"], after["rgb"])
+        if length > 0:
+            worst = max(worst, abs(after["value"] - before["value"]) / length)
+    return worst
+
+
+def default_noise_floor(stops: list[dict]) -> float:
+    return math.ceil(round(2 * legend_rounding(stops) * 100, 9)) / 100
+
+
+def check_baseline_options(args: argparse.Namespace) -> None:
+    """The baseline options must fit together. Checked first, so a wrong combination writes nothing."""
+    kind = args.baseline_kind
+    if kind is None:
+        for option, value in (("--baseline-dir", args.baseline_dir), ("--baseline-label", args.baseline_label),
+                              ("--baseline-frame", args.baseline_frame), ("--baseline-noise-floor", args.baseline_noise_floor)):
+            if value is not None:
+                raise ConvertError(f"{option} needs --baseline-kind (climatology, reference-date or anomaly-product); "
+                                   f"without a kind no baseline is written")
+        return
+    if kind == "climatology":
+        if args.baseline_dir is None:
+            raise ConvertError("--baseline-kind climatology needs --baseline-dir: the folder with each frame's own normal, one picture per frame")
+        if args.baseline_frame is not None:
+            raise ConvertError("--baseline-frame is for --baseline-kind reference-date; a climatology has one picture per frame in --baseline-dir")
+    else:
+        if args.baseline_dir is not None:
+            raise ConvertError(f"--baseline-dir is for --baseline-kind climatology; a {kind} has no baseline pictures")
+    if kind != "anomaly-product" and not args.baseline_label:
+        raise ConvertError(f"--baseline-kind {kind} needs --baseline-label, what the change is measured against, in words "
+                           f"(for example 'the 1991 to 2020 August average')")
+    if kind == "anomaly-product":
+        if args.baseline_label is not None:
+            raise ConvertError("an anomaly product has no --baseline-label: the legend already shows the change from NASA's own normal")
+        if args.baseline_noise_floor is not None:
+            raise ConvertError("an anomaly product has no --baseline-noise-floor: nothing is subtracted, so there is no rounding to absorb")
+    if kind == "reference-date" and not args.baseline_frame:
+        raise ConvertError("--baseline-kind reference-date needs --baseline-frame, the date (YYYY-MM-DD) of the frame to compare with")
+    if args.baseline_noise_floor is not None and not args.baseline_noise_floor > 0:
+        raise ConvertError("--baseline-noise-floor must be above 0")
+
+
+def find_baselines(frames: list[Frame], folder: Path, size: tuple[int, int]) -> dict[str, Path]:
+    """Each frame's baseline picture: the file in `folder` with the same name (ignoring the file type). Every frame needs one, of exactly
+    the frame's size. Nothing is resampled; a pair that differs is a mistake a person must fix."""
+    if not folder.is_dir():
+        raise ConvertError(f"--baseline-dir {folder}: there is no such folder")
+    by_name = {path.stem: path for path in sorted(folder.iterdir())
+               if path.is_file() and not path.name.startswith(".") and path.suffix.lower() in IMAGE_SUFFIXES}
+    missing = [f.path.name for f in frames if f.path.stem not in by_name]
+    if missing:
+        listed = ", ".join(missing[:5]) + (f" and {len(missing) - 5} more" if len(missing) > 5 else "")
+        raise ConvertError(f"--baseline-dir {folder}: no baseline for {len(missing)} frame(s): {listed}. Each frame needs a picture with "
+                           f"the same file name (the file type may differ)")
+    found = {}
+    for frame in frames:
+        path = by_name[frame.path.stem]
+        got = image_size(path)
+        if got != size:
+            raise ConvertError(f'"{path.name}" is {got[0]} x {got[1]} pixels but its frame "{frame.path.name}" is {size[0]} x {size[1]}; a baseline '
+                               f"must be exactly the same size as its frame (the converter never resamples one), so make it again at the frame's size")
+        read_rgb(path)  # rejects transparent pixels and unreadable files before anything is written
+        found[frame.date] = path
+    return found
+
+
+def baseline_manifest(args: argparse.Namespace, frames: list[Frame], stops: list[dict]) -> dict | None:
+    """The manifest's `baseline` object for the options given, or None. The kind-specific rules are the ones `npm run check-data` makes."""
+    kind = args.baseline_kind
+    if kind is None:
+        return None
+    if kind == "anomaly-product":
+        if not (stops[0]["value"] < 0 < stops[-1]["value"]):
+            raise ConvertError(f"the legend runs from {stops[0]['value']} to {stops[-1]['value']}, which does not span both signs; an anomaly "
+                               f"product shows a change from normal, so its legend must go below and above 0. If it shows a temperature, "
+                               f"use --baseline-kind climatology or reference-date")
+        return {"kind": kind}
+    minimum = default_noise_floor(stops)
+    floor = args.baseline_noise_floor if args.baseline_noise_floor is not None else minimum
+    if floor < 2 * legend_rounding(stops):
+        raise ConvertError(f"--baseline-noise-floor {floor} is below twice the legend's rounding ({round(legend_rounding(stops), 4)} per colour "
+                           f"step), so legend rounding would be read as change; use at least {minimum}")
+    floor = clean_number(floor)
+    if kind == "climatology":
+        return {"kind": kind, "label": args.baseline_label, "noiseFloor": floor}
+    dates = [f.date for f in frames]
+    if args.baseline_frame not in dates:
+        raise ConvertError(f"--baseline-frame {args.baseline_frame}: there is no frame with that date; the dates are "
+                           f"{', '.join(dates[:5])}{' ...' if len(dates) > 5 else ''}")
+    return {"kind": kind, "frameId": args.baseline_frame, "label": args.baseline_label, "noiseFloor": floor}
+
+
+# ---------------------------------------------------------------------------------------------------------------------
 # The manifest
 
 
@@ -331,7 +464,7 @@ def categories_over(template: list[dict], low: float, high: float) -> list[dict]
 
 
 def build_manifest(template: dict, data_id: str, stops: list[dict], frames: list[Frame], size: tuple[int, int],
-                   area: dict | None) -> dict:
+                   area: dict | None, baseline: dict | None = None) -> dict:
     manifest = copy.deepcopy(template)
     manifest["id"] = data_id
     manifest["colorScale"]["stops"] = stops
@@ -345,6 +478,14 @@ def build_manifest(template: dict, data_id: str, stops: list[dict], frames: list
     manifest.pop("mapArea", None)
     if area is not None:
         manifest["mapArea"] = area
+    if baseline is not None:
+        manifest["baseline"] = baseline
+        # The schema wants baseline, changeSteps and contourLevels together, so a baseline brings the default steps and levels.
+        manifest["mapping"]["changeSteps"] = copy.deepcopy(DEFAULT_CHANGE_STEPS)
+        manifest["mapping"]["contourLevels"] = copy.deepcopy(DEFAULT_CONTOUR_LEVELS)
+        if baseline["kind"] == "climatology":
+            for frame in manifest["frames"]:
+                frame["baselineImage"] = f"baselines/{frame['date']}.png"
     return manifest
 
 
@@ -403,6 +544,7 @@ class Result:
     ignored: list[str]
     scaled_from: tuple[int, int] | None
     legend_checked: bool
+    baseline_count: int = 0
 
 
 def convert(args: argparse.Namespace) -> Result:
@@ -416,6 +558,8 @@ def convert(args: argparse.Namespace) -> Result:
         raise ConvertError("--legend-values needs --legend-box, the colour bar to sample")
     if args.legend is not None and args.legend_values is not None:
         raise ConvertError("give either --legend or --legend-values, not both")
+
+    check_baseline_options(args)
 
     manifest_path = args.out / "manifest.json"
     if manifest_path.exists() and not args.force:
@@ -441,6 +585,9 @@ def convert(args: argparse.Namespace) -> Result:
         check_legend_unchanged(frames, box, first_profile)
     del first_pixels
 
+    baseline = baseline_manifest(args, frames, stops)
+    baselines = find_baselines(frames, args.baseline_dir, (width, height)) if args.baseline_kind == "climatology" else {}
+
     out_frames = args.out / "frames"
     out_frames.mkdir(parents=True, exist_ok=True)
     written = set()
@@ -455,8 +602,17 @@ def convert(args: argparse.Namespace) -> Result:
         if stale.name not in written:
             stale.unlink()
 
+    if baselines:
+        out_baselines = args.out / "baselines"
+        out_baselines.mkdir(parents=True, exist_ok=True)
+        for date, source in baselines.items():
+            save_png(scaled(read_rgb(source), args.max_width), out_baselines / f"{date}.png")
+        for stale in sorted(out_baselines.glob("*.png")):
+            if stale.stem not in baselines:
+                stale.unlink()
+
     template = json.loads(TEMPLATE.read_text(encoding="utf-8"))
-    manifest = build_manifest(template, args.id, stops, frames, out_size, area)
+    manifest = build_manifest(template, args.id, stops, frames, out_size, area, baseline)
     write_json(manifest_path, manifest)
     return Result(
         manifest=manifest,
@@ -465,6 +621,7 @@ def convert(args: argparse.Namespace) -> Result:
         ignored=ignored,
         scaled_from=(width, height) if out_size != (width, height) else None,
         legend_checked=box is not None,
+        baseline_count=len(baselines),
     )
 
 
@@ -479,6 +636,11 @@ def report(args: argparse.Namespace, result: Result) -> str:
     lines.append(f"  Legend: {len(stops)} stops from {stops[0]['value']} to {stops[-1]['value']}.")
     if not result.legend_checked:
         lines.append("  Not checked: whether the colour bar is the same on every frame. Add --legend-box to check it.")
+    base = m.get("baseline")
+    if base:
+        what = {"climatology": f"{result.baseline_count} baseline pictures, one per frame", "reference-date": f"change since {base.get('frameId')}",
+                "anomaly-product": "an anomaly product (the legend already shows the change)"}[base["kind"]]
+        lines.append(f"  Baseline: {base['kind']}, {what}" + (f"; noise floor {base['noiseFloor']}" if "noiseFloor" in base else "") + ".")
     if result.ignored:
         lines.append(f"  Ignored {len(result.ignored)} file(s) that are not PNG or JPEG: {', '.join(result.ignored[:5])}")
     if result.jpeg_count:
@@ -494,6 +656,9 @@ def report(args: argparse.Namespace, result: Result) -> str:
     lines.append("  - colorScale.maxColorDistance: start at 40; lower it if land or labels are read as values")
     lines.append(f"  - regions.0.points: {LATTICE_COLUMNS * LATTICE_ROWS} points spread over the map area; move any that fall on land")
     lines.append("  - mapping.categories: the legend's span split into equal ranges; check the labels suit the variable")
+    if m.get("baseline"):
+        lines.append("  - mapping.changeSteps and mapping.contourLevels: defaults for a change in degrees C (five steps at -1, -0.25, 0.25 and 1; lines at +1 and +2). "
+                     "Change the numbers if the variable's unit or size of change is different, and keep the notes (C3 to C4 for steps, up to C6 for lines)")
     lines.append("")
     lines.append("Then add the data set to public/data/index.json:")
     lines.append(f'  {{ "id": "{args.id}", "title": "...", "summary": "..." }}')

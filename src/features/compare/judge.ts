@@ -6,7 +6,7 @@ import type { SoundMapping } from '../../data'
 export type Answer = 'a' | 'b' | 'same'
 
 /** The mapping, with the change steps when the data set has a baseline (docs/PLAN.md §5.9). */
-type JudgeMapping = SoundMapping & { changeSteps?: { id: string }[] }
+type JudgeMapping = Omit<SoundMapping, 'changeSteps' | 'contourLevels'> & { changeSteps?: { id: string }[] }
 
 /**
  * Which date is warmer by category, or null when either date has no usable data (so there is no answer to give). When both dates have a

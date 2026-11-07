@@ -230,3 +230,117 @@ describe('visualizationSchema: map area and story', () => {
     expect(errorAfter(v => { withBoth(v); v.story[0].text = '' })).toMatch(/^story\.0\.text: /)
   })
 })
+
+// ---- Baselines (v2, T111) ----
+
+/** The five change steps, most below normal first. Finite outer edges, because JSON cannot hold Infinity. */
+const steps = () => [
+  { id: 'much-below', label: 'Much below normal', range: [-50, -1], note: 'C3' },
+  { id: 'below', label: 'Below normal', range: [-1, -0.25], note: 'E3' },
+  { id: 'normal', label: 'Near normal', range: [-0.25, 0.25], note: 'G3' },
+  { id: 'above', label: 'Above normal', range: [0.25, 1], note: 'A3' },
+  { id: 'much-above', label: 'Much above normal', range: [1, 50], note: 'C4' },
+]
+const levels = () => [{ value: 1, note: 'C5' }, { value: 2, note: 'G5' }]
+
+/** The fixture with a complete baseline of the given kind: `baseline`, `changeSteps`, `contourLevels`, and the images that kind needs. */
+function withChange(v: any, kind: 'climatology' | 'reference-date' | 'anomaly-product' = 'climatology') {
+  v.mapping.changeSteps = steps()
+  v.mapping.contourLevels = levels()
+  if (kind === 'climatology') {
+    v.baseline = { kind, label: 'the made-up normal for each month', noiseFloor: 0.2 }
+    v.frames.forEach((f: any) => { f.baselineImage = `baselines/${f.date}.png` })
+  } else if (kind === 'reference-date') {
+    v.baseline = { kind, frameId: v.frames[0].id, label: 'January 2024', noiseFloor: 0.2 }
+  } else {
+    v.baseline = { kind }
+  }
+}
+
+describe('baselines (v2)', () => {
+  it('accepts every kind of baseline when the three fields come together', () => {
+    for (const kind of ['climatology', 'reference-date', 'anomaly-product'] as const) {
+      const v: any = valid()
+      withChange(v, kind)
+      expect(describeIssues((visualizationSchema.safeParse(v) as any).error ?? { issues: [] }), kind).toBe('')
+    }
+  })
+
+  it('still accepts every manifest that has none of the new fields', () => {
+    for (const manifest of [fixture, synthetic, globe]) expect(visualizationSchema.safeParse(manifest).success).toBe(true)
+    expect(visualizationSchema.parse(fixture)).not.toHaveProperty('baseline')
+  })
+
+  it('wants baseline, changeSteps and contourLevels together, and says which is missing', () => {
+    expect(errorAfter(v => { v.baseline = { kind: 'anomaly-product' } })).toBe(
+      'mapping.changeSteps: baseline is given, so mapping.changeSteps and mapping.contourLevels must be too; the change style needs all three, or none',
+    )
+    expect(errorAfter(v => { v.mapping.changeSteps = steps() })).toBe(
+      'baseline: mapping.changeSteps is given, so baseline and mapping.contourLevels must be too; the change style needs all three, or none',
+    )
+    expect(errorAfter(v => { v.mapping.contourLevels = levels(); v.baseline = { kind: 'anomaly-product' } })).toBe(
+      'mapping.changeSteps: baseline and mapping.contourLevels are given, so mapping.changeSteps must be too; the change style needs all three, or none',
+    )
+  })
+
+  it('rejects an unknown kind, and a baseline with no label or a noise floor of zero', () => {
+    expect(errorAfter(v => { withChange(v); v.baseline.kind = 'average' })).toMatch(/^baseline/)
+    expect(errorAfter(v => { withChange(v); v.baseline.label = '' })).toMatch(/^baseline\.label: /)
+    expect(errorAfter(v => { withChange(v); v.baseline.noiseFloor = 0 })).toBe('baseline.noiseFloor: must be above 0')
+  })
+
+  it('needs a baselineImage on every frame for a climatology, and names the frame without one', () => {
+    expect(errorAfter(v => { withChange(v); delete v.frames[2].baselineImage })).toBe(
+      `frames.2.baselineImage: is missing; a climatology baseline needs each frame's own normal, here for "${valid().frames[2].id}"`,
+    )
+  })
+
+  it('wants a reference-date to name a real frame, and no baselineImage on any frame', () => {
+    expect(errorAfter(v => { withChange(v, 'reference-date'); v.baseline.frameId = 'nope' })).toBe('baseline.frameId: there is no frame "nope"')
+    expect(errorAfter(v => { withChange(v, 'reference-date'); v.frames[1].baselineImage = 'x.png' })).toBe(
+      'frames.1.baselineImage: is given but a reference-date baseline is another frame; remove the image',
+    )
+  })
+
+  it('wants no baselineImage for an anomaly product, or for a data set with no baseline', () => {
+    expect(errorAfter(v => { withChange(v, 'anomaly-product'); v.frames[0].baselineImage = 'x.png' })).toBe(
+      'frames.0.baselineImage: is given but an anomaly product already is the change; remove the image',
+    )
+    expect(errorAfter(v => { v.frames[3].baselineImage = 'x.png' })).toBe(
+      'frames.3.baselineImage: is given but the data set has no baseline; add a baseline or remove the image',
+    )
+  })
+
+  it('needs change steps that run from most below normal up, with no gap and no overlap', () => {
+    expect(errorAfter(v => { withChange(v); v.mapping.changeSteps[2].range = [-0.5, 0.25] })).toBe(
+      'mapping.changeSteps.2.range: "normal" starts at -0.5, inside "below" (which ends at -0.25); steps go from most below normal up without overlapping',
+    )
+    expect(errorAfter(v => { withChange(v); v.mapping.changeSteps[3].range = [0.5, 1] })).toBe(
+      'mapping.changeSteps.3.range: "above" starts at 0.5 but "normal" ends at 0.25; each step starts where the one before it ends, with no gap',
+    )
+    expect(errorAfter(v => { withChange(v); v.mapping.changeSteps[1].range = [-0.25, -1] })).toMatch(/^mapping\.changeSteps\.1\.range: "below" must run from a lower to a higher change/)
+  })
+
+  it('needs change step ids that are different, and at least two steps', () => {
+    expect(errorAfter(v => { withChange(v); v.mapping.changeSteps[4].id = 'normal' })).toBe('mapping.changeSteps.4.id: step id "normal" is used more than once')
+    expect(errorAfter(v => { withChange(v); v.mapping.changeSteps = [v.mapping.changeSteps[0]] })).toBe('mapping.changeSteps: needs at least two steps')
+  })
+
+  it('keeps change step notes in the bed register, C3 to C4, each higher than the one before', () => {
+    expect(errorAfter(v => { withChange(v); v.mapping.changeSteps[0].note = 'C2' })).toBe('mapping.changeSteps.0.note: C2 must be between C3 and C4, the register of the change bed')
+    expect(errorAfter(v => { withChange(v); v.mapping.changeSteps[4].note = 'D4' })).toBe('mapping.changeSteps.4.note: D4 must be between C3 and C4, the register of the change bed')
+    expect(errorAfter(v => { withChange(v); v.mapping.changeSteps[2].note = 'D3' })).toBe(
+      'mapping.changeSteps.2.note: D3 must sound higher than the step before it, because pitch means further above normal',
+    )
+    expect(errorAfter(v => { withChange(v); v.mapping.changeSteps[1].note = 'loud' })).toBe('mapping.changeSteps.1.note: "loud" is not a note name such as C3')
+  })
+
+  it('keeps contour notes between C3 and C6, and the levels in rising order', () => {
+    expect(errorAfter(v => { withChange(v); v.mapping.contourLevels[0].note = 'C7' })).toBe('mapping.contourLevels.0.note: C7 must be between C3 and C6')
+    expect(errorAfter(v => { withChange(v); v.mapping.contourLevels[1].note = 'B2' })).toBe('mapping.contourLevels.1.note: B2 must be between C3 and C6')
+    expect(errorAfter(v => { withChange(v); v.mapping.contourLevels[1].value = 1 })).toBe(
+      'mapping.contourLevels.1.value: must be higher than the level before it (1); levels go lowest first',
+    )
+    expect(errorAfter(v => { withChange(v); v.mapping.contourLevels = [] })).toBe('mapping.contourLevels: needs at least one level')
+  })
+})

@@ -315,7 +315,7 @@ The Jukebox is described as four cooperating roles. They are **roles, not separa
 
 **Priority order for what is left** (7 Nov; matches `docs/TICKETS.md`). Items 1 to 4 are built; the work is to improve them:
 
-1. **T111: make v2 reachable.** T112 to T115 are merged, but no schema field or data set has a `baseline`, so `hasChange()` is always false and the "change" style never plays. Without T111, v2 is dead code
+1. ~~T111: make v2 reachable.~~ **Built 7 Nov.** The schema, `check-data`, the converter (`--baseline-*`) and the `synthetic-change` data set now carry a baseline, so "Change from normal" plays (checked in a browser on that data set). Still open for v2: a real data set with a baseline on 13 Nov, and the listening check that decides the default (6.2)
 2. The NASA data story, with real frames from 13 Nov (T85)
 3. Evidence: testers, listening test, playlist, write-up (T87)
 4. Tune what is built by ear and with testers: explorer (T81), harmony (T80), descriptions (T82), story (T83), 3D audio (T84)
@@ -426,4 +426,4 @@ Correctness checks that must always pass:
 | NASA offers no baseline on 13 Nov | Use `reference-date`, labelled honestly, or keep that data set on v1. v1 stays working throughout |
 | v2 adds work to an already heavy team-leader load | `contour.ts` suggested for Bhavish (light load), the baseline schema for Dhruv; T105 to T107 dropped; T113 and the contour voice are cut before the bed |
 | The contour voice sounds like noise or a siren | One or two lines per frame, fixed pitches, at most 8 accents a second; listen-check before merging (T114) |
-| v2 is merged but never plays, because no data set has a baseline (T111 not built) | T111 is now the top open item; until it lands, say "v1 sound" in the demo and README, not "change from normal" |
+| v2 plays only on a data set with a baseline, and only `synthetic-change` has one | Pick a baseline kind for each real data set on 13 Nov (anomaly product, then same-month climatology, then reference date). A data set without one plays v1, so say "v1 sound" for it in the demo and README |

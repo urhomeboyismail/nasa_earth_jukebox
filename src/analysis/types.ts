@@ -1,6 +1,6 @@
 // Types of sound pipeline v2 (docs/PLAN.md §5.9). Types only, so T113 (contours) and T114 (audio) can import them without pulling in any code.
 
-import type { ColorScale, Frame, MapArea, SoundMapping, Visualization } from '../data'
+import type { ColorScale, Frame, MapArea, Visualization } from '../data'
 
 /** Row-major, row 0 north. NaN = cannot be read (missing data, land, cloud, a color off the legend). */
 export type ValueField = { cols: number; rows: number; area: MapArea; values: Float32Array }
@@ -50,18 +50,8 @@ export type Score = { frameId: string; change: ChangeSummary; contours: Contour[
 /** Where a frame's normal comes from. `image` is the picture to read (null for an anomaly product: the frame already is the change). */
 export type BaselineSource = { image: string | null; noiseFloor: number }
 
-/**
- * The manifest fields v2 adds. They are optional here and in the manifest until T111 puts them in `src/data/types.ts` and the schema;
- * then these two types become plain `Frame` and `Visualization`.
- */
-export type ChangeFrame = Frame & { baselineImage?: string }
-export type ChangeVisualization = Omit<Visualization, 'frames' | 'mapping'> & {
-  frames: ChangeFrame[]
-  mapping: SoundMapping & { changeSteps?: ChangeMapping['changeSteps']; contourLevels?: ChangeMapping['contourLevels'] }
-  baseline?:
-    | { kind: 'anomaly-product' }
-    | { kind: 'climatology'; label: string; noiseFloor: number }
-    | { kind: 'reference-date'; frameId: string; label: string; noiseFloor: number }
-}
+/** The v2 manifest fields are part of the data types now (T111); these names are kept so the analysis code reads as before. */
+export type ChangeFrame = Frame
+export type ChangeVisualization = Visualization
 
 export type { ColorScale, MapArea }
