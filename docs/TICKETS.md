@@ -412,7 +412,7 @@ Restyle the whole app in [Material 3 Expressive](https://m3.material.io/blog/bui
 
 | Group | Names | Notes |
 |---|---|---|
-| Color | `--md-sys-color-<role>`, for every M3 role (`primary`, `on-primary`, `primary-container`, …, `surface-container-highest`, `outline-variant`, `inverse-surface`, `scrim`) | Seed `#0B6E99` (ocean blue), Tonal Spot scheme, 2025 spec. Light, dark, and high-contrast versions of both (`prefers-contrast: more`) |
+| Color | `--md-sys-color-<role>`, for every M3 role (`primary`, `on-primary`, `primary-container`, …, `surface-container-highest`, `outline-variant`, `inverse-surface`, `scrim`) | Purple on black: seed `#8a1fe0`, Vibrant scheme for the accents with neutral grey (chroma 0) surfaces, 2025 spec (changed from ocean blue on 9 Nov). Light, dark, and high-contrast versions of both (`prefers-contrast: more`) |
 | Type | `--md-sys-typescale-<role>-<size>-{size,line-height,weight,tracking}` for display, headline, title, body and label in large, medium and small, plus `--md-sys-typescale-emphasized-weight` | Body text uses **body-large (16 px)**, never body-medium, because of the 16 px rule in `AGENTS.md` |
 | Shape | `--md-sys-shape-corner-{none,extra-small,small,medium,large,large-increased,extra-large,extra-large-increased,extra-extra-large,full}` | The M3E corner scale: 0, 4, 8, 12, 16, 20, 28, 32 and 48 px, plus full |
 | Elevation | `--md-sys-elevation-level{0..5}` | `box-shadow` values |
@@ -426,11 +426,11 @@ Restyle the whole app in [Material 3 Expressive](https://m3.material.io/blog/bui
 
 | | T116 | T117 |
 |---|---|---|
-| Edits | `index.html`, `public/`, `src/index.css`, `src/styles/tokens.css` (new), `src/styles/tokens.test.ts`, `src/App.tsx`, `src/App.css`, `src/App.test.tsx`, `src/components/Icon.tsx` (new) | All other files in `src/components/`, `src/styles/components.css`, `src/VoiceAssistant.tsx`, `src/styles/assistant.css`, page CSS and markup where a page adopts a new component |
+| Edits | `index.html`, `public/`, `src/index.css`, `src/styles/tokens.css` (new), `src/styles/tokens.test.ts`, `src/App.tsx`, `src/App.css`, `src/App.test.tsx`, `src/components/Icon.tsx` (new), `src/components/Mascot.tsx` and its test (new) | All other files in `src/components/`, `src/styles/components.css`, `src/VoiceAssistant.tsx`, `src/styles/assistant.css`, page CSS and markup where a page adopts a new component |
 | Never edits | Anything in T117's column | Anything in T116's column |
 | If the other hasn't merged | Pages and components get the new colors through the legacy aliases | Writes every token with a fallback: `var(--md-sys-color-primary, var(--accent))`, `var(--md-sys-shape-corner-full, 999px)`. It looks right on the old tokens and better on the new ones |
 
-`Icon.tsx` is a new file that T116 creates and **doesn't** add to `src/components/index.ts`, which belongs to T117. Import it by path (`./components/Icon`). T117 can switch `VoiceAssistant` to it once T116 has merged; until then `VoiceAssistant` keeps its own icons.
+`Icon.tsx` is a new file that T116 creates and **doesn't** add to `src/components/index.ts`, which belongs to T117. Import it by path (`./components/Icon`). T117 can switch `VoiceAssistant` to it once T116 has merged; until then `VoiceAssistant` keeps its own icons. `Mascot.tsx` works the same way: T116 creates it, and T117 imports `Echo` from it by path.
 
 ---
 
@@ -444,7 +444,7 @@ Restyle the whole app in [Material 3 Expressive](https://m3.material.io/blog/bui
 1. **Tokens:** add `src/styles/tokens.css` with every token in the contract, and import it first in `index.css`. Light and dark follow `prefers-color-scheme`; high contrast follows `prefers-contrast: more`.
 2. **Legacy aliases** in `index.css`: `--text` → on-surface-variant, `--text-h` → on-surface, `--bg` → surface, `--border` → outline-variant, `--code-bg` → surface-container-high, `--accent` → primary, `--accent-bg` → secondary-container, `--accent-border` → outline, `--on-accent` → on-primary, `--error` → error, `--error-bg` → error-container, `--focus` → secondary, `--shadow` → level 2.
 3. **Base styles:** drop the global `text-align: center` and the side borders on `#root`; fluid type from the type scale, with `clamp()` for headings; paragraph spacing, h3 and list styles; one focus ring (3 px, secondary color, 2 px offset); move `.sr-only` from `App.css` into `index.css`; keep the reduced-motion block.
-4. **Top app bar:** the wordmark becomes a link to `#home` with a small logo. The voice guide toggle becomes an M3E toggle button: tonal when off; filled when on, its corners morphing from full to medium on a spatial spring; a mic icon. Closing the guide returns focus to the toggle.
+4. **Top app bar:** the wordmark becomes a link to `#home` with a small logo. The voice guide toggle becomes an M3E toggle button: tonal when off; filled when on, its corners morphing from full to medium on a spatial spring; the mascot's head as its icon (step 9). Closing the guide returns focus to the toggle.
 5. **Navigation** (breakpoints as in `AGENTS.md`):
    - Below 768 px, an M3E navigation bar: an icon in a pill-shaped active indicator, with a short label under it ("Home", "Learn", "Listen", "Compare", "About"). The full title stays the accessible name. The bar keeps `--bottom-nav-height` and the safe-area padding.
    - From 768 px, horizontal nav items in the header: icon and full label in one pill.
@@ -452,7 +452,8 @@ Restyle the whole app in [Material 3 Expressive](https://m3.material.io/blog/bui
    - Links keep `?data=` (T54), so a chosen data set survives a click.
 6. **Main area:** a skip link to `<main>`; the `h1` uses an emphasized headline style and keeps its focus behavior; `document.title` follows the page ("Listen · Earth Jukebox"); the data load error uses `Notice` (error).
 7. **Icons:** add `src/components/Icon.tsx`, built from Material Symbols paths (Apache 2.0) as `VoiceAssistant` already does: the outlined and filled nav icons, mic, mic_off, and play, pause, stop and replay for later use.
-8. **Template leftovers:** replace the Vite favicon with an Earth Jukebox one; delete the unused `public/icons.svg`; add a meta description and `theme-color` (light and dark) to `index.html`.
+8. **Template leftovers:** replace the Vite favicon with an Earth Jukebox one (purple sound bars on a black circle); delete the unused `public/icons.svg`; add a meta description and `theme-color` (light and dark) to `index.html`.
+9. **Mascot** (added 9 Nov; concepts in `docs/design/mascot-concepts.html`): `src/components/Mascot.tsx` draws the astronaut, *Echo* (full body, poses idle, listening, talking and thinking) and *Sonny* (the head in a badge). Both are `aria-hidden` decoration. Sonny is the voice guide toggle's icon: 28 px on phones, so the wordmark and the toggle still share one row at 360 px, and 32 px from 768 px.
 
 **Done when:**
 - `tokens.test.ts` checks, in light, dark and both high-contrast schemes: every `on-X` / `X` pair at 4.5:1 or more; the legacy pairs, resolved through the aliases; the focus ring at 3:1 or more against the surface.
@@ -484,6 +485,7 @@ Restyle the whole app in [Material 3 Expressive](https://m3.material.io/blog/bui
    - The status orb becomes an M3E shape, with a separate level meter.
    - Suggestion chips send sample questions ("What am I listening to?", "Play this year").
    - The silent-microphone warning uses `Notice`. In the error state, the start button reads "Try again". Explain why the input is disabled while idle.
+   - The mascot (added 9 Nov): `Echo` from T116's `Mascot.tsx` stands beside the open panel from 768 px, its pose following the guide (connecting → thinking, listening → listening, speaking → talking). Hidden on phones, where the panel is a bottom sheet. No animation under reduced motion; decoration only, since the status line says the same in words.
 10. **Adopt on the pages,** with no change in behavior: player speed → connected ButtonGroup; Compare answer and test-mode choices → connected ButtonGroup or M3 radios; Compare's `select` and the test-mode comment → outlined fields; "Analyzing the images…" → LoadingIndicator.
 
 **Done when:**

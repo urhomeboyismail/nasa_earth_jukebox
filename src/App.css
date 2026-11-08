@@ -330,3 +330,12 @@ html {
     padding: 0 1.25rem 0 1rem;
   }
 }
+
+/* The mascot's head (src/components/Mascot.tsx) is the voice guide button's icon. It is decoration: the button is named by its text. */
+/* Icon-sized on phones, so the wordmark and the button still share one row at 360 px; larger from 768 px. */
+.app-guide-toggle:has(.app-guide-toggle__mascot) { padding-inline-start: 0.5rem; }
+.app-guide-toggle__mascot { flex: none; inline-size: 1.75rem; block-size: 1.75rem; }
+
+@media (min-width: 768px) {
+  .app-guide-toggle__mascot { inline-size: 2rem; block-size: 2rem; }
+}

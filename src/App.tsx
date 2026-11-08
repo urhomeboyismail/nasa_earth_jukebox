@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ComponentType } from 're
 import VoiceAssistant from './VoiceAssistant'
 import { DatasetPicker, Notice } from './components'
 import { Icon, type IconName } from './components/Icon'
+import { Sonny } from './components/Mascot'
 import { loadCatalog, loadVisualization, type CatalogEntry, type Visualization } from './data'
 import AboutPage from './features/about'
 import ComparePage from './features/compare'
@@ -177,7 +178,7 @@ function App() {
         </nav>
         <button ref={guideToggle} type="button" className="app-guide-toggle" aria-pressed={assistantOpen}
           onClick={() => (assistantOpen ? closeAssistant() : setAssistantOpen(true))}>
-          <Icon name="mic" />
+          <Sonny size={32} className="app-guide-toggle__mascot" />
           <span>Voice guide</span>
         </button>
       </header>
