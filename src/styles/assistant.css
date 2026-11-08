@@ -1,71 +1,138 @@
-/* Voice guide panel. Ported from FinAssist; uses the tokens in index.css. */
+/*
+ * Voice guide panel, in Material 3 Expressive. Ported from FinAssist.
+ * Colors, corners and motion come from the --ui-* aliases in components.css (loaded through src/components), which fall
+ * back to the older tokens in index.css.
+ */
 .voice-assistant {
   position: fixed; z-index: 30; right: 24px; bottom: 24px;
-  width: min(400px, calc(100vw - 32px)); max-height: min(560px, calc(100vh - 120px));
-  display: flex; flex-direction: column; gap: 12px; padding: 16px; box-sizing: border-box;
-  background: var(--bg); color: var(--text-h); text-align: left;
-  border: 1px solid var(--border); border-radius: 24px; box-shadow: var(--shadow);
+  width: min(420px, calc(100vw - 32px));
+  max-height: min(600px, calc(100vh - 120px));
+  max-height: min(600px, calc(100dvh - 120px));
+  display: flex; flex-direction: column; gap: 12px; padding: 20px; box-sizing: border-box;
+  color: var(--ui-on-surface); text-align: left;
+  background: var(--md-sys-color-surface-container-high, var(--bg));
+  border: 1px solid var(--ui-outline-variant);
+  border-radius: var(--ui-corner-extra-large);
+  box-shadow: var(--md-sys-elevation-level3, var(--shadow));
+  animation: voice-open var(--md-sys-motion-spring-default-spatial-duration, 400ms) var(--md-sys-motion-spring-default-spatial, cubic-bezier(0.2, 1.3, 0.4, 1));
 }
-.voice-assistant__header { display: flex; align-items: center; gap: 12px; }
-.voice-assistant__heading { flex: 1; min-width: 0; }
-.voice-assistant__heading h2 { margin: 0; font-size: 18px; line-height: 1.3; outline: none; }
-.voice-assistant__status { margin: 0; color: var(--text); font-size: 15px; }
-.voice-assistant__status.is-error { color: #b3261e; }
+@keyframes voice-open { from { opacity: 0; transform: translateY(16px) scale(0.98); } }
+
+/* The drag handle is a visual cue for the bottom sheet on phones; the panel isn't draggable. */
+.voice-assistant__handle { display: none; }
+
+.voice-assistant__header { display: flex; align-items: flex-start; gap: 12px; }
+.voice-assistant__heading { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.voice-assistant__heading h2 { margin: 0; font-size: 1.375rem; font-weight: 400; line-height: 1.3; outline: none; }
+.voice-assistant__status { margin: 0; color: var(--ui-on-surface-variant); font-size: 1rem; }
+.voice-assistant__status.is-error { color: var(--ui-error); font-weight: 600; }
 
 .voice-assistant__icon { fill: currentColor; flex: none; }
 
+/* The status orb: a Material 3 Expressive shape that changes with the state. Its color is never the only cue: the
+   status line above says the same in words. */
 .voice-assistant__orb {
-  flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
-  background: var(--code-bg); color: var(--text); transition: box-shadow 80ms linear;
+  flex: none; display: grid; place-items: center; width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--ui-surface-container-highest); color: var(--ui-on-surface-variant);
+  transition:
+    border-radius var(--ui-spring-fast-spatial-duration) var(--ui-spring-fast-spatial),
+    background-color var(--ui-spring-fast-effects-duration) var(--ui-spring-fast-effects);
 }
-.voice-assistant__orb--listening { background: var(--accent-bg); color: var(--accent); animation: voice-pulse 1.6s ease-in-out infinite; }
-.voice-assistant__orb--speaking { background: var(--accent); color: var(--bg); animation: voice-pulse .8s ease-in-out infinite; }
-.voice-assistant__orb--error { background: #f9dedc; color: #410e0b; }
-.voice-assistant__orb.is-muted { animation: none; background: var(--code-bg); color: var(--text); }
-@keyframes voice-pulse { 50% { transform: scale(1.08); } }
+.voice-assistant__orb--connecting { animation: voice-morph 2.4s linear infinite; }
+.voice-assistant__orb--listening {
+  background: var(--ui-primary-container); color: var(--ui-on-primary-container);
+  animation: voice-morph 3.2s ease-in-out infinite;
+}
+.voice-assistant__orb--speaking {
+  background: var(--ui-primary); color: var(--ui-on-primary);
+  animation: voice-morph 1.2s ease-in-out infinite;
+}
+.voice-assistant__orb--error { border-radius: var(--ui-corner-medium); background: var(--ui-error-container); color: var(--ui-on-error-container); }
+.voice-assistant__orb.is-muted { animation: none; border-radius: var(--ui-corner-large); background: var(--ui-surface-container-highest); color: var(--ui-on-surface-variant); }
+@keyframes voice-morph {
+  0%, 100% { border-radius: 50%; transform: rotate(0deg); }
+  33% { border-radius: 42% 58% 60% 40% / 45% 40% 60% 55%; transform: rotate(120deg); }
+  66% { border-radius: 30%; transform: rotate(240deg); }
+}
 
-.voice-assistant__warning {
-  margin: 0; padding: 8px 12px; border-radius: 12px; font-size: 15px;
-  background: #fff4e5; color: #4d2c00; border: 1px solid #f0b35a;
+/* Mic level, its own element: a short bar under the status line. --level (0 to 1) comes from the component. */
+.voice-assistant__meter {
+  display: block; height: 4px; margin-top: 6px; overflow: hidden;
+  border-radius: var(--ui-corner-full); background: var(--ui-secondary-container);
+}
+.voice-assistant__meter-fill {
+  display: block; height: 100%; background: var(--ui-primary); border-radius: inherit;
+  transform-origin: left; transform: scaleX(var(--level, 0)); transition: transform 80ms linear;
 }
 
 .voice-assistant__log {
   list-style: none; margin: 0; padding: 0; flex: 1; min-height: 96px; overflow-y: auto;
   display: flex; flex-direction: column; gap: 8px;
 }
-.voice-assistant__hint { color: var(--text); font-size: 15px; }
-.voice-assistant__line { max-width: 85%; padding: 8px 12px; border-radius: 16px; overflow-wrap: anywhere; }
-.voice-assistant__line--user { align-self: flex-end; background: var(--accent-bg); }
-.voice-assistant__line--assistant { align-self: flex-start; background: var(--code-bg); }
+.voice-assistant__hint { color: var(--ui-on-surface-variant); font-size: 1rem; }
+.voice-assistant__line { max-width: 85%; padding: 10px 14px; border-radius: 20px; overflow-wrap: anywhere; }
+.voice-assistant__line--user {
+  align-self: flex-end; border-end-end-radius: 6px;
+  color: var(--ui-on-primary-container); background: var(--ui-primary-container);
+}
+.voice-assistant__line--assistant {
+  align-self: flex-start; border-end-start-radius: 6px;
+  color: var(--ui-on-surface); background: var(--ui-surface-container-highest);
+}
 
-.voice-assistant__type { display: flex; align-items: center; gap: 4px; }
+/* Suggestion chips: Material's suggestion chip shape, at a 48 px target. */
+.voice-assistant__chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.voice-assistant__chip {
+  position: relative; isolation: isolate;
+  min-height: var(--ui-target); padding: 0 16px; font: var(--ui-label-font); text-align: left;
+  color: var(--ui-on-surface-variant); background: transparent; cursor: pointer;
+  border: 1px solid var(--ui-outline-variant); border-radius: var(--ui-corner-small);
+}
+.voice-assistant__chip::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit;
+  background: currentColor; opacity: 0; transition: opacity var(--ui-spring-fast-effects-duration) var(--ui-spring-fast-effects);
+}
+.voice-assistant__chip:hover::before { opacity: var(--ui-hover); }
+.voice-assistant__chip:active::before { opacity: var(--ui-pressed); }
+
+.voice-assistant__type { display: flex; align-items: center; gap: 8px; }
 .voice-assistant__input {
-  flex: 1; min-width: 0; min-height: 44px; padding: 0 16px; font: inherit; color: inherit;
-  background: var(--code-bg); border: 1px solid var(--border); border-radius: 999px;
+  flex: 1; min-width: 0; min-height: 48px; padding: 0 20px; box-sizing: border-box; font: inherit; font-size: 1rem;
+  color: var(--ui-on-surface); background: var(--ui-surface-container-highest);
+  border: 1px solid transparent; border-radius: var(--ui-corner-full);
 }
-.voice-assistant__input:disabled { opacity: .6; }
+.voice-assistant__input::placeholder { color: var(--ui-on-surface-variant); opacity: 1; }
+.voice-assistant__input:disabled {
+  color: color-mix(in srgb, var(--ui-on-surface) 38%, transparent);
+  background: color-mix(in srgb, var(--ui-on-surface) 8%, transparent);
+  cursor: not-allowed;
+}
+.voice-assistant__input:disabled::placeholder { color: inherit; }
+.voice-assistant__why { margin: -4px 0 0; padding-inline: 20px; color: var(--ui-on-surface-variant); font-size: 1rem; }
 
-.voice-assistant__icon-btn, .voice-assistant__btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px; font: inherit; font-size: 15px;
-  color: var(--text-h); background: transparent; border: 1px solid transparent; cursor: pointer;
-}
-.voice-assistant__icon-btn { width: 44px; height: 44px; border-radius: 50%; }
-.voice-assistant__btn { min-height: 40px; padding: 0 16px; border-radius: 999px; background: var(--accent-bg); }
-.voice-assistant__btn--filled { background: var(--accent); color: var(--bg); }
-.voice-assistant__btn--text { background: transparent; }
-.voice-assistant__icon-btn:hover, .voice-assistant__btn:hover { border-color: var(--accent-border); }
-.voice-assistant__icon-btn:disabled, .voice-assistant__btn:disabled { opacity: .5; cursor: default; }
-.voice-assistant :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.voice-assistant :focus-visible { outline: var(--ui-focus-ring); outline-offset: 2px; }
 
 .voice-assistant__actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.voice-assistant__note { margin: 0; color: var(--text); font-size: 13px; }
+.voice-assistant__note { margin: 0; color: var(--ui-on-surface-variant); font-size: 1rem; }
+.voice-assistant__note a { color: var(--ui-primary); }
 
-/* Mobile: sit above the bottom navigation bar (App.css). */
+/* Mobile: a bottom sheet that sits on top of the navigation bar (App.css), clear of the phone's home indicator. */
 @media (max-width: 767px) {
   .voice-assistant {
-    right: 16px; left: 16px; width: auto;
-    bottom: calc(var(--bottom-nav-height, 0px) + 16px);
-    max-height: calc(100dvh - var(--bottom-nav-height, 0px) - 96px);
+    right: 0; left: 0; width: auto;
+    bottom: var(--bottom-nav-height, env(safe-area-inset-bottom));
+    max-height: calc(100vh - var(--bottom-nav-height, 0px) - 72px);
+    max-height: calc(100dvh - var(--bottom-nav-height, 0px) - 72px);
+    padding: 8px 16px 16px;
+    border-width: 1px 0 0;
+    border-radius: var(--ui-corner-extra-large) var(--ui-corner-extra-large) 0 0;
+    animation-name: voice-sheet;
   }
+  .voice-assistant__handle {
+    display: block; align-self: center; flex: none; width: 32px; height: 4px; margin: 4px 0 4px;
+    border-radius: var(--ui-corner-full); background: var(--ui-on-surface-variant); opacity: 0.4;
+  }
+  @keyframes voice-sheet { from { transform: translateY(24px); opacity: 0; } }
 }
-@media (prefers-reduced-motion: reduce) { .voice-assistant__orb { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .voice-assistant, .voice-assistant__orb { animation: none !important; } }

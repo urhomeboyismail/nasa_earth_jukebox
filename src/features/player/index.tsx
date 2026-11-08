@@ -1,6 +1,6 @@
 import type { KeyboardEvent } from 'react'
 import { useAssistantContext } from '../../assistant/context'
-import { AnnouncerProvider, Button, Notice, Slider } from '../../components'
+import { AnnouncerProvider, Button, LoadingIndicator, Notice, Slider } from '../../components'
 import type { Visualization } from '../../data'
 import type { PageProps } from '../types'
 import { formatMonthYear } from './format'
@@ -76,7 +76,7 @@ function Player({ visualization }: { visualization: Visualization }) {
       <Viewer frame={frame} region={player.region} source={source} />
 
       {player.error && <Notice variant="error">The sounds could not be prepared. {player.error}</Notice>}
-      {player.loading && <Notice>Analyzing the images…</Notice>}
+      {player.loading && <LoadingIndicator label="Analyzing the images…" />}
       {player.finished && <Notice>That is the last date. Press Play to hear it again.</Notice>}
 
       <div className="player__controls" role="group" aria-label="Playback">
