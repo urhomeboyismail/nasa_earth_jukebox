@@ -1,5 +1,5 @@
 // Material Symbols (Apache 2.0), drawn on a 24 x 24 grid. The plain name is the filled icon; "-outline" is the outlined one. Filled marks a selected state.
-// Not exported from ./index.ts on purpose (see docs/tickets/ui-overhaul.md): import it by path.
+// Not exported from ./index.ts on purpose (see T116 and T117 in docs/TICKETS.md): import it by path.
 const paths = {
   'home-outline': 'M6 19h3v-6h6v6h3v-9l-6-4.5L6 10zm-2 2V9l8-6l8 6v12h-7v-6h-2v6z',
   home: 'M4 21V9l8-6l8 6v12h-6v-7h-4v7z',

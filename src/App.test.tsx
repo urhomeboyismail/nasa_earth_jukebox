@@ -192,7 +192,7 @@ describe('Choosing a data set', () => {
   })
 })
 
-describe('App shell chrome (T50)', () => {
+describe('App shell chrome (T116)', () => {
   it('names each nav link by its full title, shows a short label, and marks only the current page', () => {
     render(<App />)
     const compare = navLink('Compare two dates')

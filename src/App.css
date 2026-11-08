@@ -1,7 +1,7 @@
 /*
- * App shell in Material 3 Expressive (T50): top app bar, navigation, main column.
+ * App shell in Material 3 Expressive (T116): top app bar, navigation, main column.
  * Mobile first. Below 768 px the navigation is a bar fixed to the bottom; from 768 px it sits in the header
- * (a full row under the title on tablet, one row with everything on desktop from 1024 px). See AGENTS.md.
+ * (a full row under the title on tablet, one row with everything on desktop from 1280 px). See AGENTS.md.
  */
 
 :root {
