@@ -12,5 +12,6 @@
 .description__all summary { min-block-size: var(--control-size); display: flex; align-items: center; cursor: pointer; color: var(--text-h); }
 .description__all summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 0.25rem; }
 
-.description__detail { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
-.description__detail-label { color: var(--text-h); font-weight: 600; margin-inline-end: 0.25rem; }
+/* The label above, then Rich and Concise side by side, so neither choice ends up alone on a row on a phone. */
+.description__detail { display: grid; grid-template-columns: repeat(2, minmax(0, 10rem)); gap: 0.5rem; }
+.description__detail-label { grid-column: 1 / -1; color: var(--text-h); font-weight: 600; }

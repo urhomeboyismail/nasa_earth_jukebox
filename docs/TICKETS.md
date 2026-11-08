@@ -495,6 +495,13 @@ Restyle the whole app in [Material 3 Expressive](https://m3.material.io/blog/bui
    - The silent-microphone warning uses `Notice`. In the error state, the start button reads "Try again". Explain why the input is disabled while idle.
    - The mascot (added 9 Nov): `Echo` from T116's `Mascot.tsx` stands beside the open panel from 768 px, its pose following the guide (connecting → thinking, listening → listening, speaking → talking). Hidden on phones, where the panel is a bottom sheet. No animation under reduced motion; decoration only, since the status line says the same in words.
 10. **Adopt on the pages,** with no change in behavior: player speed → connected ButtonGroup; Compare answer and test-mode choices → connected ButtonGroup or M3 radios; Compare's `select` and the test-mode comment → outlined fields; "Analyzing the images…" → LoadingIndicator.
+11. **Layout fixes from the 9 Nov visual audit** (320 to 1280 px):
+    - Listen controls: on a phone, Play spans the width, Stop and Replay share a row, and Explore the map gets its own row. With room (a container query at 36rem), all four share one row. No label wraps.
+    - Speed and Description: the label sits above the options, so the choices share one row and line up with Volume.
+    - Sound options: on a phone each button has its explanation under it; with room, they sit side by side, and Download (no explanation) takes its own row.
+    - About: `grid-template-columns: minmax(0, 1fr)`, so the tables' 16rem minimum no longer widens the page at 320 px. The table scrolls in its own region.
+    - Buttons: room above and below a label that wraps.
+    - Selected outlined toggles use the purple secondary container, not Material's inverse surface, which read as plain white or black in this theme. The squarer selected shape stays the second cue.
 
 **Done when:**
 - Each new or changed component has a test with an accessibility check (`expectNoA11yViolations`).

@@ -135,7 +135,8 @@
   svg { flex: none; fill: currentColor; }
 }
 
-.ui-button { padding: 0 1.5rem; }
+/* A label that does wrap onto two lines keeps room above and below it. */
+.ui-button { padding: 0.375rem 1.5rem; text-align: center; line-height: 1.25; }
 .ui-button:has(> svg:first-child) { padding-inline-start: 1rem; }
 
 /* Sizes. "small" is Material's default 40 dp button, given our 48 px target. */
@@ -166,8 +167,10 @@
   border-radius: var(--ui-radius-selected);
 }
 .ui-button--tonal[aria-pressed='true'] { --ui-container: var(--ui-secondary); --ui-content: var(--ui-on-secondary); }
+/* Selected outlined toggles use the theme's purple container (like the selected tab), not Material's inverse surface, which
+   reads as plain white on black and black on white in this theme. The squarer selected shape stays the second cue. */
 .ui-button--outlined[aria-pressed='true'],
-.ui-button--secondary[aria-pressed='true'] { --ui-container: var(--ui-inverse-surface); --ui-content: var(--ui-inverse-on-surface); }
+.ui-button--secondary[aria-pressed='true'] { --ui-container: var(--ui-secondary-container); --ui-content: var(--ui-on-secondary-container); }
 
 /* Icon buttons: 48 px square target, round at rest, square when selected (M3 Expressive). */
 .ui-icon-button {
