@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ComponentType } from 'react'
+import { useCallback, useEffect, useRef, useState, type ComponentType, type CSSProperties, type MouseEvent } from 'react'
 import VoiceAssistant from './VoiceAssistant'
 import { DatasetPicker, Notice } from './components'
 import { Icon, type IconName } from './components/Icon'
@@ -15,6 +15,7 @@ import { sendPlayerCommand } from './features/player/controls'
 import { useVoiceAssistant, type AssistantAction } from './hooks/useVoiceAssistant'
 import { pages, type Page } from './pages'
 import { currentDataParam, hashFor, parseHash } from './route'
+import { useNavDrag } from './useNavDrag'
 import './App.css'
 
 const pageComponents: Record<Page, ComponentType<PageProps>> = {
@@ -107,9 +108,12 @@ function App() {
     if (dataMissing && dataId) window.history.replaceState(null, '', hashFor(page, { data: dataId }))
   }, [dataMissing, dataId, page])
 
-  // Move focus to the new page's heading so screen readers announce it, but not on first load.
+  // A new page opens at its top, with focus on its heading so screen readers announce it (but not on first load).
   useEffect(() => {
-    if (shownPage.current !== page) heading.current?.focus()
+    if (shownPage.current !== page) {
+      window.scrollTo({ top: 0 })
+      heading.current?.focus({ preventScroll: true })
+    }
     shownPage.current = page
   }, [page])
 
@@ -140,8 +144,20 @@ function App() {
     setAssistantOpen(false)
   }
 
+  /** Tapping the tab (or the wordmark) of the page you are on goes back to its top, as phone apps do. */
+  function backToTop(event: MouseEvent, target: Page) {
+    if (target !== page) return
+    event.preventDefault()
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' })
+    heading.current?.focus({ preventScroll: true })
+  }
+
   const title = pages.find(item => item.id === page)?.title
   const CurrentPage = pageComponents[page]
+  const pageIndex = pages.findIndex(item => item.id === page)
+  const navDrag = useNavDrag(pages.length, index => { window.location.hash = hashFor(pages[index].id, { data: linkData }) })
+  const shownIndex = navDrag.preview ?? pageIndex
 
   return (
     <>
@@ -150,21 +166,26 @@ function App() {
         Skip to content
       </a>
       <header className="app-header">
-        <a className="app-brand" href={hashFor('home', { data: linkData })}>
+        <a className="app-brand" href={hashFor('home', { data: linkData })} onClick={event => backToTop(event, 'home')}>
           <svg className="app-brand__mark" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
             <circle cx="20" cy="20" r="20" />
             <path d="M11 23v-6h2.5v6zm5 5V12h2.5v16zm5-3V15h2.5v10zm5-3v-4h2.5v4z" />
           </svg>
           <span className="app-brand__name">Earth Jukebox</span>
         </a>
-        <nav aria-label="Main">
+        <nav aria-label="Main" className={navDrag.dragging ? 'is-dragging' : undefined}
+          style={{ '--nav-index': pageIndex, '--nav-count': pages.length } as CSSProperties} {...navDrag.handlers}>
+          {/* The phone bar's glass highlight, which slides to the current tab (and follows the thumb while dragging). */}
+          <span className="app-nav__glass" aria-hidden="true" />
           <ul className="app-nav">
-            {pages.map(item => {
+            {pages.map((item, index) => {
               const current = item.id === page
               return (
                 <li key={item.id}>
                   {/* The label is the full title; the mobile bar shows the short title, which is its first word(s). */}
-                  <a className="app-nav__item" href={hashFor(item.id, { data: linkData })} aria-label={item.title} aria-current={current ? 'page' : undefined}>
+                  <a className={`app-nav__item${index === shownIndex ? ' is-shown' : ''}`} href={hashFor(item.id, { data: linkData })}
+                    aria-label={item.title} aria-current={current ? 'page' : undefined} draggable={false}
+                    onClick={event => backToTop(event, item.id)}>
                     <span className="app-nav__indicator">
                       <Icon name={pageIcons[item.id][current ? 'current' : 'other']} />
                     </span>
@@ -179,7 +200,10 @@ function App() {
         <button ref={guideToggle} type="button" className="app-guide-toggle" aria-pressed={assistantOpen}
           onClick={() => (assistantOpen ? closeAssistant() : setAssistantOpen(true))}>
           <Sonny size={32} className="app-guide-toggle__mascot" />
-          <span>Voice guide</span>
+          <span className="app-guide-toggle__label">Voice guide</span>
+          {/* Shown instead of the full label in a narrow header. Hidden from screen readers, so the button's name is always
+              "Voice guide", which contains the visible word (WCAG 2.5.3). */}
+          <span className="app-guide-toggle__short" aria-hidden="true">Guide</span>
         </button>
       </header>
 
