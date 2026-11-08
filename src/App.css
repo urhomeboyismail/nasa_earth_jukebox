@@ -339,3 +339,180 @@ html {
 @media (min-width: 768px) {
   .app-guide-toggle__mascot { inline-size: 2rem; block-size: 2rem; }
 }
+
+/* ---- Phone: floating glass tab bar and frosted header (layout ideas from the Wear&Go app) ---- */
+
+/* Only on the glass bar's own screens; from 768 px the navigation sits in the header and none of this applies. */
+.app-nav__glass { display: none; }
+
+@media (max-width: 767.98px) {
+  :root {
+    /* The bar floats 12 px above the bottom edge (and the home indicator): 64 px tabs + 2 × 6 px padding + 12 px gap. */
+    --bottom-nav-height: calc(64px + 12px + 12px + env(safe-area-inset-bottom));
+    --top-bar-height: 4rem;
+  }
+
+  /* The header stays at the top while the page scrolls under it, so the voice guide is always one tap away. */
+  html { scroll-padding-top: calc(var(--top-bar-height) + 8px); }
+
+  .app-header {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 25;
+    background: transparent;
+    isolation: isolate;
+  }
+
+  /* The frosted glass sits on a layer behind the header, not on the header itself: a backdrop-filter on the header would
+     make it the containing block of the fixed tab bar inside it, and the bar would stop floating at the bottom. */
+  .app-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: color-mix(in srgb, var(--md-sys-color-surface) 90%, transparent);
+    border-block-end: 1px solid color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+    backdrop-filter: blur(20px) saturate(150%);
+  }
+
+  /* A strip of page background behind the bottom of the screen, so the page never shows in the gap under the floating bar
+     or around its rounded ends. Its top fades in, so content scrolls away softly above the bar instead of being cut off.
+     Below the bar in the header's stacking order (z-index 10 vs the bar's 20), above the page. */
+  .app-header::after {
+    content: '';
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 10;
+    block-size: calc(var(--bottom-nav-height) + 16px);
+    background: linear-gradient(to bottom, transparent, var(--md-sys-color-surface) 28px);
+    pointer-events: none;
+  }
+
+  /* The tab bar: a capsule floating above the bottom edge, inset from the sides, frosted. */
+  .app-header nav {
+    inset: auto auto calc(12px + env(safe-area-inset-bottom)) 50%;
+    translate: -50% 0;
+    inline-size: min(calc(100% - 24px), 30rem);
+    box-sizing: border-box;
+    padding: 6px;
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-on-surface) 14%, transparent);
+    border-radius: var(--md-sys-shape-corner-full);
+    background: color-mix(in srgb, var(--md-sys-color-surface-container) 94%, transparent);
+    backdrop-filter: blur(32px) saturate(170%);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, white 10%, transparent), 0 10px 32px rgb(0 0 0 / 0.35);
+    isolation: isolate;
+    /* The bar owns sideways drags (see useNavDrag.ts); the page itself still scrolls everywhere else. */
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    transition: scale var(--md-sys-motion-spring-default-spatial-duration) var(--md-sys-motion-spring-default-spatial);
+
+    &.is-dragging { scale: 1.035; }
+  }
+
+  /* The highlight: one pill that slides between tabs, and tracks the thumb exactly while dragging. */
+  .app-nav__glass {
+    display: block;
+    position: absolute;
+    z-index: -1;
+    inset-block: 6px;
+    inset-inline-start: 6px;
+    inline-size: calc((100% - 12px) / var(--nav-count));
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--md-sys-color-secondary-container);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, white 12%, transparent);
+    translate: calc(var(--nav-index) * 100%) 0;
+    transition: translate var(--md-sys-motion-spring-default-spatial-duration) var(--md-sys-motion-spring-default-spatial);
+    pointer-events: none;
+  }
+  nav.is-dragging .app-nav__glass {
+    translate: calc(var(--drag-index, var(--nav-index)) * 100%) 0;
+    transition: none;
+  }
+
+  .app-nav__item {
+    min-block-size: 64px;
+    padding: 0;
+    border-radius: var(--md-sys-shape-corner-full);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* The pill is the selection now, so the per-icon indicator steps aside; the filled icon and bold label stay. */
+  .app-nav__indicator,
+  .app-nav__item:hover .app-nav__indicator,
+  .app-nav__item[aria-current='page'] .app-nav__indicator,
+  .app-nav__item[aria-current='page']:hover .app-nav__indicator {
+    inline-size: auto;
+    block-size: 1.75rem;
+    background: none;
+    animation: none;
+    transition: translate var(--md-sys-motion-spring-fast-spatial-duration) var(--md-sys-motion-spring-fast-spatial);
+  }
+  .app-nav__item.is-shown {
+    color: var(--md-sys-color-on-secondary-container);
+    font-weight: 700;
+
+    .app-nav__indicator { translate: 0 -1px; }
+  }
+
+  /* Press feedback: the icon dips a little under the thumb. */
+  .app-nav__item:active .app-nav__indicator { scale: 0.9; }
+  .app-guide-toggle:active { scale: 0.97; }
+}
+
+/* Solid colours for people who ask for less transparency. */
+@media (max-width: 767.98px) and (prefers-reduced-transparency: reduce) {
+  .app-header::before,
+  .app-header nav {
+    backdrop-filter: none;
+  }
+  .app-header::before { background: var(--md-sys-color-surface); }
+  .app-header nav { background: var(--md-sys-color-surface-container); }
+}
+
+/* Narrow phones: the header always keeps one row and the five tabs keep their labels inside their own width. These go by the
+   space the header and the bar really have (container queries), not the screen width, so a scrollbar, a narrower phone or a
+   wider font can't make them wrap. Container sizes are the header's inner width (inside its padding): the logo and the full
+   "Voice guide" button need about 325 px of it, with "Guide" about 280 px; the thresholds leave some room for wider fonts. */
+.app-guide-toggle__short { display: none; }
+
+@media (max-width: 767.98px) {
+  .app-header { container: app-header / inline-size; }
+  .app-header nav { container: app-tabs / inline-size; }
+}
+
+/* Medium: the button says "Guide". */
+@container app-header (max-width: 21rem) {
+  .app-guide-toggle__label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .app-guide-toggle__short { display: inline; }
+}
+
+/* Small: the mascot alone, a 48 px round button. Its name is still "Voice guide". */
+@container app-header (max-width: 18.5rem) {
+  .app-guide-toggle__short { display: none; }
+  .app-guide-toggle:has(.app-guide-toggle__mascot) {
+    inline-size: var(--control-size);
+    padding: 0;
+  }
+}
+
+/* A narrow bar: smaller tab labels, so "Compare" stays inside its tab. */
+@container app-tabs (max-width: 20rem) {
+  .app-nav__item {
+    min-block-size: 58px;
+    font-size: var(--md-sys-typescale-label-medium-size, 0.75rem);
+    letter-spacing: 0;
+  }
+}
+
+@media (max-width: 359.98px) {
+  .app-header nav { inline-size: calc(100% - 16px); }
+}

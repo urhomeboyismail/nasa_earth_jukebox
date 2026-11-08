@@ -13,6 +13,8 @@ vi.mock('./analysis', () => ({
 
 beforeEach(() => {
   window.location.hash = ''
+  // jsdom has no scrolling; the app scrolls to the top of each new page.
+  vi.stubGlobal('scrollTo', vi.fn())
   vi.stubGlobal('fetch', vi.fn((input: RequestInfo | URL) => {
     const url = String(input)
     const body = url.endsWith('/data/index.json') ? catalog
@@ -189,6 +191,33 @@ describe('Choosing a data set', () => {
     render(<App />)
     await userEvent.click(navLink('Compare two dates'))
     expect(window.location.hash).toBe('#compare')
+  })
+})
+
+describe('Back to the top', () => {
+  it('opens a new page at its top', async () => {
+    render(<App />)
+    await userEvent.click(navLink('Listen'))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Listen' })).toHaveFocus()
+    expect(window.scrollTo).toHaveBeenLastCalledWith({ top: 0 })
+  })
+
+  it('goes back to the top when the tab of the current page is tapped, without changing the page', async () => {
+    window.location.hash = '#listen'
+    render(<App />)
+    const heading = screen.getByRole('heading', { level: 1, name: 'Listen' })
+    expect(heading).not.toHaveFocus()
+    await userEvent.click(navLink('Listen'))
+    expect(window.scrollTo).toHaveBeenLastCalledWith({ top: 0, behavior: 'smooth' })
+    expect(heading).toHaveFocus()
+    expect(window.location.hash).toBe('#listen')
+  })
+
+  it('does the same for the wordmark on Home', async () => {
+    render(<App />)
+    await userEvent.click(screen.getByRole('link', { name: 'Earth Jukebox' }))
+    expect(window.scrollTo).toHaveBeenLastCalledWith({ top: 0, behavior: 'smooth' })
+    expect(screen.getByRole('heading', { level: 1, name: 'Home' })).toHaveFocus()
   })
 })
 

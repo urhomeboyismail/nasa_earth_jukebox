@@ -454,6 +454,14 @@ Restyle the whole app in [Material 3 Expressive](https://m3.material.io/blog/bui
 7. **Icons:** add `src/components/Icon.tsx`, built from Material Symbols paths (Apache 2.0) as `VoiceAssistant` already does: the outlined and filled nav icons, mic, mic_off, and play, pause, stop and replay for later use.
 8. **Template leftovers:** replace the Vite favicon with an Earth Jukebox one (purple sound bars on a black circle); delete the unused `public/icons.svg`; add a meta description and `theme-color` (light and dark) to `index.html`.
 9. **Mascot** (added 9 Nov; concepts in `docs/design/mascot-concepts.html`): `src/components/Mascot.tsx` draws the astronaut, *Echo* (full body, poses idle, listening, talking and thinking) and *Sonny* (the head in a badge). Both are `aria-hidden` decoration. Sonny is the voice guide toggle's icon: 28 px on phones, so the wordmark and the toggle still share one row at 360 px, and 32 px from 768 px.
+10. **Phone tab bar and header** (added 9 Nov; layout ideas from the Wear&Go app):
+    - The bottom bar is a frosted capsule floating 12 px above the bottom edge and the home indicator. One highlight slides to the current tab. A strip of page background behind it stops the page showing in the gap.
+    - Dragging along the bar moves the highlight with the thumb and opens the tab on release (`src/useNavDrag.ts`). It is a shortcut only: a tap, the keyboard and screen readers use the links.
+    - The header stays at the top and is frosted. Its blur sits on a `::before` layer, because a `backdrop-filter` on the header would stop the fixed bar floating.
+    - Tapping the current tab or the wordmark scrolls back to the top and focuses the heading. A new page always opens at its top.
+    - The header and bar adapt to their real width with container queries, so a scrollbar or a wider font cannot make them wrap. The toggle reads "Voice guide", then "Guide", then the mascot alone; its name is always "Voice guide". Tab labels go to 12 px when the bar is narrow.
+    - Solid colours under `prefers-reduced-transparency`; no motion under `prefers-reduced-motion`.
+    - Write `backdrop-filter` once and let the build add `-webkit-`: with both written, the build kept only the `-webkit-` one, which Chrome ignores.
 
 **Done when:**
 - `tokens.test.ts` checks, in light, dark and both high-contrast schemes: every `on-X` / `X` pair at 4.5:1 or more; the legacy pairs, resolved through the aliases; the focus ring at 3:1 or more against the surface.
