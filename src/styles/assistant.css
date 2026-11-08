@@ -136,3 +136,26 @@
   @keyframes voice-sheet { from { transform: translateY(24px); opacity: 0; } }
 }
 @media (prefers-reduced-motion: reduce) { .voice-assistant, .voice-assistant__orb { animation: none !important; } }
+
+/* Mascot (T117, drawn in components/Mascot.tsx): Echo stands just left of the panel on tablet and desktop, and floats gently. Phones show only the
+   head on the voice guide button, so nothing covers the page or the bottom bar. */
+.voice-mascot { display: none; }
+@media (min-width: 768px) {
+  .voice-mascot {
+    display: block; position: fixed; z-index: 30; pointer-events: none;
+    right: calc(24px + min(420px, 100vw - 32px) - 12px); bottom: 16px;
+    width: clamp(110px, 12vw, 150px); height: auto;
+    animation: voice-mascot-in var(--md-sys-motion-spring-default-spatial-duration, 400ms) var(--md-sys-motion-spring-default-spatial, ease-out) both,
+      voice-mascot-float 4s ease-in-out 0.4s infinite;
+  }
+  .voice-mascot--talking .mascot__mouth { animation: voice-mascot-talk 0.3s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+  .voice-mascot--listening .mascot__waves,
+  .voice-mascot--talking .mascot__waves { animation: voice-mascot-pulse 1.2s ease-in-out infinite; }
+}
+@keyframes voice-mascot-in { from { opacity: 0; transform: translateX(24px) scale(0.9); } }
+@keyframes voice-mascot-float { 50% { transform: translateY(-6px); } }
+@keyframes voice-mascot-talk { to { transform: scaleY(0.4); } }
+@keyframes voice-mascot-pulse { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) {
+  .voice-mascot, .voice-mascot * { animation: none !important; }
+}

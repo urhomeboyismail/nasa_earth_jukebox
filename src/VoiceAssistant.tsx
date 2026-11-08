@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent } from "react";
 import { Button, IconButton, Notice } from "./components";
+import { Echo, type MascotPose } from "./components/Mascot";
 import type { useVoiceAssistant } from "./hooks/useVoiceAssistant";
 import "./styles/assistant.css";
 
@@ -69,8 +70,12 @@ export default function VoiceAssistant({ assistant, onClose }: { assistant: Assi
 
   const orbClass = ["voice-assistant__orb", `voice-assistant__orb--${status}`, micMuted && active && "is-muted"].filter(Boolean).join(" ");
   const showMeter = status === "listening" && !micMuted;
+  const pose: MascotPose = status === "speaking" ? "talking" : status === "connecting" ? "thinking" : status === "listening" && !micMuted ? "listening" : "idle";
 
-  return <section ref={panel} className="voice-assistant" role="region" aria-labelledby="voice-assistant-title" onKeyDown={onKeyDown}>
+  return <>
+  {/* The mascot stands beside the panel on tablet and desktop. Decoration only: the status line says the same in words. */}
+  <Echo className={`voice-mascot voice-mascot--${pose}`} pose={pose} />
+  <section ref={panel} className="voice-assistant" role="region" aria-labelledby="voice-assistant-title" onKeyDown={onKeyDown}>
     <span className="voice-assistant__handle" aria-hidden="true" />
     <header className="voice-assistant__header">
       <span className={orbClass} aria-hidden="true">
@@ -131,5 +136,6 @@ export default function VoiceAssistant({ assistant, onClose }: { assistant: Assi
       While this is open, your voice and what you type are sent to Google's Gemini cloud AI to answer you. This app saves none of it.
       {" "}<a href="#about">How we use AI</a>
     </p>
-  </section>;
+  </section>
+  </>;
 }
