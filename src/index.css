@@ -1,70 +1,52 @@
+@import './styles/tokens.css';
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #8a1fe0;
-  --accent-strong: #6d12b8;
-  --accent-bg: rgba(138, 31, 224, 0.1);
-  --accent-border: rgba(138, 31, 224, 0.55);
-  --on-accent: #fff;
-  --error: #b3261e;
-  --error-bg: #fdecea;
-  --focus: #1a5fd0;
-  --control-size: 44px;
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /*
+   * Legacy names, kept as aliases of Material 3 roles so every page and component picks up the new look
+   * without edits. New code should use the --md-sys-* tokens directly. Remove these once nothing uses them.
+   */
+  --text: var(--md-sys-color-on-surface-variant);
+  --text-h: var(--md-sys-color-on-surface);
+  --bg: var(--md-sys-color-surface);
+  --border: var(--md-sys-color-outline-variant);
+  --code-bg: var(--md-sys-color-surface-container-high);
+  --accent: var(--md-sys-color-primary);
+  /* A filled button on hover: primary under an 8% on-primary state layer, as Material does it. */
+  --accent-strong: color-mix(in srgb, var(--md-sys-color-primary), var(--md-sys-color-on-primary) 8%);
+  /* A quiet tint that primary text stays readable on, in every scheme including high contrast. */
+  --accent-bg: var(--md-sys-color-surface-container-highest);
+  --accent-border: var(--md-sys-color-outline);
+  --on-accent: var(--md-sys-color-on-primary);
+  --error: var(--md-sys-color-error);
+  /* A quiet surface, so error-colored text on it stays readable; the error border and label carry the meaning. */
+  --error-bg: var(--md-sys-color-surface-container-low);
+  --focus: var(--md-sys-color-secondary);
+  --shadow: var(--md-sys-elevation-level2);
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --control-size: 48px;
+  --content-width: 50rem;
+  --prose-width: 70ch;
+  --page-gutter: clamp(1rem, 4vw, 2rem);
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
+  font-family: var(--md-ref-typeface-plain);
+  font-size: var(--md-sys-typescale-body-large-size);
+  line-height: var(--md-sys-typescale-body-large-line-height);
+  font-weight: var(--md-sys-typescale-body-large-weight);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
   color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
+  color: var(--md-sys-color-on-surface);
+  background: var(--md-sys-color-surface);
+  accent-color: var(--md-sys-color-primary);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-strong: #d3a4ff;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.6);
-    --on-accent: #16171d;
-    --error: #ff8a80;
-    --error-bg: #3a1c1a;
-    --focus: #8ab4ff;
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
 }
 
 #root {
-  width: 100%;
-  max-width: 1126px;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
 }
 
 body {
@@ -72,43 +54,76 @@ body {
 }
 
 h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+h2,
+h3 {
+  font-family: var(--md-ref-typeface-brand);
+  color: var(--md-sys-color-on-surface);
+  text-wrap: balance;
 }
 
 h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
+  font-size: clamp(var(--md-sys-typescale-headline-large-size), 1.4rem + 2.2vw, var(--md-sys-typescale-display-small-size));
+  line-height: 1.2;
+  font-weight: var(--md-sys-typescale-emphasized-weight);
+  letter-spacing: -0.01em;
+  margin: 0 0 1.5rem;
 }
+
 h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
+  font-size: var(--md-sys-typescale-headline-small-size);
+  line-height: var(--md-sys-typescale-headline-small-line-height);
+  font-weight: 500;
+  margin: 0 0 0.5rem;
 }
+
+h3 {
+  font-size: var(--md-sys-typescale-title-large-size);
+  line-height: var(--md-sys-typescale-title-large-line-height);
+  font-weight: 500;
+  margin: 0 0 0.25rem;
+}
+
 p {
   margin: 0;
 }
 
+/* Paragraphs inside a .flow container get space between them. */
+.flow > * + * {
+  margin-block-start: 0.75em;
+}
+
+a {
+  color: var(--md-sys-color-primary);
+  text-underline-offset: 0.2em;
+}
+
 code {
-  font-family: var(--mono);
+  font-family: ui-monospace, Consolas, monospace;
   display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-  font-size: 15px;
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  color: var(--md-sys-color-on-surface);
+  font-size: 0.9375rem;
   line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+  padding: 0.25rem 0.5rem;
+  background: var(--md-sys-color-surface-container-high);
+}
+
+/* One focus ring everywhere: 3 px in the secondary color. Components may restyle it but never remove it. */
+:focus-visible {
+  outline: 3px solid var(--md-sys-color-secondary);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* People who ask for less motion get none: no animation or smooth scrolling anywhere. */

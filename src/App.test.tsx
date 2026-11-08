@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import catalog from '../public/data/index.json'
@@ -24,27 +24,30 @@ beforeEach(() => {
 })
 afterEach(() => vi.unstubAllGlobals())
 
+/** A link in the main navigation. Pages have links of their own (Learn links to Listen), so look only in the nav. */
+const navLink = (name: string) => within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name })
+
 describe('App shell', () => {
   it('loads the first visualization and shows it on each page', async () => {
     render(<App />)
     expect(screen.getByRole('heading', { level: 1, name: 'Home' })).toBeInTheDocument()
     expect(await screen.findByText(/Now playing from: Fixture ocean/)).toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Listen' }))
-    expect(screen.getByRole('heading', { level: 1, name: 'Listen' })).toHaveFocus()
+    await userEvent.click(navLink('Listen'))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Listen' })).toHaveFocus()
     expect(await screen.findByRole('button', { name: 'Play' })).toBeEnabled()
     expect(screen.getByRole('slider', { name: 'Date' })).toHaveAttribute('max', '3')
 
-    await userEvent.click(screen.getByRole('button', { name: 'Learn the sounds' }))
-    expect(screen.getByText(/Cold, Cool, Mild, Warm, Hot/)).toBeInTheDocument()
+    await userEvent.click(navLink('Learn the sounds'))
+    expect(await screen.findByText(/Cold, Cool, Mild, Warm, Hot/)).toBeInTheDocument()
   })
 
   it('keeps the page in the URL hash', async () => {
     render(<App />)
-    await userEvent.click(screen.getByRole('button', { name: 'Compare two dates' }))
+    await userEvent.click(navLink('Compare two dates'))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Compare two dates' })).toBeInTheDocument()
     expect(window.location.hash).toBe('#compare')
-    expect(screen.getByRole('heading', { level: 1, name: 'Compare two dates' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Compare two dates' })).toHaveAttribute('aria-current', 'page')
+    expect(navLink('Compare two dates')).toHaveAttribute('aria-current', 'page')
   })
 
   it('opens the page named by the hash on load, without moving focus', () => {
@@ -63,9 +66,10 @@ describe('App shell', () => {
 
   it('follows back and forward', async () => {
     render(<App />)
-    await userEvent.click(screen.getByRole('button', { name: 'Listen' }))
-    await userEvent.click(screen.getByRole('button', { name: 'About the data' }))
-    expect(screen.getByRole('heading', { level: 1, name: 'About the data' })).toBeInTheDocument()
+    await userEvent.click(navLink('Listen'))
+    await screen.findByRole('heading', { level: 1, name: 'Listen' })
+    await userEvent.click(navLink('About the data'))
+    expect(await screen.findByRole('heading', { level: 1, name: 'About the data' })).toBeInTheDocument()
     window.history.back()
     expect(await screen.findByRole('heading', { level: 1, name: 'Listen' })).toHaveFocus()
     window.history.forward()
@@ -115,7 +119,8 @@ describe('Choosing a data set', () => {
     render(<App />)
     await userEvent.selectOptions(await picker(), 'Synthetic ocean')
     await screen.findByText(/Now playing from: Synthetic ocean/)
-    await userEvent.click(screen.getByRole('button', { name: 'Listen' }))
+    expect(screen.getByRole('link', { name: 'Earth Jukebox' })).toHaveAttribute('href', '#home?data=synthetic-ocean')
+    await userEvent.click(navLink('Listen'))
     expect(window.location.hash).toBe('#listen?data=synthetic-ocean')
     expect(await screen.findByRole('button', { name: 'Play' })).toBeEnabled()
     expect(screen.getByRole('slider', { name: 'Date' })).toHaveAttribute('max', '11')
@@ -182,7 +187,54 @@ describe('Choosing a data set', () => {
 
   it('leaves the address clean when nothing was chosen', async () => {
     render(<App />)
-    await userEvent.click(screen.getByRole('button', { name: 'Compare two dates' }))
+    await userEvent.click(navLink('Compare two dates'))
     expect(window.location.hash).toBe('#compare')
+  })
+})
+
+describe('App shell chrome (T50)', () => {
+  it('names each nav link by its full title, shows a short label, and marks only the current page', () => {
+    render(<App />)
+    const compare = navLink('Compare two dates')
+    expect(compare).toHaveAttribute('href', '#compare')
+    expect(compare).toHaveTextContent('Compare')
+    expect(navLink('Home')).toHaveAttribute('aria-current', 'page')
+    expect(within(screen.getByRole('navigation', { name: 'Main' })).getAllByRole('link').filter(link => link.hasAttribute('aria-current'))).toHaveLength(1)
+  })
+
+  it('links the wordmark to Home', () => {
+    window.location.hash = '#about'
+    render(<App />)
+    expect(screen.getByRole('link', { name: 'Earth Jukebox' })).toHaveAttribute('href', '#home')
+  })
+
+  it('has a skip link that moves focus to the page heading without changing the page', async () => {
+    window.location.hash = '#learn'
+    render(<App />)
+    await userEvent.tab()
+    const skip = screen.getByRole('link', { name: 'Skip to content' })
+    expect(skip).toHaveFocus()
+    await userEvent.click(skip)
+    expect(screen.getByRole('heading', { level: 1, name: 'Learn the sounds' })).toHaveFocus()
+    expect(window.location.hash).toBe('#learn')
+  })
+
+  it('names the browser tab after the page', async () => {
+    render(<App />)
+    expect(document.title).toBe('Home · Earth Jukebox')
+    await userEvent.click(navLink('About the data'))
+    await waitFor(() => expect(document.title).toBe('About the data · Earth Jukebox'))
+  })
+
+  it('returns focus to the voice guide button when the guide closes', async () => {
+    // jsdom has no Element.scrollTo, which the panel uses to keep the conversation scrolled down.
+    Element.prototype.scrollTo ??= () => {}
+    render(<App />)
+    const toggle = screen.getByRole('button', { name: 'Voice guide' })
+    await userEvent.click(toggle)
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.click(screen.getByRole('button', { name: 'Close voice guide' }))
+    expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    expect(toggle).toHaveFocus()
   })
 })
