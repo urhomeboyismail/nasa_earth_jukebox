@@ -28,11 +28,21 @@ export default function VoiceAssistant({ assistant, onClose }: { assistant: Assi
   const [draft, setDraft] = useState("");
   const log = useRef<HTMLOListElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
+  const panel = useRef<HTMLElement>(null);
   const active = status === "connecting" || status === "listening" || status === "speaking";
   const connected = status === "listening" || status === "speaking";
   const canType = active && status !== "connecting";
 
   useEffect(() => { title.current?.focus(); }, []);
+  // The panel floats over the page, so the page keeps a focused control clear of it (App.css reads --voice-panel-space on a phone: its height and 16 px of room).
+  useEffect(() => {
+    const root = document.documentElement;
+    const measure = () => { if (panel.current) root.style.setProperty("--voice-panel-space", `${panel.current.offsetHeight + 16}px`); };
+    measure();
+    const watch = typeof ResizeObserver === "undefined" || !panel.current ? undefined : new ResizeObserver(measure);
+    if (panel.current) watch?.observe(panel.current);
+    return () => { watch?.disconnect(); root.style.removeProperty("--voice-panel-space"); };
+  }, []);
   useEffect(() => { log.current?.scrollTo({ top: log.current.scrollHeight }); }, [transcript]);
 
   const statusText = {
@@ -60,7 +70,7 @@ export default function VoiceAssistant({ assistant, onClose }: { assistant: Assi
   const orbClass = ["voice-assistant__orb", `voice-assistant__orb--${status}`, micMuted && active && "is-muted"].filter(Boolean).join(" ");
   const showMeter = status === "listening" && !micMuted;
 
-  return <section className="voice-assistant" role="region" aria-labelledby="voice-assistant-title" onKeyDown={onKeyDown}>
+  return <section ref={panel} className="voice-assistant" role="region" aria-labelledby="voice-assistant-title" onKeyDown={onKeyDown}>
     <span className="voice-assistant__handle" aria-hidden="true" />
     <header className="voice-assistant__header">
       <span className={orbClass} aria-hidden="true">

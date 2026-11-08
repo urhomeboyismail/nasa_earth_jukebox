@@ -1,0 +1,16 @@
+.description {
+  display: grid;
+  gap: 0.5rem;
+  text-align: left;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+}
+.description__title { margin: 0; font-size: 1.25rem; color: var(--text-h); }
+/* At least 16 px, and long words and numbers wrap instead of widening the page at 360 px. */
+.description__text { margin: 0; font-size: 1rem; line-height: 1.5; overflow-wrap: anywhere; }
+.description__all summary { min-block-size: var(--control-size); display: flex; align-items: center; cursor: pointer; color: var(--text-h); }
+.description__all summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 0.25rem; }
+
+.description__detail { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.description__detail-label { color: var(--text-h); font-weight: 600; margin-inline-end: 0.25rem; }

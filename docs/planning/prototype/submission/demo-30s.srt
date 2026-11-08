@@ -1,0 +1,23 @@
+1
+00:00:00,000 --> 00:00:05,000
+This is NASA satellite data. Listen for the change.
+
+2
+00:00:05,000 --> 00:00:10,000
+Sea temperature around Mauritius, played as sound. Higher pitch means warmer water.
+
+3
+00:00:10,000 --> 00:00:15,000
+Strict mode: same data, no music added. Each value is only known to within 0.15 degrees.
+
+4
+00:00:15,000 --> 00:00:21,000
+One date has no map. The pitch stops. The click keeps time. No data, not zero.
+
+5
+00:00:21,000 --> 00:00:26,000
+Every sound is also written, with its source. Ask something the record cannot say: "Not in this record."
+
+6
+00:00:26,000 --> 00:00:30,000
+Data: NASA GIBS, JPL MUR. Built with AI help: see project page.

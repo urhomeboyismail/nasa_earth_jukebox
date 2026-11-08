@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "facts.schema.json",
+  "title": "Facts file (T2 contract)",
+  "description": "The fact sheet behind every sentence the app says as fact (CLAUDE.md rule 5). Each fact has an ID. Q&A answers and key moments point at these IDs. validate_facts.py checks that every number in a fact text exists in the story file or is a recomputable difference.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "story_id", "facts"],
+  "properties": {
+    "schema_version": { "const": "1.0.0-draft" },
+    "story_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,40}$" },
+    "facts": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "text", "source_ids"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^F[0-9]{2,3}$" },
+          "kind": { "enum": ["data", "method", "source", "limit"] },
+          "text": { "type": "string", "minLength": 10, "maxLength": 400 },
+          "source_ids": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "derivations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind", "from_step", "to_step", "value"],
+              "properties": {
+                "kind": { "const": "diff" },
+                "from_step": { "type": "integer", "minimum": 0 },
+                "to_step": { "type": "integer", "minimum": 0 },
+                "value": { "type": "number" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

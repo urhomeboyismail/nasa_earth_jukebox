@@ -22,6 +22,8 @@ const engine = vi.hoisted(() => ({
   playCategory: vi.fn(),
   playMissing: vi.fn(),
   stop: vi.fn(),
+  setStyle: vi.fn(),
+  setSpatial: vi.fn(),
 }))
 vi.mock('../../audio', () => ({ createSoundEngine: () => engine }))
 const analyzeAll = vi.hoisted(() => vi.fn())
@@ -57,6 +59,31 @@ async function toQuestions(user: ReturnType<typeof userEvent.setup>, options: { 
   await user.click(screen.getByRole('button', { name: 'Start the test' }))
   await screen.findByRole('heading', { name: 'Question 1 of 2' })
 }
+
+describe('Test mode: missing data', () => {
+  it('plays the hiss, and no note, for a date without enough data', async () => {
+    analyzeAll.mockImplementation(async () => visualization.frames.map((f, i) => ({
+      frameId: f.id, regionId: 'centre', sampled: 9, valid: i === 0 ? 0 : 9, category: i === 0 ? 'insufficient' : CATEGORIES[i],
+    })))
+    const user = userEvent.setup()
+    render(<ComparePage visualization={visualization} />)
+    await toQuestions(user)
+    await user.click(screen.getByRole('button', { name: 'Play date A' }))
+    expect(engine.playMissing).toHaveBeenCalledTimes(1)
+    expect(engine.playCategory).not.toHaveBeenCalled()
+  })
+})
+
+describe('Test mode: sound style', () => {
+  it('plays full or simple only, even if the change style was chosen on this device (until the 13 Nov decision)', async () => {
+    localStorage.setItem('earth-jukebox:sound-style', 'change')
+    render(<ComparePage visualization={visualization} />)
+    await screen.findByRole('checkbox', { name: /I agree to take part/ })
+    expect(engine.setStyle).toHaveBeenCalledWith('full')
+    expect(engine.setStyle).not.toHaveBeenCalledWith('change')
+    localStorage.removeItem('earth-jukebox:sound-style')
+  })
+})
 
 describe('Test mode: opening', () => {
   it('opens only from #compare?test=1', async () => {

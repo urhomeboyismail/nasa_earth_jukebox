@@ -5,9 +5,11 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { analyzeAll, type FrameAnalysis } from '../../analysis'
 import { createSoundEngine, type SoundEngine } from '../../audio'
+import { useSoundStyle } from '../../audio/style'
+import { voicingFor } from '../../audio/voicing'
 import { Button, Card, Notice } from '../../components'
 import type { Comparison, Visualization } from '../../data'
-import { formatDate } from './dates'
+import { dateFormatterFor } from '../../dates'
 import { StudyClient, type Participant, type StudyStatus } from './studyClient'
 
 type Step = 'consent' | 'about' | 'images' | 'question' | 'thanks'
@@ -64,6 +66,9 @@ export default function TestMode({ visualization, client: given }: { visualizati
       .catch((error: unknown) => { if (!cancelled) setAnalysisError(error instanceof Error ? error.message : String(error)) })
     return () => { cancelled = true }
   }, [frames, regions, colorScale, mapping])
+  const [soundStyle] = useSoundStyle()
+  // The listening test plays full or simple only, until the 13 Nov decision on the "change" style (docs/PLAN.md §6.2).
+  useEffect(() => { engine?.setStyle(soundStyle === 'change' ? 'full' : soundStyle) }, [engine, soundStyle])
   useEffect(() => () => engine?.stop(), [engine])
 
   // Move focus to each step's heading, but not on first load, so screen reader users know a new step began.
@@ -181,6 +186,7 @@ function Question({ comparison, number, of, visualization, engine, results, show
   const [comment, setComment] = useState('')
   const shownAt = useRef<number | null>(null)
   useEffect(() => { shownAt.current = performance.now() }, [])
+  const formatDate = dateFormatterFor(visualization.frames.map(frame => frame.date))
   const frameA = visualization.frames.find(f => f.id === comparison.frameA)!
   const frameB = visualization.frames.find(f => f.id === comparison.frameB)!
   const ready = !!engine && !!results
@@ -191,7 +197,12 @@ function Question({ comparison, number, of, visualization, engine, results, show
     await engine.unlock()
     engine.stop()
     if (result.category === 'insufficient') engine.playMissing()
-    else engine.playCategory(result.category)
+    else {
+      // The chord, without the slide or bell: the two dates are not neighbours in a run.
+      const pad = voicingFor(results!, results!.indexOf(result), visualization.mapping).pad
+      if (pad) engine.playCategory(result.category, { pad })
+      else engine.playCategory(result.category)
+    }
   }
 
   function submit(event: FormEvent) {

@@ -11,9 +11,11 @@ A web app that turns NASA Earth Information Center imagery into sound in real ti
 
 **Experience:** a listener learns what the sounds mean, plays a sequence of dated frames as sound, then compares two dates by ear and checks their answer.
 
-**Testable question:** "Can someone hear, without seeing the image, which date shows warmer water, and when the change happened?"
+**Testable question:** "Can someone hear, without seeing the image, which date shows warmer water, and when the change happened?" For a data set with a baseline (5.1, 6.2) it becomes "…which date is further above its normal…", because v2 plays the change from normal, not the temperature.
 
 **Competitive focus:** one complete, accessible experience, plus evidence that real listeners understood it.
+
+**Extended vision:** the same experience grows into an "Earth Information Jukebox": a palette role for harmony, a texture role for rhythm, a voice co-pilot for personalized narration and a low-latency interactive engine, plus optional extras such as 3D audio, haptics, time-travel scrubbing and shared exploration. See 6.1. The extras come after the must-haves.
 
 ## 2. Key dates
 
@@ -35,6 +37,9 @@ A web app that turns NASA Earth Information Center imagery into sound in real ti
 | Sound | Tone.js, with Tonal for scales |
 | Image analysis | Web Worker + `OffscreenCanvas` + `getImageData`, run live in the browser |
 | Voice guide | Already merged (`078e196`): Gemini Live bridge ported from FinAssist |
+| Agents | "Agents" are roles (6.1). Image reading, sound mapping and descriptions stay deterministic code. A language model may only reword or speak, in the voice guide |
+| Not adopted | Next.js, Tailwind and OpenCV.js from the extended brief: they would replace working pieces for no gain. Shape comes from marching squares on the decoded change field in the existing worker (5.9), with no new package; the Sobel texture idea is dropped |
+| Sound pipeline v2 | Drafted 5 Nov: the sound follows the **change from a baseline**, not the absolute value, through three layers (6.2). Built **alongside** the current pipeline as the `"change"` sound style; the current notes stay the default until v2 passes its listening check on 13 Nov |
 
 **Out of scope:** live satellite feeds, user accounts, machine-learning models, multiple languages.
 
@@ -46,6 +51,7 @@ public/data/<id>/manifest.json + frames/*.png
         ▼
   Catalog (src/data) ──► Frame analysis (Web Worker, src/analysis)
                               │  FrameAnalysis: category per frame
+                              │  v2 (5.9): value field − baseline field → change step + contours (Score)
                               ▼
                         Sound engine (Tone.js, src/audio)
                               │
@@ -63,7 +69,7 @@ Each person owns these folders. Only edit files your ticket lists; for anything 
 | Path | Contents | Owner |
 |---|---|---|
 | `src/data/types.ts`, `src/analysis/`, `src/audio/` (except `pan.ts`), `src/config.ts`, `server/app/study/` | Shared types, frame analysis, sound engine, study API | Team leader |
-| `src/App.tsx`, `src/pages.ts`, `src/features/player/`, `src/features/compare/` | Shell, Listen, Compare, test mode | Mohammad |
+| `src/App.tsx`, `src/pages.ts`, `src/features/player/`, `src/features/explore/`, `src/features/compare/` | Shell, Listen, sound-map explorer, Compare, test mode | Mohammad |
 | `src/assistant/`, `src/hooks/useVoiceAssistant.ts`, `server/app/assistant/`, `server/app/api/` | Voice guide | Mohammad |
 | `src/audio/pan.ts`, `.github/`, `render.yaml`, `vercel.json`, root `README.md` | Panning, CI, deployment, submission README | Bhavish |
 | `src/data/` (except `types.ts`), `scripts/` (data scripts), `public/data/` | Schema checks, synthetic and NASA data | Dhruv |
@@ -83,48 +89,75 @@ Visualization {
   colorScale: { stops: { value: number; rgb: [number, number, number] }[]
                 noData: [number, number, number][]; maxColorDistance: number }
   regions: { id: string; name: string; description: string; points: { x: number; y: number }[] }[] // 0 to 1 fractions
-  frames: { id: string; date: string; image: string; width: number; height: number; altText: string; note?: string }[]
+  frames: { id: string; date: string; image: string; width: number; height: number; altText: string; note?: string
+            baselineImage?: string }[]   // v2, climatology baselines only: this frame's normal, same size, area and legend
   mapping: { scale: string; summary: "median"; minValidFraction: number
              categories: { id: CategoryId; label: string; range: [number, number]; note: string }[] // coolest first
              tick: { note: string; durationMs: number }
-             missingCue: { type: "noise" | "note"; durationMs: number } }
+             missingCue: { type: "noise"; durationMs: number }
+             changeSteps?: { id: ChangeStepId; label: string; range: [number, number]; note: string }[]  // v2: 5 steps, most below normal first
+             contourLevels?: { value: number; note: string }[] }                                       // v2: fixed change levels to trace, e.g. +1 and +2
+  baseline?: { kind: "anomaly-product" }                              // v2: the legend already decodes to the change; no subtraction
+           | { kind: "climatology"; label: string; noiseFloor: number } // every frame has a baselineImage
+           | { kind: "reference-date"; frameId: string; label: string; noiseFloor: number }
   comparisons: { id: string; regionId: string; frameA: string; frameB: string
                  question: string; answer: "a" | "b" | "same"; explanation: string }[]
+  mapArea?: { x0: number; y0: number; x1: number; y1: number }   // optional, 0 to 1 fractions; default the whole image (see 5.6)
+  story?: { id: string; title: string; text: string; fromFrame: string; toFrame: string }[]   // optional chapters for story mode
 }
 loadCatalog(): Promise<{ id: string; title: string; summary: string }[]>   // reads public/data/index.json
 loadVisualization(id: string): Promise<Visualization>                     // throws DataError with a readable message
 ```
+`mapArea` leaves out legend bars, titles and logos, so only the map is read. It must stay inside 0 to 1 with `x0 < x1` and `y0 < y1`. A `story` chapter runs from `fromFrame` to `toFrame`, both real frame ids, forward in time; chapter ids are unique. Category ranges go coolest first, each starting exactly where the one before ends (no overlap and no gap, because `categoryFor` would send a value in a gap to the coolest or warmest category). Every comparison's `regionId` must be the first region's until T98, because Compare and the listening test analyse `regions[0]` only. The schema (`src/data/schema.ts`) rejects anything else with a readable message; `npm run check-data` adds the checks on the files themselves (`src/data/check.ts`).
+
+**Baseline rules (v2, T111).** `baseline`, `changeSteps` and `contourLevels` come together or not at all; without them a data set plays exactly as today. Prefer the kinds in this order: `anomaly-product` (NASA has already subtracted the normal), then `climatology` (a long-term average for **the same calendar month** as each frame), then `reference-date` (one earlier frame). A `reference-date` baseline is always called "change since <date>" and never "anomaly", because across months it measures the season, not climate. `label` is what is said and shown (for example "the 1991 to 2020 August average"). `noiseFloor` is in the variable's unit and at least twice the legend's step: a change smaller than that is legend rounding, so it is set to 0. `check-data` rejects a baseline image whose size, `mapArea` or legend differs from its frame's, and never resamples. `changeSteps` follow the same no-gap, no-overlap rule as `categories`. Contour level notes sit between C3 and C6.
 
 ### 5.2 Frame analysis: `src/analysis/` (team leader)
 
 ```ts
 FrameAnalysis { frameId: string; regionId: string; sampled: number; valid: number
-                medianValue?: number; category: CategoryId | "insufficient" }
+                medianValue?: number; category: CategoryId | "insufficient"
+                shares?: Record<CategoryId, number>     // fraction of the valid points in each category; sums to 1; absent when valid is 0
+                changeStep?: ChangeStepId | "insufficient"   // v2: only for a data set with a baseline
+                medianChange?: number }                       // v2: median change over the region's valid points, in the variable's unit
 analyzeFrame(frame, region, colorScale, mapping): Promise<FrameAnalysis> // runs in a worker; same input → same output
 ```
+**`changeStep` is added next to `category`, not in its place.** Eight files read `category` today (`voicing.ts`, `engine.ts`, `usePlayer.ts`, `Explorer.tsx`, Compare, TestMode, `judge.ts`, `src/describe/`), and the current sound must keep working while v2 is built. A caller moves to `changeStep` when its v2 ticket says so; `category` is retired only after v2 becomes the default, in a separate, agreed change. A point counts towards the change only when both the frame and its baseline can be read there.
+The whole map, for exploring it by ear, is `analyzeGrid` (5.6).
 Rules: no-data and unmatched colors are left out, never guessed. If fewer than `minValidFraction` of the points are valid, the result is `"insufficient"`, never "cold".
+
+Missing data, one rule (T90): a pixel that cannot be read is `null`. That is any pixel that is not fully opaque (alpha below 255, so soft edges and holes), within 10 of a `noData` color, or further than `maxColorDistance` from the legend line. A date, region or cell with fewer than `minValidFraction` readable points is `"insufficient"`, and `"insufficient"` always plays the hiss (`missingCue`, noise only) and never a note. It is said as "not enough data". A color equally near two parts of a legend that doubles back goes to the part listed first in `stops`. Pixels are decoded with `colorSpaceConversion: 'none'` and `premultiplyAlpha: 'none'`, so the browser does not shift the legend colors.
 
 ### 5.3 Sound engine: `src/audio/` (team leader)
 
 ```ts
 SoundEngine {
   unlock(): Promise<void>            // call from a click or key press
-  playCategory(id: CategoryId, opts?: { pan?: number; durationMs?: number }): void
+  playCategory(id: CategoryId, opts?: { pan?: number; elevation?: number; durationMs?: number; pad?: CategoryId[] }): void
   playTick(): void
   playMissing(): void
-  playSequence(steps: { category: CategoryId | "insufficient"; atMs: number }[], onStep: (index: number) => void): void
+  playSequence(steps: SequenceStep[], onStep: (index: number) => void, opts?: { tick?: boolean }): void
+  setStyle(style: "full" | "simple" | "change"): void   // see 5.7 and 6.2
+  setSpatial(mode: "stereo" | "3d"): void    // F20; "3d" is an HRTF panner for headphones
   setVolume(zeroToOne: number): void
   pause(): void; resume(): void; stop(): void
   isPlaying(): boolean
   renderToWav(steps: ...): Promise<Blob>   // should-have (F14)
+  traceContour(contour: Contour, onPoint?: (index: number) => void): void   // v2 (F18): the contour voice along one line, see 6.2; 2 to 8 s; only in the "change" style, otherwise it does nothing
 }
+SequenceStep { category: CategoryId | "insufficient"; atMs: number; pan?: number; elevation?: number
+               pad?: CategoryId[]; glide?: boolean; bell?: boolean   // the musical layer, see 5.7
+               changeStep?: ChangeStepId | "insufficient"; medianChange?: number }   // v2: used only in the "change" style
 ```
+In the `"change"` style a step with a `changeStep` plays the change bed (6.2) instead of the category note; a step without one plays the category note as before, so a data set with no baseline still sounds. A `changeStep` of `"insufficient"` plays the hiss. The engine reads the note of each change step and contour level from `mapping.changeSteps[].note` and `mapping.contourLevels[].note` (T111 adds them to the manifest); `validateMapping` checks that steps are in C3 to C4 and rise, and levels in C3 to C6.
+`pan` runs from -1 (west) to +1 (east). `elevation` runs from -1 (south) to +1 (north) and is heard only in 3D mode, as height, never as pitch. A tick follows each sound unless `opts.tick` is `false`; sweeping across a map is not a run of dates, so it passes `tick: false`.
 
 ### 5.4 Voice guide screen context and playback commands (Mohammad)
 
 Pages publish these with `useAssistantContext` (in `src/assistant/context.ts`):
 ```ts
-"player":  { visualization: string; date: string; region: string; category: string; playing: boolean }
+"player":  { visualization: string; date: string; region: string; category: string; playing: boolean
+             changeStep?: string }          // v2: only in the "change" style, the date's change step id or "insufficient"
 "compare": { frameA: string; frameB: string; answered: boolean; revealed: boolean }
 ```
 The server's allowed keys (`CONTEXT_KEYS` in `server/app/api/assistant.py`) must match these.
@@ -152,6 +185,80 @@ test_responses (id INTEGER PK, session_id TEXT REFERENCES test_sessions(id), com
 ```
 No names, emails or IP addresses are stored. Render's free disk is wiped on restart, so attach a persistent disk or export the CSV after every session.
 
+### 5.6 The sound map: `analyzeGrid` in `src/analysis/` (team leader; the explorer is Mohammad's)
+
+The whole map of one date, read into a grid, so a listener can explore it by keyboard, touch or pointer and sweep along a row or a column. T64 adds the types and a **stub** (24 × 12 cells, coolest in the west to warmest in the east, the last two columns without data); T65 replaces it with the real reading behind the same signature.
+```ts
+GridCell  { value: number | null; category: CategoryId | "insufficient" }   // no value when too few pixels could be read
+FrameGrid { frameId: string; cols: number; rows: number
+            area: { x0: number; y0: number; x1: number; y1: number }        // the part of the image that was read
+            cells: GridCell[] }                                              // row-major; row 0 is the top (north)
+analyzeGrid(frame, colorScale, mapping, area?): Promise<FrameGrid>           // area defaults to the whole image
+```
+Rules: the same pixel lookup as `analyzeFrame`, so a cell and a region never disagree. A cell that cannot be read is `"insufficient"` with no value, never a low one. The same input always gives the same grid.
+
+### 5.7 The musical layer: `src/audio/voicing.ts` and `src/audio/style.ts` (team leader)
+
+T64 added the fields and a stub; T80 gives them sound. Until then the engine accepts them and sounds exactly as before.
+```ts
+voicingFor(results: FrameAnalysis[], index: number, mapping): { pad?: CategoryId[]; glide?: boolean; bell?: boolean }
+//   pad:   a chord under the note, from the categories that hold a large share of the region's values
+//   glide: the note slides from the previous one, when the value changed
+//   bell:  a bell above the note, when the value jumped by two or more steps
+type SoundStyle = "full" | "simple" | "change"   // "simple" is the main note, the tick and the missing cue only
+                                               // "change" (v2, T114) is the three layers of 6.2; "reef" (F22) was cut 7 Nov
+useSoundStyle(): [SoundStyle, (style: SoundStyle) => void]   // remembered in localStorage "earth-jukebox:sound-style"; "full" if unset or storage is blocked
+```
+`voicingFor` is pure: the same results always give the same voicing. Adding `"change"` is an interface change agreed by everyone who uses `SoundStyle`; `readSoundStyle` returns it only when it was chosen on this device, and TestMode never uses it until the 13 Nov decision (6.2).
+
+### 5.8 Descriptions: `src/describe/` (Roni)
+
+Words for what is on screen and what is heard, for screen readers. T64 adds stubs returning a fixed sentence; T69 writes the real rules behind the same signatures.
+```ts
+describeFrame(visualization, results, index): string                       // one date, and how it changed since the one before
+describeSequence(visualization, results): string                           // the whole sequence in a few sentences
+describeCell(visualization, grid, col, row): string                        // one cell of the map
+describeSweep(visualization, grid, { kind: "row" | "column"; index }): string   // a row or column as runs
+```
+Descriptions come from rules, never from a language model: the same data always gives the same words.
+
+v2 adds two (T115), from the same `Score` the sound uses:
+```ts
+describeChange(visualization, score): string            // "Above normal: +0.8 °C compared with the 1991 to 2020 August average."
+describeContour(visualization, contour): string         // "A +1 °C line runs from the north-west to the centre, about a third of the map wide."
+```
+Places are compass sectors of the map (as `describeCell` uses today), never sea or country names: the rules do not know them.
+
+### 5.9 Change field and contours: `src/analysis/field.ts`, `change.ts`, `contour.ts` (v2; team leader, `contour.ts` suggested for Bhavish)
+
+The data behind sound pipeline v2 (6.2). All pure functions in the existing worker: no randomness, no model, no new package, inside the boundary below.
+```ts
+ValueField { cols: number; rows: number; area: { x0; y0; x1; y1 }
+             values: Float32Array }                     // row-major, row 0 north; NaN = cannot be read
+readField(pixels, colorScale, area, cols, rows): ValueField        // field.ts: each cell the median of a 3 × 3 lattice through valueAtPixel
+changeField(frame: ValueField, baseline: ValueField | null, noiseFloor: number): ValueField
+                                                        // change.ts: frame − baseline; NaN if either is NaN; |change| < noiseFloor → 0
+                                                        // baseline null (anomaly-product): the frame field is already the change
+smoothField(field): ValueField                          // 3 × 3 median that skips NaN cells; a cell with no readable neighbours stays NaN
+summarizeChange(change, mapping): { step: ChangeStepId | "insufficient"; medianChange?: number
+                                    shareAbove: number[]; validFraction: number }   // shareAbove: one share per contour level
+traceContours(field, level: number): Contour[]          // contour.ts: marching squares
+pickContours(contours, perLevel = 1): Contour[]         // the longest line of each level
+Contour { level: number; closed: boolean; brokenEnds: number   // ends that stop at a NaN cell (0, 1 or 2)
+          brokenStart: boolean; brokenEnd: boolean              // which ends: the first and the last point (T114, so the hiss marks the right one)
+          points: { x: number; y: number                       // 0 to 1 fractions of the whole image, like panForPoint
+                    turn: number                               // turning angle at this point, radians, −π to π
+                    front: number }[] }                        // how steeply the change rises across the line, variable units per cell
+Score { frameId: string; change: ReturnType<typeof summarizeChange>; contours: Contour[] }
+analyzeChange(frame, visualization): Promise<Score>     // worker message kind 'change'; same input → same Score
+```
+Rules:
+- **Resolution.** About 180 × 90 cells over `mapArea` (2° cells for a global map), not the 24-column sound map: contours on a coarse grid are staircases.
+- **Marching squares.** Linear interpolation along cell edges; a saddle cell is resolved by the average of its four corners; a cell with any NaN corner gives no segment, so a line stops at land, cloud or labels and never crosses them. Segments are joined into polylines, each resampled to 64 points evenly spaced along its length.
+- **Fixed levels.** Levels come from `mapping.contourLevels`, never from percentiles, so the +1 line means the same on every date and comparisons stay honest.
+- **Missing data, the same rule as 5.2.** Fewer than `minValidFraction` readable cells gives `"insufficient"` and the hiss, never "normal".
+- A golden file (`src/data/__golden__/change.json`, additive, like T88's) records each data set's `Score`, so any change to the maths shows in a diff. Agents and language models never sit in `src/analysis/`, `src/audio/`, `src/describe/` or the scoring in `src/features/compare/judge.ts`. The same frame must always give the same category, chord, words and score, and none of this may need the server. `src/boundary.test.ts` fails if any of those files imports the voice guide (`src/assistant/`, `useVoiceAssistant`, `VoiceAssistant`), imports `src/config`, uses `WebSocket`, or calls `fetch` (only `src/analysis/pixels.ts` may, to download the picture it reads).
+
 ## 6. Features
 
 | ID | Feature | Priority | Owner |
@@ -172,19 +279,91 @@ No names, emails or IP addresses are stored. Render's free disk is wiped on rest
 | F14 | Export a sequence as WAV | Should | Team leader |
 | F15 | Vibration on supporting phones | Could | Roni |
 | F16 | A second visualization | Could | Dhruv |
-| F17 | Background drone from the whole-frame average | Could | Team leader |
+| F17 | ~~Background drone from the whole-frame average~~ Replaced by the change bed (F28) | Cut | Team leader |
+| F18 | **Contour voice and rhythm** (replaces Sobel texture): trace the fixed change levels with marching squares; the line is heard moving in space, and its sharp turns set the rhythm (5.9, 6.2) | Should | Team leader + Bhavish (`contour.ts`, spatial path) |
+| F19 | Persona narration: concise or rich descriptions (built, T82). ~~Optional ADK rewording~~ cut 7 Nov (see `docs/planning/FEATURE-REVIEW.md`) | Should | Roni + Mohammad |
+| F20 | 3D spatial audio: HRTF panning, elevation as height in space (never pitch). Built (T84), off by default | Could | Bhavish |
+| F21 | ~~Anomaly haptics on touch devices~~ Cut 7 Nov: Android-only, and F15 already vibrates | Cut | — |
+| F22 | ~~Reef style~~ Cut 7 Nov: needs licensed recordings, a new sound source and its own listening check; the change bed is not yet reachable (T111) | Cut | — |
+| F23 | Time-travel scrubbing: lock one cell, scrub the dates | Should | Mohammad |
+| F24 | ~~Acoustic fire alarm~~ Cut 7 Nov: the bell (5.7) already marks a two-step jump; a second, louder cue adds noise, not data | Cut | — |
+| F25 | ~~Sound buoys~~ Cut 7 Nov: needs the sleeping free-tier server and a second user; judges test alone | Cut | — |
+| F26 | **Baseline in the manifest**: `baseline`, `changeSteps`, `contourLevels`, `baselineImage`; `check-data` rules; a synthetic baseline with a known answer (5.1) | Should (v2 core) | Dhruv |
+| F27 | **Change field and change steps**: `readField`, `changeField`, `smoothField`, `summarizeChange`, `changeStep` in `FrameAnalysis` (5.2, 5.9) | Should (v2 core) | Team leader |
+| F28 | **Change sound style**: the change bed and the hiss in the `"change"` style; Compare judges by change step; `describeChange` (6.2) | Should (v2 core) | Team leader + Mohammad + Roni |
+
+### 6.1 The Earth Information Jukebox ensemble
+
+The Jukebox is described as four cooperating roles. They are **roles, not separate AI services**. Three run in the browser as deterministic code and fall under the boundary in 5.8; only the Co-Pilot may use a language model, and it sits outside the boundary.
+
+| Role | Does | Lives in | Uses a model? |
+|---|---|---|---|
+| Palette (harmonic base) | Reads colors, finds the dominant category, maps it to a note, a scale and a chord. In v2 it plays the change from normal as the change bed (6.2) | `src/analysis/`, `src/audio/voicing.ts` (5.2, 5.7, 5.9) | No |
+| Shape (rhythm and space) | Traces the fixed change levels with marching squares and plays each line as a voice moving through space; sharp turns set the rhythm (F18) | `src/analysis/contour.ts`, `src/audio/` (5.9, 6.2) | No |
+| Co-Pilot (voice and narration) | Speaks to the listener. Concise spatial cues or rich narrative, chosen by the listener | `src/describe/` (facts), `server/app/assistant/` (voice, optional ADK) | Only to reword |
+| Interactive engine | Plays the note under the cursor, with no network round trip, while the guide talks on its own channel | `src/audio/` (Tone.js) | No |
+
+**Facts come from rules.** `describeFrame`, `describeCell` and `describeSweep` (5.8) gain a `detail: "concise" | "rich"` option, remembered like the sound style. The Co-Pilot may rephrase their output for the listener but never adds a number or a claim of its own. With the server off, the rules' words are used as they are.
+
+**How each feature fits the plan:**
+
+- **F18 Contour voice.** Replaces the Sobel texture: edge density says "something is busy here", while a contour says "this is the edge of the warm water, and this is its shape", which a scientist can check. Same input, same line, same rhythm (5.9, 6.2).
+- **F20 3D audio.** Extends F13: `pan.ts` gains HRTF placement (`PannerNode`) and an `elevation`, where north sounds above the listener and south below. Elevation is a place in space, not a pitch: pitch already means "warmer", the main cue, so a higher-pitched north would make a cool northern cell sound like a warm southern one. Stereo panning stays the default and the fallback for speakers; 3D is a toggle for headphones, off by default.
+- **F21, F22, F24, F25, ADK rewording: cut on 7 Nov.** None had code. Reasons and revive conditions are in `docs/planning/FEATURE-REVIEW.md`.
+- **F23 Time travel.** In the sound map, a key locks the current cell and the date slider then plays that one cell across all dates. The root pitch stays fixed and the voicing follows the data, so a rising value is heard as harmony moving from calm to tense. The dates are those in the catalog: synthetic until 13 Nov, then whatever span the real data has. A 1980 to 2026 span is a goal, not a promise.
+- **F19 ADK.** Cut 7 Nov. The T86 spike (`docs/adk-spike.md`) could not prove live voice or tool calls, and the voice guide already works on the current bridge.
+
+**Priority order for what is left** (7 Nov; matches `docs/TICKETS.md`). Items 1 to 4 are built; the work is to improve them:
+
+1. ~~T111: make v2 reachable.~~ **Built 7 Nov.** The schema, `check-data`, the converter (`--baseline-*`) and the `synthetic-change` data set now carry a baseline, so "Change from normal" plays (checked in a browser on that data set). Still open for v2: a real data set with a baseline on 13 Nov, and the listening check that decides the default (6.2)
+2. The NASA data story, with real frames from 13 Nov (T85)
+3. Evidence: testers, listening test, playlist, write-up (T87)
+4. Tune what is built by ear and with testers: explorer (T81), harmony (T80), descriptions (T82), story (T83), 3D audio (T84)
+5. Then, if time allows: F23 time travel
+
+F18 to F23 are part B of the tickets in `docs/TICKETS.md` (or T84). Part B starts only after its part A is merged and the 12 Nov cut line is met. The v2 tickets (T111 to T115, F18, F26 to F28) are the exception, explained in 6.2.
+
+### 6.2 Sound pipeline v2: the change from normal, in three layers
+
+**Why.** v1 plays the absolute value, so a normal tropical sea sounds like an emergency and a normal summer sounds like warming. v2 plays the **change from a baseline** (5.1), keeps the steps a listener can learn, and adds a traced shape as the "wow" moment.
+
+**One point, from pixel to ear:**
+
+| Step | What happens | Where |
+|---|---|---|
+| 1. Data ingestion | Manifest (Zod) → worker fetches the frame and its baseline (or none for an anomaly product); `check-data` has already proved they match | `src/data/`, `src/analysis/pixels.ts` |
+| 2. Visual extraction | Legend inversion (`valueAtPixel`) into two `ValueField`s of about 180 × 90; unreadable → NaN | `field.ts` |
+| 3. Mathematical transformation | Change = frame − baseline, noise floor, NaN-aware smoothing, summary and change step, marching squares at fixed levels, longest line per level → `Score` | `change.ts`, `contour.ts` |
+| 4. Audio synthesis | The three layers below | `src/audio/` |
+| 5. Spatial routing | The contour voice moves: x → pan, y → HRTF height in 3D mode; the bed stays centred and wide; master compressor and a limiter at −1 dBFS | `pan.ts`, `engine.ts` |
+
+**The three layers,** each with one job:
+
+| Layer | Driven by | Sound | Job |
+|---|---|---|---|
+| Change bed | `changeStep`, `medianChange` | A sustained tone in the C3 to C4 register. **Pitch steps with the change step** (5 clear pitches, each step's `note`), and brightness rises with it as a redundant cue (low-pass cutoff never below 3 times the fundamental, so the pitch heard never moves, as in T105). Below normal: darker. A small move within a step changes brightness only. Loudness is matched across steps: warmer is never louder | "How far from normal?" The layer a listener learns, and the one Compare and the listening test use |
+| Contour voice | each `Contour` | A gliding tone at its level's fixed `note` (default +1 °C at C5, +2 °C at G5), so a higher line means more warming. A soft accent click where the line turns sharply (at most 8 a second): the shape becomes rhythm. A steeper front is brighter. Duration follows the line's length, 2 to 8 s | "Where is the edge of the warm water, and what shape is it?" The demo moment, heard moving around the listener on headphones |
+| Missing-data hiss | `validFraction` below `minValidFraction`, or a contour end that stops at no-data (`brokenEnds`) | The existing pink-noise `missingCue` | "No data" never sounds like "normal" |
+
+**Rules kept from v1:** pitch means "warmer" (in v2, "further above normal"), and position is never pitch; nothing below C3 or above C6; `Freeverb`, not `Tone.Reverb`; one set of voices for live and offline, so the WAV matches; descriptions come from the same `Score` as the sound.
+
+**When each layer plays.** In a sequence of dates (Listen, story, WAV) each date plays the bed for its step length, as the note does now. A contour takes 2 to 8 s, too long for a date step, so it plays **on request**: "Trace the warm edge" on Listen and the `T` key in the sound map (T115), which also announces `describeContour`.
+
+**Build alongside, then decide.** v2 is a new style, `"change"`, next to `"full"` and `"simple"`, which must sound exactly as they do now (T88's golden files stay unchanged). It is used only for a data set with a baseline. **13 Nov decision rule:** if the bed scores at least as well as the current notes in a pilot "which date is further above normal?" check (T114), `"change"` becomes the default for data sets with a baseline; otherwise it stays an opt-in style and the demo uses v1. T105 to T107 (`docs/PRE-HACKATHON-TICKETS.md`) are superseded: the bed already carries brightness, and their tension and tremolo cues are not carried over.
+
+**Timing.** The pure functions (T111 to T113) change nothing a listener hears, so they may start before the 12 Nov cut line, but only after their owners' Must tickets. The sound (T114) and wiring (T115) are after the cut line, like any part B.
 
 ## 7. Workstreams
 
-Tickets, and who owns each, are in [`docs/tickets/`](tickets/README.md), with one file per person. In short:
+Tickets are in [`docs/TICKETS.md`](TICKETS.md): one file, listing only the work not yet built. Who owns what now:
 
-| Person | Load | Covers |
+| Person | Load | Tickets |
 |---|---|---|
-| Team leader | Heavy | T00 shared interfaces; frame analysis (F3); sound engine (F4, ducking for F12, F14); study API (F11 server); re-plan; demo |
-| Mohammad | Heavy | Page links; player (F2, F5, F10); Compare (F7, F10); test mode UI (F11); voice playback tools (F12) |
-| Bhavish | Light | Stereo panning values (F13); CI; deployment; results summary; submission README |
-| Dhruv | Medium | Schema checks (F1); synthetic frames; NASA research, conversion and check; real comparisons |
-| Roni | Medium | Test helpers and shared UI (F9); Learn (F6); About (F8); accessibility audit; testers; integration checks; vibration (F15) |
+| Team leader | Heavy | T80 musical engine and WAV rendering; T85 analysis changes; T87 creative process, re-plan, demo; v2: T112 change field, T114 change style |
+| Mohammad | Heavy | T81 sound-map explorer and player wiring; v2: T115 wiring (T86 ADK cut 7 Nov) |
+| Bhavish | Light | T83 story mode; T84 3D audio; T87 playlist release and submission README; v2: T113 contours (suggested), T114 spatial path |
+| Dhruv | Medium | T85 real NASA data and speed test; T87 playlist tracks; v2: T111 baseline in the manifest |
+| Roni | Medium | T82 Learn cards and description detail; T87 testers, practice test, final check; v2: T115 descriptions and Learn |
 
 ## 8. Milestones
 
@@ -194,7 +373,7 @@ Tickets, and who owns each, are in [`docs/tickets/`](tickets/README.md), with on
 | M1 | 5 to 6 Nov | T00 merged (all interfaces in §5 with working stubs, fixture data, all packages); everyone starts in parallel |
 | M2 | 9 Nov | Full journey on synthetic data: Learn → Listen → Compare, with sound |
 | M3 | 12 Nov | F1 to F11 complete; accessibility checks pass; deployed on Vercel and Render; first practice listening test |
-| M4 | 13 Nov | Real NASA data converted and checked; plan re-checked against the judging guide |
+| M4 | 13 Nov | Real NASA data converted and checked; plan re-checked against the judging guide; baseline kind chosen for each data set and the v2 default decided (6.2) |
 | M5 | 15 Nov | Listening-test results in; demo, backup video and submission done. **Freeze features 6 hours before the deadline** |
 
 If you fall behind, cut frames and should-have features, but keep one complete experience.
@@ -214,6 +393,8 @@ Correctness checks that must always pass:
 - The same frame always gives the same result.
 - Missing data never becomes a "cold" reading.
 - Pausing or dragging the slider never puts image and sound out of step.
+- v2: on synthetic-ocean, where the warming is mostly the season, the change steps follow the planted anomaly, not the season (T111).
+- v2: a change below the noise floor is 0; a point missing in either the frame or the baseline is left out, never 0; a contour never crosses a no-data cell.
 
 ## 10. Working with your own AI
 
@@ -222,7 +403,7 @@ Correctness checks that must always pass:
 - Stay inside your workstream's folders (§4). If you need an interface in §5 changed, raise it with the other owner first. Don't change it silently.
 - Don't reformat or refactor code outside your ticket.
 - Never paste API keys into prompts or code; use `server/.env`.
-- Keep a short note of AI-tool use for the submission's AI disclosure (Bhavish collects these for T24).
+- Keep a short note of AI-tool use for the submission's AI disclosure (Bhavish collects these for the README in T87).
 
 ## 11. Risks
 
@@ -235,3 +416,14 @@ Correctness checks that must always pass:
 | Render disk is wiped, or the free server is asleep at demo time | Export CSV after each session, attach a disk if possible, wake the server a minute before the demo |
 | No blind or low-vision testers | Recruit now; fallback is sighted volunteers with no screen; report honestly |
 | Live demo fails | Recorded backup video |
+| The extension (F18 to F23) eats the time for the must-haves | It is part B of each ticket and starts only after the 12 Nov cut line; items are cut in the order in `docs/TICKETS.md` |
+| A language model changes a fact in a description | Facts come from `src/describe/`; the Co-Pilot only rewords, and the boundary test keeps models out of that folder |
+| Rhythm or texture sounds like noise | Rules pick from a small fixed set of patterns in the current scale; listen-check before merging |
+| Vibration or HRTF is missing on a device | Both are extras on top of sound: stereo panning and the plain tone always work |
+| v2 sonifies the season instead of climate change | Baseline kinds in order anomaly product > same-month climatology > reference date; a reference date is labelled "change since <date>", never "anomaly"; synthetic-ocean tests it (T111) |
+| Subtracting two decoded values doubles the legend's rounding error | `noiseFloor` of at least twice the legend step; changes below it are 0 |
+| A baseline image does not line up with its frame | `check-data` rejects any difference in size, area or legend; never resample |
+| NASA offers no baseline on 13 Nov | Use `reference-date`, labelled honestly, or keep that data set on v1. v1 stays working throughout |
+| v2 adds work to an already heavy team-leader load | `contour.ts` suggested for Bhavish (light load), the baseline schema for Dhruv; T105 to T107 dropped; T113 and the contour voice are cut before the bed |
+| The contour voice sounds like noise or a siren | One or two lines per frame, fixed pitches, at most 8 accents a second; listen-check before merging (T114) |
+| v2 plays only on a data set with a baseline, and only `synthetic-change` has one | Pick a baseline kind for each real data set on 13 Nov (anomaly product, then same-month climatology, then reference date). A data set without one plays v1, so say "v1 sound" for it in the demo and README |

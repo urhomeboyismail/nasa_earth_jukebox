@@ -34,3 +34,5 @@
   outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
+
+.learn__buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }

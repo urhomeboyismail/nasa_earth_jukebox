@@ -1,0 +1,127 @@
+{
+  "schema_version": "1.0.0-draft",
+  "story_id": "mur-sst-mauritius-2023",
+  "facts": [
+    {
+      "id": "F01",
+      "kind": "data",
+      "text": "On 2023-01-23 (step 1) the sea surface temperature around Mauritius was 27.12 °C.",
+      "source_ids": [
+        "MUR"
+      ]
+    },
+    {
+      "id": "F02",
+      "kind": "data",
+      "text": "On 2023-08-01 (step 20) the sea surface temperature was 24.77 °C.",
+      "source_ids": [
+        "MUR"
+      ]
+    },
+    {
+      "id": "F03",
+      "kind": "data",
+      "text": "The lowest reading was 24.69 °C on 2023-07-22 (step 19).",
+      "source_ids": [
+        "MUR"
+      ]
+    },
+    {
+      "id": "F04",
+      "kind": "data",
+      "text": "The highest reading was 28.51 °C on 2023-04-03 (step 8).",
+      "source_ids": [
+        "MUR"
+      ]
+    },
+    {
+      "id": "F05",
+      "kind": "data",
+      "text": "From 2023-01-23 to 2023-08-01 the reading changed by -2.35 °C.",
+      "source_ids": [
+        "MUR"
+      ],
+      "derivations": [
+        {
+          "kind": "diff",
+          "from_step": 0,
+          "to_step": 19,
+          "value": -2.35
+        }
+      ]
+    },
+    {
+      "id": "F06",
+      "kind": "data",
+      "text": "The largest fall between two readings was 0.73 °C, from step 14 to step 15.",
+      "source_ids": [
+        "MUR"
+      ],
+      "derivations": [
+        {
+          "kind": "diff",
+          "from_step": 14,
+          "to_step": 13,
+          "value": 0.73
+        }
+      ]
+    },
+    {
+      "id": "F07",
+      "kind": "limit",
+      "text": "There is no data for 2023-02-02: NASA published no map for that date. This is a gap, not a zero.",
+      "source_ids": [
+        "GIBS"
+      ]
+    },
+    {
+      "id": "F08",
+      "kind": "method",
+      "text": "Each reading is the average of the sea points in a box around Mauritius, from west 56.8 to east 58.4 degrees, and south -21 to north -19.4 degrees. The box is 160 by 160 map points.",
+      "source_ids": [
+        "GIBS"
+      ]
+    },
+    {
+      "id": "F09",
+      "kind": "method",
+      "text": "Each map point is only known to within a colour range of 0.15 °C. The average is not exact.",
+      "source_ids": [
+        "CMAP"
+      ]
+    },
+    {
+      "id": "F10",
+      "kind": "method",
+      "text": "Land has no sea temperature. The sea covers 93.75% of the box.",
+      "source_ids": [
+        "MUR"
+      ]
+    },
+    {
+      "id": "F11",
+      "kind": "method",
+      "text": "There is one reading every 10 days.",
+      "source_ids": [
+        "MUR"
+      ]
+    },
+    {
+      "id": "F12",
+      "kind": "source",
+      "text": "The temperatures come from the MUR sea surface temperature analysis by NASA JPL, shown through NASA GIBS.",
+      "source_ids": [
+        "MUR",
+        "GIBS"
+      ]
+    },
+    {
+      "id": "F13",
+      "kind": "limit",
+      "text": "This record shows what the maps say. It does not say why the temperature changed.",
+      "source_ids": [
+        "MUR"
+      ]
+    }
+  ]
+}

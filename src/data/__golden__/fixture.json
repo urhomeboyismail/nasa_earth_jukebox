@@ -1,0 +1,191 @@
+{
+  "notes": {
+    "categories": {
+      "cold": "C4",
+      "cool": "E4",
+      "mild": "G4",
+      "warm": "C5",
+      "hot": "E5"
+    },
+    "missingCue": "noise"
+  },
+  "regions": [
+    {
+      "id": "centre",
+      "frames": [
+        {
+          "frame": "2024-01-15",
+          "sampled": 9,
+          "valid": 9,
+          "category": "cold",
+          "medianValue": 0,
+          "shares": {
+            "cold": 1,
+            "cool": 0,
+            "mild": 0,
+            "warm": 0,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-07-15",
+          "sampled": 9,
+          "valid": 9,
+          "category": "mild",
+          "medianValue": 15,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 1,
+            "warm": 0,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-12-15",
+          "sampled": 9,
+          "valid": 9,
+          "category": "hot",
+          "medianValue": 30,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 0,
+            "warm": 0,
+            "hot": 1
+          }
+        },
+        {
+          "frame": "2025-03-15",
+          "sampled": 9,
+          "valid": 0,
+          "category": "insufficient",
+          "medianValue": null,
+          "shares": null
+        }
+      ],
+      "steps": [
+        {
+          "frame": "2024-01-15",
+          "category": "cold",
+          "pan": 0,
+          "elevation": 0,
+          "pad": [
+            "cold"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-07-15",
+          "category": "mild",
+          "pan": 0,
+          "elevation": 0,
+          "pad": [
+            "mild"
+          ],
+          "glide": true,
+          "bell": true
+        },
+        {
+          "frame": "2024-12-15",
+          "category": "hot",
+          "pan": 0,
+          "elevation": 0,
+          "pad": [
+            "hot"
+          ],
+          "glide": true,
+          "bell": true
+        },
+        {
+          "frame": "2025-03-15",
+          "category": "insufficient",
+          "pan": 0,
+          "elevation": 0,
+          "pad": null,
+          "glide": false,
+          "bell": false
+        }
+      ]
+    }
+  ],
+  "grids": [
+    {
+      "frame": "2024-01-15",
+      "cols": 24,
+      "rows": 12,
+      "cells": [
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold"
+      ]
+    },
+    {
+      "frame": "2024-07-15",
+      "cols": 24,
+      "rows": 12,
+      "cells": [
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild"
+      ]
+    },
+    {
+      "frame": "2024-12-15",
+      "cols": 24,
+      "rows": 12,
+      "cells": [
+        "hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot",
+        "hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot",
+        "hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot",
+        "hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot",
+        "hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot",
+        "hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot",
+        "hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot",
+        "hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot",
+        "hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot",
+        "hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot",
+        "hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot",
+        "hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot hot"
+      ]
+    },
+    {
+      "frame": "2025-03-15",
+      "cols": 24,
+      "rows": 12,
+      "cells": [
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient",
+        "insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient insufficient"
+      ]
+    }
+  ]
+}

@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "public" / "data" / "fixture"
 WIDTH, HEIGHT = 200, 100
 
-BLUE, YELLOW, RED, GRAY = (0, 0, 255), (255, 255, 0), (255, 0, 0), (128, 128, 128)
+BLUE, YELLOW, RED, GRAY = (0, 0, 255), (255, 255, 0), (255, 0, 0), (200, 200, 200)
 
 # Dates are chosen so T00's stub analysis (category from the month) agrees with what real pixel
 # analysis of these colors will give: blue = cold, yellow = mild, red = hot, gray = missing data.
@@ -61,15 +61,15 @@ def manifest() -> dict:
             for date, _, alt, note in FRAMES
         ],
         "mapping": {
-            "scale": "C major pentatonic",
+            "scale": "C major arpeggio",
             "summary": "median",
             "minValidFraction": 0.5,
             "categories": [
                 {"id": "cold", "label": "Cold", "range": [0, 6], "note": "C4"},
-                {"id": "cool", "label": "Cool", "range": [6, 12], "note": "D4"},
-                {"id": "mild", "label": "Mild", "range": [12, 18], "note": "E4"},
-                {"id": "warm", "label": "Warm", "range": [18, 24], "note": "G4"},
-                {"id": "hot", "label": "Hot", "range": [24, 30], "note": "A4"},
+                {"id": "cool", "label": "Cool", "range": [6, 12], "note": "E4"},
+                {"id": "mild", "label": "Mild", "range": [12, 18], "note": "G4"},
+                {"id": "warm", "label": "Warm", "range": [18, 24], "note": "C5"},
+                {"id": "hot", "label": "Hot", "range": [24, 30], "note": "E5"},
             ],
             "tick": {"note": "C6", "durationMs": 60},
             "missingCue": {"type": "noise", "durationMs": 300},

@@ -1,13 +1,9 @@
-import { Card } from '../../components'
+import { Card, Legend } from '../../components'
 import type { Visualization } from '../../data'
+import { dateFormatterFor, formatDate } from '../../dates'
 import type { PageProps } from '../types'
 import './about.css'
 
-const long = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
-const formatDate = (iso: string) => {
-  const date = new Date(`${iso}T00:00:00Z`)
-  return Number.isNaN(date.getTime()) ? iso : long.format(date)
-}
 const percent = (fraction: number) => `${Math.round(fraction * 100)}%`
 const rgbText = (rgb: [number, number, number]) => `rgb(${rgb.join(', ')})`
 
@@ -21,6 +17,7 @@ function About({ visualization }: { visualization: Visualization }) {
   const { variable, source, frames, regions, colorScale, mapping } = visualization
   const region = regions[0]
   const dates = frames.map(frame => frame.date).sort()
+  const formatFrameDate = dateFormatterFor(dates)
   const missing = frames.filter(frame => frame.note)
   const unit = variable.unit
 
@@ -32,7 +29,7 @@ function About({ visualization }: { visualization: Visualization }) {
         <p><strong>{visualization.title}.</strong> {visualization.description}</p>
         <dl className="about__facts">
           <div><dt>What is measured</dt><dd>{variable.name}{unit && `, in ${unit}`}</dd></div>
-          <div><dt>Dates</dt><dd>{frames.length} {frames.length === 1 ? 'date' : 'dates'}, from {formatDate(dates[0])} to {formatDate(dates[dates.length - 1])}</dd></div>
+          <div><dt>Dates</dt><dd>{frames.length} {frames.length === 1 ? 'date' : 'dates'}, from {formatFrameDate(dates[0])} to {formatFrameDate(dates[dates.length - 1])}</dd></div>
           <div><dt>Place we listen to</dt><dd>{region.name}. {region.description}</dd></div>
         </dl>
       </Card>
@@ -73,6 +70,7 @@ function About({ visualization }: { visualization: Visualization }) {
         </div>
 
         <h3>The colour legend</h3>
+        <Legend colorScale={colorScale} mapping={mapping} variable={variable} />
         <div className="about__table" role="region" aria-label="Colour legend" tabIndex={0}>
           <table>
             <caption>The colours we match against, in order.</caption>
@@ -93,7 +91,7 @@ function About({ visualization }: { visualization: Visualization }) {
         <ul className="about__limits">
           <li>The values are approximate. They come from the colours of a published image, not from the measurements behind it, and a colour can only be matched to the legend so closely.</li>
           <li>Each date is one of {mapping.categories.length} sounds, so small changes inside a range cannot be heard.</li>
-          <li>Missing data is left out, never counted as cold.{missing.length > 0 && ` ${missing.length === 1 ? 'One date has' : `${missing.length} dates have`} missing data: ${missing.map(frame => formatDate(frame.date)).join(', ')}.`}</li>
+          <li>Missing data is left out, never counted as cold.{missing.length > 0 && ` ${missing.length === 1 ? 'One date has' : `${missing.length} dates have`} missing data: ${missing.map(frame => formatFrameDate(frame.date)).join(', ')}.`}</li>
           <li>We listen to {region.name} only. Other places can behave differently.</li>
         </ul>
       </Card>

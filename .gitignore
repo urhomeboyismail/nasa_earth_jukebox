@@ -34,3 +34,9 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Speed-test frames (T85): generated, never committed
+public/data/stress-*/
+
+# Converter rehearsal output (T91): generated, never committed
+public/data/rehearsal-*/

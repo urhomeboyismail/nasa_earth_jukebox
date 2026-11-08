@@ -1,0 +1,252 @@
+{
+  "january-normal": {
+    "frameId": "january-normal",
+    "step": "normal",
+    "medianChange": 0,
+    "shareAbove": [
+      0,
+      0
+    ],
+    "validFraction": 1,
+    "contours": []
+  },
+  "july-season-only": {
+    "frameId": "july-season-only",
+    "step": "normal",
+    "medianChange": 0,
+    "shareAbove": [
+      0,
+      0
+    ],
+    "validFraction": 1,
+    "contours": []
+  },
+  "july-planted-patch": {
+    "frameId": "july-planted-patch",
+    "step": "much-above",
+    "medianChange": 1.49,
+    "shareAbove": [
+      0.6,
+      0
+    ],
+    "validFraction": 1,
+    "contours": [
+      {
+        "level": 1,
+        "closed": false,
+        "brokenEnds": 0,
+        "points": 64,
+        "length": 0.989,
+        "box": [
+          0.599,
+          0.006,
+          0.599,
+          0.994
+        ],
+        "first": [
+          0.599,
+          0.994
+        ],
+        "last": [
+          0.599,
+          0.006
+        ],
+        "totalTurn": 0,
+        "meanFront": 1.49
+      }
+    ]
+  },
+  "july-warm-blob": {
+    "frameId": "july-warm-blob",
+    "step": "normal",
+    "medianChange": 0,
+    "shareAbove": [
+      0.078,
+      0
+    ],
+    "validFraction": 1,
+    "contours": [
+      {
+        "level": 1,
+        "closed": true,
+        "brokenEnds": 0,
+        "points": 64,
+        "length": 1.071,
+        "box": [
+          0.39,
+          0.28,
+          0.61,
+          0.721
+        ],
+        "first": [
+          0.481,
+          0.28
+        ],
+        "last": [
+          0.492,
+          0.28
+        ],
+        "totalTurn": 6.283,
+        "meanFront": 1.256
+      }
+    ]
+  },
+  "july-cold-patch": {
+    "frameId": "july-cold-patch",
+    "step": "much-below",
+    "medianChange": -1.49,
+    "shareAbove": [
+      0,
+      0
+    ],
+    "validFraction": 1,
+    "contours": []
+  },
+  "july-against-winter": {
+    "frameId": "july-against-winter",
+    "step": "much-above",
+    "medianChange": 4,
+    "shareAbove": [
+      1,
+      1
+    ],
+    "validFraction": 1,
+    "contours": []
+  },
+  "land-in-the-east": {
+    "frameId": "land-in-the-east",
+    "step": "much-above",
+    "medianChange": 1.49,
+    "shareAbove": [
+      1,
+      0
+    ],
+    "validFraction": 0.833,
+    "contours": []
+  },
+  "mostly-land": {
+    "frameId": "mostly-land",
+    "step": "insufficient",
+    "medianChange": null,
+    "shareAbove": [
+      1,
+      0
+    ],
+    "validFraction": 0.056,
+    "contours": []
+  },
+  "anomaly-product": {
+    "frameId": "anomaly-product",
+    "step": "much-above",
+    "medianChange": 2.49,
+    "shareAbove": [
+      1,
+      0.678
+    ],
+    "validFraction": 1,
+    "contours": [
+      {
+        "level": 2,
+        "closed": false,
+        "brokenEnds": 0,
+        "points": 64,
+        "length": 0.994,
+        "box": [
+          0.003,
+          0.328,
+          0.997,
+          0.328
+        ],
+        "first": [
+          0.997,
+          0.328
+        ],
+        "last": [
+          0.003,
+          0.328
+        ],
+        "totalTurn": 0,
+        "meanFront": 0.039
+      }
+    ]
+  },
+  "synthetic-change/2024-02-15": {
+    "frameId": "synthetic-change/2024-02-15",
+    "step": "normal",
+    "medianChange": 0,
+    "shareAbove": [
+      0,
+      0
+    ],
+    "validFraction": 0.826,
+    "contours": []
+  },
+  "synthetic-change/2024-08-15": {
+    "frameId": "synthetic-change/2024-08-15",
+    "step": "normal",
+    "medianChange": 0,
+    "shareAbove": [
+      0,
+      0
+    ],
+    "validFraction": 0.826,
+    "contours": []
+  },
+  "synthetic-change/2024-09-15": {
+    "frameId": "synthetic-change/2024-09-15",
+    "step": "normal",
+    "medianChange": 0,
+    "shareAbove": [
+      0,
+      0
+    ],
+    "validFraction": 0.826,
+    "contours": []
+  },
+  "synthetic-change/2024-10-15": {
+    "frameId": "synthetic-change/2024-10-15",
+    "step": "normal",
+    "medianChange": 0,
+    "shareAbove": [
+      0.121,
+      0
+    ],
+    "validFraction": 0.826,
+    "contours": [
+      {
+        "level": 1,
+        "closed": true,
+        "brokenEnds": 0,
+        "points": 64,
+        "length": 1.132,
+        "box": [
+          0.658,
+          0.079,
+          0.893,
+          0.55
+        ],
+        "first": [
+          0.747,
+          0.084
+        ],
+        "last": [
+          0.759,
+          0.081
+        ],
+        "totalTurn": 6.283,
+        "meanFront": 0.194
+      }
+    ]
+  },
+  "synthetic-change/2024-11-15": {
+    "frameId": "synthetic-change/2024-11-15",
+    "step": "normal",
+    "medianChange": 0,
+    "shareAbove": [
+      0,
+      0
+    ],
+    "validFraction": 0.826,
+    "contours": []
+  }
+}

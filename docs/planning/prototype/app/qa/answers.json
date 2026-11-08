@@ -1,0 +1,228 @@
+{
+  "schema_version": "1.0.0-draft",
+  "story_id": "mur-sst-mauritius-2023",
+  "_note": "Drafted by the T5 fork from facts.json. Every answer is short, cites fact IDs, and is checked by app/qa/check_answers.py. 'More' text is not stored: code builds it from the cited facts. Human sign-off is recorded in agent/audit-log.jsonl.",
+  "answers": [
+    {
+      "id": "Q01",
+      "question": "What was the sea temperature on the first date?",
+      "fact_ids": [
+        "F01"
+      ],
+      "answer": "On 2023-01-23 it was 27.12 °C.",
+      "aliases": [
+        "first reading",
+        "starting temperature",
+        "how warm at the start",
+        "temperature at the beginning",
+        "value at step 1",
+        "temperature on 2023-01-23"
+      ]
+    },
+    {
+      "id": "Q02",
+      "question": "What was the sea temperature on the last date?",
+      "fact_ids": [
+        "F02"
+      ],
+      "answer": "On 2023-08-01 it was 24.77 °C.",
+      "aliases": [
+        "last reading",
+        "final temperature",
+        "how warm at the end",
+        "temperature at the end",
+        "value at step 20",
+        "temperature on 2023-08-01"
+      ]
+    },
+    {
+      "id": "Q03",
+      "question": "What was the lowest temperature?",
+      "fact_ids": [
+        "F03"
+      ],
+      "answer": "The lowest reading was 24.69 °C, on 2023-07-22.",
+      "aliases": [
+        "coldest",
+        "minimum temperature",
+        "lowest reading",
+        "coolest the sea got",
+        "when was it coldest"
+      ]
+    },
+    {
+      "id": "Q04",
+      "question": "What was the highest temperature?",
+      "fact_ids": [
+        "F04"
+      ],
+      "answer": "The highest reading was 28.51 °C, on 2023-04-03.",
+      "aliases": [
+        "warmest",
+        "maximum temperature",
+        "highest reading",
+        "hottest the sea got",
+        "when was it warmest",
+        "peak temperature"
+      ]
+    },
+    {
+      "id": "Q05",
+      "question": "How much did the temperature change overall?",
+      "fact_ids": [
+        "F05"
+      ],
+      "answer": "From 2023-01-23 to 2023-08-01 the reading changed by -2.35 °C.",
+      "aliases": [
+        "overall change",
+        "total change",
+        "how much did it change",
+        "difference between start and end",
+        "did it get warmer or colder",
+        "net change"
+      ]
+    },
+    {
+      "id": "Q06",
+      "question": "What was the biggest fall between two readings?",
+      "fact_ids": [
+        "F06"
+      ],
+      "answer": "The largest fall between two readings was 0.73 °C, from step 14 to step 15.",
+      "aliases": [
+        "biggest drop",
+        "largest fall",
+        "steepest drop",
+        "biggest decrease",
+        "fastest cooling",
+        "largest drop between readings"
+      ]
+    },
+    {
+      "id": "Q07",
+      "question": "Is there any missing data?",
+      "fact_ids": [
+        "F07"
+      ],
+      "answer": "There is no data for 2023-02-02. NASA published no map for that date. This is a gap, not a zero.",
+      "aliases": [
+        "missing data",
+        "gap",
+        "why is there silence",
+        "what does silence mean",
+        "no data",
+        "which date has no data",
+        "what happened on 2023-02-02",
+        "temperature on 2023-02-02",
+        "missing date"
+      ]
+    },
+    {
+      "id": "Q08",
+      "question": "Which area does each reading cover?",
+      "fact_ids": [
+        "F08"
+      ],
+      "answer": "A box around Mauritius, 56.8 to 58.4 degrees east and -21 to -19.4 degrees north. It is 160 by 160 map points.",
+      "aliases": [
+        "what area",
+        "where is this area",
+        "which region",
+        "what is the box",
+        "how big is the area",
+        "where is the data from",
+        "location covered"
+      ]
+    },
+    {
+      "id": "Q09",
+      "question": "How exact are the readings?",
+      "fact_ids": [
+        "F09"
+      ],
+      "answer": "Each map point is only known to within a colour range of 0.15 °C. The average is not exact.",
+      "aliases": [
+        "how accurate",
+        "how precise",
+        "is it exact",
+        "what is the error",
+        "uncertainty",
+        "how coarse",
+        "colour range"
+      ]
+    },
+    {
+      "id": "Q10",
+      "question": "What about the land?",
+      "fact_ids": [
+        "F10"
+      ],
+      "answer": "Land has no sea temperature. The sea covers 93.75% of the box.",
+      "aliases": [
+        "is the island included",
+        "how much is sea",
+        "what about the island",
+        "coverage",
+        "how much of the area is sea",
+        "land pixels"
+      ]
+    },
+    {
+      "id": "Q11",
+      "question": "How often is there a reading?",
+      "fact_ids": [
+        "F11"
+      ],
+      "answer": "There is one reading every 10 days.",
+      "aliases": [
+        "how many days between readings",
+        "time step",
+        "frequency",
+        "how often",
+        "spacing",
+        "interval between readings",
+        "how often are readings taken",
+        "how often is the sea measured"
+      ]
+    },
+    {
+      "id": "Q12",
+      "question": "Where does the data come from?",
+      "fact_ids": [
+        "F12"
+      ],
+      "answer": "From the MUR sea surface temperature analysis by NASA JPL, shown through NASA GIBS.",
+      "aliases": [
+        "source",
+        "who made this data",
+        "which dataset",
+        "what satellite data",
+        "credit",
+        "who should I credit",
+        "data source",
+        "is this from nasa"
+      ]
+    },
+    {
+      "id": "Q13",
+      "question": "Why did the temperature change?",
+      "fact_ids": [
+        "F13"
+      ],
+      "answer": "This record does not say why the temperature changed. It shows what the maps say.",
+      "aliases": [
+        "what caused the change",
+        "why did it get colder",
+        "why did it fall",
+        "cause",
+        "reason for the change",
+        "why did it drop",
+        "why is it cooling",
+        "what caused the cooling",
+        "reason it got cooler",
+        "what made the sea cool",
+        "why did the sea temperature fall"
+      ]
+    }
+  ]
+}

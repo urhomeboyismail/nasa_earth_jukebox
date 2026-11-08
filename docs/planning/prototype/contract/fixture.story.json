@@ -1,0 +1,311 @@
+{
+  "schema_version": "1.0.0-draft",
+  "meta": {
+    "story_id": "fixture-a",
+    "title": "FIXTURE: invented values, not NASA data",
+    "is_fixture": true,
+    "series_label": "fixture amount",
+    "unit": "fixture units",
+    "sources": [
+      {
+        "id": "FIX",
+        "name": "Hand-made fixture (invented)",
+        "url": "https://example.com/fixture-not-real-data",
+        "credit": "Invented by the team for building. Not NASA data."
+      }
+    ],
+    "eic_visualization": {
+      "status": "none_verified",
+      "text": "No matching EIC visualization verified. This is a fixture with invented values."
+    }
+  },
+  "encoding": {
+    "domain_min": 0,
+    "domain_max": 100,
+    "colour_key": {
+      "source_id": "FIX",
+      "bin_width": 5
+    },
+    "side_a": {
+      "rounding_statement": "Side A snaps each pitch to a musical scale, so values are rounded to about 10 fixture units."
+    },
+    "side_b": {
+      "coarseness_statement": "Side B plays the value as a plain tone. The colour key only gives ranges of 5 fixture units, so it is not exact."
+    }
+  },
+  "baseline": {
+    "step_indices": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "value": 80,
+    "statement": "The reference tone is the average of the first five steps, 80 fixture units."
+  },
+  "steps": [
+    {
+      "index": 0,
+      "label": "Fixture step 01",
+      "state": "data",
+      "value": 80,
+      "coverage_pct": 90,
+      "source_id": "FIX",
+      "marker": {
+        "x": 0.5,
+        "y": 0.25
+      }
+    },
+    {
+      "index": 1,
+      "label": "Fixture step 02",
+      "state": "data",
+      "value": 79,
+      "coverage_pct": 91,
+      "source_id": "FIX",
+      "marker": {
+        "x": 0.5,
+        "y": 0.25
+      }
+    },
+    {
+      "index": 2,
+      "label": "Fixture step 03",
+      "state": "data",
+      "value": 81,
+      "coverage_pct": 92,
+      "source_id": "FIX",
+      "marker": {
+        "x": 0.5,
+        "y": 0.25
+      }
+    },
+    {
+      "index": 3,
+      "label": "Fixture step 04",
+      "state": "data",
+      "value": 80,
+      "coverage_pct": 93,
+      "source_id": "FIX",
+      "marker": {
+        "x": 0.5,
+        "y": 0.25
+      }
+    },
+    {
+      "index": 4,
+      "label": "Fixture step 05",
+      "state": "data",
+      "value": 80,
+      "coverage_pct": 94,
+      "source_id": "FIX",
+      "marker": {
+        "x": 0.5,
+        "y": 0.25
+      }
+    },
+    {
+      "index": 5,
+      "label": "Fixture step 06",
+      "state": "data",
+      "value": 76,
+      "coverage_pct": 95,
+      "source_id": "FIX",
+      "marker": {
+        "x": 0.5,
+        "y": 0.25
+      }
+    },
+    {
+      "index": 6,
+      "label": "Fixture step 07",
+      "state": "data",
+      "value": 72,
+      "coverage_pct": 96,
+      "source_id": "FIX",
+      "marker": {
+        "x": 0.5,
+        "y": 0.25
+      }
+    },
+    {
+      "index": 7,
+      "label": "Fixture step 08",
+      "state": "data",
+      "value": 68,
+      "coverage_pct": 97,
+      "source_id": "FIX",
+      "marker": {
+        "x": 0.5,
+        "y": 0.25
+      }
+    },
+    {
+      "index": 8,
+      "label": "Fixture step 09",
+      "state": "data",
+      "value": 63,
+      "coverage_pct": 98,
+      "source_id": "FIX",
+      "marker": {
+        "x": 0.5,
+        "y": 0.25
+      }
+    },
+    {
+      "index": 9,
+      "label": "Fixture step 10",
+      "state": "rest",
+      "value": null,
+      "coverage_pct": 0,
+      "rest_reason": "no_frame"
+    },
+    {
+      "index": 10,
+      "label": "Fixture step 11",
+      "state": "rest",
+      "value": null,
+      "coverage_pct": 0,
+      "rest_reason": "no_frame"
+    },
+    {
+      "index": 11,
+      "label": "Fixture step 12",
+      "state": "rest",
+      "value": null,
+      "coverage_pct": 0,
+      "rest_reason": "no_frame"
+    },
+    {
+      "index": 12,
+      "label": "Fixture step 13",
+      "state": "data",
+      "value": 52,
+      "coverage_pct": 93,
+      "source_id": "FIX",
+      "marker": {
+        "x": 0.5,
+        "y": 0.25
+      }
+    },
+    {
+      "index": 13,
+      "label": "Fixture step 14",
+      "state": "data",
+      "value": 50,
+      "coverage_pct": 94,
+      "source_id": "FIX",
+      "marker": {
+        "x": 0.5,
+        "y": 0.25
+      }
+    },
+    {
+      "index": 14,
+      "label": "Fixture step 15",
+      "state": "low_confidence",
+      "value": 48,
+      "coverage_pct": 65,
+      "source_id": "FIX"
+    },
+    {
+      "index": 15,
+      "label": "Fixture step 16",
+      "state": "data",
+      "value": 46,
+      "coverage_pct": 96,
+      "source_id": "FIX",
+      "marker": {
+        "x": 0.5,
+        "y": 0.25
+      }
+    },
+    {
+      "index": 16,
+      "label": "Fixture step 17",
+      "state": "rest",
+      "value": null,
+      "coverage_pct": 30,
+      "rest_reason": "low_coverage"
+    },
+    {
+      "index": 17,
+      "label": "Fixture step 18",
+      "state": "data",
+      "value": 45,
+      "coverage_pct": 98,
+      "source_id": "FIX",
+      "marker": {
+        "x": 0.5,
+        "y": 0.25
+      }
+    },
+    {
+      "index": 18,
+      "label": "Fixture step 19",
+      "state": "data",
+      "value": 47,
+      "coverage_pct": 90,
+      "source_id": "FIX",
+      "marker": {
+        "x": 0.5,
+        "y": 0.25
+      }
+    },
+    {
+      "index": 19,
+      "label": "Fixture step 20",
+      "state": "data",
+      "value": 44,
+      "coverage_pct": 91,
+      "source_id": "FIX",
+      "marker": {
+        "x": 0.5,
+        "y": 0.25
+      }
+    }
+  ],
+  "gaps": [
+    {
+      "start_index": 9,
+      "end_index": 11,
+      "reason": "no_frame",
+      "message": "Steps 10 to 12: no data, not zero. The source published no frame for these steps."
+    },
+    {
+      "start_index": 16,
+      "end_index": 16,
+      "reason": "low_coverage",
+      "message": "Step 17: too little of the picture was seen, so no value is played."
+    }
+  ],
+  "key_moments": [
+    {
+      "step_index": 0,
+      "title": "Start",
+      "message": "Step 1 is the first step. The value is 80 fixture units."
+    },
+    {
+      "step_index": 8,
+      "title": "Before the silence",
+      "message": "Step 9: the value has fallen to 63 fixture units. Next come three steps with no data."
+    },
+    {
+      "step_index": 12,
+      "title": "After the silence",
+      "message": "Step 13: data returns at 52 fixture units, lower than before the silence."
+    },
+    {
+      "step_index": 19,
+      "title": "End",
+      "message": "Step 20 is the last step. The value is 44 fixture units."
+    }
+  ],
+  "text": {
+    "orientation": "This is a made-up test story with 20 steps. The value falls from 80 to 44 fixture units, with a silent stretch in the middle.",
+    "alt_short": "Fixture picture: a made-up series that falls over 20 steps.",
+    "alt_long": "A made-up test series of 20 steps. It starts near 80, falls to 63 by step 9, has no data for steps 10 to 12, returns at 52 and ends at 44. Step 17 is also silent because too little was seen.",
+    "legend": "Higher pitch means a higher fixture value. Silence means no value is played."
+  }
+}

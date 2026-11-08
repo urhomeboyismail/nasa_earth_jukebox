@@ -30,6 +30,34 @@ describe('loadVisualization', () => {
     expect(loaded.frames).toHaveLength(fixture.frames.length)
   })
 
+  it('resolves a frame\'s baselineImage to a full URL too, so the analysis reads the data set\'s folder and not the page\'s', async () => {
+    const withBaseline = {
+      ...fixture,
+      baseline: { kind: 'climatology', label: 'the normal for each month', noiseFloor: 0.2 },
+      frames: fixture.frames.map(frame => ({ ...frame, baselineImage: `baselines/${frame.date}.png` })),
+      mapping: {
+        ...fixture.mapping,
+        changeSteps: [
+          { id: 'below', label: 'Below normal', range: [-50, -0.25], note: 'C3' },
+          { id: 'normal', label: 'Near normal', range: [-0.25, 0.25], note: 'E3' },
+          { id: 'above', label: 'Above normal', range: [0.25, 50], note: 'G3' },
+        ],
+        contourLevels: [{ value: 1, note: 'C5' }],
+      },
+    }
+    mockFetch(url => (url.endsWith('/data/fixture/manifest.json') ? json(withBaseline) : json({}, 404)))
+    const loaded = await loadVisualization('fixture')
+    expect(loaded.frames[0].baselineImage).toBe('/data/fixture/baselines/2024-01-15.png')
+    expect(loaded.frames[0].image).toBe('/data/fixture/frames/2024-01-15.png')
+  })
+
+  it('leaves a data set without baselines alone: no baselineImage appears', async () => {
+    mockFetch(url => (url.endsWith('/data/fixture/manifest.json') ? json(fixture) : json({}, 404)))
+    const loaded = await loadVisualization('fixture')
+    expect('baselineImage' in loaded.frames[0]).toBe(false)
+    expect(loaded.baseline).toBeUndefined()
+  })
+
   it('throws DataError for a missing file, bad JSON or no frames', async () => {
     mockFetch(() => json({}, 404))
     await expect(loadVisualization('gone')).rejects.toBeInstanceOf(DataError)

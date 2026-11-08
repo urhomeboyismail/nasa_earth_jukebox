@@ -37,14 +37,18 @@ STOPS = [
 ]
 MAX_COLOR_DISTANCE = 40
 
-# Same five categories and notes as the T00 fixture.
+# Same five categories and notes as the fixture: a C major arpeggio (C E G C E). The steps are 3 to 5 semitones, wide enough
+# to tell apart one after another, and any mix of these notes sounds consonant (docs/SOUND_MAPPINGS.md section 4.1).
 CATEGORIES = [
     ("cold", "Cold", (0, 6), "C4"),
-    ("cool", "Cool", (6, 12), "D4"),
-    ("mild", "Mild", (12, 18), "E4"),
-    ("warm", "Warm", (18, 24), "G4"),
-    ("hot", "Hot", (24, 30), "A4"),
+    ("cool", "Cool", (6, 12), "E4"),
+    ("mild", "Mild", (12, 18), "G4"),
+    ("warm", "Warm", (18, 24), "C5"),
+    ("hot", "Hot", (24, 30), "E5"),
 ]
+
+# The map is the picture above the legend bar, which starts at y = 352 of 400. The app reads only this part.
+MAP_AREA = {"x0": 0, "y0": 0, "x1": 1, "y1": 0.88}
 
 # About 30 sample points (6 columns x 5 rows) in open water: clear of the land (right), the label (top left)
 # and the legend (bottom).
@@ -191,7 +195,7 @@ def manifest() -> dict:
         }],
         "frames": frames,
         "mapping": {
-            "scale": "C major pentatonic",
+            "scale": "C major arpeggio",
             "summary": "median",
             "minValidFraction": 0.5,
             "categories": [{"id": cid, "label": label, "range": list(rng), "note": note} for cid, label, rng, note in CATEGORIES],
@@ -202,6 +206,7 @@ def manifest() -> dict:
             {"id": cid, "regionId": "open-ocean", "frameA": a, "frameB": b, "question": q, "answer": answer, "explanation": why}
             for cid, a, b, answer, q, why in COMPARISONS
         ],
+        "mapArea": MAP_AREA,
     }
 
 

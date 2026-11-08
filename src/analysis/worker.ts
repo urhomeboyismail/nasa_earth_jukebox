@@ -1,17 +1,30 @@
 // Runs frame analysis off the main thread, so analyzing a whole visualization never freezes the page.
 
-import { analyzePixels } from './analyze'
-import { readPixels } from './pixels'
+import { analyzePixels, gridFromPixels } from './analyze'
+import { scorePixels } from './score'
+import { readPixels, rememberLast } from './pixels'
 import type { WorkerRequest, WorkerResponse } from './protocol'
 
+// The grid and the region reading of the same date ask for the same image, so it is decoded once.
+const read = rememberLast(readPixels)
+
 self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
-  const { id, url, frame, region, colorScale, mapping } = event.data
+  const request = event.data
   let response: WorkerResponse
   try {
-    const pixels = await readPixels(url)
-    response = { id, result: analyzePixels(pixels, frame, region, colorScale, mapping) }
+    const pixels = await read(request.url)
+    const result = request.kind === 'grid'
+      ? gridFromPixels(pixels, request.frame, request.colorScale, request.mapping, request.area)
+      : request.kind === 'change'
+        ? scorePixels(pixels, request.change.baselineUrl ? await read(request.change.baselineUrl) : null, {
+          frameId: request.frame.id, colorScale: request.colorScale, mapping: request.change.mapping, area: request.area, noiseFloor: request.change.noiseFloor,
+        })
+        : analyzePixels(pixels, request.frame, request.region, request.colorScale, request.mapping, request.change && {
+          baseline: request.change.baselineUrl ? await read(request.change.baselineUrl) : null, noiseFloor: request.change.noiseFloor, changeSteps: request.change.mapping.changeSteps,
+        })
+    response = { id: request.id, result }
   } catch (error) {
-    response = { id, error: error instanceof Error ? error.message : String(error) }
+    response = { id: request.id, error: error instanceof Error ? error.message : String(error) }
   }
   self.postMessage(response)
 }

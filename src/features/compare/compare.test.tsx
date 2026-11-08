@@ -16,6 +16,8 @@ const engine = vi.hoisted(() => ({
   playCategory: vi.fn((id: string) => { calls.push(`category:${id}`) }),
   playMissing: vi.fn(() => { calls.push('missing') }),
   stop: vi.fn(() => { calls.push('stop') }),
+  setStyle: vi.fn(),
+  setSpatial: vi.fn(),
 }))
 vi.mock('../../audio', () => ({ createSoundEngine: () => engine }))
 
@@ -88,8 +90,19 @@ describe('Compare: the ready-made comparison', () => {
     expect(result).toHaveTextContent('Correct.')
     expect(result).toHaveTextContent('Date B is warmer.')
     expect(result).toHaveTextContent(fixture.comparisons[0].explanation)
-    expect(screen.getByRole('heading', { level: 2, name: 'Date A: 15 January 2024' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { level: 2, name: 'Date B: 15 December 2024' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Date A: January 2024' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Date B: December 2024' })).toBeInTheDocument()
+  })
+
+  it('describes both dates in words under their pictures after the reveal, and not before', async () => {
+    const { user } = await renderReady()
+    expect(screen.queryByText(/First date\./)).toBeNull()
+    await user.click(screen.getByRole('radio', { name: 'B is warmer' }))
+    await user.click(screen.getByRole('button', { name: 'Reveal the answer' }))
+    const [cardA, cardB] = screen.getAllByRole('img').map(img => img.closest('section')!)
+    expect(cardA).toHaveTextContent('First date.')
+    expect(cardB).toHaveTextContent('December 2024.')
+    expect(cardB).toHaveTextContent('Up two steps from July (mild).')
   })
 
   it('says a wrong answer is not quite right, and still gives the answer', async () => {
@@ -172,17 +185,17 @@ describe('Compare: choosing your own dates', () => {
 
   it('works out the right answer from what the analysis heard', async () => {
     const { user } = await openCustom()
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Date A' }), '15 December 2024')
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Date B' }), '15 July 2024')
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Date A' }), 'December 2024')
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Date B' }), 'July 2024')
     await user.click(screen.getByRole('radio', { name: 'A is warmer' }))
     await user.click(screen.getByRole('button', { name: 'Reveal the answer' }))
-    expect(screen.getByLabelText('Result')).toHaveTextContent(/Correct\..*Date A is warmer\..*15 December 2024 sounded hot and 15 July 2024 sounded mild/)
+    expect(screen.getByLabelText('Result')).toHaveTextContent(/Correct\..*Date A is warmer\..*December 2024 sounded hot and July 2024 sounded mild/)
   })
 
   it('says "about the same" for two dates in the same category', async () => {
     const { user } = await openCustom()
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Date A' }), '15 January 2024')
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Date B' }), '15 January 2024')
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Date A' }), 'January 2024')
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Date B' }), 'January 2024')
     await user.click(screen.getByRole('radio', { name: 'About the same' }))
     await user.click(screen.getByRole('button', { name: 'Reveal the answer' }))
     expect(screen.getByLabelText('Result')).toHaveTextContent('Correct.')
@@ -190,7 +203,7 @@ describe('Compare: choosing your own dates', () => {
 
   it('will not ask for an answer when a date has no data, and says why', async () => {
     const { user } = await openCustom()
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Date B' }), '15 March 2025')
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Date B' }), 'March 2025')
     expect(screen.getByText(/no usable data/)).toBeInTheDocument()
     expect(screen.getByRole('radio', { name: 'A is warmer' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Reveal the answer' })).toBeDisabled()
@@ -201,7 +214,7 @@ describe('Compare: choosing your own dates', () => {
   it('clears the answer when the dates change', async () => {
     const { user } = await openCustom()
     await user.click(screen.getByRole('radio', { name: 'B is warmer' }))
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Date A' }), '15 July 2024')
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Date A' }), 'July 2024')
     expect(screen.getByRole('radio', { name: 'B is warmer' })).not.toBeChecked()
   })
 })
@@ -234,6 +247,17 @@ describe('Compare: the voice guide and cleanup', () => {
     engine.stop.mockClear()
     unmount()
     expect(engine.stop).toHaveBeenCalled()
+  })
+
+  it('says so when a sound cannot be played, and clears the message on the next try', async () => {
+    const { user } = await renderReady()
+    engine.unlock.mockRejectedValueOnce(new Error('audio blocked'))
+    await user.click(screen.getByRole('button', { name: 'Play date A' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(/could not be played.*audio blocked/)
+    expect(sounded()).toEqual([])
+    await user.click(screen.getByRole('button', { name: 'Play date A' }))
+    await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
+    expect(sounded()).toEqual(['category:cold'])
   })
 
   it('says so when the sounds cannot be prepared', async () => {

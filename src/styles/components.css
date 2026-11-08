@@ -385,6 +385,37 @@
   text-align: left;
   border-radius: var(--ui-corner-medium);
 }
+/* DatasetPicker: a labelled choice with the chosen set's summary under it, centred above the page. */
+.ui-picker { display: grid; gap: 0.25rem; inline-size: 100%; max-inline-size: 30rem; margin-inline: auto; text-align: left; }
+.ui-picker__label { color: var(--text-h); font-weight: 600; }
+.ui-picker select {
+  font: inherit;
+  min-block-size: var(--control-size);
+  inline-size: 100%;
+  padding: 0 0.75rem;
+  color: var(--text-h);
+  background: var(--bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 0.75rem;
+}
+.ui-picker select:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.ui-picker__summary { margin: 0; color: var(--text); }
+
+/* Legend: the colour key. A bar, a sentence, and a grid of categories that fills the row without a breakpoint. */
+.ui-legend { display: grid; gap: 0.75rem; }
+.ui-legend__bar { block-size: 1rem; border: 1px solid var(--text); border-radius: 999px; }
+.ui-legend__summary { margin: 0; }
+.ui-legend__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr));
+}
+.ui-legend__list li { display: flex; align-items: center; gap: 0.5rem; min-inline-size: 0; overflow-wrap: anywhere; }
+.ui-legend__swatch { flex: none; inline-size: 1.5rem; block-size: 1.5rem; border: 1px solid var(--text); border-radius: 0.25rem; }
+
 .ui-notice__icon { flex: none; width: 24px; height: 24px; fill: currentColor; }
 .ui-notice__text { flex: 1 1 12rem; min-width: 0; padding-block: 0.125rem; }
 .ui-notice__action { margin-inline-start: auto; }

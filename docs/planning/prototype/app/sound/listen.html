@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sound engine listening page (dev tool)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 1.125rem/1.5 system-ui, sans-serif; max-width: 40rem; margin: 1rem auto; padding: 0 1rem; }
+  button { font: inherit; padding: .6rem 1rem; margin: .25rem .25rem .25rem 0; min-height: 44px; }
+  #log { white-space: pre-wrap; border: 1px solid; padding: .5rem; min-height: 6rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Sound engine listening page</h1>
+  <p>Developer tool for T3. It plays the invented fixture story, not NASA data. It is not the player (T4).</p>
+  <p><button id="unlock">Enable sound</button> <button id="test" disabled>Test sound</button></p>
+  <p>
+    <button id="play" disabled>Play</button>
+    <button id="pause" disabled>Pause</button>
+    <button id="cont" disabled>Continue</button>
+    <button id="ref" disabled>Reference tone</button>
+    <button id="both" disabled>Hear this step both ways</button>
+  </p>
+  <p><label><input type="checkbox" id="strict" role="switch"> Strict data mode (Side B)</label></p>
+  <h2>Messages</h2>
+  <div id="log" aria-live="polite"></div>
+</main>
+<script src="../vendor/Tone.js"></script>
+<script type="module">
+  import { createEngine } from "./engine.js";
+  const $ = (id) => document.getElementById(id);
+  const log = (t) => { $("log").textContent += t + "\n"; };
+  const story = await (await fetch("../../contract/fixture.story.json")).json();
+  const engine = createEngine({ Tone });
+  engine.load(story);
+  engine.on("stop", (s) => s.reasons.forEach((r) => log(r.message)));
+  engine.on("end", () => log("End of story."));
+  $("unlock").onclick = async () => {
+    await engine.unlock();
+    ["test", "play", "pause", "cont", "ref", "both"].forEach((id) => ($(id).disabled = false));
+    log("Sound enabled.");
+  };
+  $("test").onclick = () => engine.testSound();
+  $("play").onclick = () => engine.play();
+  $("pause").onclick = () => engine.pause();
+  $("cont").onclick = () => engine.continue();
+  $("ref").onclick = () => { if (!engine.reference()) log("No baseline in this story."); };
+  $("both").onclick = () => { if (engine.hearBothWays().silent) log("This step has no value, so nothing to play."); };
+  $("strict").onchange = (e) => engine.setMode(e.target.checked ? "B" : "A"); // silent, leaves playback paused
+</script>
+</body>
+</html>

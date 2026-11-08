@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Earth Jukebox mascot concepts</title>
+<style>
+  :root {
+    --primary: #306483; --on-primary: #f5f9ff; --primary-container: #a6d8fb; --on-primary-container: #114c69;
+    --secondary-container: #d2e5f5; --tertiary-container: #c9cffe;
+    --surface: #f7f9fd; --on-surface: #2c3339; --on-surface-variant: #596066; --outline-variant: #acb3ba;
+    --dark-surface: #0b0f11; --dark-container: #151a1e; --dark-on-surface: #dfe6ed;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 16px/1.5 'Google Sans Flex', 'Segoe UI', Roboto, system-ui, sans-serif; color: var(--on-surface); background: var(--surface); }
+  main { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+  h1 { font-size: 1.75rem; margin: 0 0 .25rem; }
+  h2 { font-size: 1.25rem; margin: 2.5rem 0 .25rem; }
+  p.lead { color: var(--on-surface-variant); margin: 0 0 1.5rem; max-width: 70ch; }
+  .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 1rem; }
+  .card { border-radius: 24px; padding: 1rem; background: #eaeef4; text-align: center; }
+  .card.dark { background: var(--dark-container); color: var(--dark-on-surface); }
+  .card svg { width: 100%; max-width: 220px; height: auto; display: block; margin: 0 auto; }
+  .card h3 { margin: .5rem 0 0; font-size: 1rem; }
+  .card p { margin: .25rem 0 0; font-size: .9rem; opacity: .8; }
+  .sizes { display: flex; flex-wrap: wrap; align-items: end; justify-content: center; gap: 1.25rem; padding: .5rem 0; }
+  .sizes svg { width: auto; margin: 0; }
+  ul.notes { max-width: 75ch; padding-left: 1.25rem; }
+  ul.notes li { margin: .25rem 0; }
+  .float { animation: float 4s ease-in-out infinite; transform-origin: center; }
+  @keyframes float { 50% { transform: translateY(-6px); } }
+  @media (prefers-reduced-motion: reduce) { .float { animation: none; } }
+  /* Mock of the voice guide panel with the mascot beside it. */
+  .mock { position: relative; border-radius: 24px; padding: 1rem; min-height: 360px; background: linear-gradient(160deg, #1e445a, #0b0f11); overflow: hidden; }
+  .panel { position: relative; z-index: 1; max-width: 340px; background: rgba(247, 249, 253, .94); border-radius: 24px; padding: 1rem; color: var(--on-surface); }
+  .panel h4 { margin: 0 0 .75rem; font-size: 1.05rem; }
+  .chip { display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 1rem; margin: .4rem 0; border-radius: 16px; background: var(--secondary-container); font-size: .95rem; }
+  .mock .mascot { position: absolute; right: .5rem; bottom: 0; width: min(42%, 190px); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Earth Jukebox mascot: three directions</h1>
+  <p class="lead">An astronaut who listens to Earth. Original design in the app's Material You colours. It borrows the friendly, rounded feel of the my.t Learning Hub robot, not its shape, colours or branding.</p>
+
+  <h2>A. "Echo": astronaut with headphones and Earth in the visor</h2>
+  <p class="lead">Full body. Earth is reflected in the dark visor, and the glowing eyes and smile sit on top of it. Big headphones say "sound" at a glance. The chest badge is a tiny equaliser.</p>
+  <div class="row" id="a-row"></div>
+
+  <h2>B. "Orbit": chibi helmet with a ring of sound</h2>
+  <p class="lead">Mostly head, like a sticker. A tilted ring goes round the helmet like a planet's ring, and a small Earth rides on it. Softer and more playful; happy arc eyes.</p>
+  <div class="row" id="b-row"></div>
+
+  <h2>C. "Sonny": the avatar for small sizes</h2>
+  <p class="lead">Head only, inside a round badge, for the voice guide button, the panel header and the browser tab. Checked at 96, 48, 32 and 24 px.</p>
+  <div class="row" id="c-row"></div>
+
+  <h2>Echo's states (for the voice guide)</h2>
+  <p class="lead">Each state must also be in text for screen readers. The mascot is decoration and only repeats what the text says.</p>
+  <div class="row" id="states"></div>
+
+  <h2>How it could sit next to the voice guide</h2>
+  <div class="row">
+    <div class="mock">
+      <div class="panel">
+        <h4>What would you like to hear?</h4>
+        <div class="chip">What am I listening to? <span aria-hidden="true">›</span></div>
+        <div class="chip">Play this year <span aria-hidden="true">›</span></div>
+        <div class="chip">Which date was warmest? <span aria-hidden="true">›</span></div>
+        <div class="chip">What does the high note mean? <span aria-hidden="true">›</span></div>
+      </div>
+      <div class="mascot float" id="mock-mascot"></div>
+    </div>
+  </div>
+
+  <h2>Notes</h2>
+  <ul class="notes">
+    <li>Decoration only: <code>aria-hidden="true"</code> on the drawing; the guide's state stays in text.</li>
+    <li>The float and talking animations stop under "reduce motion".</li>
+    <li>On phones it shrinks to the C avatar in the panel header, so it never covers content or the bottom bar.</li>
+    <li>Suggested-question chips (the idea worth borrowing from my.t) help new and screen-reader users know what to ask.</li>
+  </ul>
+</main>
+
+<script>
+const C = {
+  primary: '#306483', primaryContainer: '#a6d8fb', onPrimaryContainer: '#114c69', tertiaryContainer: '#c9cffe',
+  shell: '#ffffff', shellShade: '#dce3eb', visor: '#0f2233', ocean: '#1f5f8a', land: '#4f9b74', glow: '#7fe7ff',
+}
+
+/** The face on the visor. state: idle | listening | talking | thinking | happy */
+function face(cx, cy, s, state) {
+  const g = C.glow
+  const ex = 14 * s, ey = -4 * s
+  if (state === 'happy') {
+    const arc = dx => `<path d="M${cx + dx - 6 * s} ${cy + ey + 2 * s} Q${cx + dx} ${cy + ey - 7 * s} ${cx + dx + 6 * s} ${cy + ey + 2 * s}" stroke="${g}" stroke-width="${3.5 * s}" stroke-linecap="round" fill="none"/>`
+    return arc(-ex) + arc(ex) + `<path d="M${cx - 7 * s} ${cy + 11 * s} Q${cx} ${cy + 18 * s} ${cx + 7 * s} ${cy + 11 * s}" stroke="${g}" stroke-width="${3 * s}" stroke-linecap="round" fill="none"/>`
+  }
+  const ry = state === 'listening' ? 9.5 : 8
+  const lookY = state === 'thinking' ? -4 : 0
+  const lookX = state === 'thinking' ? 3 : 0
+  const eye = dx => `<ellipse cx="${cx + dx + lookX * s}" cy="${cy + ey + lookY * s}" rx="${6 * s}" ry="${ry * s}" fill="${g}"/>`
+  let mouth
+  if (state === 'talking') mouth = `<ellipse cx="${cx}" cy="${cy + 13 * s}" rx="${6 * s}" ry="${4.5 * s}" fill="${g}"/>`
+  else if (state === 'thinking') mouth = `<path d="M${cx - 5 * s} ${cy + 13 * s} L${cx + 5 * s} ${cy + 12 * s}" stroke="${g}" stroke-width="${3 * s}" stroke-linecap="round"/>`
+  else mouth = `<path d="M${cx - 8 * s} ${cy + 10 * s} Q${cx} ${cy + 18 * s} ${cx + 8 * s} ${cy + 10 * s}" stroke="${g}" stroke-width="${3 * s}" stroke-linecap="round" fill="none"/>`
+  return eye(-ex) + eye(ex) + mouth
+}
+
+/** Earth seen as a reflection, clipped to the visor. */
+function earth(id, cx, cy, r) {
+  return `<g clip-path="url(#${id})" opacity=".85">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${C.ocean}"/>
+    <path d="M${cx - r * .7} ${cy - r * .62} q${r * .3} ${-r * .3} ${r * .6} ${-r * .12} q${r * .15} ${r * .2} ${-r * .05} ${r * .35} q${-r * .35} ${r * .08} ${-r * .55} ${-r * .23}z" fill="${C.land}"/>
+    <path d="M${cx + r * .05} ${cy - r * .9} q${r * .35} ${-r * .05} ${r * .5} ${r * .2} q${-r * .05} ${r * .3} ${-r * .35} ${r * .32} q${-r * .2} ${-r * .2} ${-r * .15} ${-r * .52}z" fill="${C.land}"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${C.glow}" stroke-width="2" opacity=".5"/>
+  </g>`
+}
+
+function waves(x, y, s, dir, color) {
+  return [1, 2, 3].map(i => {
+    const r = (8 + i * 7) * s
+    const a = dir > 0 ? `M${x} ${y - r * .7} A${r} ${r} 0 0 1 ${x} ${y + r * .7}` : `M${x} ${y - r * .7} A${r} ${r} 0 0 0 ${x} ${y + r * .7}`
+    return `<path d="${a}" transform="translate(${dir * i * 5 * s} 0)" stroke="${color}" stroke-width="${3 * s}" stroke-linecap="round" fill="none" opacity="${1 - i * .25}"/>`
+  }).join('')
+}
+
+/** A. Echo: full body. */
+function echo(state = 'idle', uid = Math.random().toString(36).slice(2)) {
+  const clip = `v${uid}`
+  const listening = state === 'listening', talking = state === 'talking', thinking = state === 'thinking'
+  return `<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <defs>
+      <clipPath id="${clip}"><ellipse cx="100" cy="92" rx="42" ry="34"/></clipPath>
+      <radialGradient id="g${uid}" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="${C.shellShade}"/></radialGradient>
+    </defs>
+    <ellipse cx="100" cy="228" rx="46" ry="7" fill="#000" opacity=".12"/>
+    <rect x="56" y="132" width="88" height="70" rx="20" fill="${C.shellShade}"/>
+    <ellipse cx="58" cy="176" rx="12" ry="22" transform="rotate(18 58 176)" fill="url(#g${uid})" stroke="${C.shellShade}" stroke-width="2"/>
+    <ellipse cx="142" cy="176" rx="12" ry="22" transform="rotate(${talking ? -40 : -18} 142 176)" fill="url(#g${uid})" stroke="${C.shellShade}" stroke-width="2"/>
+    <rect x="64" y="134" width="72" height="88" rx="34" fill="url(#g${uid})" stroke="${C.shellShade}" stroke-width="2"/>
+    <ellipse cx="100" cy="140" rx="38" ry="9" fill="${C.primaryContainer}"/>
+    <rect x="85" y="160" width="30" height="20" rx="7" fill="${C.primary}"/>
+    <rect x="91" y="170" width="3" height="6" rx="1.5" fill="${C.primaryContainer}"/>
+    <rect x="97" y="164" width="3" height="12" rx="1.5" fill="${C.primaryContainer}"/>
+    <rect x="103" y="167" width="3" height="9" rx="1.5" fill="${C.primaryContainer}"/>
+    <rect x="109" y="171" width="3" height="5" rx="1.5" fill="${C.primaryContainer}"/>
+    <circle cx="100" cy="88" r="58" fill="url(#g${uid})" stroke="${C.shellShade}" stroke-width="3"/>
+    <ellipse cx="100" cy="92" rx="42" ry="34" fill="${C.visor}"/>
+    ${earth(clip, 112, 150, 46)}
+    <path d="M70 76 Q78 62 96 60" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none" opacity=".35"/>
+    ${face(100, 94, 1, state)}
+    <path d="M38 86 A62 62 0 0 1 162 86" stroke="${C.primary}" stroke-width="9" stroke-linecap="round" fill="none"/>
+    <rect x="26" y="70" width="20" height="40" rx="10" fill="${C.primary}"/>
+    <rect x="154" y="70" width="20" height="40" rx="10" fill="${C.primary}"/>
+    <rect x="30" y="78" width="6" height="24" rx="3" fill="${listening ? C.glow : C.primaryContainer}"/>
+    <rect x="164" y="78" width="6" height="24" rx="3" fill="${listening ? C.glow : C.primaryContainer}"/>
+    ${listening ? waves(22, 90, .8, -1, C.glow) + waves(178, 90, .8, 1, C.glow) : ''}
+    ${talking ? waves(150, 150, .7, 1, C.primary) : ''}
+    ${thinking ? `<circle cx="150" cy="30" r="4" fill="${C.primary}"/><circle cx="162" cy="20" r="5" fill="${C.primary}"/><circle cx="176" cy="12" r="6" fill="${C.primary}"/>` : ''}
+  </svg>`
+}
+
+/** B. Orbit: chibi head with a ring. */
+function orbit(uid = Math.random().toString(36).slice(2)) {
+  return `<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <defs><radialGradient id="o${uid}" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="${C.shellShade}"/></radialGradient></defs>
+    <ellipse cx="110" cy="205" rx="40" ry="6" fill="#000" opacity=".12"/>
+    <g transform="rotate(-14 110 110)"><ellipse cx="110" cy="112" rx="98" ry="24" stroke="${C.tertiaryContainer}" stroke-width="8" fill="none"/></g>
+    <rect x="80" y="160" width="60" height="34" rx="17" fill="url(#o${uid})" stroke="${C.shellShade}" stroke-width="2"/>
+    <ellipse cx="110" cy="164" rx="30" ry="7" fill="${C.primaryContainer}"/>
+    <circle cx="110" cy="100" r="66" fill="url(#o${uid})" stroke="${C.shellShade}" stroke-width="3"/>
+    <rect x="62" y="70" width="96" height="66" rx="33" fill="${C.visor}"/>
+    <path d="M76 84 Q84 74 100 73" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none" opacity=".35"/>
+    ${face(110, 105, 1.05, 'happy')}
+    <circle cx="66" cy="112" r="8" fill="${C.primary}"/><circle cx="154" cy="112" r="8" fill="${C.primary}"/>
+    <g transform="rotate(-14 110 110)"><path d="M12 112 A98 24 0 0 0 208 112" stroke="${C.tertiaryContainer}" stroke-width="8" fill="none"/></g>
+    <circle cx="186" cy="118" r="12" fill="${C.ocean}"/>
+    <path d="M178 114 q5 -6 10 -2 q2 5 -3 7z M186 122 q6 -2 7 2 q-2 4 -6 3z" fill="${C.land}"/>
+    <path d="M110 34 v-14" stroke="${C.primary}" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="110" cy="16" r="7" fill="${C.glow}" stroke="${C.primary}" stroke-width="3"/>
+  </svg>`
+}
+
+/** C. Sonny: avatar head in a badge. */
+function sonny(size, bg = C.primaryContainer, uid = Math.random().toString(36).slice(2)) {
+  const clip = `s${uid}`
+  return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <defs><clipPath id="${clip}"><ellipse cx="50" cy="54" rx="24" ry="19"/></clipPath></defs>
+    <circle cx="50" cy="50" r="50" fill="${bg}"/>
+    <circle cx="50" cy="52" r="34" fill="#fff"/>
+    <ellipse cx="50" cy="54" rx="24" ry="19" fill="${C.visor}"/>
+    ${earth(clip, 56, 86, 28)}
+    ${size >= 32 ? face(50, 55, .58, 'idle') : `<ellipse cx="42" cy="53" rx="3.5" ry="4.5" fill="${C.glow}"/><ellipse cx="58" cy="53" rx="3.5" ry="4.5" fill="${C.glow}"/>`}
+    <path d="M14 50 A36 36 0 0 1 86 50" stroke="${C.primary}" stroke-width="6" stroke-linecap="round" fill="none"/>
+    <rect x="8" y="40" width="12" height="24" rx="6" fill="${C.primary}"/>
+    <rect x="80" y="40" width="12" height="24" rx="6" fill="${C.primary}"/>
+  </svg>`
+}
+
+const card = (inner, title, text, dark) => `<div class="card${dark ? ' dark' : ''}">${inner}<h3>${title}</h3><p>${text}</p></div>`
+
+document.getElementById('a-row').innerHTML =
+  card(`<div class="float">${echo('idle')}</div>`, 'Light theme', 'Idle, gently floating') +
+  card(echo('idle'), 'Dark theme', 'White suit still reads on dark', true)
+
+document.getElementById('b-row').innerHTML =
+  card(orbit(), 'Light theme', 'Ring of sound with a tiny Earth') +
+  card(orbit(), 'Dark theme', 'Antenna light can blink while listening', true)
+
+const sizes = (bg) => `<div class="sizes">${[96, 48, 32, 24].map(s => sonny(s, bg)).join('')}</div>`
+document.getElementById('c-row').innerHTML =
+  card(sizes(C.primaryContainer), 'Light theme', '96 / 48 / 32 / 24 px; below 32 px the mouth drops out') +
+  card(sizes('#32566d'), 'Dark theme', 'Badge uses the dark primary container', true)
+
+document.getElementById('states').innerHTML =
+  card(echo('idle'), 'Idle', 'Text: "Voice guide is ready"') +
+  card(echo('listening'), 'Listening', 'Ear cups glow, waves come in') +
+  card(echo('talking'), 'Talking', 'Mouth open, waves go out; music is ducked') +
+  card(echo('thinking'), 'Thinking', 'Looks up, thought dots')
+
+document.getElementById('mock-mascot').innerHTML = echo('talking')
+</script>
+</body>
+</html>

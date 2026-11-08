@@ -1,0 +1,856 @@
+{
+  "notes": {
+    "categories": {
+      "cold": "C4",
+      "cool": "E4",
+      "mild": "G4",
+      "warm": "C5",
+      "hot": "E5"
+    },
+    "missingCue": "noise"
+  },
+  "regions": [
+    {
+      "id": "north-east-patch",
+      "frames": [
+        {
+          "frame": "2024-01-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "cool",
+          "medianValue": 8.25,
+          "shares": {
+            "cold": 0.367,
+            "cool": 0.433,
+            "mild": 0.2,
+            "warm": 0,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-02-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "cool",
+          "medianValue": 8.75,
+          "shares": {
+            "cold": 0.2,
+            "cool": 0.6,
+            "mild": 0.2,
+            "warm": 0,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-03-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "cool",
+          "medianValue": 10.46,
+          "shares": {
+            "cold": 0.2,
+            "cool": 0.4,
+            "mild": 0.4,
+            "warm": 0,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-04-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "mild",
+          "medianValue": 12.96,
+          "shares": {
+            "cold": 0,
+            "cool": 0.4,
+            "mild": 0.6,
+            "warm": 0,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-05-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "mild",
+          "medianValue": 15.5,
+          "shares": {
+            "cold": 0,
+            "cool": 0.2,
+            "mild": 0.6,
+            "warm": 0.2,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-06-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "mild",
+          "medianValue": 17.17,
+          "shares": {
+            "cold": 0,
+            "cool": 0.033,
+            "mild": 0.567,
+            "warm": 0.4,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-07-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "warm",
+          "medianValue": 18.86,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 0.433,
+            "warm": 0.567,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-08-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "warm",
+          "medianValue": 18.83,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 0.467,
+            "warm": 0.533,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-09-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "mild",
+          "medianValue": 16.33,
+          "shares": {
+            "cold": 0,
+            "cool": 0.2,
+            "mild": 0.5,
+            "warm": 0.3,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-10-15",
+          "sampled": 30,
+          "valid": 10,
+          "category": "insufficient",
+          "medianValue": null,
+          "shares": null
+        },
+        {
+          "frame": "2024-11-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "cool",
+          "medianValue": 10.46,
+          "shares": {
+            "cold": 0.2,
+            "cool": 0.4,
+            "mild": 0.4,
+            "warm": 0,
+            "hot": 0
+          }
+        },
+        {
+          "frame": "2024-12-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "cool",
+          "medianValue": 8.75,
+          "shares": {
+            "cold": 0.2,
+            "cool": 0.6,
+            "mild": 0.2,
+            "warm": 0,
+            "hot": 0
+          }
+        }
+      ],
+      "steps": [
+        {
+          "frame": "2024-01-15",
+          "category": "cool",
+          "pan": 0.1200000000000001,
+          "elevation": 0.72,
+          "pad": [
+            "cold",
+            "cool",
+            "mild"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-02-15",
+          "category": "cool",
+          "pan": 0.1200000000000001,
+          "elevation": 0.72,
+          "pad": [
+            "cold",
+            "cool",
+            "mild"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-03-15",
+          "category": "cool",
+          "pan": 0.1200000000000001,
+          "elevation": 0.72,
+          "pad": [
+            "cold",
+            "cool",
+            "mild"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-04-15",
+          "category": "mild",
+          "pan": 0.1200000000000001,
+          "elevation": 0.72,
+          "pad": [
+            "cool",
+            "mild"
+          ],
+          "glide": true,
+          "bell": false
+        },
+        {
+          "frame": "2024-05-15",
+          "category": "mild",
+          "pan": 0.1200000000000001,
+          "elevation": 0.72,
+          "pad": [
+            "cool",
+            "mild",
+            "warm"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-06-15",
+          "category": "mild",
+          "pan": 0.1200000000000001,
+          "elevation": 0.72,
+          "pad": [
+            "mild",
+            "warm"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-07-15",
+          "category": "warm",
+          "pan": 0.1200000000000001,
+          "elevation": 0.72,
+          "pad": [
+            "mild",
+            "warm"
+          ],
+          "glide": true,
+          "bell": false
+        },
+        {
+          "frame": "2024-08-15",
+          "category": "warm",
+          "pan": 0.1200000000000001,
+          "elevation": 0.72,
+          "pad": [
+            "mild",
+            "warm"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-09-15",
+          "category": "mild",
+          "pan": 0.1200000000000001,
+          "elevation": 0.72,
+          "pad": [
+            "cool",
+            "mild",
+            "warm"
+          ],
+          "glide": true,
+          "bell": false
+        },
+        {
+          "frame": "2024-10-15",
+          "category": "insufficient",
+          "pan": 0.1200000000000001,
+          "elevation": 0.72,
+          "pad": null,
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-11-15",
+          "category": "cool",
+          "pan": 0.1200000000000001,
+          "elevation": 0.72,
+          "pad": [
+            "cold",
+            "cool",
+            "mild"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-12-15",
+          "category": "cool",
+          "pan": 0.1200000000000001,
+          "elevation": 0.72,
+          "pad": [
+            "cold",
+            "cool",
+            "mild"
+          ],
+          "glide": false,
+          "bell": false
+        }
+      ]
+    },
+    {
+      "id": "tropics",
+      "frames": [
+        {
+          "frame": "2024-01-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "hot",
+          "medianValue": 26.44,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 0,
+            "warm": 0,
+            "hot": 1
+          }
+        },
+        {
+          "frame": "2024-02-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "hot",
+          "medianValue": 26.44,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 0,
+            "warm": 0,
+            "hot": 1
+          }
+        },
+        {
+          "frame": "2024-03-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "hot",
+          "medianValue": 26.42,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 0,
+            "warm": 0,
+            "hot": 1
+          }
+        },
+        {
+          "frame": "2024-04-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "hot",
+          "medianValue": 26.36,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 0,
+            "warm": 0,
+            "hot": 1
+          }
+        },
+        {
+          "frame": "2024-05-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "hot",
+          "medianValue": 26.4,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 0,
+            "warm": 0,
+            "hot": 1
+          }
+        },
+        {
+          "frame": "2024-06-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "hot",
+          "medianValue": 26.42,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 0,
+            "warm": 0,
+            "hot": 1
+          }
+        },
+        {
+          "frame": "2024-07-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "hot",
+          "medianValue": 26.44,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 0,
+            "warm": 0,
+            "hot": 1
+          }
+        },
+        {
+          "frame": "2024-08-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "hot",
+          "medianValue": 26.42,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 0,
+            "warm": 0,
+            "hot": 1
+          }
+        },
+        {
+          "frame": "2024-09-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "hot",
+          "medianValue": 26.4,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 0,
+            "warm": 0,
+            "hot": 1
+          }
+        },
+        {
+          "frame": "2024-10-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "hot",
+          "medianValue": 26.36,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 0,
+            "warm": 0,
+            "hot": 1
+          }
+        },
+        {
+          "frame": "2024-11-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "hot",
+          "medianValue": 26.42,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 0,
+            "warm": 0,
+            "hot": 1
+          }
+        },
+        {
+          "frame": "2024-12-15",
+          "sampled": 30,
+          "valid": 30,
+          "category": "hot",
+          "medianValue": 26.44,
+          "shares": {
+            "cold": 0,
+            "cool": 0,
+            "mild": 0,
+            "warm": 0,
+            "hot": 1
+          }
+        }
+      ],
+      "steps": [
+        {
+          "frame": "2024-01-15",
+          "category": "hot",
+          "pan": 0,
+          "elevation": 0.12,
+          "pad": [
+            "hot"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-02-15",
+          "category": "hot",
+          "pan": 0,
+          "elevation": 0.12,
+          "pad": [
+            "hot"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-03-15",
+          "category": "hot",
+          "pan": 0,
+          "elevation": 0.12,
+          "pad": [
+            "hot"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-04-15",
+          "category": "hot",
+          "pan": 0,
+          "elevation": 0.12,
+          "pad": [
+            "hot"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-05-15",
+          "category": "hot",
+          "pan": 0,
+          "elevation": 0.12,
+          "pad": [
+            "hot"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-06-15",
+          "category": "hot",
+          "pan": 0,
+          "elevation": 0.12,
+          "pad": [
+            "hot"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-07-15",
+          "category": "hot",
+          "pan": 0,
+          "elevation": 0.12,
+          "pad": [
+            "hot"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-08-15",
+          "category": "hot",
+          "pan": 0,
+          "elevation": 0.12,
+          "pad": [
+            "hot"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-09-15",
+          "category": "hot",
+          "pan": 0,
+          "elevation": 0.12,
+          "pad": [
+            "hot"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-10-15",
+          "category": "hot",
+          "pan": 0,
+          "elevation": 0.12,
+          "pad": [
+            "hot"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-11-15",
+          "category": "hot",
+          "pan": 0,
+          "elevation": 0.12,
+          "pad": [
+            "hot"
+          ],
+          "glide": false,
+          "bell": false
+        },
+        {
+          "frame": "2024-12-15",
+          "category": "hot",
+          "pan": 0,
+          "elevation": 0.12,
+          "pad": [
+            "hot"
+          ],
+          "glide": false,
+          "bell": false
+        }
+      ]
+    }
+  ],
+  "grids": [
+    {
+      "frame": "2024-01-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "warm warm insufficient insufficient insufficient insufficient warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "warm warm insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot warm insufficient insufficient insufficient insufficient insufficient warm warm",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "warm warm insufficient insufficient insufficient insufficient warm hot hot hot warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "warm warm warm warm mild warm warm warm warm warm warm warm warm warm warm warm warm warm warm insufficient warm warm warm warm",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool"
+      ]
+    },
+    {
+      "frame": "2024-02-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "warm warm insufficient insufficient insufficient insufficient warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "hot warm insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient warm hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "warm warm insufficient insufficient insufficient insufficient warm hot hot warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "warm warm warm warm mild warm warm warm warm warm warm warm warm warm warm warm warm warm warm insufficient warm warm warm warm",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool"
+      ]
+    },
+    {
+      "frame": "2024-03-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "warm warm insufficient insufficient insufficient insufficient warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "warm warm insufficient insufficient insufficient insufficient warm warm hot warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "warm warm mild mild mild mild warm warm warm warm warm warm warm warm warm warm warm warm mild insufficient mild mild warm warm",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold"
+      ]
+    },
+    {
+      "frame": "2024-04-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "warm warm insufficient insufficient insufficient insufficient warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "warm warm insufficient insufficient insufficient insufficient warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient mild mild mild mild",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold"
+      ]
+    },
+    {
+      "frame": "2024-05-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "mild warm warm warm mild mild warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm mild",
+        "warm warm insufficient insufficient insufficient insufficient warm warm hot warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "warm warm insufficient insufficient insufficient insufficient warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient mild mild mild mild",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold"
+      ]
+    },
+    {
+      "frame": "2024-06-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm",
+        "warm warm insufficient insufficient insufficient insufficient warm hot hot warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot warm insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient warm hot",
+        "warm warm insufficient insufficient insufficient insufficient warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "mild mild mild mild cool mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient mild mild mild mild",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold"
+      ]
+    },
+    {
+      "frame": "2024-07-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm",
+        "warm warm insufficient insufficient insufficient insufficient warm hot hot hot warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "warm warm insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot warm insufficient insufficient insufficient insufficient insufficient warm warm",
+        "warm warm insufficient insufficient insufficient insufficient warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "mild mild mild mild cool mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient mild mild mild mild",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold"
+      ]
+    },
+    {
+      "frame": "2024-08-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm",
+        "warm warm insufficient insufficient insufficient insufficient warm hot hot warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot warm insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient warm hot",
+        "warm warm insufficient insufficient insufficient insufficient warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "mild mild mild mild cool mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient mild mild mild mild",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold"
+      ]
+    },
+    {
+      "frame": "2024-09-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "mild warm warm warm mild mild warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm warm mild",
+        "warm warm insufficient insufficient insufficient insufficient warm warm hot warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "warm warm insufficient insufficient insufficient insufficient warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient mild mild mild mild",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold"
+      ]
+    },
+    {
+      "frame": "2024-10-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "cool cool cool cool cool cool cool cool cool cool insufficient insufficient insufficient insufficient insufficient cool cool cool cool cool cool cool cool cool",
+        "mild mild mild mild mild mild mild mild mild mild mild insufficient insufficient insufficient mild mild mild mild mild mild mild mild mild mild",
+        "warm warm insufficient insufficient insufficient insufficient warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "warm warm insufficient insufficient insufficient insufficient warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild insufficient mild mild mild mild",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold"
+      ]
+    },
+    {
+      "frame": "2024-11-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "warm warm insufficient insufficient insufficient insufficient warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "warm warm insufficient insufficient insufficient insufficient warm warm hot warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "warm warm mild mild mild mild warm warm warm warm warm warm warm warm warm warm warm warm mild insufficient mild mild warm warm",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold"
+      ]
+    },
+    {
+      "frame": "2024-12-15",
+      "cols": 24,
+      "rows": 11,
+      "cells": [
+        "cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold cold",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "warm warm insufficient insufficient insufficient insufficient warm warm warm warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "hot warm insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient warm hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "hot hot insufficient insufficient insufficient insufficient insufficient hot hot hot hot hot hot hot hot hot hot insufficient insufficient insufficient insufficient insufficient hot hot",
+        "warm warm insufficient insufficient insufficient insufficient warm hot hot warm warm warm warm warm warm warm warm warm insufficient insufficient insufficient warm warm warm",
+        "warm warm warm warm mild warm warm warm warm warm warm warm warm warm warm warm warm warm warm insufficient warm warm warm warm",
+        "mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild mild",
+        "cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool cool"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "earth-out-loud-app",
+  "private": true,
+  "type": "module",
+  "description": "Static web app. Sound engine (T3) first. Tone.js is pinned exactly; the built file is copied to vendor/ so the app works offline.",
+  "scripts": {
+    "test": "node --test sound/sound.test.mjs player/player.test.mjs player/picture.test.mjs sound/hides.test.mjs qa/qa.test.mjs tools/pwa.test.mjs",
+    "build": "node tools/build_precache.mjs"
+  },
+  "dependencies": {
+    "tone": "15.1.22"
+  },
+  "devDependencies": {
+    "axe-core": "^4.14.0",
+    "jsdom": "^31.0.0"
+  }
+}

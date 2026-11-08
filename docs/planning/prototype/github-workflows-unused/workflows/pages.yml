@@ -1,0 +1,41 @@
+# Publishes the static app to GitHub Pages. Nothing runs until the repo owner pushes to main
+# AND turns on Pages (Settings > Pages > Source: GitHub Actions). It uses only the app/ folder.
+# NOT TESTED: this workflow has never run. Action versions are not verified as current.
+name: Deploy app to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths: ["app/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stage only the files users need
+        run: |
+          mkdir -p _site
+          cp -r app/. _site/
+          rm -rf _site/node_modules _site/tools _site/sound/backup _site/sound/listen.html
+          find _site -name '*.test.mjs' -delete
+          rm -f _site/package.json _site/package-lock.json _site/DEPLOY.md
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

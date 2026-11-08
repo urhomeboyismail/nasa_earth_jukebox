@@ -5,6 +5,7 @@ import fixture from '../../../public/data/fixture/manifest.json'
 import { subscribeContext, type ContextUpdate } from '../../assistant/context'
 import type { Visualization } from '../../data'
 import { expectNoA11yViolations } from '../../test/a11y'
+import { elevationFor, panFor } from '../../audio/pan'
 import { sendPlayerCommand } from './controls'
 import PlayerPage from '.'
 
@@ -29,6 +30,9 @@ const fake = vi.hoisted(() => {
     state: 'idle' as 'idle' | 'playing' | 'paused',
     unlock: async () => {},
     setVolume: (_v: number) => {},
+    setStyle: vi.fn((_style: string) => {}),
+    setSpatial: vi.fn((_mode: string) => {}),
+    renderToWav: vi.fn(async (_steps: unknown[]): Promise<Blob> => new Blob(['wav'])),
     playSequence(steps: Step[], onStep: (i: number) => void) {
       engine.sequences.push(steps)
       engine.steps = steps
@@ -113,9 +117,37 @@ describe('Player: viewing', () => {
   it('shows the image with its alt text, the date written out, the region, the note and the credit', async () => {
     await renderReady()
     expect(screen.getByRole('img', { name: visualization.frames[0].altText })).toBeInTheDocument()
-    expect(screen.getByText('15 January 2024')).toBeInTheDocument()
+    expect(screen.getByText('January 2024')).toBeInTheDocument()
     expect(screen.getByText('Region: Central ocean')).toBeInTheDocument()
     expect(screen.getByText(/Earth Jukebox team/)).toBeInTheDocument()
+  })
+
+  it('describes the date on screen in words, below the picture, and follows the date', async () => {
+    const { user } = await renderReady()
+    const description = screen.getByRole('region', { name: 'Description' })
+    expect(description).toHaveTextContent('January 2024.')
+    expect(description).toHaveTextContent('First date.')
+    screen.getByRole('button', { name: 'Stop' }).focus()
+    await user.keyboard('{ArrowRight}')
+    await tick(0)
+    expect(screen.getByRole('region', { name: 'Description' })).toHaveTextContent('July 2024.')
+    expect(screen.getByRole('region', { name: 'Description' })).toHaveTextContent('Up two steps from January (cold).')
+  })
+
+  it('says the day when the frames are days apart, and only the year when they are years apart', async () => {
+    const withDates = (dates: string[]): Visualization => ({
+      ...visualization,
+      frames: visualization.frames.map((frame, i) => ({ ...frame, date: dates[i] })),
+    })
+    const daily = render(<PlayerPage visualization={withDates(['2024-05-01', '2024-05-02', '2024-05-03', '2024-05-04'])} />)
+    await tick(0)
+    expect(screen.getByText('1 May 2024')).toBeInTheDocument()
+    expect(dateText()).toBe('1 May 2024: cold')
+    daily.unmount()
+    render(<PlayerPage visualization={withDates(['2021-09-15', '2022-09-15', '2023-09-15', '2024-09-15'])} />)
+    await tick(0)
+    expect(screen.getByText('2021')).toBeInTheDocument()
+    expect(dateText()).toBe('2021: cold')
   })
 
   it('hides the region outline from assistive technology', async () => {
@@ -146,7 +178,7 @@ describe('Player: playing', () => {
     expect(fake.sequences[0].map(s => s.atMs)).toEqual([0, 1000, 2000, 3000])
     expect(screen.getByRole('button', { name: 'Pause' })).toBeInTheDocument()
     expect(liveText()).toBe('January 2024: cold')
-    expect(screen.getByText('15 January 2024')).toBeInTheDocument()
+    expect(screen.getByText('January 2024')).toBeInTheDocument()
 
     await tick(1000)
     expect(liveText()).toBe('July 2024: mild')
@@ -156,7 +188,7 @@ describe('Player: playing', () => {
     await tick(1000)
     expect(liveText()).toBe('December 2024: hot')
     await tick(1000)
-    expect(liveText()).toBe('March 2025: no data')
+    expect(liveText()).toBe('March 2025: not enough data')
   })
 
   it('keeps the slider, the image and the sound on the same date throughout', async () => {
@@ -233,7 +265,7 @@ describe('Player: pause, stop, replay', () => {
     await tick(1000)
     await user.click(screen.getByRole('button', { name: 'Replay this date' }))
     await tick(0)
-    expect(fake.sequences.at(-1)).toEqual([{ category: 'mild', atMs: 0 }])
+    expect(fake.sequences.at(-1)).toEqual([expect.objectContaining({ category: 'mild', atMs: 0 })])
     expect(dateText()).toBe('July 2024: mild')
     await tick(5000)
     expect(fake.sequences).toHaveLength(2) // nothing carried on afterwards
@@ -259,7 +291,7 @@ describe('Player: the date slider', () => {
     await user.click(screen.getByRole('button', { name: 'Pause' }))
     await jumpTo(1)
     await tick(0)
-    expect(fake.sequences.at(-1)).toEqual([{ category: 'mild', atMs: 0 }])
+    expect(fake.sequences.at(-1)).toEqual([expect.objectContaining({ category: 'mild', atMs: 0 })])
     expect(screen.getByRole('img')).toHaveAttribute('src', expect.stringContaining('2024-07-15'))
     await tick(5000)
     expect(fake.sequences).toHaveLength(2)
@@ -384,7 +416,7 @@ describe('Player: the voice guide', () => {
     expect(screen.getByRole('slider', { name: 'Date' })).toHaveValue('2')
     act(() => sendPlayerCommand('replay'))
     await tick(0)
-    expect(fake.sequences.at(-1)).toEqual([{ category: 'hot', atMs: 0 }])
+    expect(fake.sequences.at(-1)).toEqual([expect.objectContaining({ category: 'hot', atMs: 0 })])
     act(() => sendPlayerCommand('stop'))
     await tick(0)
     expect(screen.getByRole('slider', { name: 'Date' })).toHaveValue('0')
@@ -456,5 +488,126 @@ describe('Player: vibration', () => {
     await user.click(screen.getByRole('button', { name: 'Play' }))
     await tick(2500)
     expect(vibrate).not.toHaveBeenCalled()
+  })
+})
+
+describe('Player: sound', () => {
+  it('gives every step the stereo pan of the region', async () => {
+    const { user } = await renderReady()
+    await user.click(screen.getByRole('button', { name: 'Play' }))
+    await tick(0)
+    const pan = panFor(visualization.regions[0])
+    expect(fake.sequences[0]).toHaveLength(4)
+    fake.sequences[0].forEach(step => expect(step).toMatchObject({ pan }))
+  })
+
+  it('gives the steps the chord, slide and bell of the date: a jump of two steps slides and rings', async () => {
+    const { user } = await renderReady()
+    await user.click(screen.getByRole('button', { name: 'Play' }))
+    await tick(0)
+    // cold → mild (two steps up): glide and bell. mild → hot: one step... the fixture's results have no shares, so no chord.
+    expect(fake.sequences[0][0]).not.toHaveProperty('glide')
+    expect(fake.sequences[0][1]).toMatchObject({ category: 'mild', glide: true, bell: true })
+  })
+
+  it('has the engine in the full style to begin with, and switches it with the Simple sound toggle', async () => {
+    const { user } = await renderReady()
+    expect(fake.setStyle).toHaveBeenLastCalledWith('full')
+    const toggle = screen.getByRole('button', { name: 'Simple sound' })
+    expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByText('Just the main note, without the chord and slides.')).toBeInTheDocument()
+    await user.click(toggle)
+    expect(fake.setStyle).toHaveBeenLastCalledWith('simple')
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    await user.click(toggle)
+    expect(fake.setStyle).toHaveBeenLastCalledWith('full')
+  })
+
+  it('puts the region in space: each step carries a height, north above and south below', async () => {
+    const { user } = await renderReady()
+    await user.click(screen.getByRole('button', { name: 'Play' }))
+    await tick(0)
+    const elevation = elevationFor(visualization.regions[0])
+    fake.sequences[0].forEach(step => expect(step).toMatchObject({ elevation }))
+  })
+
+  it('has stereo sound to begin with, and switches to 3D with its toggle, which is remembered', async () => {
+    window.localStorage.removeItem('earth-jukebox:spatial-mode')
+    const { user } = await renderReady()
+    expect(fake.setSpatial).toHaveBeenLastCalledWith('stereo')
+    const toggle = screen.getByRole('button', { name: '3D sound (headphones)' })
+    expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByText(/Use headphones/)).toBeInTheDocument()
+    await user.click(toggle)
+    expect(fake.setSpatial).toHaveBeenLastCalledWith('3d')
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    expect(window.localStorage.getItem('earth-jukebox:spatial-mode')).toBe('3d')
+    await user.click(toggle)
+    expect(fake.setSpatial).toHaveBeenLastCalledWith('stereo')
+    window.localStorage.clear()
+  })
+})
+
+describe('Player: download', () => {
+  const createObjectURL = vi.fn(() => 'blob:wav')
+  const revokeObjectURL = vi.fn()
+  let clicked: HTMLAnchorElement[]
+  beforeEach(() => {
+    createObjectURL.mockClear()
+    revokeObjectURL.mockClear()
+    fake.renderToWav.mockReset()
+    fake.renderToWav.mockImplementation(async () => new Blob(['wav']))
+    clicked = []
+    vi.stubGlobal('URL', Object.assign(URL, { createObjectURL, revokeObjectURL }))
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) { clicked.push(this) })
+  })
+  afterEach(() => vi.restoreAllMocks())
+
+  const button = () => screen.getByRole('button', { name: /Download this soundscape|Preparing the audio/ })
+
+  it('renders every date at the current speed and saves it under the visualization and region', async () => {
+    const { user } = await renderReady()
+    await user.click(screen.getByRole('button', { name: 'Fast' }))
+    await user.click(button())
+    await tick(0)
+    const steps = fake.renderToWav.mock.calls[0][0] as { atMs: number; pan: number }[]
+    expect(steps.map(step => step.atMs)).toEqual([0, 500, 1000, 1500])
+    expect(steps[0].pan).toBe(panFor(visualization.regions[0]))
+    expect(clicked[0].download).toBe(`earth-jukebox-${visualization.id}-${visualization.regions[0].id}.wav`)
+    expect(clicked[0].href).toBe('blob:wav')
+    await tick(1000)
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:wav')
+    expect(button()).toHaveTextContent('Download this soundscape (WAV)')
+  })
+
+  it('is disabled and says it is preparing while the audio renders', async () => {
+    let finish!: (blob: Blob) => void
+    fake.renderToWav.mockImplementation(() => new Promise(resolve => { finish = resolve }))
+    const { user } = await renderReady()
+    await user.click(button())
+    expect(button()).toBeDisabled()
+    expect(button()).toHaveTextContent('Preparing the audio…')
+    await act(async () => { finish(new Blob(['wav'])) })
+    expect(button()).toBeEnabled()
+  })
+
+  it('shows an error when the audio cannot be rendered, and can be tried again', async () => {
+    fake.renderToWav.mockRejectedValueOnce(new Error('That is too long to download (over 3 minutes).'))
+    const { user } = await renderReady()
+    await user.click(button())
+    await tick(0)
+    expect(screen.getByRole('alert')).toHaveTextContent('That is too long to download (over 3 minutes).')
+    expect(clicked).toHaveLength(0)
+    expect(button()).toBeEnabled()
+    await user.click(button())
+    await tick(0)
+    expect(clicked).toHaveLength(1)
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('cannot be pressed before the dates are analysed', () => {
+    analyzeAll.mockImplementation(() => new Promise(() => {}))
+    render(<PlayerPage visualization={visualization} />)
+    expect(button()).toBeDisabled()
   })
 })

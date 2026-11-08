@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../public/data/fixture/manifest.json'
 import type { Visualization } from '../data'
-import { analyzePixels, type Pixels } from './analyze'
+import { analyzePixels, gridFromPixels, type Pixels } from './analyze'
 import type { WorkerRequest, WorkerResponse } from './protocol'
+import { scorePixels } from './score'
 
 const visualization = fixture as Visualization
 const region = visualization.regions[0]
@@ -13,7 +14,7 @@ const SOLID: Record<string, [number, number, number]> = {
   '2024-01-15': [0, 0, 255],
   '2024-07-15': [255, 255, 0],
   '2024-12-15': [255, 0, 0],
-  '2025-03-15': [128, 128, 128],
+  '2025-03-15': [200, 200, 200],
 }
 const readPixels = vi.fn(async (url: string): Promise<Pixels> => {
   const [r, g, b] = SOLID[/(\d{4}-\d{2}-\d{2})\.png/.exec(url)![1]]
@@ -76,7 +77,11 @@ class FakeWorker {
     queueMicrotask(async () => {
       if (FakeWorker.failWith) return this.onmessage?.({ data: { id: request.id, error: FakeWorker.failWith } } as MessageEvent<WorkerResponse>)
       const pixels = await readPixels(request.url)
-      const result = analyzePixels(pixels, request.frame, request.region, request.colorScale, request.mapping)
+      const result = request.kind === 'grid'
+        ? gridFromPixels(pixels, request.frame, request.colorScale, request.mapping, request.area)
+        : request.kind === 'frame'
+          ? analyzePixels(pixels, request.frame, request.region, request.colorScale, request.mapping)
+          : scorePixels(pixels, null, { frameId: request.frame.id, colorScale: request.colorScale, mapping: request.change.mapping, area: request.area, noiseFloor: request.change.noiseFloor })
       this.onmessage?.({ data: { id: request.id, result } } as MessageEvent<WorkerResponse>)
     })
   }
