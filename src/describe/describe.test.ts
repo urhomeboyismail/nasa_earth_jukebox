@@ -8,7 +8,7 @@ import type { ChangeVisualization, Contour, FrameAnalysis, FrameGrid, GridCell, 
 import { analyzePixels, gridFromPixels } from '../analysis/analyze'
 import { decodePng } from '../analysis/png'
 import type { CategoryId, Visualization } from '../data'
-import { describeCell, describeCellOverTime, describeChange, describeContour, describeFrame, describePlace, describeSequence, describeSweep } from '.'
+import { describeCell, describeCellOverTime, describeChange, describeContour, describeFrame, describeHidden, describePlace, describeSequence, describeSweep } from '.'
 
 // The globe has twelve monthly frames of 2024, five categories (cold, cool, mild, warm, hot) and a region called
 // "North-east patch": the data the sentences in ticket T69 are written for.
@@ -421,5 +421,19 @@ describe('describePlace and describeCellOverTime (F23)', () => {
     expect(describeCellOverTime(visualization, [{ date: 'A', cell: cell('hot', 27) }, { date: 'B', cell: cell('cold', 3) }])).toContain('falling')
     expect(describeCellOverTime(visualization, [{ date: 'A', cell: cell('mild', 15) }, { date: 'B', cell: cell('mild', 15) }])).toContain('steady')
     expect(describeCellOverTime(visualization, [{ date: 'A', cell: cell('insufficient', null) }])).toBe('This place has not enough data on the date.')
+  })
+})
+
+describe('describeHidden (F33)', () => {
+  it('counts the changes a coarse sound hides and gives one example', () => {
+    const results = resultsFor(['cold', 'cool', 'mild', 'warm', 'hot', 'hot', 'hot', 'hot', 'hot', 'hot', 'hot', 'hot'])
+    const text = describeHidden(visualization, results, [{ from: 0, to: 1 }, { from: 2, to: 3 }], 4)
+    expect(text).toBe('Two of four changes between neighbouring dates sound the same in a coarse sound with three notes. For example January 2024 to February 2024: cold to cool. First the coarse sound, where they match, then the strict sound, where they differ.')
+  })
+
+  it('says when nothing is hidden and when nothing changes', () => {
+    const results = resultsFor(['cold', 'mild', 'hot', 'hot', 'hot', 'hot', 'hot', 'hot', 'hot', 'hot', 'hot', 'hot'])
+    expect(describeHidden(visualization, results, [], 2)).toBe('Every one of the two changes between neighbouring dates is still heard in a coarse sound, so it hides nothing here.')
+    expect(describeHidden(visualization, results, [], 0)).toBe('The dates stay on the same step, so there is no change for a coarse sound to hide.')
   })
 })

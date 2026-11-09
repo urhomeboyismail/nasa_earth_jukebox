@@ -3,6 +3,7 @@
 // guarded by boundary.test.ts).
 
 import type { FrameAnalysis, FrameGrid, GridCell } from '../analysis'
+import type { HiddenChange } from '../audio/coarse'
 import type { Frame, Visualization } from '../data'
 import { dateFormatterFor } from '../dates'
 import type { Detail } from './detail'
@@ -210,6 +211,24 @@ export function describeCell(visualization: Visualization, grid: FrameGrid, col:
   if (cell.category === 'insufficient' || cell.value === null) return `Not enough data${concise ? '' : ' (land, cloud or labels)'}, ${where}.`
   // Concise: "Warm, 21 °C, north-east."
   return `${upperFirst(vocab.label(cell.category))}, ${concise ? '' : 'about '}${withUnit(cell.value, vocab.unit)}, ${where}.`
+}
+
+/**
+ * F33, "What the sound hides": how many of the changes between neighbouring dates a coarse sound would make inaudible, with one example.
+ * `hidden` is from `hiddenChanges` (src/audio/coarse.ts); `changes` is the count of all changes.
+ */
+export function describeHidden(visualization: Visualization, results: FrameAnalysis[], hidden: HiddenChange[], changes: number): string {
+  if (changes === 0) return 'The dates stay on the same step, so there is no change for a coarse sound to hide.'
+  if (hidden.length === 0) return `Every one of the ${word(changes)} ${changes === 1 ? 'change' : 'changes'} between neighbouring dates is still heard in a coarse sound, so it hides nothing here.`
+  const vocab = vocabulary(visualization)
+  const dateOf = (i: number) => {
+    const frame = frameOf(visualization, results[i])
+    return frame ? vocab.formatDate(frame.date) : `date ${i + 1}`
+  }
+  const example = hidden[0]
+  const from = results[example.from].category
+  const to = results[example.to].category
+  return `${upperFirst(word(hidden.length))} of ${word(changes)} ${changes === 1 ? 'change' : 'changes'} between neighbouring dates sound the same in a coarse sound with three notes. For example ${dateOf(example.from)} to ${dateOf(example.to)}: ${vocab.label(from)} to ${vocab.label(to)}. First the coarse sound, where they match, then the strict sound, where they differ.`
 }
 
 /** Where a cell is, for locking on it: "north-east, column 19, row 3". `col` and `row` start at 0. */

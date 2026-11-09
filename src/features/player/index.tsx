@@ -178,6 +178,7 @@ function Player({ visualization }: { visualization: Visualization }) {
         <Button disabled={!player.ready} onClick={player.stop}>Stop</Button>
         <Button disabled={!player.ready} onClick={player.replay}>Replay this date</Button>
         <Button disabled={!player.ready} onClick={() => void player.hearBothWays()}>Hear this date both ways</Button>
+        <Button disabled={!player.ready} onClick={() => void player.hearWhatIsHidden()}>What the sound hides</Button>
         <Button disabled={!player.ready} onClick={() => void player.testSound()}>Test sound</Button>
         <Button disabled={!player.ready || storyOpen} pressed={exploring} onClick={toggleExplorer}>Explore the map</Button>
       </div>
