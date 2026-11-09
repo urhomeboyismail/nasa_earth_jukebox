@@ -74,8 +74,8 @@ Two services: the website on Vercel and the server (voice guide and listening-te
 
 | What | Where | Live URL |
 |---|---|---|
-| Website | Vercel, from `vercel.json` | _fill in after the first deploy_ |
-| Server | Render, from `render.yaml` | _fill in after the first deploy_ |
+| Website | Vercel, from `vercel.json` | https://nasagurusmoonheist.vercel.app/ |
+| Server | Render, from `render.yaml` | https://earth-jukebox-server.onrender.com |
 
 **First deploy**
 1. Render: New → Blueprint → this repository. In the dashboard set the secrets `GEMINI_API_KEY`, `STUDY_EXPORT_TOKEN` (long random text) and `CORS_ORIGINS` (the Vercel URL, no trailing slash). Never put them in a file.
