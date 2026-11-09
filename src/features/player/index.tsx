@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { useAssistantContext } from '../../assistant/context'
-import { AnnouncerProvider, Button, Legend, Notice, Slider } from '../../components'
+import { AnnouncerProvider, Button, Legend, LoadingIndicator, Notice, Slider } from '../../components'
 import type { ChangeVisualization } from '../../analysis'
 import { higherPhrase, variableWords, type Visualization } from '../../data'
 import { describeChange } from '../../describe'
@@ -159,7 +159,7 @@ function Player({ visualization }: { visualization: Visualization }) {
       </details>
 
       {player.error && <Notice variant="error">The sounds could not be prepared. {player.error}</Notice>}
-      {player.loading && <Notice>Analyzing the images…</Notice>}
+      {player.loading && <LoadingIndicator label="Analyzing the images…" />}
       {player.downloadError && <Notice variant="error">The audio could not be prepared. {player.downloadError}</Notice>}
       {player.finished && <Notice>That is the last date. Press Play to hear it again.</Notice>}
 
