@@ -88,4 +88,4 @@ Two services: the website on Vercel and the server (voice guide and listening-te
 ## Git
 
 - Default branch: `main`
-- Remote: `origin` (https://github.com/raghavburtony-creator/nasa.git)
+- Remote: `origin` (https://github.com/urhomeboyismail/nasa.git)
