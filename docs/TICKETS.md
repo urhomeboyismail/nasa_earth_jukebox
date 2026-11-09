@@ -106,7 +106,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [G01](tickets/G01-adk-core.md) | ADK core package: tools, callbacks, action sink, keyless tests | M | agent | — | server-assistant | open |
+| [G01](tickets/G01-adk-core.md) | ADK core package: tools, callbacks, action sink, keyless tests | M | agent | — | server-assistant | claimed: B, 2026-11-10 |
 | [G02](tickets/G02-agent-ask-endpoint.md) | Grounded Ask endpoint on ADK | M | agent | G01 | — | open |
 | [G03](tickets/G03-ask-frontend-agent.md) | Ask front end on the agent, with the offline matcher as fallback | M | agent | — | ask | open |
 | [G04](tickets/G04-voice-on-adk.md) | Voice guide on ADK `run_live`, same browser protocol, behind a switch | L | agent | G01 | server-assistant | open |
