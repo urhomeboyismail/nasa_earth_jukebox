@@ -4,6 +4,8 @@ Written 5 Nov 2026 from [`docs/PLAN.md`](PLAN.md). It replaces the old `docs/tic
 
 **Sound pipeline v2 (added 5 Nov, T111 to T115).** The sound moves from the absolute value to the change from a baseline, in three layers (PLAN.md §6.2). It is built **alongside** the current sound as a new `"change"` style, so the working demo is never at risk. T111 to T113 are pure code that changes nothing a listener hears, so they may start before the cut line, but only after their owners' Must tickets (including those in `docs/PRE-HACKATHON-TICKETS.md`). T114 and T115 come after the cut line. T105 to T107 in `docs/PRE-HACKATHON-TICKETS.md` are superseded by T114.
 
+**UI overhaul (added 9 Nov, T116 to T119).** Four independent restyle tickets, in two files: [`docs/ui-overhaul/UI-A-material-3-expressive.md`](ui-overhaul/UI-A-material-3-expressive.md) (T116 design system, T117 app chrome) and [`docs/ui-overhaul/UI-B-stageshow-craft-and-motion.md`](ui-overhaul/UI-B-stageshow-craft-and-motion.md) (T118 feature pages, T119 Home and demo). They change no behaviour, wait for nothing, and are cut before anything marked Must.
+
 Hand a ticket to your own AI like this:
 
 > Read `AGENTS.md`, `docs/PLAN.md` and ticket `<ID>` in `docs/TICKETS.md`. Do only that ticket (or only its part A or part B), on branch `feature/<ID>-short-name`, and open a PR into `main`.

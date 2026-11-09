@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useId, type CSSProperties } from 'react'
 
 type Props = {
   label: string
@@ -16,6 +16,8 @@ type Props = {
 export function Slider({ label, value, min, max, step = 1, onChange, describe, disabled }: Props) {
   const id = useId()
   const words = describe ? describe(value) : String(value)
+  // How far along the track the value is, for the filled part of the track (styles/components.css).
+  const percent = max > min ? ((value - min) / (max - min)) * 100 : 0
   return (
     <div className="ui-slider">
       <label htmlFor={id} className="ui-slider__label">{label}</label>
@@ -28,6 +30,7 @@ export function Slider({ label, value, min, max, step = 1, onChange, describe, d
         value={value}
         disabled={disabled}
         aria-valuetext={words}
+        style={{ '--pct': `${percent}%` } as CSSProperties}
         onChange={event => onChange(Number(event.currentTarget.value))}
       />
       <output htmlFor={id} className="ui-slider__value">{words}</output>
