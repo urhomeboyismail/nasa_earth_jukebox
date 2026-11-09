@@ -38,6 +38,7 @@ F1 to F13, F15 and F12's ducking are on `main`, as are the dataset picker, legen
 | T85 | Real NASA data | Dhruv + Team leader | 10 Nov (speed), 14 Nov (data) | Must | F16, real `mapArea`, story text, comparisons, speed |
 | ~~T86~~ | ~~Voice guide on ADK~~ Cut 7 Nov after the spike | — | — | Cut | — |
 | T87 | Evidence, write-up and submission | Roni, Team leader, Bhavish, Dhruv | 12 to 15 Nov | Must | F11 evidence, playlist, creative process, README, demo |
+| T88b | Brainstorm merge. **F29 to F32 built 9 Nov** (Test sound, both ways, data table, Ask). Open: F33 "What the sound hides", F34 video and slides on real data. See `docs/planning/MERGE-VERDICT.md` | Mohammad (player, Ask), Roni (Learn, evidence) | F33 after 12 Nov | Should | F29 to F34 |
 | ~~T111~~ | v2: baseline in the manifest, and a synthetic data set with a known change. **Built 7 Nov**; `types.ts` still needs the team leader's review | Dhruv (team leader reviews `types.ts`) | done | Built | F26, PLAN.md §5.1 |
 | T112 | v2: change field and change steps | Team leader | 11 Nov | Should (v2 core) | F27, PLAN.md §5.2, §5.9 |
 | T113 | v2: contour tracing (marching squares) | Bhavish suggested (team leader reviews) | 12 Nov | Should | F18 analysis, PLAN.md §5.9 |

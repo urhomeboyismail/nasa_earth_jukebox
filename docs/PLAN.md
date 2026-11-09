@@ -292,6 +292,19 @@ Rules:
 | F27 | **Change field and change steps**: `readField`, `changeField`, `smoothField`, `summarizeChange`, `changeStep` in `FrameAnalysis` (5.2, 5.9) | Should (v2 core) | Team leader |
 | F28 | **Change sound style**: the change bed and the hiss in the `"change"` style; Compare judges by change step; `describeChange` (6.2) | Should (v2 core) | Team leader + Mohammad + Roni |
 
+**Added by the brainstorm merge (9 Nov; verdicts in `docs/planning/MERGE-VERDICT.md`).** All are deterministic and use no model.
+
+| ID | Feature | Priority | Status |
+|---|---|---|---|
+| F29 | **Test sound**: one plain note, so a listener knows the sound is on before anything plays | Should | Built |
+| F30 | **Hear this date both ways**: the date in the full sound, then the simple sound (restores the chosen style if interrupted) | Should | Built |
+| F31 | **Data table**: one row per date, "No data" never shown as a number; the date slider already has sourced `aria-valuetext` | Should | Built |
+| F32 | **Ask about this data**: cited answers made by rules from the analysis (`src/features/ask/`); "Not in this record." for anything else; no runtime model | Should | Built |
+| F33 | **What the sound hides**: a coarse mapping next to the strict one, so a listener hears what coarse sound loses | Could | Open: needs a coarse style and a listener check |
+| F34 | **Evidence pack**: tester protocol and results note in `docs/evidence/`; 30 s video and 7 slides rebuilt on real data after 13 Nov | Must (with T87) | Protocol copied; n = 0 |
+
+Dropped from the brainstorm: ADK tiers and the audit log, the `story.json` contract, and a live-model Q&A selector.
+
 ### 6.1 The Earth Information Jukebox ensemble
 
 The Jukebox is described as four cooperating roles. They are **roles, not separate AI services**. Three run in the browser as deterministic code and fall under the boundary in 5.8; only the Co-Pilot may use a language model, and it sits outside the boundary.

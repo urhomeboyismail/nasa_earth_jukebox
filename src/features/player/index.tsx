@@ -6,6 +6,7 @@ import type { Visualization } from '../../data'
 import { describeChange } from '../../describe'
 import { Description } from '../../describe/Description'
 import { useDescriptionDetail } from '../../describe/detail'
+import { AskPanel } from '../ask/AskPanel'
 import { ExplorerPanel, ExplorerSurface } from '../explore/Explorer'
 import { useExplorer } from '../explore/useExplorer'
 import { StoryPanel } from '../story/StoryPanel'
@@ -13,6 +14,7 @@ import type { PageProps } from '../types'
 import './player.css'
 import { usePlayer, type Speed } from './usePlayer'
 import { useVibrationSetting, vibrateForDate } from './vibration'
+import { DataTable } from './DataTable'
 import { Viewer } from './Viewer'
 
 const SPEEDS: { id: Speed; label: string }[] = [
@@ -53,6 +55,8 @@ function Player({ visualization }: { visualization: Visualization }) {
   const frame = frames[player.index]
   const playing = player.status === 'playing'
   const [detail] = useDescriptionDetail()
+  // The data table is built only while it is open: a closed <details> still keeps its content in the page.
+  const [tableOpen, setTableOpen] = useState(false)
   const explorer = useExplorer({ visualization, frame, engine: player.engine, vibrate: vibration.enabled })
 
   // Playing the dates takes the sound back from the explorer.
@@ -139,6 +143,15 @@ function Player({ visualization }: { visualization: Visualization }) {
         <p className="player__change">{describeChange(visualization as ChangeVisualization, player.score, { detail })}</p>
       )}
 
+      {player.results && (
+        <details className="player__legend" onToggle={event => setTableOpen(event.currentTarget.open)}>
+          <summary>Show data table</summary>
+          {tableOpen && <DataTable visualization={visualization} results={player.results} formatDate={player.formatDate} />}
+        </details>
+      )}
+
+      {player.results && <AskPanel visualization={visualization} results={player.results} />}
+
       <details className="player__legend">
         <summary>Colour legend</summary>
         <Legend colorScale={visualization.colorScale} mapping={visualization.mapping} variable={visualization.variable} />
@@ -164,6 +177,8 @@ function Player({ visualization }: { visualization: Visualization }) {
         </Button>
         <Button disabled={!player.ready} onClick={player.stop}>Stop</Button>
         <Button disabled={!player.ready} onClick={player.replay}>Replay this date</Button>
+        <Button disabled={!player.ready} onClick={() => void player.hearBothWays()}>Hear this date both ways</Button>
+        <Button disabled={!player.ready} onClick={() => void player.testSound()}>Test sound</Button>
         <Button disabled={!player.ready || storyOpen} pressed={exploring} onClick={toggleExplorer}>Explore the map</Button>
       </div>
 

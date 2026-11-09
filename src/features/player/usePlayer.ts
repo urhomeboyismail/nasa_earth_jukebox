@@ -21,6 +21,9 @@ export type Status = 'idle' | 'playing' | 'paused'
 /** Silence between one traced line and the next. */
 const TRACE_GAP_MS = 600
 
+/** Length of each of the two sounds in "Hear this date both ways". */
+const BOTH_WAYS_MS = 2000
+
 /** Time between dates. */
 export const STEP_MS: Record<Speed, number> = { slow: 1600, normal: 1000, fast: 500 }
 
@@ -128,11 +131,20 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     announce(describeDate(i))
   }, [announce, describeDate])
 
+  /** Set while "Hear this date both ways" has put the engine on a style that is not the listener's own. */
+  const borrowedStyle = useRef(false)
+  const styleRef = useRef(style)
+  useEffect(() => { styleRef.current = style })
+
   const cancelRun = useCallback(() => {
     run.current++
     window.clearTimeout(endTimer.current)
     setTracing(false)
-  }, [])
+    if (borrowedStyle.current) {
+      borrowedStyle.current = false
+      engine?.setStyle(styleRef.current)
+    }
+  }, [engine])
 
   // Silence everything when leaving the page.
   useEffect(() => () => { run.current++; window.clearTimeout(endTimer.current); engine?.stop() }, [engine])
@@ -279,6 +291,50 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     next(0)
   }, [engine, changeOn, score, cancelRun, announce, visualization, detail])
 
+  /** "Test sound" (F29): one plain note, so a listener can tell the sound is on before anything else plays. Needs a click or key press. */
+  const testSound = useCallback(async () => {
+    if (!engine) return
+    cancelRun()
+    const mine = run.current
+    await engine.unlock()
+    if (mine !== run.current) return
+    engine.setVolume(volumeRef.current)
+    engine.stop()
+    setStatus('idle')
+    const middle = mapping.categories[Math.floor(mapping.categories.length / 2)]
+    engine.playSequence([{ category: middle.id, atMs: 0, pan: 0 }], () => {})
+    announce('Test sound played.')
+  }, [engine, mapping, cancelRun, announce])
+
+  /** "Hear this date both ways" (F30): the date on screen in the full sound, then in the simple sound, so the two can be compared. */
+  const hearBothWays = useCallback(async () => {
+    if (!engine || !results) return
+    cancelRun()
+    const mine = run.current
+    await engine.unlock()
+    if (mine !== run.current) return
+    engine.setVolume(volumeRef.current)
+    engine.stop()
+    setStatus('idle')
+    const { pad } = voicingFor(results, index, mapping)
+    const step = { category: results[index].category, atMs: 0, pan: panFor(region), elevation: elevationFor(region) }
+    announce('Full sound, then simple sound.')
+    borrowedStyle.current = true
+    engine.setStyle('full')
+    engine.playSequence([{ ...step, ...(pad && { pad }) }], () => {})
+    endTimer.current = window.setTimeout(() => {
+      if (mine !== run.current) return
+      engine.stop()
+      engine.setStyle('simple')
+      engine.playSequence([step], () => {})
+      endTimer.current = window.setTimeout(() => {
+        // Put the listener's own choice of sound back.
+        borrowedStyle.current = false
+        engine.setStyle(styleRef.current)
+      }, BOTH_WAYS_MS)
+    }, BOTH_WAYS_MS)
+  }, [engine, results, index, mapping, region, cancelRun, announce])
+
   /** Ends a trace at once. */
   const stopTrace = useCallback(() => {
     if (!tracing) return
@@ -347,7 +403,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     engine, region, results, index, status, speed, volume, finished, ready, style, setStyle, changeAvailable, score, tracing, traceWarmEdge, stopTrace, spatial, setSpatial, downloading, downloadError,
     error: engineError || analysisError,
     loading: !engineError && !analysisError && !results,
-    play, pause, stop, replay, goTo, halt, playRange, download, setSpeed, setVolume,
+    play, pause, stop, replay, goTo, halt, playRange, download, setSpeed, setVolume, testSound, hearBothWays,
     describeDate, formatDate,
     categoryAt: (i: number) => results?.[i]?.category ?? null,
   }
