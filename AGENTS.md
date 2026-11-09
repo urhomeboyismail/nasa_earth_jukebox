@@ -66,7 +66,9 @@ Tests sit next to the code (`thing.ts` → `thing.test.ts`) and run with `npm te
   - Below 768 px the main navigation is a bar fixed to the bottom, clear of `env(safe-area-inset-bottom)`. Page content and floating panels (the voice guide, the demo caption) must not be hidden behind it.
   - Say in your PR which widths you checked.
   - The responsive-layout skill (`.claude/skills/responsive-layout/SKILL.md`) has the patterns and a screenshot script. Claude Code reminds you through a hook after layout edits.
-- Claude Code also loads the working rules in `.claude/rules/` (workflow, phases, platform, front end, server, git). Other AI tools: point the agent at that folder.
+- **New features (F36 onward) are built through their own ticket file** (`.claude/rules/tickets.md`). The catalogue is `docs/planning/BRAINSTORM-9NOV.md` §4. To build feature X, claim it in `docs/features/README.md`, write `docs/features/<ID>-<slug>/TICKETS.md` with **as few tickets as possible, each independent of the others**, then run them one at a time. Never edit another feature's ticket file.
+- **Agents ask each other on `docs/AGENT-BOARD.md`.** Need a detail you don't own? Post a request there instead of guessing; at the start of a session, answer open requests addressed to your feature.
+- Claude Code also loads the working rules in `.claude/rules/` (workflow, phases, platform, front end, server, git, tickets). Other AI tools: point the agent at that folder.
 
 ## Deployment
 

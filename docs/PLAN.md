@@ -306,6 +306,20 @@ Rules:
 
 Dropped from the brainstorm: ADK tiers and the audit log, the `story.json` contract, and a live-model Q&A selector.
 
+**Proposed by the 9 Nov brainstorm** ([`docs/planning/BRAINSTORM-9NOV.md`](planning/BRAINSTORM-9NOV.md) §4, where each has a full card). Each is built through its own ticket file in [`docs/features/`](features/README.md) (`.claude/rules/tickets.md`). Status here changes to "Built" when its last ticket merges.
+
+| ID | Feature | Priority | Status |
+|---|---|---|---|
+| F36 | Manifest wording: comparison words ("warmer", "warm edge") come from the manifest, not `src/` | Must (fixes a `phases.md` breach) | Proposed |
+| F37 | Welcome mascot (an original astronaut character) and onboarding: three paths, sound check, per-page help, hosts the demo | Should | Proposed |
+| F38 | Learn teaches the change style, `T` and `L` | Should | Proposed |
+| F39 | Hear the legend on Listen | Should | Proposed |
+| F40 | Deep links (date, cell, style) and Share | Should | Proposed |
+| F41 | Keyboard shortcuts dialog | Should | Proposed |
+| F42 | Opt-in spoken demo caption | Should | Proposed |
+| F43–F50 | Jump to extreme, legend highlight, sound recipe card, text transcript, caption strip, region picker, Jukebox shelf, guide sees the explorer | Could | Proposed |
+| F51–F55 | Service worker, two-date difference, ear-training game, Earth Symphony medley, sound postcards | Later | Proposed |
+
 ### 6.1 The Earth Information Jukebox ensemble
 
 The Jukebox is described as four cooperating roles. They are **roles, not separate AI services**. Three run in the browser as deterministic code and fall under the boundary in 5.8; only the Co-Pilot may use a language model, and it sits outside the boundary.

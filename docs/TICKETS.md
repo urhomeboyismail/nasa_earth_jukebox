@@ -1,5 +1,7 @@
 # Tickets: the work left in the plan
 
+**From 9 Nov, new features (F36 onward) have their own ticket files** in [`docs/features/`](features/README.md), one per feature, written by the feature's owner (`.claude/rules/tickets.md`). This file keeps the T-tickets below.
+
 Written 5 Nov 2026 from [`docs/PLAN.md`](PLAN.md). It replaces the old `docs/tickets/` folder, so it is the only ticket list. It lists only work that is **not built yet**, checked against the code on `main` (`4b3ea13`). Where this file and the plan disagree, fix the plan first.
 
 **Sound pipeline v2 (added 5 Nov, T111 to T115).** The sound moves from the absolute value to the change from a baseline, in three layers (PLAN.md §6.2). It is built **alongside** the current sound as a new `"change"` style, so the working demo is never at risk. T111 to T113 are pure code that changes nothing a listener hears, so they may start before the cut line, but only after their owners' Must tickets (including those in `docs/PRE-HACKATHON-TICKETS.md`). T114 and T115 come after the cut line. T105 to T107 in `docs/PRE-HACKATHON-TICKETS.md` are superseded by T114.
