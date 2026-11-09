@@ -76,3 +76,11 @@
 }
 .player__legend summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 0.25rem; }
 .player__legend[open] .ui-legend { padding-block-end: 1rem; }
+
+/* The data table scrolls inside its own box, so a narrow screen never gets a sideways page scroll. */
+.player__table { overflow-x: auto; max-inline-size: 100%; margin-block-start: 0.5rem; }
+.player__table table { inline-size: 100%; border-collapse: collapse; font-size: 1rem; }
+.player__table caption { text-align: start; padding-block-end: 0.5rem; color: var(--text); }
+.player__table th,
+.player__table td { padding: 0.5rem 0.75rem; border-block-end: 1px solid var(--border); text-align: start; white-space: nowrap; }
+.player__table thead th { color: var(--text-h); }

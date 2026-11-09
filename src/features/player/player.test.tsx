@@ -611,3 +611,49 @@ describe('Player: download', () => {
     expect(button()).toBeDisabled()
   })
 })
+
+describe('Player: test sound, both ways and the data table', () => {
+  it('plays one plain note from "Test sound" and says so', async () => {
+    const { user } = await renderReady()
+    await user.click(screen.getByRole('button', { name: 'Test sound' }))
+    await tick(0)
+    expect(fake.sequences).toHaveLength(1)
+    expect(fake.sequences[0]).toHaveLength(1)
+    expect(liveText()).toBe('Test sound played.')
+  })
+
+  it('plays the date in the full sound, then the simple sound, then puts the chosen sound back', async () => {
+    const { user } = await renderReady()
+    fake.setStyle.mockClear()
+    await user.click(screen.getByRole('button', { name: 'Hear this date both ways' }))
+    await tick(0)
+    expect(liveText()).toBe('Full sound, then simple sound.')
+    expect(fake.setStyle).toHaveBeenLastCalledWith('full')
+    await tick(2000)
+    expect(fake.setStyle).toHaveBeenLastCalledWith('simple')
+    expect(fake.sequences).toHaveLength(2)
+    await tick(2000)
+    expect(fake.setStyle).toHaveBeenLastCalledWith('full')
+  })
+
+  it('puts the chosen sound back when something else interrupts the two sounds', async () => {
+    const { user } = await renderReady()
+    await user.click(screen.getByRole('button', { name: 'Simple sound' }))
+    fake.setStyle.mockClear()
+    await user.click(screen.getByRole('button', { name: 'Hear this date both ways' }))
+    await tick(0)
+    await user.click(screen.getByRole('button', { name: 'Replay this date' }))
+    await tick(0)
+    expect(fake.setStyle).toHaveBeenLastCalledWith('simple')
+  })
+
+  it('shows a data table with one row per date and says missing data is not zero', async () => {
+    const { user } = await renderReady()
+    expect(screen.queryByRole('table')).toBeNull()
+    await user.click(screen.getByText('Show data table'))
+    const table = await screen.findByRole('table')
+    expect(table).toHaveTextContent('It is not zero')
+    expect(screen.getAllByRole('row')).toHaveLength(visualization.frames.length + 1)
+    expect(screen.getByRole('row', { name: /Not enough data/ })).toBeInTheDocument()
+  })
+})
