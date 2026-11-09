@@ -1,5 +1,8 @@
 .about {
   display: grid;
+  /* minmax(0, 1fr), not the default auto: otherwise the tables' 16rem minimum widens the whole column at 320 px and the page
+     scrolls sideways. This way a table scrolls inside its own region instead. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   text-align: left;
   max-inline-size: 70ch;

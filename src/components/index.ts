@@ -1,11 +1,14 @@
-// Shared components (T41). Optional to adopt: nothing else imports them yet.
+// Shared components (T41, restyled in Material 3 Expressive by T51).
 import '../styles/components.css'
 
 export { AnnouncerProvider } from './Announcer'
 export { useAnnounce } from './useAnnounce'
 export { Button } from './Button'
+export { ButtonGroup } from './ButtonGroup'
 export { Card } from './Card'
 export { DatasetPicker } from './DatasetPicker'
+export { IconButton } from './IconButton'
 export { Legend } from './Legend'
+export { LoadingIndicator } from './LoadingIndicator'
 export { Notice } from './Notice'
 export { Slider } from './Slider'

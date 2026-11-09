@@ -9,17 +9,7 @@
 
 .compare__choose { display: grid; gap: 0.25rem; }
 .compare__label { color: var(--text-h); font-weight: 600; }
-.compare select {
-  font: inherit;
-  min-height: var(--control-size);
-  inline-size: 100%;
-  padding: 0 0.75rem;
-  color: var(--text-h);
-  background: var(--bg);
-  border: 1px solid var(--accent-border);
-  border-radius: 0.75rem;
-}
-.compare select:focus-visible,
+/* The selects use the shared outlined field style (.ui-select in src/styles/components.css). */
 .compare input:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
 /* Two dates side by side when there is room, stacked when there is not. */

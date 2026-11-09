@@ -36,19 +36,45 @@
 .player__date { color: var(--text-h); font-size: 1.25rem; }
 .player__region, .player__note, .player__credit { display: block; color: var(--text); font-size: 1rem; overflow-wrap: anywhere; }
 
-/* Controls: the main button first and widest, the rest wrap below on a narrow screen. */
-.player__controls,
-.player__settings,
-.player__speed { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
-.player__controls .ui-button--primary { flex: 1 1 8rem; }
-.player__controls .ui-button { flex: 1 1 8rem; }
+/* Controls. On a phone: Play across the full width (the main action, largest), then Stop and Replay side by side, then
+   Explore the map across the full width, so no label has to wrap inside its button. With room, one row (below). */
+.player__controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+.player__controls .ui-button { padding-inline: 1rem; white-space: nowrap; }
+.player__controls .ui-button--primary,
+.player__controls .ui-button:last-child { grid-column: 1 / -1; }
 
 .player__slider { inline-size: 100%; }
-.player__speed-label { color: var(--text-h); font-weight: 600; margin-inline-end: 0.25rem; }
-.player__settings { align-items: end; justify-content: space-between; gap: 1rem; }
-.player__settings > .ui-slider { flex: 1 1 14rem; }
 
-.player__sound,
+/* Speed and Volume: each label sits above its control, like Date, so the two line up and the speed choices share one row. */
+.player__settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+  gap: 1rem 2rem;
+  align-items: start;
+}
+.player__speed {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+.player__speed .ui-button { padding-inline: 0.75rem; }
+.player__speed-label { grid-column: 1 / -1; color: var(--text-h); font-weight: 600; }
+
+/* Sound options: on a phone each button has its explanation under it, and the groups are spaced apart from each other.
+   With room, each button and its explanation share a row (below). */
+.player__sound {
+  display: grid;
+  gap: 0.375rem;
+  justify-items: start;
+  color: var(--text);
+}
+.player__sound > .ui-button:not(:first-child) { margin-block-start: 0.75rem; }
+.player__sound > .player__style { justify-self: stretch; }
+
 .player__vibration { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; color: var(--text); }
 
 .player__style { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: center; }
@@ -59,9 +85,21 @@
 
 .player__hint { color: var(--text); font-size: 1rem; }
 
-/* With room, controls and the date slider share one row. */
-@container (min-width: 48rem) {
-  .player__controls .ui-button { flex: 0 0 auto; min-inline-size: 7rem; }
+/* With room (about 576 px of player), the four controls share one row, Play still first and widest. */
+@container (min-width: 36rem) {
+  .player__controls { grid-template-columns: 1.5fr 1fr 1fr 1fr; }
+  .player__controls .ui-button--primary,
+  .player__controls .ui-button:last-child { grid-column: auto; }
+
+  .player__sound {
+    grid-template-columns: max-content 1fr;
+    align-items: center;
+    gap: 0.75rem 1rem;
+  }
+  .player__sound > .ui-button:not(:first-child) { margin-block-start: 0; }
+  .player__sound > .player__style { grid-column: 1 / -1; }
+  /* Download has no explanation: its own row, so its width doesn't push the other explanations away from their buttons. */
+  .player__sound > .ui-button:last-child { grid-column: 1 / -1; }
 }
 
 /* The colour legend folds away under the image; the summary is the tap target. */

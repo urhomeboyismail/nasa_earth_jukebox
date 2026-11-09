@@ -5,7 +5,7 @@ import { createSoundEngine, type SoundEngine } from '../../audio'
 import { styleFor, useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
 import { useAssistantContext } from '../../assistant/context'
-import { AnnouncerProvider, Button, Card, Notice } from '../../components'
+import { AnnouncerProvider, Button, Card, LoadingIndicator, Notice } from '../../components'
 import { useAnnounce } from '../../components/useAnnounce'
 import type { Visualization } from '../../data'
 import { describeFrame } from '../../describe'
@@ -182,12 +182,12 @@ function Compare({ visualization }: { visualization: Visualization }) {
       <p>Choose two dates, listen to each, and decide which shows the change.</p>
 
       {(engineError || analysisError) && <Notice variant="error">The sounds could not be prepared. {engineError || analysisError}</Notice>}
-      {!results && !analysisError && !engineError && <Notice>Analyzing the images…</Notice>}
+      {!results && !analysisError && !engineError && <LoadingIndicator label="Analyzing the images…" />}
       {playError && <Notice variant="error">The sound could not be played. {playError}</Notice>}
 
       <div className="compare__choose">
         <label htmlFor="compare-choice" className="compare__label">Comparison</label>
-        <select id="compare-choice" value={choice} onChange={event => choose(event.target.value)}>
+        <select id="compare-choice" className="ui-select" value={choice} onChange={event => choose(event.target.value)}>
           {comparisons.map((c, i) => <option key={c.id} value={c.id}>{`Comparison ${i + 1}`}</option>)}
           <option value={CUSTOM}>Choose my own two dates</option>
         </select>
@@ -198,7 +198,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
           {([['a', 'Date A', frameAId], ['b', 'Date B', frameBId]] as const).map(([which, label, value]) => (
             <div key={which} className="compare__choose">
               <label htmlFor={`compare-date-${which}`} className="compare__label">{label}</label>
-              <select id={`compare-date-${which}`} value={value} onChange={event => pickDate(which, event.target.value)}>
+              <select id={`compare-date-${which}`} className="ui-select" value={value} onChange={event => pickDate(which, event.target.value)}>
                 {frames.map(f => <option key={f.id} value={f.id}>{formatDate(f.date)}</option>)}
               </select>
             </div>
