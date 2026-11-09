@@ -5,7 +5,15 @@
   "description": "Sea surface temperature from NASA's MUR analysis (GHRSST Level 4 MUR Global Foundation Sea Surface Temperature Analysis, v4.1), as drawn by NASA GIBS, for a box about 1.6 degrees across, centred on Mauritius. The island is grey, which the app reads as no data. The picture for 2 February 2023 has no data at all, so the app plays the missing-data sound for it. Temperatures are read from the colours of the maps, so they are about, not exact.",
   "variable": {
     "name": "Sea surface temperature",
-    "unit": "°C"
+    "unit": "°C",
+    "words": {
+      "higher": "warmer",
+      "lower": "cooler",
+      "highest": "warmest",
+      "lowest": "coolest",
+      "edge": "warm edge",
+      "thing": "water"
+    }
   },
   "source": {
     "name": "NASA GIBS, GHRSST Level 4 MUR Global Foundation Sea Surface Temperature Analysis (v4.1)",
