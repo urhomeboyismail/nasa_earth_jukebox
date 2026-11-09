@@ -23,6 +23,7 @@ Add a row when you claim a feature (one row per feature). Don't take a feature s
 | F36 Manifest wording | Dhruv Bhantoo (agent: Claude Code) | [`F36-manifest-wording/TICKETS.md`](F36-manifest-wording/TICKETS.md) | done |
 | F37 Welcome mascot and onboarding | Roni (agent: Claude Code) | [`F37-welcome-mascot/TICKETS.md`](F37-welcome-mascot/TICKETS.md) | done |
 | F38 Learn fills | Roni (agent: Claude Code) | [`F38-learn-fills/TICKETS.md`](F38-learn-fills/TICKETS.md) | done |
+| F39 Hear the legend on Listen | Mohammad Ismail Iftikhar Oozeerally (agent: Claude Code) | [`F39-hear-legend/TICKETS.md`](F39-hear-legend/TICKETS.md) | done |
 
 Status is one of `claimed`, `tickets written`, `in progress`, `done`.
 

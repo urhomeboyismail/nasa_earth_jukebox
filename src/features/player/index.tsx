@@ -156,6 +156,11 @@ function Player({ visualization }: { visualization: Visualization }) {
       <details className="player__legend">
         <summary>Colour legend</summary>
         <Legend colorScale={visualization.colorScale} mapping={visualization.mapping} variable={visualization.variable} />
+        <div className="player__legend-play">
+          <Button disabled={!player.ready} onClick={() => void player.hearLegend()}>
+            Hear the legend, {words.lowest} to {words.highest}
+          </Button>
+        </div>
       </details>
 
       {player.error && <Notice variant="error">The sounds could not be prepared. {player.error}</Notice>}
