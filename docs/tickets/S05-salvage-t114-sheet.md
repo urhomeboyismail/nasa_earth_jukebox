@@ -71,4 +71,37 @@ for p in $(grep -o '`[^`]*\.\(md\|json\|ts\|tsx\)`' docs/tests/t114-listening-ch
 
 ## Result
 
-Not started.
+Branch `feature/S05-t114-sheet`: `d755c87` cherry-picked (clean), then one commit with the corrections below. Only `docs/tests/t114-listening-check.md`, `docs/tickets/S05-salvage-t114-sheet.md`, `docs/TICKETS.md` and `docs/PRE-HACKATHON-WORK.md` change. The sheet still says NOT RUN and has no names.
+
+**Part 1 (12 pairs): all 12 rows matched, no answer changed.** Method: for each pair, take the change step (and, for the temperature column, the category) of both dates from `expected.json` for `regions[0]` (`east-patch`), and compare them by index in the manifest's `changeSteps` and `categories`. "About the same" is equal index, which is the app's rule in `src/features/compare/judge.ts` (same change step when both dates have one, otherwise same category). Ten of the twelve pairs have different change and temperature answers (pairs 4 and 8 agree), as the sheet says. The rule is now written into the sheet.
+
+**Part 2 (six lines): the numbers all matched, but the structure was misleading, and is corrected.** I scored each date with the app's own `scorePixels` on the real PNGs (a throwaway test, deleted, not committed):
+```
+synthetic-change 2024-10-15: +1: x 0.66 to 0.89, mean 0.78      (the only line in the 12 dates)
+mur 2023-03-24: +1: x 0.64 to 1.00, mean 0.81 | +2: x 0.00 to 0.05, mean 0.03
+mur 2023-03-14: +1: x 0.59 to 0.96, mean 0.81
+mur 2023-04-03: +1: x 0.81 to 1.00, mean 0.89 | +2: x 0.04 to 0.22, mean 0.14
+mur 2023-05-23: +1: x 0.38 to 0.77, mean 0.61
+```
+The thirds (left, middle, right) and the averages in the sheet match. What the sheet missed: "Trace the warm edge" plays every line of the date in turn (`traceWarmEdge` in `src/features/player/usePlayer.ts`), +1 first, then +2, so 24 March and 3 April each play two lines, and rows 4 and 6 are one press of 3 April. The sheet now says so, labels each row first or second line, notes that 24 March's first line (+1, right) is not scored, and tells the facilitator to ask about each line.
+
+**Also corrected:**
+- After each line the app says it in words ("runs from the north-west to the east", `describeContour` in `src/describe/change.ts`), which would give the Part 2 answer to a listener with a screen reader. The sheet now says to turn the screen reader off for Part 2.
+- On Compare the style is a toggle button "Change from normal", not Listen's "Sound" group. Both are named in the sheet, with a note that the choice is remembered and must not be "Simple".
+- The link to `docs/TICKETS.md` for "T114 step 7" now points at `docs/archive/TICKETS-pre-v3.md` (and H04 for the run).
+- Control names checked against `src/features/player/index.tsx` and `src/features/compare/index.tsx`: "Sound", "Full", "Change from normal", "Trace the warm edge" (the edge word is "warm edge" by default and explicit for Mauritius).
+- Only October has a line in `synthetic-change`: checked for all 12 dates.
+
+```
+$ npm run lint
+(oxlint: no warnings or errors)
+$ npm test
+ Test Files  64 passed (64)
+      Tests  1203 passed (1203)
+$ npm run build
+✓ built in 362ms
+$ for p in $(grep -o '`[^`]*\.\(md\|json\|ts\|tsx\)`' docs/tests/t114-listening-check.md | tr -d '`' | sort -u); do test -e "$p" || echo "missing: $p"; done
+(no output)
+```
+
+Not done: running the listening test (H03, H04), as the ticket says. The pass rule ("4 of 6" lines) is unchanged, and still counts the six lines in the table.

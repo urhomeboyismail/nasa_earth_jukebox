@@ -51,6 +51,7 @@ Add one line per piece of work, newest last.
 | 9 Nov | I01 One announcer for the whole app: Home, the welcome and the help button now reach the screen-reader live region; Learn announces through it too | `fix/I01-app-announcer` |
 | 9 Nov | S04 (T93) Announcement rate: the player and the sound map change the live region at most once every 1.5 s while busy, the newest message replaces the older one and the last is always spoken; messages built by tested functions in `src/describe/announcements.ts`, within 160 characters (60 when concise) | `feature/S04-announce-rate` |
 | 9 Nov | S03 project README for v3 (what is built, planned and not started; n = 0; AI tools named) and `docs/CREATIVE_PROCESS.md`, with every code claim checked | `feature/S03-readme` |
+| 9 Nov | S05 (T114) Listening sheet for the change-from-normal sound: every answer re-derived from the data, and corrected where the app plays two lines in one trace; still NOT RUN | `feature/S05-t114-sheet` |
 
 ## Outside resources used
 
