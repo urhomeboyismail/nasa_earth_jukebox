@@ -124,7 +124,10 @@ describe('change regression baseline', () => {
 
   it('has an entry for every data set in index.json that has a baseline', () => {
     const catalog = JSON.parse(readFileSync(`${dataDir}/index.json`, 'utf8')) as { id: string }[]
-    const withBaseline = catalog.filter(({ id }) => 'baseline' in JSON.parse(readFileSync(`${dataDir}/${id}/manifest.json`, 'utf8'))).map(({ id }) => id)
+    // `rehearsal-*` folders are git-ignored practice conversions (docs/data-sources.md); they have no recorded Scores to check.
+    const withBaseline = catalog
+      .filter(({ id }) => !id.startsWith('rehearsal-') && 'baseline' in JSON.parse(readFileSync(`${dataDir}/${id}/manifest.json`, 'utf8')))
+      .map(({ id }) => id)
     expect(withBaseline).toEqual(['synthetic-change']) // add a data set with a baseline here, and record its Scores in `cases`
     for (const id of withBaseline) expect(Object.keys(cases).some(key => key.startsWith(`${id}/`)), id).toBe(true)
   })
