@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     # Voice guide (Gemini Live). Live audio is billed per minute and the app has no accounts,
     # so sessions are capped in length and number.
     gemini_live_model: str = "gemini-3.8-live"
+    # The google-genai SDK defaults to "v1", which has no Live endpoint for this model (the handshake
+    # returns HTTP 404). Live models are served on "v1beta", so pin it instead of trusting the default.
+    gemini_api_version: str = "v1beta"
     assistant_max_session_seconds: int = Field(default=600, gt=0)
     assistant_max_sessions: int = Field(default=4, gt=0)
 
