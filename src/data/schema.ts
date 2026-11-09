@@ -93,7 +93,11 @@ export const visualizationSchema = z
     title: nonEmpty,
     summary: z.string(),
     description: z.string(),
-    variable: z.object({ name: nonEmpty, unit: z.string() }),
+    variable: z.object({
+      name: nonEmpty,
+      unit: z.string(),
+      words: z.object({ higher: nonEmpty, lower: nonEmpty, highest: nonEmpty, lowest: nonEmpty, edge: nonEmpty, thing: z.string() }).partial().strict().optional(),
+    }),
     source: z.object({
       name: nonEmpty,
       /** Empty for synthetic data, which has no web page. */

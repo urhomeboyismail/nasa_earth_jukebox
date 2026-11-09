@@ -10,7 +10,7 @@ import { elevationFor, panFor, useSpatialMode } from '../../audio/pan'
 import { styleFor, useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
 import { useAnnounce } from '../../components/useAnnounce'
-import type { Region, SoundMapping, Visualization } from '../../data'
+import { variableWords, type Region, type SoundMapping, type Visualization } from '../../data'
 import { dateFormatterFor } from '../../dates'
 import { describeContour, describeHidden } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
@@ -274,7 +274,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
    */
   const traceWarmEdge = useCallback(async () => {
     if (!engine || !changeOn || !score) return
-    if (!score.contours.length) { announce('There is no warm edge on this date.'); return }
+    if (!score.contours.length) { announce(`There is no ${variableWords(visualization.variable).edge} on this date.`); return }
     cancelRun()
     const mine = run.current
     await engine.unlock()

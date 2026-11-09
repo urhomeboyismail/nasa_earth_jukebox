@@ -49,6 +49,7 @@ Start from `scripts/templates/manifest.template.json`. Every `TODO` is something
 | `id` | person | The folder name under `public/data/`; also the id in `index.json` |
 | `title`, `summary`, `description` | person | Written in plain language from the source page |
 | `variable.name`, `variable.unit` | person | The source page or colour bar label |
+| `variable.words` (optional) | person | The words the app uses to compare values, for a data set that is not a temperature. Any of `higher` ("warmer"), `lower` ("cooler"), `highest` ("warmest"), `lowest` ("coolest"), `edge` ("warm edge", the line the change style traces) and `thing` ("water", what a date shows more of; may be empty, so `higher: "more ice"` reads "which date shows more ice"). Missing words use the ones in brackets, so every data set without the field reads as before |
 | `source.name`, `source.url`, `source.credit`, `source.license` | person | Copied exactly from the source page. `url` is empty only for made-up data |
 | `source.retrievedOn` | person | The day the frames were downloaded, YYYY-MM-DD |
 | `colorScale.stops` | converter, from `legend.json` | Read off the colour bar, in order of value, each stop's colour exactly as in the image |

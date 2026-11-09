@@ -4,6 +4,7 @@ import { catalogSchema, describeIssues, visualizationSchema } from './schema'
 import type { CatalogEntry, Visualization } from './types'
 
 export type * from './types'
+export { DEFAULT_WORDS, higherPhrase, variableWords } from './words'
 
 /** Content data could not be loaded or is not valid. The message names the file. */
 export class DataError extends Error {
