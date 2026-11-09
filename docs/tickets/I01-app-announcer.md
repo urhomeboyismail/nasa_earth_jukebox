@@ -32,11 +32,11 @@ One `AnnouncerProvider` wraps the whole app. Every `useAnnounce()` call reaches 
 
 ## Touches
 
-- `src/App.tsx`: wrap the returned fragment (lines 167 to 230) in `AnnouncerProvider`. Review: Mohammad.
-- `src/features/player/index.tsx`: remove the wrapper at line 42, keep its child. Review: Mohammad.
-- `src/features/compare/index.tsx`: remove the wrapper at line 39, keep its child. Review: Mohammad.
-- `src/features/learn/index.tsx`: replace the paragraph at line 251 with `useAnnounce`. Review: Roni.
-- `src/features/welcome/Welcome.tsx`: remove the `role="status"` at line 165. Keep the visible text. Review: Roni.
+- `src/App.tsx`: wrap the returned fragment (lines 167 to 230) in `AnnouncerProvider`.
+- `src/features/player/index.tsx`: remove the wrapper at line 42, keep its child.
+- `src/features/compare/index.tsx`: remove the wrapper at line 39, keep its child.
+- `src/features/learn/index.tsx`: replace the paragraph at line 251 with `useAnnounce`.
+- `src/features/welcome/Welcome.tsx`: remove the `role="status"` at line 165. Keep the visible text.
 - `src/App.test.tsx`: the new tests.
 
 ## Steps
@@ -66,7 +66,6 @@ Not applicable: no sound or visual change. Every announcement still goes through
 - Both new tests fail on `main` and pass on the branch. Their output is in the Result.
 - `grep -rn "AnnouncerProvider" src` shows one use, in `src/App.tsx`.
 - Learn and Welcome no longer carry their own status messages for announcements.
-- Mohammad has reviewed `App.tsx`, Listen and Compare. Roni has reviewed Learn and Welcome.
 - `npm run lint && npm test && npm run build` pass.
 
 ## Checks
@@ -93,7 +92,7 @@ Changed:
 - `src/features/welcome/Welcome.tsx`: `role="status"` removed from the "not heard" hint; the announcement at the event handler is unchanged.
 - `src/App.test.tsx`: the three new tests.
 
-Outside the ticket's Touches, and needed because of the change: the page tests that render `PlayerPage`, `ComparePage` and `LearnPage` directly relied on each page supplying its own provider. They now pass `{ wrapper: AnnouncerProvider }` to `render`, which is what the app root now does (`compare.test.tsx`, `Explorer.test.tsx`, `learn.test.tsx`, `change.test.tsx`, `player.test.tsx`; no assertion changed). One assertion in `src/App.test.tsx` changed: the "data set was not found" test used `getByRole('status')`, which now matches the app's live region as well, so it finds the notice by its text and checks that it sits in a `role="status"` element. Reviewers: Mohammad (App, Listen, Compare tests), Roni (Learn, Welcome).
+Outside the ticket's Touches, and needed because of the change: the page tests that render `PlayerPage`, `ComparePage` and `LearnPage` directly relied on each page supplying its own provider. They now pass `{ wrapper: AnnouncerProvider }` to `render`, which is what the app root now does (`compare.test.tsx`, `Explorer.test.tsx`, `learn.test.tsx`, `change.test.tsx`, `player.test.tsx`; no assertion changed). One assertion in `src/App.test.tsx` changed: the "data set was not found" test used `getByRole('status')`, which now matches the app's live region as well, so it finds the notice by its text and checks that it sits in a `role="status"` element.
 
 `grep -rn "AnnouncerProvider" src` (non-test) shows the definition, the export, and one use in `src/App.tsx`.
 
@@ -129,5 +128,3 @@ $ npx vitest run src/App.test.tsx src/features/welcome src/features/help src/fea
  Test Files  4 passed (4)
       Tests  87 passed (87)
 ```
-
-Not done: the reviews by Mohammad and Roni ("Done when").
