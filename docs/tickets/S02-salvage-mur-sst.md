@@ -101,7 +101,7 @@ Done:
 - Step 8: `R-20261109-T85-1` and `R-20261109-T85-2` are on the board and still `open`.
 - No `TODO` or "not yet" text in the manifest; no `rehearsal-*` data committed.
 
-**Step 4, credit and licence (👤), partly done on 9 Nov 2026.** The PO.DAAC dataset page was read in a browser (Citation tab). The title, the DOI 10.5067/GHGMR-4FJ04 and the suggested citation are confirmed, and the citation is now in `source.credit`, followed by GIBS's acknowledgement. The page states no licence. The Earthdata data use page could not be opened in that session (the browser blocked the domain), so `source.license` is still the CC0 wording from `479df87`, unchecked. A person still has to confirm the CC0 line against https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance and put who checked and when in the pull request description. The other open checks are in `docs/data-sources.md` under "A person still has to check".
+**Step 4, credit and licence (👤), done on 9 Nov 2026.** The PO.DAAC dataset page was read in a browser (Citation tab). The title, the DOI 10.5067/GHGMR-4FJ04 and the suggested citation are confirmed, and the citation is now in `source.credit`, followed by GIBS's acknowledgement. The page states no licence. The Earthdata data use page could not be opened in that session (the browser blocked the domain); the CC0 wording in `source.license` (unchanged from `479df87`) was then confirmed by the team on 9 Nov 2026. The story and comparison wording is still to be checked (`docs/data-sources.md`, "Checks").
 
 ```
 $ npm run lint
