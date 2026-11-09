@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
@@ -21,8 +21,10 @@ describe('installable on a phone (T120)', () => {
   })
 
   it('points at icon files that exist', () => {
-    for (const icon of manifest.icons) expect(existsSync(`${root}/public${icon.src}`), icon.src).toBe(true)
-    expect(existsSync(`${root}/public/icons/apple-touch-icon.png`)).toBe(true)
+    // A PNG starts with its signature, so this also checks the file is a real image and not empty.
+    const isPng = (path: string) => Array.from(readFileSync(`${root}/public${path}`).subarray(1, 4)).join() === [80, 78, 71].join()
+    for (const icon of manifest.icons) expect(isPng(icon.src), icon.src).toBe(true)
+    expect(isPng('/icons/apple-touch-icon.png')).toBe(true)
   })
 
   it('links the manifest, the theme colour and the iOS icon from the page', () => {
