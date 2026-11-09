@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { useAssistantContext } from '../../assistant/context'
-import { AnnouncerProvider, Button, Legend, LoadingIndicator, Notice, Slider, useAnnounce } from '../../components'
+import { Button, Legend, LoadingIndicator, Notice, Slider, useAnnounce } from '../../components'
 import type { ChangeVisualization } from '../../analysis'
 import { higherPhrase, variableWords, type Visualization } from '../../data'
 import { describeChange } from '../../describe'
@@ -42,9 +42,7 @@ const spaceActivates = (target: EventTarget) =>
 export default function PlayerPage({ visualization }: PageProps) {
   if (!visualization) return <p>Loading the data…</p>
   return (
-    <AnnouncerProvider>
-      <Player key={visualization.id} visualization={visualization} />
-    </AnnouncerProvider>
+    <Player key={visualization.id} visualization={visualization} />
   )
 }
 

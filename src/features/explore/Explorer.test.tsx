@@ -8,6 +8,7 @@ import type { Visualization } from '../../data'
 import { describeCell, describeSweep } from '../../describe'
 import { expectNoA11yViolations } from '../../test/a11y'
 import PlayerPage from '../player'
+import { AnnouncerProvider } from '../../components'
 
 const visualization = fixture as Visualization
 const COLS = 24
@@ -70,7 +71,7 @@ afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); localStorage.clear(
 /** The player with the explorer turned on and the map read. The cursor starts in the middle: column 13, row 7. */
 async function exploring() {
   const user = userEvent.setup({ delay: null })
-  const view = render(<PlayerPage visualization={visualization} />)
+  const view = render(<PlayerPage visualization={visualization} />, { wrapper: AnnouncerProvider })
   await tick(0)
   await user.click(screen.getByRole('button', { name: 'Explore the map' }))
   await tick(0)
@@ -85,7 +86,7 @@ describe('Explorer: turning it on and off', () => {
     let finish!: (value: FrameGrid) => void
     analyzeGrid.mockImplementation(() => new Promise(resolve => { finish = resolve }))
     const user = userEvent.setup({ delay: null })
-    render(<PlayerPage visualization={visualization} />)
+    render(<PlayerPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     await tick(0)
     expect(screen.queryByRole('application')).toBeNull()
     const toggle = screen.getByRole('button', { name: 'Explore the map' })
@@ -101,7 +102,7 @@ describe('Explorer: turning it on and off', () => {
 
   it('unlocks the audio in the click and pauses a running player', async () => {
     const user = userEvent.setup({ delay: null })
-    render(<PlayerPage visualization={visualization} />)
+    render(<PlayerPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     await tick(0)
     await user.click(screen.getByRole('button', { name: 'Play' }))
     await tick(0)
@@ -125,7 +126,7 @@ describe('Explorer: turning it on and off', () => {
   it('is laid over the map area only, when the data names one', async () => {
     const user = userEvent.setup({ delay: null })
     const withArea: Visualization = { ...visualization, mapArea: { x0: 0.1, y0: 0.2, x1: 0.9, y1: 0.8 } }
-    render(<PlayerPage visualization={withArea} />)
+    render(<PlayerPage visualization={withArea} />, { wrapper: AnnouncerProvider })
     await tick(0)
     await user.click(screen.getByRole('button', { name: 'Explore the map' }))
     await tick(0)
@@ -344,7 +345,7 @@ describe('Explorer: keys at the edges', () => {
   it('does nothing, and throws nothing, for keys pressed before the map has loaded', async () => {
     analyzeGrid.mockImplementation(() => new Promise(() => {}))
     const user = userEvent.setup({ delay: null })
-    render(<PlayerPage visualization={visualization} />)
+    render(<PlayerPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     await tick(0)
     await user.click(screen.getByRole('button', { name: 'Explore the map' }))
     expect(surface()).toHaveFocus()
@@ -574,7 +575,7 @@ describe('Explorer: failure and vibration', () => {
   it('shows an error if the map cannot be read, and the player still works', async () => {
     analyzeGrid.mockRejectedValue(new Error('The picture could not be loaded.'))
     const user = userEvent.setup({ delay: null })
-    render(<PlayerPage visualization={visualization} />)
+    render(<PlayerPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     await tick(0)
     await user.click(screen.getByRole('button', { name: 'Explore the map' }))
     await tick(0)
@@ -699,7 +700,7 @@ describe('Explorer: opened by a link (F40)', () => {
 
   it('opens the map on the cell the link names, and makes no sound', async () => {
     open('#listen?cell=5,3')
-    render(<PlayerPage visualization={visualization} />)
+    render(<PlayerPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     await tick(0)
     expect(surface()).toBeInTheDocument()
     expect(column()).toBe('5')
@@ -712,7 +713,7 @@ describe('Explorer: opened by a link (F40)', () => {
   it('unlocks the audio on the first key press, and sounds the cell it lands on', async () => {
     open('#listen?cell=5,3')
     const user = userEvent.setup({ delay: null })
-    render(<PlayerPage visualization={visualization} />)
+    render(<PlayerPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     await tick(0)
     await user.keyboard('{ArrowRight}')
     await tick(300)
@@ -729,7 +730,7 @@ describe('Explorer: opened by a link (F40)', () => {
   it('does not take Escape for the first press: that stops sound, it does not start it', async () => {
     open('#listen?cell=5,3')
     const user = userEvent.setup({ delay: null })
-    render(<PlayerPage visualization={visualization} />)
+    render(<PlayerPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     await tick(0)
     await user.keyboard('{Escape}')
     await tick(300)
@@ -739,7 +740,7 @@ describe('Explorer: opened by a link (F40)', () => {
 
   it('falls back to the middle of the map when the cell is not on it, and still opens', async () => {
     open('#listen?cell=99,99')
-    render(<PlayerPage visualization={visualization} />)
+    render(<PlayerPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     await tick(0)
     expect(surface()).toBeInTheDocument()
     expect(column()).toBe(String(START.col))
@@ -747,7 +748,7 @@ describe('Explorer: opened by a link (F40)', () => {
   })
 
   it('opens on a cell from a link pasted while Listen is already showing', async () => {
-    render(<PlayerPage visualization={visualization} />)
+    render(<PlayerPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     await tick(0)
     expect(screen.queryByRole('application')).toBeNull()
     act(() => {
@@ -764,7 +765,7 @@ describe('Explorer: opened by a link (F40)', () => {
   it('puts the cell in the address once the map has been read, and takes it out when the map is closed', async () => {
     open('#listen')
     const user = userEvent.setup({ delay: null })
-    render(<PlayerPage visualization={visualization} />)
+    render(<PlayerPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     await tick(0)
     await user.click(screen.getByRole('button', { name: 'Explore the map' }))
     await tick(0)

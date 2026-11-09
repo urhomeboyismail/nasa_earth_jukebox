@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { hasChange } from '../../analysis/available'
 import type { Contour } from '../../analysis'
-import { Button, Card, Notice } from '../../components'
+import { Button, Card, Notice, useAnnounce } from '../../components'
 import { createSoundEngine, type SequenceStep, type SoundEngine } from '../../audio'
 import { useSoundStyle } from '../../audio/style'
 import { variableWords, type CategoryId, type SoundMapping } from '../../data'
@@ -53,7 +53,7 @@ function useEngine(mapping: SoundMapping | undefined): { engine: SoundEngine | n
 export default function LearnPage({ visualization }: PageProps) {
   const { engine, error } = useEngine(visualization?.mapping)
   const [playingAll, setPlayingAll] = useState(false)
-  const [lastPlayed, setLastPlayed] = useState('')
+  const announce = useAnnounce()
   const [style] = useSoundStyle()
   const [detail] = useDescriptionDetail()
   // Learn teaches the notes of "full" and "simple"; the change style is not taught here, so it plays as "full".
@@ -78,7 +78,7 @@ export default function LearnPage({ visualization }: PageProps) {
     // The listener's own style first: the change cards borrow the change style, and must not leave it on for the others.
     engine.setStyle(style === 'change' ? 'full' : style)
     action(engine)
-    setLastPlayed(label)
+    announce(`Playing ${label}.`)
   }
 
   function playAll() {
@@ -109,7 +109,7 @@ export default function LearnPage({ visualization }: PageProps) {
       engine.setStyle('change')
       setPlayingAll(true)
       engine.playSequence(steps, index => {
-        setLastPlayed(`${mapping.changeSteps?.[index]?.label ?? 'a step'}`)
+        announce(`Playing ${mapping.changeSteps?.[index]?.label ?? 'a step'}.`)
         if (index === steps.length - 1) window.setTimeout(() => setPlayingAll(false), PLAY_ALL_GAP_MS)
       }, { tick: false })
     })
@@ -247,8 +247,6 @@ export default function LearnPage({ visualization }: PageProps) {
         <Button variant="primary" disabled={!engine} onClick={playAll}>Play all, {words.lowest} to {words.highest}</Button>
         <Button disabled={!engine || !playingAll} onClick={stop}>Stop</Button>
       </div>
-
-      <p role="status" className="sr-only">{lastPlayed && `Playing ${lastPlayed}.`}</p>
 
       <p>
         Ready? <a className="learn__next" href={hashFor('listen', { data: currentDataParam() })}>Go to Listen</a>

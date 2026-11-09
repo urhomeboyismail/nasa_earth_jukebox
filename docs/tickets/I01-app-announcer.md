@@ -84,4 +84,50 @@ npx vitest run src/App.test.tsx src/features/welcome src/features/help src/featu
 
 ## Result
 
-Not started.
+Branch `fix/I01-app-announcer`.
+
+Changed:
+- `src/App.tsx`: the returned fragment is wrapped in one `AnnouncerProvider`.
+- `src/features/player/index.tsx`, `src/features/compare/index.tsx`: their own wrappers removed.
+- `src/features/learn/index.tsx`: the `role="status"` paragraph and the `lastPlayed` state are gone; the two handlers that set it now call `announce("Playing ...")` (same text as before).
+- `src/features/welcome/Welcome.tsx`: `role="status"` removed from the "not heard" hint; the announcement at the event handler is unchanged.
+- `src/App.test.tsx`: the three new tests.
+
+Outside the ticket's Touches, and needed because of the change: the page tests that render `PlayerPage`, `ComparePage` and `LearnPage` directly relied on each page supplying its own provider. They now pass `{ wrapper: AnnouncerProvider }` to `render`, which is what the app root now does (`compare.test.tsx`, `Explorer.test.tsx`, `learn.test.tsx`, `change.test.tsx`, `player.test.tsx`; no assertion changed). One assertion in `src/App.test.tsx` changed: the "data set was not found" test used `getByRole('status')`, which now matches the app's live region as well, so it finds the notice by its text and checks that it sits in a `role="status"` element. Reviewers: Mohammad (App, Listen, Compare tests), Roni (Learn, Welcome).
+
+`grep -rn "AnnouncerProvider" src` (non-test) shows the definition, the export, and one use in `src/App.tsx`.
+
+`grep -rn 'role="status"' src --include='*.tsx'` (non-test):
+```
+src/App.tsx:224               Suspense fallback "Loading…"
+src/VoiceAssistant.tsx:86     voice guide status (left for V03)
+src/components/Announcer.tsx:19   the live region itself
+src/components/LoadingIndicator.tsx:14   shared loading indicator (existing)
+src/features/welcome/Welcome.tsx:151   "The sounds are still loading" (existing loading message)
+```
+The last two are loading messages that were already there, not announcements, and were left alone.
+
+New tests on `main` before the change (the accessibility test passes there, as it guards against a regression):
+```
+ × says so when the help button turns Echo off
+ × says so when the welcome is skipped
+TestingLibraryElementError: Unable to find an element with the text: Echo is off., which matches selector '[role="status"]'.
+TestingLibraryElementError: Unable to find an element with the text: Welcome skipped., which matches selector '[role="status"]'.
+ Tests  2 failed | 27 passed (29)
+```
+
+After the change:
+```
+$ npm run lint
+(oxlint: no warnings or errors)
+$ npm test
+ Test Files  62 passed (62)
+      Tests  1169 passed (1169)
+$ npm run build
+✓ built in 413ms
+$ npx vitest run src/App.test.tsx src/features/welcome src/features/help src/features/learn
+ Test Files  4 passed (4)
+      Tests  87 passed (87)
+```
+
+Not done: the reviews by Mohammad and Roni ("Done when").

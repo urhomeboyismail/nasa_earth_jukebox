@@ -6,6 +6,7 @@ import synthetic from '../../../public/data/synthetic-change/manifest.json'
 import type { Visualization } from '../../data'
 import { expectNoA11yViolations } from '../../test/a11y'
 import LearnPage from '.'
+import { AnnouncerProvider } from '../../components'
 
 const visualization = fixture as Visualization
 
@@ -33,13 +34,13 @@ beforeEach(() => {
 
 describe('Learn page', () => {
   it('shows a loading message until the data arrives', () => {
-    render(<LearnPage visualization={null} />)
+    render(<LearnPage visualization={null} />, { wrapper: AnnouncerProvider })
     expect(screen.getByText(/Loading the sounds/)).toBeInTheDocument()
     expect(createSoundEngine).not.toHaveBeenCalled()
   })
 
   it('has one button per category, each saying what it plays, plus the tick and the missing-data cue', () => {
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     for (const category of visualization.mapping.categories) {
       expect(screen.getByRole('button', { name: `Play: ${category.label}` })).toBeEnabled()
       expect(screen.getByText(new RegExp(`Plays the note ${category.note}`))).toBeInTheDocument()
@@ -50,19 +51,19 @@ describe('Learn page', () => {
   })
 
   it('gives each category its temperature range from the data, not typed by hand', () => {
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     expect(screen.getByText(/0 to 6 °C/)).toBeInTheDocument()
     expect(screen.getByText(/24 to 30 °C/)).toBeInTheDocument()
   })
 
   it('unlocks the sound before the first sound, then plays that category', async () => {
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     await userEvent.click(screen.getByRole('button', { name: 'Play: Warm' }))
     expect(calls.filter(c => c !== 'stop')).toEqual(['unlock', 'category:warm'])
   })
 
   it('plays the tick and the missing-data cue', async () => {
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     await userEvent.click(screen.getByRole('button', { name: 'Play: the tick' }))
     await userEvent.click(screen.getByRole('button', { name: 'Play: missing data' }))
     expect(engine.playTick).toHaveBeenCalledTimes(1)
@@ -70,7 +71,7 @@ describe('Learn page', () => {
   })
 
   it('works by keyboard alone', async () => {
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     await userEvent.tab()
     expect(screen.getByRole('button', { name: 'Play: Cold' })).toHaveFocus()
     await userEvent.keyboard('{Enter}')
@@ -81,7 +82,7 @@ describe('Learn page', () => {
   })
 
   it('plays all sounds from coolest to warmest, with a gap between them', async () => {
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     await userEvent.click(screen.getByRole('button', { name: 'Play all, coolest to warmest' }))
     const steps = engine.playSequence.mock.calls[0][0] as { category: string; atMs: number }[]
     expect(steps.map(step => step.category)).toEqual(['cold', 'cool', 'mild', 'warm', 'hot'])
@@ -89,7 +90,7 @@ describe('Learn page', () => {
   })
 
   it('has a Stop button that is enabled only while "Play all" runs and silences the sounds', async () => {
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     const stop = screen.getByRole('button', { name: 'Stop' })
     expect(stop).toBeDisabled()
     await userEvent.click(screen.getByRole('button', { name: 'Play all, coolest to warmest' }))
@@ -101,12 +102,12 @@ describe('Learn page', () => {
   })
 
   it('links on to Listen', () => {
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     expect(screen.getByRole('link', { name: 'Go to Listen' })).toHaveAttribute('href', '#listen')
   })
 
   it('silences the sounds when the page is left', () => {
-    const { unmount } = render(<LearnPage visualization={visualization} />)
+    const { unmount } = render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     engine.stop.mockClear()
     unmount()
     expect(engine.stop).toHaveBeenCalled()
@@ -114,13 +115,13 @@ describe('Learn page', () => {
 
   it('says what went wrong, and disables playing, when the sounds cannot be set up', () => {
     createSoundEngine.mockImplementation(() => { throw new Error('Category "cool" (D4) must sound higher than the category before it.') })
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     expect(screen.getByRole('alert')).toHaveTextContent(/could not be set up.*must sound higher/)
     expect(screen.getByRole('button', { name: 'Play: Cold' })).toBeDisabled()
   })
 
   it('has no accessibility violations', async () => {
-    const { container } = render(<main><h1>Learn the sounds</h1><LearnPage visualization={visualization} /></main>)
+    const { container } = render(<main><h1>Learn the sounds</h1><LearnPage visualization={visualization} /></main>, { wrapper: AnnouncerProvider })
     await expectNoA11yViolations(container)
   })
 })
@@ -129,7 +130,7 @@ describe('Learn page: the chord, the slide and the bell', () => {
   afterEach(() => { localStorage.clear(); window.location.hash = '' })
 
   it('has a card for each, with its explanation', () => {
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     for (const title of ['The soft chord underneath', 'The slide', 'The bell']) {
       expect(screen.getByRole('heading', { level: 2, name: title })).toBeInTheDocument()
     }
@@ -139,7 +140,7 @@ describe('Learn page: the chord, the slide and the bell', () => {
   })
 
   it('plays a single deep note for "all warm", and the chord of cool, mild and warm for "mixed"', async () => {
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     await userEvent.click(screen.getByRole('button', { name: 'Play: all warm' }))
     expect(engine.playCategory).toHaveBeenLastCalledWith('warm', { pad: ['warm'] })
     await userEvent.click(screen.getByRole('button', { name: 'Play: mixed' }))
@@ -147,7 +148,7 @@ describe('Learn page: the chord, the slide and the bell', () => {
   })
 
   it('plays cool then hot with the slide on the second note, and no tick', async () => {
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     await userEvent.click(screen.getByRole('button', { name: 'Play: the slide' }))
     const [steps, , options] = engine.playSequence.mock.calls[0] as unknown as [{ category: string; atMs: number; glide?: boolean; bell?: boolean }[], unknown, unknown]
     expect(steps.map(step => step.category)).toEqual(['cool', 'hot'])
@@ -159,7 +160,7 @@ describe('Learn page: the chord, the slide and the bell', () => {
   })
 
   it('plays cool then hot with the bell on the second note', async () => {
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     await userEvent.click(screen.getByRole('button', { name: 'Play: the bell' }))
     const [steps] = engine.playSequence.mock.calls[0] as unknown as [{ category: string; glide?: boolean; bell?: boolean }[]]
     expect(steps.map(step => step.category)).toEqual(['cool', 'hot'])
@@ -169,20 +170,20 @@ describe('Learn page: the chord, the slide and the bell', () => {
 
   it('finds the notes by position, so it works for a data set with two categories', async () => {
     const two: Visualization = { ...visualization, mapping: { ...visualization.mapping, categories: [visualization.mapping.categories[0], visualization.mapping.categories[2]] } }
-    render(<LearnPage visualization={two} />)
+    render(<LearnPage visualization={two} />, { wrapper: AnnouncerProvider })
     await userEvent.click(screen.getByRole('button', { name: 'Play: mixed' }))
     expect(engine.playCategory).toHaveBeenLastCalledWith('mild', { pad: ['cold', 'mild'] })
   })
 
   it('unlocks the sound first, like every other button', async () => {
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     await userEvent.click(screen.getByRole('button', { name: 'Play: the bell' }))
     expect(calls.filter(c => c !== 'stop')).toEqual(['unlock', 'sequence'])
   })
 
   it('hides the three cards in the simple style, and says only the main note is heard', () => {
     localStorage.setItem('earth-jukebox:sound-style', 'simple')
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     expect(screen.getByText('Simple sound is on: you hear only the main note.')).toBeInTheDocument()
     for (const title of ['The soft chord underneath', 'The slide', 'The bell']) {
       expect(screen.queryByRole('heading', { name: title })).toBeNull()
@@ -193,7 +194,7 @@ describe('Learn page: the chord, the slide and the bell', () => {
 
   it('sets the engine to the remembered style', () => {
     localStorage.setItem('earth-jukebox:sound-style', 'simple')
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     expect(engine.setStyle).toHaveBeenLastCalledWith('simple')
   })
 })
@@ -202,7 +203,7 @@ describe('Learn page: explore the map', () => {
   afterEach(() => { window.location.hash = '' })
 
   it('says what the explorer does, its keys, and the sliders for phones', () => {
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     expect(screen.getByRole('heading', { level: 2, name: 'Explore the map' })).toBeInTheDocument()
     expect(screen.getByText(/Arrow keys move one place/)).toBeInTheDocument()
     expect(screen.getByText(/Enter plays the row from west to east/)).toBeInTheDocument()
@@ -211,7 +212,7 @@ describe('Learn page: explore the map', () => {
 
   it('links to Listen, and keeps the chosen data set', () => {
     window.location.hash = '#learn?data=synthetic-globe'
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     expect(screen.getByRole('link', { name: 'Try Explore the map on Listen' })).toHaveAttribute('href', '#listen?data=synthetic-globe')
     expect(screen.getByRole('link', { name: 'Go to Listen' })).toHaveAttribute('href', '#listen?data=synthetic-globe')
   })
@@ -221,7 +222,7 @@ describe('Learn page: the change style, the edge trace and the lock key (F38)', 
   const withChange = synthetic as unknown as Visualization
 
   it('shows neither new card for a data set with no baseline', () => {
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     expect(screen.queryByRole('heading', { name: 'Change from normal' })).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: /^The .* edge$/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Play: change from normal' })).not.toBeInTheDocument()
@@ -229,7 +230,7 @@ describe('Learn page: the change style, the edge trace and the lock key (F38)', 
 
   it('plays the change steps in order, in the change style, and names each one', async () => {
     const user = userEvent.setup()
-    render(<LearnPage visualization={withChange} />)
+    render(<LearnPage visualization={withChange} />, { wrapper: AnnouncerProvider })
     await user.click(screen.getByRole('button', { name: 'Play: change from normal' }))
     const [steps, onStep] = engine.playSequence.mock.calls.at(-1) as unknown as [{ changeStep: string; atMs: number }[], (i: number) => void]
     expect(steps.map(step => step.changeStep)).toEqual(withChange.mapping.changeSteps?.map(step => step.id))
@@ -243,7 +244,7 @@ describe('Learn page: the change style, the edge trace and the lock key (F38)', 
 
   it('traces one example line at the first contour level, and says it in words', async () => {
     const user = userEvent.setup()
-    render(<LearnPage visualization={withChange} />)
+    render(<LearnPage visualization={withChange} />, { wrapper: AnnouncerProvider })
     expect(screen.getByRole('heading', { name: 'The warm edge' })).toBeInTheDocument()
     expect(screen.getByText(/press T to hear each line traced/)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Play: an example line' }))
@@ -255,26 +256,26 @@ describe('Learn page: the change style, the edge trace and the lock key (F38)', 
 
   it('takes the edge word from the manifest', () => {
     const ice = { ...withChange, variable: { ...withChange.variable, words: { edge: 'ice edge' } } }
-    render(<LearnPage visualization={ice} />)
+    render(<LearnPage visualization={ice} />, { wrapper: AnnouncerProvider })
     expect(screen.getByRole('heading', { name: 'The ice edge' })).toBeInTheDocument()
   })
 
   it('goes back to the listener\'s own style when another card is played after a change card', async () => {
     const user = userEvent.setup()
-    render(<LearnPage visualization={withChange} />)
+    render(<LearnPage visualization={withChange} />, { wrapper: AnnouncerProvider })
     await user.click(screen.getByRole('button', { name: 'Play: change from normal' }))
     await user.click(screen.getByRole('button', { name: 'Play: the tick' }))
     expect(engine.setStyle).toHaveBeenLastCalledWith('full')
   })
 
   it('teaches L and "Play this place across the dates" on the map card', () => {
-    render(<LearnPage visualization={visualization} />)
+    render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     expect(screen.getByText(/L locks the place you are on/)).toBeInTheDocument()
     expect(screen.getByText(/Play this place across the dates/)).toBeInTheDocument()
   })
 
   it('has no accessibility violations with the new cards', async () => {
-    const { container } = render(<LearnPage visualization={withChange} />)
+    const { container } = render(<LearnPage visualization={withChange} />, { wrapper: AnnouncerProvider })
     await expectNoA11yViolations(container)
   })
 })

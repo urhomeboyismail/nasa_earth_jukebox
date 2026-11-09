@@ -162,7 +162,7 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
                     <Button disabled={!heard} onClick={answerYes}>Yes</Button>
                     <Button disabled={!heard} onClick={answerNo}>No</Button>
                   </div>
-                  {missed && <p className="welcome__hint" role="status">{NOT_HEARD}</p>}
+                  {missed && <p className="welcome__hint">{NOT_HEARD}</p>}
                 </>
               ) : (
                 <>
