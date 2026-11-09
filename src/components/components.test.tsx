@@ -1,7 +1,7 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { expectNoA11yViolations } from '../test/a11y'
 import { AnnouncerProvider, Button, ButtonGroup, Card, IconButton, LoadingIndicator, Notice, Slider, useAnnounce } from '.'
 
@@ -88,6 +88,54 @@ describe('Announcer', () => {
     await userEvent.click(screen.getByRole('button'))
     expect(screen.getByRole('status').textContent).not.toBe(first)
     expect(screen.getByRole('status').textContent?.trim()).toBe('Same')
+  })
+
+  describe('with busy messages (T93)', () => {
+    beforeEach(() => { vi.useFakeTimers() })
+    afterEach(() => { vi.useRealTimers() })
+
+    const text = () => screen.getByRole('status').textContent?.trim()
+    function Sender() {
+      const announce = useAnnounce()
+      return (
+        <>
+          <button type="button" onClick={() => announce('busy 1', { busy: true })}>One</button>
+          <button type="button" onClick={() => announce('busy 2', { busy: true })}>Two</button>
+          <button type="button" onClick={() => announce('busy 3', { busy: true })}>Three</button>
+          <button type="button" onClick={() => announce('plain')}>Plain</button>
+        </>
+      )
+    }
+    const press = (name: string) => act(() => { screen.getByRole('button', { name }).click() })
+    const wait = (ms: number) => act(() => { vi.advanceTimersByTime(ms) })
+
+    it('speaks a busy message at once when nothing was said for 1.5 s, holds the next, and keeps only the newest', () => {
+      render(<AnnouncerProvider><Sender /></AnnouncerProvider>)
+      press('One')
+      expect(text()).toBe('busy 1')
+      wait(400)
+      press('Two')
+      wait(400)
+      press('Three')
+      expect(text()).toBe('busy 1')
+      wait(699)
+      expect(text()).toBe('busy 1')
+      wait(1)
+      expect(text()).toBe('busy 3') // at 1500 ms; "busy 2" was dropped
+      wait(5000)
+      expect(text()).toBe('busy 3')
+    })
+
+    it('speaks a message that is not busy at once, and the busy one that was waiting is dropped', () => {
+      render(<AnnouncerProvider><Sender /></AnnouncerProvider>)
+      press('One')
+      wait(100)
+      press('Two')
+      press('Plain')
+      expect(text()).toBe('plain')
+      wait(5000)
+      expect(text()).toBe('plain')
+    })
   })
 
   it('does nothing outside a provider', async () => {
