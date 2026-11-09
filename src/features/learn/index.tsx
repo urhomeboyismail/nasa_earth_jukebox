@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
+import { hasChange } from '../../analysis/available'
+import type { Contour } from '../../analysis'
 import { Button, Card, Notice } from '../../components'
 import { createSoundEngine, type SequenceStep, type SoundEngine } from '../../audio'
 import { useSoundStyle } from '../../audio/style'
 import { variableWords, type CategoryId, type SoundMapping } from '../../data'
+import { describeContour } from '../../describe'
+import { useDescriptionDetail } from '../../describe/detail'
 import { currentDataParam, hashFor } from '../../route'
 import type { PageProps } from '../types'
 import './learn.css'
@@ -19,6 +23,15 @@ const PAIR_GAP_MS = 900
 function categoryAt(mapping: SoundMapping, fraction: number): CategoryId {
   const { categories } = mapping
   return categories[Math.round(fraction * (categories.length - 1))].id
+}
+
+/** One example line for the trace card: a gentle curve from the west to the east at the first contour level. Made here, so the card needs no analysis. */
+function exampleLine(level: number): Contour {
+  const points = Array.from({ length: 12 }, (_, i) => {
+    const t = i / 11
+    return { x: 0.1 + 0.8 * t, y: 0.65 - 0.3 * Math.sin(t * Math.PI), turn: 0, front: 1 }
+  })
+  return { level, closed: false, brokenEnds: 0, brokenStart: false, brokenEnd: false, points }
 }
 
 function describeRange(range: [number, number], unit: string) {
@@ -41,6 +54,7 @@ export default function LearnPage({ visualization }: PageProps) {
   const [playingAll, setPlayingAll] = useState(false)
   const [lastPlayed, setLastPlayed] = useState('')
   const [style] = useSoundStyle()
+  const [detail] = useDescriptionDetail()
   // Learn teaches the notes of "full" and "simple"; the change style is not taught here, so it plays as "full".
   useEffect(() => { engine?.setStyle(style === 'change' ? 'full' : style) }, [engine, style])
 
@@ -51,6 +65,8 @@ export default function LearnPage({ visualization }: PageProps) {
   const { mapping, variable } = visualization
   const words = variableWords(variable)
   const unit = variable.unit
+  const changeOn = hasChange(visualization)
+  const line = exampleLine(mapping.contourLevels?.[0]?.value ?? 1)
 
   /** Browsers only allow sound after a click or key press, so the first press unlocks the engine. */
   async function play(label: string, action: (engine: SoundEngine) => void) {
@@ -58,6 +74,8 @@ export default function LearnPage({ visualization }: PageProps) {
     await engine.unlock()
     setPlayingAll(false)
     engine.stop()
+    // The listener's own style first: the change cards borrow the change style, and must not leave it on for the others.
+    engine.setStyle(style === 'change' ? 'full' : style)
     action(engine)
     setLastPlayed(label)
   }
@@ -79,6 +97,32 @@ export default function LearnPage({ visualization }: PageProps) {
       { category: categoryAt(mapping, 1), atMs: PAIR_GAP_MS, ...extra },
     ]
     void play(label, engine => engine.playSequence(steps, () => {}, { tick: false }))
+  }
+
+  /** The change style's five steps, most below normal first, one after the other. The status line names each as it sounds. */
+  function playChange() {
+    const steps = (mapping.changeSteps ?? []).map((step, index) => ({
+      category: categoryAt(mapping, 0.5), atMs: index * PLAY_ALL_GAP_MS, changeStep: step.id,
+    }))
+    void play('change from normal', engine => {
+      engine.setStyle('change')
+      setPlayingAll(true)
+      engine.playSequence(steps, index => {
+        setLastPlayed(`${mapping.changeSteps?.[index]?.label ?? 'a step'}`)
+        if (index === steps.length - 1) window.setTimeout(() => setPlayingAll(false), PLAY_ALL_GAP_MS)
+      }, { tick: false })
+    })
+  }
+
+  /** One example line as a moving sound, as "Trace the edge" plays each line on Listen. */
+  function playTrace(line: Contour) {
+    void play('an example line', engine => {
+      engine.setStyle('change')
+      setPlayingAll(true)
+      engine.traceContour(line, index => {
+        if (index === line.points.length - 1) window.setTimeout(() => setPlayingAll(false), PLAY_ALL_GAP_MS)
+      })
+    })
   }
 
   function stop() {
@@ -163,11 +207,36 @@ export default function LearnPage({ visualization }: PageProps) {
         </li>
       </ul>
 
+      {changeOn && (
+        <ul className="learn__list">
+          <li>
+            <Card title="Change from normal" headingLevel={2}>
+              <p>
+                In the sound style Change from normal, each date plays how far it is from normal, not whether it is {words.lower} or {words.higher}. There are {mapping.changeSteps?.length} steps,
+                from {mapping.changeSteps?.[0].label.toLowerCase()} to {mapping.changeSteps?.[(mapping.changeSteps?.length ?? 1) - 1].label.toLowerCase()}. Normal sounds steady, and the further from normal, the brighter the sound.
+              </p>
+              <Button disabled={!engine} onClick={playChange}>Play: change from normal</Button>
+            </Card>
+          </li>
+          <li>
+            <Card title={`The ${words.edge}`} headingLevel={2}>
+              <p>
+                A line on the map marks where the change reaches a set level. On Listen, in the style Change from normal, press T to hear each line traced
+                as a sound that moves from one end to the other across the map. Press Escape to stop.
+              </p>
+              <Button disabled={!engine} onClick={() => playTrace(line)}>Play: an example line</Button>
+              <p>In words: {describeContour(visualization, line, { detail })}</p>
+            </Card>
+          </li>
+        </ul>
+      )}
+
       <Card title="Explore the map" headingLevel={2}>
         <p>
           On the Listen page, press Explore the map to move over the whole map by sound. Arrow keys move one place, and Shift with an arrow
           moves four. Home and End go to the west and east edges, and Page Up and Page Down to the north and south. Space plays the place
           again, Enter plays the row from west to east, Shift with Enter plays the column from north to south, and Escape stops.
+          L locks the place you are on. Then press Play this place across the dates to hear that one place on every date, and L again to unlock.
           On a phone, use the two sliders and the sweep buttons instead.
         </p>
         <a className="learn__next" href={hashFor('listen', { data: currentDataParam() })}>Try Explore the map on Listen</a>

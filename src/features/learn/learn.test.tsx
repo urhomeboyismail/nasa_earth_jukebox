@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
+import synthetic from '../../../public/data/synthetic-change/manifest.json'
 import type { Visualization } from '../../data'
 import { expectNoA11yViolations } from '../../test/a11y'
 import LearnPage from '.'
@@ -17,6 +18,7 @@ const engine = vi.hoisted(() => ({
   playMissing: vi.fn(() => { calls.push('missing') }),
   playSequence: vi.fn((_steps: unknown, _onStep: (i: number) => void) => { calls.push('sequence') }),
   stop: vi.fn(() => { calls.push('stop') }),
+  traceContour: vi.fn((_line: unknown, _onPoint?: (i: number) => void) => { calls.push('trace') }),
   setStyle: vi.fn(),
   setSpatial: vi.fn(),
 }))
@@ -212,5 +214,67 @@ describe('Learn page: explore the map', () => {
     render(<LearnPage visualization={visualization} />)
     expect(screen.getByRole('link', { name: 'Try Explore the map on Listen' })).toHaveAttribute('href', '#listen?data=synthetic-globe')
     expect(screen.getByRole('link', { name: 'Go to Listen' })).toHaveAttribute('href', '#listen?data=synthetic-globe')
+  })
+})
+
+describe('Learn page: the change style, the edge trace and the lock key (F38)', () => {
+  const withChange = synthetic as unknown as Visualization
+
+  it('shows neither new card for a data set with no baseline', () => {
+    render(<LearnPage visualization={visualization} />)
+    expect(screen.queryByRole('heading', { name: 'Change from normal' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /^The .* edge$/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Play: change from normal' })).not.toBeInTheDocument()
+  })
+
+  it('plays the change steps in order, in the change style, and names each one', async () => {
+    const user = userEvent.setup()
+    render(<LearnPage visualization={withChange} />)
+    await user.click(screen.getByRole('button', { name: 'Play: change from normal' }))
+    const [steps, onStep] = engine.playSequence.mock.calls.at(-1) as unknown as [{ changeStep: string; atMs: number }[], (i: number) => void]
+    expect(steps.map(step => step.changeStep)).toEqual(withChange.mapping.changeSteps?.map(step => step.id))
+    expect(steps.map(step => step.atMs)).toEqual([...steps.map(step => step.atMs)].sort((a, b) => a - b))
+    // The change style is on for these steps, and unlock came first.
+    expect(engine.setStyle).toHaveBeenLastCalledWith('change')
+    expect(calls.indexOf('unlock')).toBeLessThan(calls.indexOf('sequence'))
+    act(() => onStep(0))
+    expect(screen.getByRole('status')).toHaveTextContent(`Playing ${withChange.mapping.changeSteps?.[0].label}.`)
+  })
+
+  it('traces one example line at the first contour level, and says it in words', async () => {
+    const user = userEvent.setup()
+    render(<LearnPage visualization={withChange} />)
+    expect(screen.getByRole('heading', { name: 'The warm edge' })).toBeInTheDocument()
+    expect(screen.getByText(/press T to hear each line traced/)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Play: an example line' }))
+    const [line] = engine.traceContour.mock.calls.at(-1) as unknown as [{ level: number; points: unknown[] }]
+    expect(line.level).toBe(withChange.mapping.contourLevels?.[0].value)
+    expect(line.points.length).toBeGreaterThan(2)
+    expect(screen.getByText(/In words: A \+1 °C line runs from the/)).toBeInTheDocument()
+  })
+
+  it('takes the edge word from the manifest', () => {
+    const ice = { ...withChange, variable: { ...withChange.variable, words: { edge: 'ice edge' } } }
+    render(<LearnPage visualization={ice} />)
+    expect(screen.getByRole('heading', { name: 'The ice edge' })).toBeInTheDocument()
+  })
+
+  it('goes back to the listener\'s own style when another card is played after a change card', async () => {
+    const user = userEvent.setup()
+    render(<LearnPage visualization={withChange} />)
+    await user.click(screen.getByRole('button', { name: 'Play: change from normal' }))
+    await user.click(screen.getByRole('button', { name: 'Play: the tick' }))
+    expect(engine.setStyle).toHaveBeenLastCalledWith('full')
+  })
+
+  it('teaches L and "Play this place across the dates" on the map card', () => {
+    render(<LearnPage visualization={visualization} />)
+    expect(screen.getByText(/L locks the place you are on/)).toBeInTheDocument()
+    expect(screen.getByText(/Play this place across the dates/)).toBeInTheDocument()
+  })
+
+  it('has no accessibility violations with the new cards', async () => {
+    const { container } = render(<LearnPage visualization={withChange} />)
+    await expectNoA11yViolations(container)
   })
 })
