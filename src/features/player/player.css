@@ -114,6 +114,7 @@
 }
 .player__legend summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 0.25rem; }
 .player__legend[open] .ui-legend { padding-block-end: 1rem; }
+.player__legend-play { padding-block-end: 1rem; }
 
 /* The data table scrolls inside its own box, so a narrow screen never gets a sideways page scroll. */
 .player__table { overflow-x: auto; max-inline-size: 100%; margin-block-start: 0.5rem; }

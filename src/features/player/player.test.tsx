@@ -673,6 +673,49 @@ describe('Player: test sound, both ways and the data table', () => {
   })
 })
 
+describe('Player: hear the legend (F39)', () => {
+  const openLegend = async (user: Awaited<ReturnType<typeof renderReady>>['user']) => {
+    await user.click(screen.getByText('Colour legend'))
+    return screen.getByRole('button', { name: /^Hear the legend/ })
+  }
+
+  it('plays one step per category, coolest first, and announces each label as it sounds', async () => {
+    const { user } = await renderReady()
+    const labels = visualization.mapping.categories.map(category => category.label)
+    await user.click(await openLegend(user))
+    await tick(0)
+    expect(fake.sequences).toHaveLength(1)
+    expect(fake.sequences[0].map(step => step.category)).toEqual(visualization.mapping.categories.map(category => category.id))
+    expect(liveText()).toBe(labels[0])
+    await tick(1200)
+    expect(liveText()).toBe(labels[1])
+    await tick(1200 * (labels.length - 2))
+    expect(liveText()).toBe(labels[labels.length - 1])
+  })
+
+  it('names the ends of the scale from the data set on the button', async () => {
+    const { user } = await renderReady()
+    expect((await openLegend(user))).toHaveAccessibleName('Hear the legend, coolest to warmest')
+  })
+
+  it('stops with Stop, and nothing more is announced', async () => {
+    const { user } = await renderReady()
+    const labels = visualization.mapping.categories.map(category => category.label)
+    await user.click(await openLegend(user))
+    await tick(0)
+    await user.click(screen.getByRole('button', { name: 'Stop' }))
+    await tick(5000)
+    expect(liveText()).toBe(labels[0])
+  })
+
+  it('has no accessibility violations with the legend open', async () => {
+    const { user, container } = await renderReady()
+    await openLegend(user)
+    vi.useRealTimers() // axe waits on real timers
+    await expectNoA11yViolations(container)
+  })
+})
+
 describe('Player: what the sound hides (F33)', () => {
   // An earlier test chose the simple sound, and the choice is kept in localStorage.
   beforeEach(() => localStorage.clear())

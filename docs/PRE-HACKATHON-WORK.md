@@ -40,6 +40,7 @@ Add one line per piece of work, newest last.
 | 9 Nov | F37 T1 Welcome: Echo greets a first visit on Home with three paths (screen reader, map, just play), a sound check (note, left, right, centre, volume) and the defaults each path sets | `feature/F37-T1-welcome` |
 | 9 Nov | F37 T2 Help from Echo: a help button in the same place on every page (one tip per page, the welcome again, the mascot off), Echo's face beside the demo caption, and Echo as the voice guide's persona | `feature/F37-T2-help` |
 | 9 Nov | F38 Learn fills: cards for the change from normal and the edge trace (only with a baseline), and `L` with "Play this place across the dates" on the map card | `feature/F38-T1-learn-fills` |
+| 9 Nov | F39 Hear the legend: a button under the colour legend on Listen plays the categories coolest to warmest and announces each label; the steps are shared with Learn's "Play all" | `feature/F39-T1-hear-legend` |
 | 9 Nov | F35 Demo mode: one button plays a scripted tour | `feature/F23-time-travel` |
 | 9 Nov | T120 phone support: 360 px check, installable PWA manifest and icons | `feature/T120-phone` |
 

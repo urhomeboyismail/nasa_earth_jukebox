@@ -9,10 +9,11 @@ import { describeContour } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
 import { currentDataParam, hashFor } from '../../route'
 import type { PageProps } from '../types'
+import { LEGEND_GAP_MS, legendSteps } from './legendTour'
 import './learn.css'
 
 /** Gap between sounds in "Play all", long enough to hear each one finish. */
-const PLAY_ALL_GAP_MS = 1200
+const PLAY_ALL_GAP_MS = LEGEND_GAP_MS
 /** Gap between the two notes of the slide and the bell, long enough to hear the first before the change. */
 const PAIR_GAP_MS = 900
 
@@ -81,7 +82,7 @@ export default function LearnPage({ visualization }: PageProps) {
   }
 
   function playAll() {
-    const steps = mapping.categories.map((category, index) => ({ category: category.id, atMs: index * PLAY_ALL_GAP_MS }))
+    const steps = legendSteps(mapping)
     void play('all sounds', engine => {
       setPlayingAll(true)
       engine.playSequence(steps, index => {

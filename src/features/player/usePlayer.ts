@@ -14,6 +14,7 @@ import { variableWords, type Region, type SoundMapping, type Visualization } fro
 import { dateFormatterFor } from '../../dates'
 import { describeContour, describeHidden } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
+import { legendLabel, legendSteps, LEGEND_GAP_MS } from '../learn/legendTour'
 import { welcomeVolume } from '../welcome/storage'
 import { onPlayerCommand } from './controls'
 
@@ -314,6 +315,33 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     announce('Test sound played.')
   }, [engine, mapping, cancelRun, announce])
 
+  /**
+   * "Hear the legend" (F39): one note per category, coolest to warmest, each label announced as it sounds. Plays in the full or simple sound
+   * (the change style has no notes for categories, so it is borrowed away) and puts the listener's own style back at the end. Stop ends it.
+   */
+  const hearLegend = useCallback(async () => {
+    if (!engine) return
+    cancelRun()
+    const mine = run.current
+    await engine.unlock()
+    if (mine !== run.current) return
+    engine.setVolume(volumeRef.current)
+    engine.stop()
+    setStatus('idle')
+    const steps = legendSteps(mapping)
+    if (styleRef.current === 'change') { borrowedStyle.current = true; engine.setStyle('full') }
+    engine.playSequence(steps, k => {
+      if (mine !== run.current) return
+      announce(legendLabel(mapping, k))
+      if (k === steps.length - 1) {
+        endTimer.current = window.setTimeout(() => {
+          if (mine !== run.current) return
+          cancelRun()
+        }, LEGEND_GAP_MS)
+      }
+    }, { tick: false })
+  }, [engine, mapping, cancelRun, announce])
+
   /** "Hear this date both ways" (F30): the date on screen in the full sound, then in the simple sound, so the two can be compared. */
   const hearBothWays = useCallback(async () => {
     if (!engine || !results) return
@@ -447,7 +475,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     engine, region, results, index, status, speed, volume, finished, ready, style, setStyle, changeAvailable, score, tracing, traceWarmEdge, stopTrace, spatial, setSpatial, downloading, downloadError,
     error: engineError || analysisError,
     loading: !engineError && !analysisError && !results,
-    play, pause, stop, replay, goTo, showDate, halt, playRange, download, setSpeed, setVolume, testSound, hearBothWays, hearWhatIsHidden,
+    play, pause, stop, replay, goTo, showDate, halt, playRange, download, setSpeed, setVolume, testSound, hearLegend, hearBothWays, hearWhatIsHidden,
     describeDate, formatDate,
     categoryAt: (i: number) => results?.[i]?.category ?? null,
   }
