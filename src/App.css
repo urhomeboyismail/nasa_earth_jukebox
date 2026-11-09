@@ -137,3 +137,8 @@
     padding: 24px 16px calc(var(--bottom-nav-height) + 24px + var(--voice-panel-space, 0px));
   }
 }
+
+/* Shown while a page's code loads. It keeps the room a page would take, so the bar and content below do not jump. */
+.app-loading {
+  min-height: 40vh;
+}

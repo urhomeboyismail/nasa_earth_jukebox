@@ -32,11 +32,12 @@ describe('App shell', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Listen' }))
     expect(screen.getByRole('heading', { level: 1, name: 'Listen' })).toHaveFocus()
-    expect(await screen.findByRole('button', { name: 'Play' })).toBeEnabled()
+    // Each page other than Home loads its code the first time it is opened, so wait for it.
+    await waitFor(async () => expect(await screen.findByRole('button', { name: 'Play' })).toBeEnabled())
     expect(screen.getByRole('slider', { name: 'Date' })).toHaveAttribute('max', '3')
 
     await userEvent.click(screen.getByRole('button', { name: 'Learn the sounds' }))
-    expect(screen.getByText(/Cold, Cool, Mild, Warm, Hot/)).toBeInTheDocument()
+    expect(await screen.findByText(/Cold, Cool, Mild, Warm, Hot/)).toBeInTheDocument()
   })
 
   it('keeps the page in the URL hash', async () => {
