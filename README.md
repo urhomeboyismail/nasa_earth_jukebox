@@ -1,6 +1,6 @@
 # Earth Jukebox (NASA Guru's Moon Heist)
 
-Hear NASA Earth data: dated maps turned into sound and text, so blind and low-vision people can explore them. Entry for the 2026 NASA Space Apps Challenge. Live site: https://nasagurusmoonheist.vercel.app. It runs on desktop now; full phone support comes in the finalising phase (T120).
+Hear NASA Earth data: dated maps turned into sound and text, so blind and low-vision people can explore them. Entry for the 2026 NASA Space Apps Challenge. Live site: https://nasagurusmoonheist.vercel.app. It runs on phones and desktops and can be installed from the browser.
 
 - How to work on it: [`AGENTS.md`](AGENTS.md) and the rules in [`.claude/rules/`](.claude/rules/)
 - What was built before and during the hackathon: [`docs/PRE-HACKATHON-WORK.md`](docs/PRE-HACKATHON-WORK.md)

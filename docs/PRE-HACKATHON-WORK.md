@@ -34,6 +34,10 @@ Add one line per piece of work, newest last.
 | 9 Nov | Voice guide: pin the Gemini API version | `fix/voice-guide-live-api-version` |
 | 9 Nov | Test suite and lint clean-up; lazy-loaded pages | `fix/green-suite`, `perf/lazy-pages` |
 | 9 Nov | Working rules, the two-phase rule, this record, the data set playbook | `chore/rules-and-decisions` |
+| 9 Nov | F23 time travel: lock one cell, scrub the dates | `feature/F23-time-travel` |
+| 9 Nov | F33 What the sound hides | `feature/F23-time-travel` |
+| 9 Nov | F35 Demo mode: one button plays a scripted tour | `feature/F23-time-travel` |
+| 9 Nov | T120 phone support: 360 px check, installable PWA manifest and icons | `feature/T120-phone` |
 
 ## Outside resources used
 
