@@ -1,3 +1,14 @@
+# Earth Jukebox (NASA Guru's Moon Heist)
+
+Hear NASA Earth data: dated maps turned into sound and text, so blind and low-vision people can explore them. Entry for the 2026 NASA Space Apps Challenge. Live site: https://nasagurusmoonheist.vercel.app. It runs on desktop now; full phone support comes in the finalising phase (T120).
+
+- How to work on it: [`AGENTS.md`](AGENTS.md) and the rules in [`.claude/rules/`](.claude/rules/)
+- What was built before and during the hackathon: [`docs/PRE-HACKATHON-WORK.md`](docs/PRE-HACKATHON-WORK.md)
+- Adding a NASA data set: [`docs/DATASET-PLAYBOOK.md`](docs/DATASET-PLAYBOOK.md)
+- Plan and tickets: [`docs/PLAN.md`](docs/PLAN.md), [`docs/TICKETS.md`](docs/TICKETS.md)
+
+The full project README is part of T87. The notes below are from the Vite template.
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.

@@ -44,6 +44,7 @@ F1 to F13, F15 and F12's ducking are on `main`, as are the dataset picker, legen
 | T113 | v2: contour tracing (marching squares) | Bhavish suggested (team leader reviews) | 12 Nov | Should | F18 analysis, PLAN.md §5.9 |
 | T114 | v2: the `"change"` sound style (bed, contour voice, hiss) | Team leader (engine), Bhavish (spatial path, listening check) | 13 Nov | Should | F28 sound, F18 sound, PLAN.md §6.2 |
 | T115 | v2: wiring, Compare, descriptions and Learn | Mohammad (Listen, explorer, Compare), Roni (describe, Learn, About) | 14 Nov | Should | F28 wiring, F18 trace button |
+| T120 | Phone support, done once the workflow is final: the 360 px check on every page, the bottom navigation bar below 768 px (clear of the home indicator, nothing hidden behind it), F12 ducking and F15 vibration on a real phone, a PWA manifest and icons (ADR 0001). Until then, build desktop-first without blocking phones (`.claude/rules/platform.md`) | Mohammad (layout), Roni (phone checks) | finalising, after the data sets | Should | PLAN.md §9, `AGENTS.md` layout rule |
 
 ### Integration lines
 

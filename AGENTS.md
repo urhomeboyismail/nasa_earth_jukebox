@@ -58,15 +58,15 @@ Tests sit next to the code (`thing.ts` → `thing.test.ts`) and run with `npm te
 - Match the style of the surrounding code.
 - Keep changes small and focused; don't refactor unrelated code.
 - Don't commit secrets or `.env` files.
-- If a change affects layout (markup structure, CSS, spacing, sizing, or anything visible), it must work well on both mobile and desktop:
-  - Design mobile first, then widen. Check at least 360 px (phone), 768 px (tablet) and 1280 px (desktop) wide.
-  - No horizontal scrolling at any of those widths; content reflows instead of being cut off. Use flexible units (`%`, `rem`, `min()`/`clamp()`) and `flex-wrap`/grid over fixed pixel widths.
-  - Touch targets (buttons, sliders, links) are at least 44 × 44 px with space between them; nothing depends on hover alone.
-  - Text stays readable without zooming (body at least 16 px) and the page still works at 200% browser zoom.
-  - Images and frames scale to fit their container and keep their aspect ratio.
-  - On mobile (below 768 px wide) the main navigation sits in a bar fixed to the bottom of the screen, within thumb reach; on tablet and desktop it stays in the header. Leave room for it: page content and floating panels (such as the voice guide) must not be hidden behind the bar, and it must clear the phone's home indicator (`env(safe-area-inset-bottom)`).
+- Commits and PRs carry no AI attribution: no `Co-Authored-By:` trailer and no "Generated with Claude Code" line (`.claude/rules/git.md`).
+- **Two phases** (`.claude/rules/phases.md`): before the hackathon the design is broad and works for any data set; from 9 Nov each NASA data set is refined through its own manifest and data, not through code (`docs/DATASET-PLAYBOOK.md`). Nothing specific to one data set goes in `src/`. What was built when is recorded in `docs/PRE-HACKATHON-WORK.md`.
+- **Layout: desktop now, phone later.** The app will also run on phones, but the full phone pass is ticket T120, done once the workflow is final (`.claude/rules/platform.md`). Until then, for any change to layout (markup, CSS, spacing, sizing, anything visible):
+  - Check at 1280 px (desktop), and at 768 px for anything whose width matters. No horizontal scrolling.
+  - Don't block the phone later: flexible units (`%`, `rem`, `min()`/`clamp()`) and `flex-wrap`/grid instead of fixed pixel widths; touch targets at least 44 × 44 px; nothing that works only on hover; body text at least 16 px, working at 200% zoom; images scale and keep their aspect ratio.
   - Say in your PR which widths you checked.
-  - To choose and check the layout, follow the responsive-layout skill in `.claude/skills/responsive-layout/SKILL.md` (pattern guide, rules, and a screenshot script for the four widths). Claude Code runs it automatically through a hook after layout edits; with other AI tools, point the agent at that file.
+  - T120 adds the 360 px check, the bottom navigation bar below 768 px (clear of `env(safe-area-inset-bottom)`, with nothing hidden behind it), and real-phone checks.
+  - The responsive-layout skill (`.claude/skills/responsive-layout/SKILL.md`) has the patterns and a screenshot script. Claude Code reminds you through a hook after layout edits.
+- Claude Code also loads the working rules in `.claude/rules/` (workflow, phases, platform, front end, server, git). Other AI tools: point the agent at that folder.
 
 ## Deployment
 
@@ -74,8 +74,8 @@ Two services: the website on Vercel and the server (voice guide and listening-te
 
 | What | Where | Live URL |
 |---|---|---|
-| Website | Vercel, from `vercel.json` | https://nasagurusmoonheist.vercel.app |
-| Server | Render, from `render.yaml` | _fill in after the first deploy_ |
+| Website | Vercel, from `vercel.json` | https://nasagurusmoonheist.vercel.app/ |
+| Server | Render, from `render.yaml` | https://earth-jukebox-server.onrender.com |
 
 **First deploy**
 1. Render: New → Blueprint → this repository. In the dashboard set the secrets `GEMINI_API_KEY`, `STUDY_EXPORT_TOKEN` (long random text) and `CORS_ORIGINS` (the Vercel URL, no trailing slash). Never put them in a file.
