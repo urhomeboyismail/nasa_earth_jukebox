@@ -107,5 +107,3 @@ $ npx vitest run src/route.test.ts src/features/player src/features/explore
 ```
 
 Test coverage checked against the ticket: `player.test.tsx` has the deep-link cases (good values opened and the style not saved, bad style ignored, link applied while Listen is open and silent, copy button), the dialog cases (named "Keyboard shortcuts", Escape closes and returns focus, `expectNoA11yViolations` with it open), and `shortcuts.test.ts` has the guard test (no handler names a key outside `SHORTCUTS`).
-
-Not done: the review by Mohammad (player, explorer, `src/route.ts`) and Roni (`Dialog.tsx`, CSS), which "Done when" requires.
