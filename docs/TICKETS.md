@@ -49,7 +49,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [H01](tickets/H01-commit-rules-merge-t88b.md) | Commit the uncommitted rules and docs edits on a `chore/` branch; merge `feature/T88b-demo-script`; remove the duplicate root `brainstorm/` | S | 👤 | — | — | open |
+| [H01](tickets/H01-commit-rules-merge-t88b.md) | Commit the uncommitted rules and docs edits on a `chore/` branch; merge `feature/T88b-demo-script`; remove the duplicate root `brainstorm/` | S | 👤 | — | — | done |
 | [S01](tickets/S01-salvage-f40-f41.md) | Salvage F40 deep links and F41 shortcuts dialog from their unmerged branches | M | agent | — | player, explorer | done |
 | [S02](tickets/S02-salvage-mur-sst.md) | Salvage the `mur-sst-mauritius` data set; draft its comparisons and story | M | agent+👤 | — | catalogue | done |
 | [S03](tickets/S03-salvage-readme.md) | Salvage the project README and `CREATIVE_PROCESS.md`; update them for v3 | S | agent+👤 | — | — | done |

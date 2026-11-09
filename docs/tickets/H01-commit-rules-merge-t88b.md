@@ -80,4 +80,14 @@ npm run check-data                          # only if public/data/ changed in th
 
 ## Result
 
-Not started.
+Run on 9 Nov 2026. The work in Steps 1 to 9 was already on `main` when this ticket was run, so nothing was written except this Result and the queue row. Each "Done when" line, checked:
+
+- **`git status --short` is empty on `main`.** It was, before and after.
+- **The merges are there.** `c9f1fb9` "Merge chore/tickets-v3: v3 plan, one ticket queue, old tickets archived" and `0cce495` "Merge feature/T88b-demo-script: demo script for the video, slides and live demo". `docs/submission/demo-script.md` is tracked.
+- **No AI attribution.** `git log --format=%B -40 main | grep -ci "co-authored\|generated with"` prints `0`.
+- **`brainstorm/` is gone** (`6ee15d4` "chore: remove the duplicate root brainstorm folder"); **`docs/planning/brainstorm/` is still there.** The remaining `brainstorm/` mentions in `docs/planning/` are relative links inside that folder, so none points at the root copy.
+- **`docs/TICKETS.md` and `docs/tickets/` are tracked.**
+- **`.claude/settings.json` decision.** It is committed as `{}` in `2ba83ad` "chore: turn off the layout hook until the team lead's layout pass". The reason is in that commit's message: the hook asked for width checks after markup edits, which `.claude/rules/platform.md` defers to the team lead's one layout pass. The script `.claude/hooks/layout-changed.sh` stays, and the settings block is re-added when the layout pass starts. The decision is in that commit, which is part of the merged `chore/tickets-v3`, not in the merge commit's own message.
+- **Checks on `main`:** `npm run lint` clean; `npm test` 64 files, 1209 tests passed. (`check-data` and the server tests are only needed if `public/data/` or `server/` changed in the merge; the later work was checked in each ticket.)
+
+Step 10: `../nasa-a` exists and has been used by every ticket since. `../nasa-b` has not been created, because only one agent has worked.
