@@ -1,12 +1,8 @@
-import { useCallback, useEffect, useRef, useState, type ComponentType } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ComponentType } from 'react'
 import VoiceAssistant from './VoiceAssistant'
 import { DatasetPicker, Notice } from './components'
 import { loadCatalog, loadVisualization, type CatalogEntry, type Visualization } from './data'
-import AboutPage from './features/about'
-import ComparePage from './features/compare'
 import HomePage from './features/home'
-import LearnPage from './features/learn'
-import PlayerPage from './features/player'
 import type { PageProps } from './features/types'
 import { noteGuidePlaybackCommand, useDucking } from './assistant/ducking'
 import { sendPlayerCommand } from './features/player/controls'
@@ -14,6 +10,12 @@ import { useVoiceAssistant, type AssistantAction } from './hooks/useVoiceAssista
 import { pages, type Page } from './pages'
 import { currentDataParam, hashFor, parseHash } from './route'
 import './App.css'
+
+// Home loads with the app; every other page is fetched the first time it is opened, so the first load stays small.
+const AboutPage = lazy(() => import('./features/about'))
+const ComparePage = lazy(() => import('./features/compare'))
+const LearnPage = lazy(() => import('./features/learn'))
+const PlayerPage = lazy(() => import('./features/player'))
 
 const pageComponents: Record<Page, ComponentType<PageProps>> = {
   home: HomePage,
@@ -142,7 +144,9 @@ function App() {
         )}
         {dataMissing && <Notice>The data set “{requestedData}” was not found, so this shows “{catalog?.[0].title}” instead.</Notice>}
         {loadError && <p role="alert">The data could not be loaded. {loadError}</p>}
-        <CurrentPage visualization={visualization} />
+        <Suspense fallback={<p role="status" className="app-loading">Loading…</p>}>
+          <CurrentPage visualization={visualization} />
+        </Suspense>
       </main>
 
       {assistantOpen && <VoiceAssistant assistant={assistant} onClose={closeAssistant} />}
