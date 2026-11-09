@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState, type Componen
 import VoiceAssistant from './VoiceAssistant'
 import { DatasetPicker, Notice } from './components'
 import { loadCatalog, loadVisualization, type CatalogEntry, type Visualization } from './data'
+import { DemoControl } from './features/demo/DemoControl'
 import HomePage from './features/home'
 import type { PageProps } from './features/types'
 import { noteGuidePlaybackCommand, useDucking } from './assistant/ducking'
@@ -139,6 +140,7 @@ function App() {
 
       <main className="app-main">
         <h1 ref={heading} tabIndex={-1}>{title}</h1>
+        <DemoControl />
         {catalog && catalog.length > 1 && dataId && !testMode && (
           <DatasetPicker catalog={catalog} value={dataId} onChange={id => { window.location.hash = hashFor(page, { data: id }) }} />
         )}
