@@ -9,6 +9,7 @@ import { useAnnounce } from '../../components'
 import type { Frame, MapArea, Visualization } from '../../data'
 import { describeCell, describeCellOverTime, describePlace, describeSweep } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
+import { shortcutFor } from '../player/shortcuts'
 import { vibrateForDate } from '../player/vibration'
 
 /** A moved cursor plays at most this often; the latest cell wins. */
@@ -21,8 +22,6 @@ const CELL_NOTE_MS = 300
 /** One date of a locked place per step when it plays across the dates. */
 const DATE_STEP_MS = 600
 const BIG_STEP = 4
-/** Keys the sound map owns. Before the map has loaded they still do nothing here, and are kept from the player's shortcuts. */
-const MAP_KEYS = new Set(['l', 'L', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', ' ', 'Enter', 'Escape'])
 const WHOLE_MAP: MapArea = { x0: 0, y0: 0, x1: 1, y1: 1 }
 
 type Cursor = { col: number; row: number }
@@ -348,31 +347,34 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   /** The keyboard. Every key handled here is also stopped from reaching the player's own shortcuts. */
   const onKeyDown = useCallback((event: KeyboardEvent) => {
     if (event.ctrlKey || event.metaKey || event.altKey) return
+    // Which key means what is the list in ../player/shortcuts.ts, which the "Keyboard shortcuts" dialog is drawn from too.
+    const key = shortcutFor(event.key, 'map')
     if (!grid) {
-      if (MAP_KEYS.has(event.key)) event.preventDefault()
+      // Before the map has loaded the map's keys still do nothing here, and are kept from the player's shortcuts.
+      if (key) event.preventDefault()
       return
     }
     const { col, row } = cursorRef.current
     const jump = event.shiftKey ? BIG_STEP : 1
     let handled = true
-    switch (event.key) {
-      case 'ArrowLeft': moveByKey(col - jump, row, 'West'); break
-      case 'ArrowRight': moveByKey(col + jump, row, 'East'); break
-      case 'ArrowUp': moveByKey(col, row - jump, 'North'); break
-      case 'ArrowDown': moveByKey(col, row + jump, 'South'); break
-      case 'Home': moveByKey(0, row, 'West'); break
-      case 'End': moveByKey(grid.cols - 1, row, 'East'); break
-      case 'PageUp': moveByKey(col, 0, 'North'); break
-      case 'PageDown': moveByKey(col, grid.rows - 1, 'South'); break
-      case ' ': moveTo(col, row); break
-      case 'Enter': sweep(event.shiftKey ? 'column' : 'row'); break
-      case 'l': case 'L': if (locked) unlock(); else lock(); break
-      case 'Escape': if (locked) unlock(); stopSound(); break
+    switch (key) {
+      case 'map-west': moveByKey(col - jump, row, 'West'); break
+      case 'map-east': moveByKey(col + jump, row, 'East'); break
+      case 'map-north': moveByKey(col, row - jump, 'North'); break
+      case 'map-south': moveByKey(col, row + jump, 'South'); break
+      case 'edge-west': moveByKey(0, row, 'West'); break
+      case 'edge-east': moveByKey(grid.cols - 1, row, 'East'); break
+      case 'edge-north': moveByKey(col, 0, 'North'); break
+      case 'edge-south': moveByKey(col, grid.rows - 1, 'South'); break
+      case 'replay': moveTo(col, row); break
+      case 'sweep': sweep(event.shiftKey ? 'column' : 'row'); break
+      case 'lock': if (locked) unlock(); else lock(); break
+      case 'stop': if (locked) unlock(); stopSound(); break
       default: handled = false
     }
     if (handled) {
       event.preventDefault()
-      if (event.key !== 'Escape') wake()
+      if (key !== 'stop') wake()
     }
   }, [grid, locked, lock, unlock, moveByKey, moveTo, sweep, stopSound, wake])
 

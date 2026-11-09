@@ -1,12 +1,13 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
 import { subscribeContext, type ContextUpdate } from '../../assistant/context'
-import type { Visualization } from '../../data'
+import { variableWords, type Visualization } from '../../data'
 import { expectNoA11yViolations } from '../../test/a11y'
 import { elevationFor, panFor } from '../../audio/pan'
 import { sendPlayerCommand } from './controls'
+import { keyName, SHORTCUTS } from './shortcuts'
 import PlayerPage from '.'
 
 const visualization = fixture as Visualization
@@ -831,6 +832,96 @@ describe('Player: a link to one moment (F40)', () => {
     expect(field).toHaveAttribute('readonly')
     expect((field as HTMLInputElement).value).toMatch(/date=2024-01-15/)
     expect(liveText()).toMatch(/could not be copied/)
+    vi.useRealTimers() // axe waits on real timers
+    await expectNoA11yViolations(container)
+  })
+})
+
+describe('Player: the keyboard shortcuts dialog (F41)', () => {
+  const dialog = () => screen.getByRole('dialog', { name: 'Keyboard shortcuts' })
+  const opener = () => screen.getByRole('button', { name: 'Keyboard shortcuts' })
+
+  it('opens from its button, and is closed until then', async () => {
+    const { user } = await renderReady()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    await user.click(opener())
+    expect(dialog()).toBeInTheDocument()
+    expect(within(dialog()).getByRole('heading', { name: 'Keyboard shortcuts' })).toHaveFocus()
+  })
+
+  it('opens with the question mark from anywhere in the player', async () => {
+    const { user } = await renderReady()
+    screen.getByRole('button', { name: 'Stop' }).focus()
+    await user.keyboard('?')
+    expect(dialog()).toBeInTheDocument()
+  })
+
+  it('does not open from a question mark typed in a text box', async () => {
+    const { user } = await renderReady()
+    const box = screen.getByRole('textbox')
+    await user.click(box)
+    await user.keyboard('why?')
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(box).toHaveValue('why?')
+  })
+
+  it('lists the same keys as the list the handlers read, one row each, in two tables', async () => {
+    const { user } = await renderReady()
+    await user.click(opener())
+    const words = variableWords(visualization.variable)
+    const tables = within(dialog()).getAllByRole('table')
+    expect(tables).toHaveLength(2)
+    for (const [i, scope] of (['player', 'map'] as const).entries()) {
+      const rows = within(tables[i]).getAllByRole('row').slice(1)
+      const expected = SHORTCUTS.filter(shortcut => shortcut.scope === scope)
+      expect(rows).toHaveLength(expected.length)
+      expected.forEach((shortcut, r) => {
+        const [keys, does] = within(rows[r]).getAllByRole('cell')
+        expect(keys).toHaveTextContent(shortcut.keys.map(keyName).join(' or '))
+        expect(does).toHaveTextContent(shortcut.does(words))
+      })
+    }
+  })
+
+  it('says which keys work only in the player or on the map', async () => {
+    const { user } = await renderReady()
+    await user.click(opener())
+    expect(dialog()).toHaveTextContent('work only while focus is in the player or on the sound map')
+    expect(within(dialog()).getByRole('table', { name: /Anywhere in the player/ })).toBeInTheDocument()
+    expect(within(dialog()).getByRole('table', { name: /On the sound map/ })).toBeInTheDocument()
+  })
+
+  it('closes with Escape and gives focus back to the button', async () => {
+    const { user } = await renderReady()
+    await user.click(opener())
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(opener()).toHaveFocus()
+  })
+
+  it('closes with its Close button and gives focus back to what had it', async () => {
+    const { user } = await renderReady()
+    const stop = screen.getByRole('button', { name: 'Stop' })
+    stop.focus()
+    await user.keyboard('?')
+    await user.click(within(dialog()).getByRole('button', { name: 'Close' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(stop).toHaveFocus()
+  })
+
+  it('does not play or move the date while it is open', async () => {
+    const { user } = await renderReady()
+    await user.click(opener())
+    await user.keyboard(' {ArrowRight}')
+    await tick(0)
+    expect(fake.sequences).toHaveLength(0)
+    await user.keyboard('{Escape}')
+    expect(dateText()).toMatch(/^January 2024/)
+  })
+
+  it('has no accessibility violations while open', async () => {
+    const { user, container } = await renderReady()
+    await user.click(opener())
     vi.useRealTimers() // axe waits on real timers
     await expectNoA11yViolations(container)
   })

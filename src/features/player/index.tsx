@@ -16,6 +16,8 @@ import { usePlayer, type Speed } from './usePlayer'
 import { useVibrationSetting, vibrateForDate } from './vibration'
 import { DataTable } from './DataTable'
 import { momentHash, readMoment, useMomentLink } from './momentLink'
+import { shortcutFor } from './shortcuts'
+import { ShortcutsDialog } from './ShortcutsDialog'
 import { Viewer } from './Viewer'
 
 const SPEEDS: { id: Speed; label: string }[] = [
@@ -143,28 +145,35 @@ function Player({ visualization }: { visualization: Visualization }) {
   )
 
   // Shortcuts work while focus is anywhere in the player, but never take over a text box, a button or a field's own keys.
+  // Which key means what is the list in ./shortcuts.ts, which the "Keyboard shortcuts" dialog is drawn from too.
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
   function onKeyDown(event: KeyboardEvent) {
     if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || isEditable(event.target)) return
-    if (event.key === ' ' && !spaceActivates(event.target)) {
+    const key = shortcutFor(event.key, 'player')
+    if (key === 'play' && !spaceActivates(event.target)) {
       event.preventDefault()
       if (playing) player.pause()
       else player.play()
-    } else if (event.key.toLowerCase() === 't' && player.style === 'change' && !isTyping(event.target)) {
+    } else if (key === 'trace' && player.style === 'change' && !isTyping(event.target)) {
       // "Trace the warm edge", from anywhere in the player, the sound map included (it does not use this key).
       event.preventDefault()
       void player.traceWarmEdge()
-    } else if (event.key === 'Escape' && player.tracing) {
+    } else if (key === 'stop-trace' && player.tracing) {
       player.stopTrace()
-    } else if (event.key === 'ArrowRight' && !isField(event.target)) {
+    } else if (key === 'help' && !isTyping(event.target)) {
+      event.preventDefault()
+      setShortcutsOpen(true)
+    } else if (key === 'next' && !isField(event.target)) {
       event.preventDefault()
       player.goTo(player.index + 1)
-    } else if (event.key === 'ArrowLeft' && !isField(event.target)) {
+    } else if (key === 'previous' && !isField(event.target)) {
       event.preventDefault()
       player.goTo(player.index - 1)
     }
   }
 
   return (
+    <>
     <section className="player" aria-label="Player" onKeyDown={onKeyDown}>
       <Viewer frame={frame} dateText={player.formatDate(frame.date)} region={player.region} source={source}>
         <ExplorerSurface explorer={explorer} />
@@ -315,9 +324,14 @@ function Player({ visualization }: { visualization: Visualization }) {
         )}
       </div>
 
-      <p className="player__hint">
-        Keyboard: Space plays or pauses, and the left and right arrow keys move between dates.
-      </p>
+      <div className="player__keys">
+        <p className="player__hint">
+          Keyboard: Space plays or pauses, and the left and right arrow keys move between dates.
+        </p>
+        <Button onClick={() => setShortcutsOpen(true)}>Keyboard shortcuts</Button>
+      </div>
     </section>
+    <ShortcutsDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} visualization={visualization} />
+    </>
   )
 }
