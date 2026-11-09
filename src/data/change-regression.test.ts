@@ -113,9 +113,10 @@ describe('change regression baseline', () => {
     expect(contours[0].box).toEqual([0.389, 0.278, 0.611, 0.722].map(v => expect.closeTo(v, 1)))
   })
 
+  // Scores every case twice (some read real PNGs), which takes about 11 s on a busy machine, so it gets a longer limit than the default 5 s.
   it('gives the same Score every time', () => {
     for (const run of Object.values(cases)) expect(JSON.stringify(run())).toBe(JSON.stringify(run()))
-  })
+  }, 30_000)
 
   it('notices when the maths moves', () => {
     const moved = scorePixels(scene({ season: 4, patch: 1.5 }), scene({ season: 4 }), { ...input('july-planted-patch'), mapping: { ...SCENE_MAPPING, contourLevels: [{ value: 1.7 }, { value: 2 }] } })
