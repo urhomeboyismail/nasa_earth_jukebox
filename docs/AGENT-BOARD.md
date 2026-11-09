@@ -57,3 +57,21 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: (a) leave the real data set last and let the demo pick it, or (b) put it first, so everyone opens on real NASA data, and update the two tests?
 - Answer:
 - Recorded in: nowhere needed yet
+
+### R-20261110-G01-1: May G01 add five agent settings to `server/app/config.py`?
+- From: G01 (agent B, Claude Code)
+- To: team leader (owner of `server/app/config.py`)
+- Needed by: G01 (step 3; the rest of G01 goes ahead without it)
+- Status: open
+- Context: `docs/tickets/G01-adk-core.md`, "Settings". G01 adds the ADK agent package `server/app/agent/`, which nothing imports yet, so the running server is unchanged. The settings below are off by default, and nothing calls the model while `agent_enabled` is false. Each one also goes into `server/.env.example`, commented out, with no key.
+- Question: may G01 add these five fields to `Settings`, as written? (a) yes, as written; (b) yes, with changes (say which); (c) no, keep them somewhere else.
+  ```python
+  # Google ADK agent (G01 to G05). Nothing calls the model while agent_enabled is false.
+  agent_enabled: bool = False
+  agent_model: str = "gemini-2.5-flash"                  # [unverified] confirm the id with a real key (G07)
+  agent_timeout_seconds: float = Field(default=2.5, gt=0)
+  agent_max_requests_per_minute: int = Field(default=5, gt=0)   # one token bucket for the whole server
+  assistant_engine: Literal["bridge", "adk"] = "bridge"  # G05 changes the default to "adk"
+  ```
+- Answer:
+- Recorded in: nowhere needed yet
