@@ -48,6 +48,7 @@ Add one line per piece of work, newest last.
 | 9 Nov | T88b demo script for the video, slides and live demo | `feature/T88b-demo-script` |
 | 9 Nov | Plan v3 "sight into sound in real time" (`PLAN.md` §6.3) and the ticket reorganisation: one queue for two agents (`TICKETS.md`, `tickets/`), done and replaced tickets moved to `archive/` | `chore/tickets-v3` |
 | 9 Nov | S02 first real data set, `mur-sst-mauritius`: sea surface temperature around Mauritius, 2023 (NASA MUR via GIBS): 5 comparisons, 4 story chapters, reference-date baseline, recorded Scores. Still to check by a person: the credit and licence wording, and the story | `feature/S02-mur-sst-mauritius` |
+| 9 Nov | I01 One announcer for the whole app: Home, the welcome and the help button now reach the screen-reader live region; Learn announces through it too | `fix/I01-app-announcer` |
 
 ## Outside resources used
 

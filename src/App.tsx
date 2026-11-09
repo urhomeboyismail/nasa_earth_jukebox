@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ComponentType, type CSSProperties, type MouseEvent } from 'react'
 import VoiceAssistant from './VoiceAssistant'
-import { DatasetPicker, Notice } from './components'
+import { AnnouncerProvider, DatasetPicker, Notice } from './components'
 import { Icon, type IconName } from './components/Icon'
 import { Sonny } from './components/Mascot'
 import { loadCatalog, loadVisualization, type CatalogEntry, type Visualization } from './data'
@@ -164,7 +164,7 @@ function App() {
   const shownIndex = navDrag.preview ?? pageIndex
 
   return (
-    <>
+    <AnnouncerProvider>
       {/* The hash holds the page, so the skip link moves focus itself instead of jumping to an anchor. */}
       <a className="app-skip" href={hashFor(page, { data: linkData })} onClick={event => { event.preventDefault(); heading.current?.focus() }}>
         Skip to content
@@ -227,7 +227,7 @@ function App() {
       </main>
 
       {assistantOpen && <VoiceAssistant assistant={assistant} onClose={closeAssistant} />}
-    </>
+    </AnnouncerProvider>
   )
 }
 

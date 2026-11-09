@@ -10,6 +10,7 @@ import type { Visualization } from '../../data'
 import { expectNoA11yViolations } from '../../test/a11y'
 import { subscribeContext, type ContextUpdate } from '../../assistant/context'
 import PlayerPage from '.'
+import { AnnouncerProvider } from '../../components'
 
 const plain = fixture as Visualization
 const changeSteps = [
@@ -75,7 +76,7 @@ afterEach(() => localStorage.clear())
 
 async function renderReady(visualization: Visualization) {
   const user = userEvent.setup()
-  const view = render(<PlayerPage visualization={visualization} />)
+  const view = render(<PlayerPage visualization={visualization} />, { wrapper: AnnouncerProvider })
   await waitFor(() => expect(screen.getByRole('button', { name: 'Play' })).toBeEnabled())
   return { user, ...view }
 }

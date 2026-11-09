@@ -5,7 +5,7 @@ import { createSoundEngine, type SoundEngine } from '../../audio'
 import { styleFor, useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
 import { useAssistantContext } from '../../assistant/context'
-import { AnnouncerProvider, Button, Card, LoadingIndicator, Notice } from '../../components'
+import { Button, Card, LoadingIndicator, Notice } from '../../components'
 import { useAnnounce } from '../../components/useAnnounce'
 import { higherPhrase, variableWords, type Visualization } from '../../data'
 import { describeFrame } from '../../describe'
@@ -36,9 +36,7 @@ export default function ComparePage({ visualization }: PageProps) {
   if (!visualization) return <p>Loading the data…</p>
   if (testMode) return <TestMode key={visualization.id} visualization={visualization} />
   return (
-    <AnnouncerProvider>
-      <Compare key={visualization.id} visualization={visualization} />
-    </AnnouncerProvider>
+    <Compare key={visualization.id} visualization={visualization} />
   )
 }
 

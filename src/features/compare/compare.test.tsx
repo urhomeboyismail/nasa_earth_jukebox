@@ -6,6 +6,7 @@ import { subscribeContext, type ContextUpdate } from '../../assistant/context'
 import type { Visualization } from '../../data'
 import { expectNoA11yViolations } from '../../test/a11y'
 import ComparePage from '.'
+import { AnnouncerProvider } from '../../components'
 
 const visualization = fixture as Visualization
 const CATEGORIES = ['cold', 'mild', 'hot', 'insufficient'] as const
@@ -34,7 +35,7 @@ beforeEach(() => {
 
 async function renderReady() {
   const user = userEvent.setup()
-  const view = render(<ComparePage visualization={visualization} />)
+  const view = render(<ComparePage visualization={visualization} />, { wrapper: AnnouncerProvider })
   await waitFor(() => expect(screen.getByRole('button', { name: 'Play date A' })).toBeEnabled())
   return { user, ...view }
 }
@@ -44,7 +45,7 @@ describe('Compare: the ready-made comparison', () => {
   it('shows the question, and the buttons are off until the analysis finishes', async () => {
     let finish!: (value: ReturnType<typeof analysis>) => void
     analyzeAll.mockImplementation(() => new Promise(resolve => { finish = resolve }))
-    render(<ComparePage visualization={visualization} />)
+    render(<ComparePage visualization={visualization} />, { wrapper: AnnouncerProvider })
     expect(screen.getByText('Analyzing the images…')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Play date A' })).toBeDisabled()
     expect(screen.getByText(fixture.comparisons[0].question)).toBeInTheDocument()
@@ -262,12 +263,12 @@ describe('Compare: the voice guide and cleanup', () => {
 
   it('says so when the sounds cannot be prepared', async () => {
     analyzeAll.mockRejectedValue(new Error('worker crashed'))
-    render(<ComparePage visualization={visualization} />)
+    render(<ComparePage visualization={visualization} />, { wrapper: AnnouncerProvider })
     expect(await screen.findByRole('alert')).toHaveTextContent(/could not be prepared.*worker crashed/)
   })
 
   it('shows a loading message until the data arrives', () => {
-    render(<ComparePage visualization={null} />)
+    render(<ComparePage visualization={null} />, { wrapper: AnnouncerProvider })
     expect(screen.getByText(/Loading the data/)).toBeInTheDocument()
   })
 })

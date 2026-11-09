@@ -9,6 +9,7 @@ import { elevationFor, panFor } from '../../audio/pan'
 import { sendPlayerCommand } from './controls'
 import { keyName, SHORTCUTS } from './shortcuts'
 import PlayerPage from '.'
+import { AnnouncerProvider } from '../../components'
 
 const visualization = fixture as Visualization
 
@@ -98,7 +99,7 @@ afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals() })
 
 async function renderReady() {
   const user = setup()
-  const view = render(<PlayerPage visualization={visualization} />)
+  const view = render(<PlayerPage visualization={visualization} />, { wrapper: AnnouncerProvider })
   await tick(0)
   return { user, ...view }
 }
@@ -107,7 +108,7 @@ describe('Player: viewing', () => {
   it('shows a loading state, with the controls disabled, until the analysis finishes', async () => {
     let finish!: (value: ReturnType<typeof analysis>) => void
     analyzeAll.mockImplementation(() => new Promise(resolve => { finish = resolve }))
-    render(<PlayerPage visualization={visualization} />)
+    render(<PlayerPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     expect(screen.getByText('Analyzing the images…')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Play' })).toBeDisabled()
     await act(async () => { finish(analysis()) })
@@ -140,12 +141,12 @@ describe('Player: viewing', () => {
       ...visualization,
       frames: visualization.frames.map((frame, i) => ({ ...frame, date: dates[i] })),
     })
-    const daily = render(<PlayerPage visualization={withDates(['2024-05-01', '2024-05-02', '2024-05-03', '2024-05-04'])} />)
+    const daily = render(<PlayerPage visualization={withDates(['2024-05-01', '2024-05-02', '2024-05-03', '2024-05-04'])} />, { wrapper: AnnouncerProvider })
     await tick(0)
     expect(screen.getByText('1 May 2024')).toBeInTheDocument()
     expect(dateText()).toBe('1 May 2024: cold')
     daily.unmount()
-    render(<PlayerPage visualization={withDates(['2021-09-15', '2022-09-15', '2023-09-15', '2024-09-15'])} />)
+    render(<PlayerPage visualization={withDates(['2021-09-15', '2022-09-15', '2023-09-15', '2024-09-15'])} />, { wrapper: AnnouncerProvider })
     await tick(0)
     expect(screen.getByText('2021')).toBeInTheDocument()
     expect(dateText()).toBe('2021: cold')
@@ -158,7 +159,7 @@ describe('Player: viewing', () => {
 
   it('says so when the sounds cannot be prepared', async () => {
     analyzeAll.mockRejectedValue(new Error('worker crashed'))
-    render(<PlayerPage visualization={visualization} />)
+    render(<PlayerPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     await tick(0)
     expect(screen.getByRole('alert')).toHaveTextContent(/could not be prepared.*worker crashed/)
   })
@@ -623,7 +624,7 @@ describe('Player: download', () => {
 
   it('cannot be pressed before the dates are analysed', () => {
     analyzeAll.mockImplementation(() => new Promise(() => {}))
-    render(<PlayerPage visualization={visualization} />)
+    render(<PlayerPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     expect(button()).toBeDisabled()
   })
 })

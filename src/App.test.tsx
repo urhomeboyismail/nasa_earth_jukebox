@@ -5,6 +5,7 @@ import catalog from '../public/data/index.json'
 import fixture from '../public/data/fixture/manifest.json'
 import synthetic from '../public/data/synthetic-ocean/manifest.json'
 import App from './App'
+import { expectNoA11yViolations } from './test/a11y'
 
 // The real analysis decodes images, which jsdom cannot do; the Player's own tests cover that path with the same mock.
 vi.mock('./analysis', () => ({
@@ -141,7 +142,8 @@ describe('Choosing a data set', () => {
     window.history.replaceState(null, '', '#home?data=nope')
     render(<App />)
     expect(await screen.findByText(/Now playing from: Fixture ocean/)).toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent('The data set “nope” was not found, so this shows “Fixture ocean” instead.')
+    // The page's live region is also a status, so find the notice by its text and check it is announced as one.
+    expect(screen.getByText('The data set “nope” was not found, so this shows “Fixture ocean” instead.').closest('[role="status"]')).not.toBeNull()
     expect(await picker()).toHaveValue('fixture')
     await waitFor(() => expect(window.location.hash).toBe('#home?data=fixture'))
   })
@@ -266,5 +268,30 @@ describe('App shell chrome (T116)', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Close voice guide' }))
     expect(toggle).toHaveAttribute('aria-pressed', 'false')
     expect(toggle).toHaveFocus()
+  })
+})
+
+describe('Announcements reach the live region on every page (I01)', () => {
+  afterEach(() => window.localStorage.clear())
+
+  it('says so when the help button turns Echo off', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Help from Echo' }))
+    await user.click(screen.getByRole('button', { name: 'Turn Echo off' }))
+    expect(screen.getByText('Echo is off.', { selector: '[role="status"]' })).toBeInTheDocument()
+  })
+
+  it('says so when the welcome is skipped', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(await screen.findByRole('button', { name: 'Skip the welcome' }))
+    expect(screen.getByText('Welcome skipped.', { selector: '[role="status"]' })).toBeInTheDocument()
+  })
+
+  it('has no accessibility violations on Home with the welcome shown', async () => {
+    const { container } = render(<App />)
+    await screen.findByRole('button', { name: 'Skip the welcome' })
+    await expectNoA11yViolations(container)
   })
 })
