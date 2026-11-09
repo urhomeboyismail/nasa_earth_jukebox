@@ -35,7 +35,7 @@ A data set can be rendered to a file, from its **checked frames**, through the s
 | `src/features/playlist/renderPlaylist.ts` | `renderPlaylist(entries, options, deps)`: each data set in turn, with progress. | no |
 | `src/features/playlist/PlaylistPanel.tsx` | The button, the progress line, the download links. | no |
 
-`src/sonify/` stays pure (boundary). The browser-side code is in `src/features/playlist/` (a new folder; no owner yet, so the team leader reviews it).
+`src/sonify/` stays pure (boundary). The browser-side code is in `src/features/playlist/` (a new folder; no owner yet).
 
 ### Constants
 
@@ -66,7 +66,7 @@ export const RENDER_DETAIL: DetailLevel = 'full'
 
 ### The panel (`PlaylistPanel.tsx`)
 
-- A button **Render the playlist**, in the About page (one line in `src/features/about/index.tsx`, reviewed by Roni). While it runs, the button is disabled and the progress line is shown; the progress is also announced through `useAnnounce` at each step.
+- A button **Render the playlist**, in the About page (one line in `src/features/about/index.tsx`). While it runs, the button is disabled and the progress line is shown; the progress is also announced through `useAnnounce` at each step.
 - When done: a list of download links, one WAV, VTT and JSON per data set, and `playlist.json`. Each link has a name in words ("Download Synthetic motion as a WAV file"). Links are blob URLs, revoked when the panel unmounts.
 - No file is created until the button is pressed.
 
@@ -85,7 +85,6 @@ export const RENDER_DETAIL: DetailLevel = 'full'
 - New: `src/sonify/schedule.ts`, `vtt.ts`, `sidecar.ts` and their tests; `src/features/playlist/**` with tests; `src/features/playlist/__golden__/` (none needed: the byte test is a hash).
 - Edit: `src/features/about/index.tsx` (one line mounting `PlaylistPanel`).
 - Do not edit `src/audio/engine.ts` (its `renderToWav` stays for the old one-note sound, unchanged).
-- Reviewers: Roni (`src/features/about/`), team leader (`src/sonify/`, `src/features/playlist/`).
 
 ## Steps
 

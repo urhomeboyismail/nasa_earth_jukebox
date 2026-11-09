@@ -86,7 +86,6 @@ export function pointOf(check, map): { x: number; y: number }
 - Per data set (step 5, after the person supplies the numbers): `public/data/<id>/known-answers.json`.
 - Edit: `docs/data-sources.md` (a short section "Known answers (D04)": the file, its fields, how to get a NASA number).
 - Do not change any existing data set's files in this ticket except adding its `known-answers.json`.
-- Reviewer: Dhruv (`src/data/`, `public/data/`).
 
 ## Steps
 

@@ -115,7 +115,6 @@ The checked frames (`visualization.frames`, in date order) are read with `readPi
 - New: `src/analysis/video/**` (all files above), with tests.
 - Do not touch the player (`src/features/player/**`): SN07 wires this into the Listen page.
 - Do not edit `src/analysis/index.ts` or `pixels.ts`.
-- Reviewer: team leader (`src/analysis/`); Mohammad when SN07 wires it.
 
 ## Steps
 

@@ -65,7 +65,6 @@ Each visualisation picked in EIC02 becomes a checked data set in `public/data/<i
 - New: `public/data/<id>/**` (the folder; `frames/`, `video/`, `baselines/`, `manifest.json`).
 - Edit: `public/data/index.json` (one entry), `src/data/__golden__/change.json` (only if the data set has a baseline; additive), `src/data/sound-regression.test.ts` (`BASELINED`, only after the team agrees the sound), `docs/PRE-HACKATHON-WORK.md`, `docs/data-sources.md` (the notes section for the data set).
 - No other file. In particular, nothing in `src/` except the golden and the `BASELINED` list named above.
-- Reviewers: Dhruv (`public/data/`), and the person who signs off the sound (the team leader or the listening check, H03).
 
 ## Steps
 

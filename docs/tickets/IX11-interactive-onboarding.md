@@ -9,7 +9,6 @@
 | **Hotspots** | player |
 | **Branch** | `feature/IX11-interactive-onboarding` |
 
-**Reviewer:** Roni (owns `src/features/welcome/` and the Learn page; the welcome's "Just play me something" path starts this game).
 
 ## Goal
 
@@ -44,7 +43,7 @@ A first-time listener learns the keys by doing four small tasks in about a minut
 ## Touches
 
 - `src/features/onboarding/steps.ts`, `store.ts` (zod), `useOnboarding.ts`, `OnboardingPanel.tsx`, and tests.
-- `src/features/welcome/Welcome.tsx`: the "Just play me something" path opens the game (one line). Reviewer: Roni.
+- `src/features/welcome/Welcome.tsx`: the "Just play me something" path opens the game (one line).
 - `src/features/player/index.tsx`: mount the panel and the restart button (one line). `player.test.tsx`.
 
 ## Steps

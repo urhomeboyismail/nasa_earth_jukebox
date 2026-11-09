@@ -29,12 +29,12 @@ The first page a visitor sees loads less code. The voice panel, the demo tour, t
 
 ## Touches
 
-- `src/App.tsx`: lazy imports. Review: Mohammad.
-- `src/hooks/useVoiceAssistant.ts`: move the audio imports to the place where a session starts. Review: Mohammad.
-- `src/data/schema.ts`: only if `tonal` can move out of the first page. Review: Dhruv (`src/data/` except `types.ts`).
+- `src/App.tsx`: lazy imports.
+- `src/hooks/useVoiceAssistant.ts`: move the audio imports to the place where a session starts.
+- `src/data/schema.ts`: only if `tonal` can move out of the first page.
 - `scripts/check-bundle.mjs` (new): the budget check.
-- `package.json`: one script, `check-bundle`. Review: the team leader.
-- `.github/workflows/ci.yml`: one step after `npm run build`. Review: Bhavish (`.github/`).
+- `package.json`: one script, `check-bundle`.
+- `.github/workflows/ci.yml`: one step after `npm run build`.
 
 ## Steps
 
@@ -64,7 +64,6 @@ Not applicable: no sound or visual change. The lazy loads show a text loading st
 - `npm run check-bundle` passes locally and in CI, and fails when the budget is exceeded (show that once by setting the budget to 1 byte, then reset it).
 - Each lazy module loads on the first use, not before (check in the App tests).
 - `npm run lint && npm test && npm run build` pass.
-- Mohammad, Bhavish and Dhruv (for `schema.ts`, if touched) have reviewed their parts.
 
 ## Checks
 

@@ -35,7 +35,6 @@ The player and the sound map speak at most one busy update every 1.5 seconds. Th
 
 - The files listed in Why, except `docs/PRE-HACKATHON-TICKETS.md`.
 - `docs/PRE-HACKATHON-WORK.md`: one line.
-- Review: Roni for `src/components/` and `src/describe/` (`docs/PLAN.md` §4 and §5.8). Mohammad for `src/features/player/` and `src/features/explore/`.
 
 ## Steps
 
@@ -67,7 +66,6 @@ Not applicable: no sound or visual change. Announcements remain the only spoken 
 - `docs/PRE-HACKATHON-TICKETS.md` is not added by the branch.
 - All rate tests pass. `grep -rn "speechSynthesis" src/components src/describe src/features/player src/features/explore` prints nothing new.
 - The line is in `docs/PRE-HACKATHON-WORK.md`.
-- Roni and Mohammad have reviewed their parts. The manual screen-reader check is left to H08.
 
 ## Checks
 

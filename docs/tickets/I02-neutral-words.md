@@ -33,12 +33,12 @@ The app's default words are neutral, so a data set that does not name its own wo
 
 ## Touches
 
-- `src/data/words.ts` (the defaults). Review: Dhruv.
-- `public/data/fixture/manifest.json`, `public/data/synthetic-ocean/manifest.json`, `public/data/synthetic-globe/manifest.json`, `public/data/synthetic-change/manifest.json`: add the explicit words. Review: Dhruv.
-- `src/features/learn/index.tsx`: review Roni.
-- `src/features/about/index.tsx`: review Roni.
-- `src/features/player/index.tsx` and `src/features/compare/index.tsx`: review Mohammad.
-- `src/features/demo/script.ts`: the demo names no data set, so its sentence must stay neutral. Review: Mohammad (demo is not in `docs/PLAN.md` §4; ask on `docs/AGENT-BOARD.md` if the owner is unclear).
+- `src/data/words.ts` (the defaults).
+- `public/data/fixture/manifest.json`, `public/data/synthetic-ocean/manifest.json`, `public/data/synthetic-globe/manifest.json`, `public/data/synthetic-change/manifest.json`: add the explicit words.
+- `src/features/learn/index.tsx`.
+- `src/features/about/index.tsx`.
+- `src/features/player/index.tsx` and `src/features/compare/index.tsx`.
+- `src/features/demo/script.ts`: the demo names no data set, so its sentence must stay neutral.
 - The tests that assert the old words (found in Steps).
 - Not `rehearsal-sst`: it is git-ignored. Set its words locally if you like, but never commit it.
 
@@ -73,7 +73,6 @@ The app's default words are neutral, so a data set that does not name its own wo
 - `DEFAULT_WORDS` has no temperature word. `grep -rn -i "warm\|cold\|temperature" src --include="*.tsx" --include="*.ts"` lists only the Ask aliases, comments, internal names and test fixtures.
 - Every existing data set reads as before (the explicit words are in each manifest).
 - `npm run check-data` passes. The sound and change regression tests pass with no golden change.
-- Dhruv, Roni and Mohammad have each reviewed their files.
 - `npm run lint && npm test && npm run build` pass.
 
 ## Checks

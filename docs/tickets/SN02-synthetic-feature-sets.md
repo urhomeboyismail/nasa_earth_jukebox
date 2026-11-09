@@ -96,7 +96,6 @@ Two entries appended, in the same style as the others:
 - Edit: `public/data/index.json` (two entries appended).
 - New test: `src/data/synthetic-feature-sets.test.ts` (step 6; the value test). Step 7 adds `src/analysis/features/synthetic.test.ts` after SN01.
 - Do not edit `make_synthetic.py`, `make_synthetic_change.py` or any existing data set. Their golden files must stay byte-for-byte the same.
-- Reviewer: Dhruv (`public/data/`, `scripts/` data scripts).
 
 ## Steps
 

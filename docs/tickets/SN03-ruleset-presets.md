@@ -180,7 +180,6 @@ Missing and quiet are different. A missing voice has no data and is named in `mi
 - New: `src/sonify/**` (all files listed above), with tests and `src/sonify/__golden__/music.json`.
 - Edit: `src/boundary.test.ts` only to add `./sonify/**/*.{ts,tsx}` to the guarded globs, and a line to its header comment that names `sonify/`.
 - Do not touch `src/audio/**` (the ensemble is SN04), `src/analysis/**` (SN01) or `src/data/**` (SN05).
-- Reviewer: team leader (the rules and the boundary); Mohammad for the captions' wording before SN07 uses them.
 
 ## Steps
 
@@ -216,7 +215,7 @@ Missing and quiet are different. A missing voice has no data and is named in `mi
 - `toMusicFrame` gives every field above for a normal, a sparse and a dropout frame.
 - Presets, detail and snapping pass their tests.
 - The boundary test covers `sonify/` and passes.
-- The golden file exists and was reviewed (after SN01, step 6).
+- The golden file exists (after SN01, step 6).
 - `npm run lint && npm test && npm run build` pass with their real output in Result.
 
 ## Checks

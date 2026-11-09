@@ -118,7 +118,6 @@ In "Manifest fields", add a sub-section "v3 fields (SN05)": one row per field (`
 - Tests: `src/data/sonification.test.ts` (new), `src/data/video.test.ts` (new), and additions to `src/data/schema.test.ts` and `src/data/check.test.ts`.
 - `docs/data-sources.md` (the sub-section only).
 - No `public/data/` file changes in this ticket (the first data set with a video is EIC03).
-- Reviewers: team leader (`src/data/types.ts`), Dhruv (`src/data/`, `schema.ts`, `check.ts`).
 
 ## Steps
 

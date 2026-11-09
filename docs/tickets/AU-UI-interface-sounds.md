@@ -11,7 +11,6 @@
 
 **Blocked until H03 is done.** H03 is a practice listening test with a blind or low-vision tester (a person's task, P3). The listening test hears these cues first; its notes decide the default of the switch and whether any cue changes. Do not claim this ticket before then.
 
-**Reviewers:** team leader (`src/audio/` is theirs); Mohammad (`src/features/player/`, `src/features/compare/`, `src/assistant/ducking.ts`); Roni (the help text in `src/components/`).
 
 ## Goal
 
@@ -70,11 +69,11 @@ Short interface sounds for the start and end of a sequence, Compare's A and B, a
 
 ## Touches
 
-- `src/audio/interfaceCues.ts` and `interfaceCues.test.ts` (new; team leader reviews).
+- `src/audio/interfaceCues.ts` and `interfaceCues.test.ts` (new).
 - `src/features/player/usePlayer.ts`, `index.tsx` and `player.test.tsx`: the start and end cues, and the switch.
 - `src/features/compare/index.tsx` and `compare.test.tsx`: the A and B cues and the switch.
 - `src/assistant/ducking.ts` and `ducking.test.tsx`: the guide's cues.
-- `src/components/` (the switch and its help `<dl>`) and `components.test.tsx`. Roni reviews.
+- `src/components/` (the switch and its help `<dl>`) and `components.test.tsx`.
 - `src/features/player/player.css` only if the help needs a class.
 
 ## Steps

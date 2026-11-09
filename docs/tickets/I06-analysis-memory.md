@@ -41,10 +41,10 @@ Analysing a data set uses bounded memory: a bounded number of frames is read at 
 
 ## Touches
 
-- `src/analysis/index.ts`, `src/analysis/types.ts`, `src/analysis/lru.ts` (new), and their tests. Review: the team leader (`docs/PLAN.md` §4).
-- `src/features/player/usePlayer.ts`, `src/features/player/index.tsx`: review Mohammad. Note: `usePlayer.ts` is replaced by the v3 work (SN07). Keep the change small and keep every export the same.
-- `src/features/explore/useExplorer.ts`: review Mohammad.
-- `src/features/compare/index.tsx`: review Mohammad.
+- `src/analysis/index.ts`, `src/analysis/types.ts`, `src/analysis/lru.ts` (new), and their tests.
+- `src/features/player/usePlayer.ts`, `src/features/player/index.tsx`. Note: `usePlayer.ts` is replaced by the v3 work (SN07). Keep the change small and keep every export the same.
+- `src/features/explore/useExplorer.ts`.
+- `src/features/compare/index.tsx`.
 
 ## Steps
 
@@ -77,7 +77,6 @@ Not applicable: no sound or visual change. The same input gives the same feature
 - `analyzeAll` never has more than 3 frames in flight (test).
 - The golden tests (`src/data/sound-regression.test.ts`, `src/data/change-regression.test.ts`) pass with no change.
 - `npm run lint && npm test && npm run build` pass.
-- The team leader and Mohammad have reviewed their parts.
 
 ## Checks
 

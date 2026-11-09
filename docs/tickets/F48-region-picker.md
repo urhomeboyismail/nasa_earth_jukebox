@@ -45,11 +45,11 @@ A data set with more than one region in its manifest lets the listener choose on
 
 ## Touches
 
-- `src/data/regions.ts` (new), `src/data/index.ts`, `src/data/schema.ts`, `src/data/schema.test.ts`, `docs/data-sources.md`. Review: Dhruv.
-- `src/features/player/usePlayer.ts`, `src/features/player/index.tsx`, the player tests. Review: Mohammad. `usePlayer.ts` is replaced by the v3 work (SN07): keep the change small and keep the exports.
-- `src/features/compare/index.tsx`, `TestMode.tsx`, the compare tests. Review: Mohammad.
-- `src/features/about/index.tsx`, `src/features/ask/facts.ts`. Review: Roni (about) and Mohammad (ask).
-- `src/analysis/index.ts`, only for the cache key. Review: the team leader.
+- `src/data/regions.ts` (new), `src/data/index.ts`, `src/data/schema.ts`, `src/data/schema.test.ts`, `docs/data-sources.md`.
+- `src/features/player/usePlayer.ts`, `src/features/player/index.tsx`, the player tests. `usePlayer.ts` is replaced by the v3 work (SN07): keep the change small and keep the exports.
+- `src/features/compare/index.tsx`, `TestMode.tsx`, the compare tests.
+- `src/features/about/index.tsx`, `src/features/ask/facts.ts`.
+- `src/analysis/index.ts`, only for the cache key.
 
 ## Steps
 
@@ -86,7 +86,6 @@ A data set with more than one region in its manifest lets the listener choose on
 - The listening test uses the primary region only, and says how many comparisons it has.
 - The schema no longer forces `regionId` to be the first region. The fixture and the synthetic data sets still pass `npm run check-data`.
 - `npm run lint && npm test && npm run build` pass, and `npm run check-data` passes.
-- Dhruv, Mohammad, and the team leader (for the cache key) have reviewed their parts.
 
 ## Checks
 

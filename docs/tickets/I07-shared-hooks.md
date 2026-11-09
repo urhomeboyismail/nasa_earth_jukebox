@@ -43,7 +43,6 @@ Three pieces of repeated code become one hook each: creating the sound engine, a
 
 - `src/audio/useSoundEngine.ts` (new), `src/analysis/useFrameAnalysis.ts` (new), `src/hooks/useStoredValue.ts` (new), and their tests.
 - The five engine copies, the three analysis copies and the six storage copies listed in Why.
-- Review: the team leader for `src/audio/` and `src/analysis/`. Bhavish for `src/audio/pan.ts`. Mohammad for `src/features/player/`, `compare/`. Roni for `learn/`, `welcome/`, `help/` and `src/describe/detail.ts`.
 
 ## Steps
 
@@ -71,7 +70,6 @@ Not applicable: no sound or visual change. The behaviour is the same, and the go
 - Each of the five engine copies and three analysis copies is gone.
 - All existing tests pass, apart from new tests. The golden tests pass with no change.
 - `npm run lint && npm test && npm run build` pass.
-- The reviewers in Touches have reviewed their parts.
 
 ## Checks
 

@@ -219,7 +219,6 @@ type FeatureResponse = { id: number; features: FrameFeatures } | { id: number; e
 
 - New: `src/analysis/features/**` (all files listed above), including tests and `src/analysis/features/__golden__/features.json`.
 - Do not edit `analyze.ts`, `field.ts`, `change.ts`, `contour.ts` or `worker.ts`. If one of them is missing an export you need, post on `docs/AGENT-BOARD.md` for the team leader.
-- Reviewer: team leader (`src/analysis/`).
 
 ## Steps
 
@@ -254,7 +253,7 @@ Tests sit next to the code. Use the fixture and the synthetic sets, read with `d
 
 - `extractFeatures` returns every field above for data and picture mode, and for a frame with a baseline.
 - Hot spot ids stay the same across the tracked frames of a test sequence, and a new spot gets a new id.
-- The golden file exists and was reviewed.
+- The golden file exists.
 - `npm run lint && npm test && npm run build` pass with their real output in Result.
 
 ## Checks

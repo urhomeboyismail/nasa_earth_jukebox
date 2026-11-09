@@ -9,7 +9,6 @@
 | **Hotspots** | app, explorer |
 | **Branch** | `feature/VIS2-patterns-display-settings` |
 
-**Reviewers:** Roni (`src/styles/`, `src/index.css`, `src/components/`, which this ticket adds to); Mohammad (the header in `src/App.tsx` and the explorer's surface).
 
 ## Goal
 
@@ -43,7 +42,7 @@ Two things a listener can switch on, and remember, without changing the data or 
 
 **The analysis never reads the overlay.** The worker decodes the frame file itself. The overlay is an SVG in the page. A test checks that the grid read is the same with patterns on and off.
 
-**The control.** A "Display" button in the header (`src/App.tsx`, reviewed by Mohammad; 44 by 44 px touch target, `aria-expanded`). It opens a panel with three switches ("Easier reading font", "High contrast", "Colour-vision patterns") and "Reset display". Escape closes the panel and returns focus to the button. It works by keyboard alone.
+**The control.** A "Display" button in the header (`src/App.tsx`; 44 by 44 px touch target, `aria-expanded`). It opens a panel with three switches ("Easier reading font", "High contrast", "Colour-vision patterns") and "Reset display". Escape closes the panel and returns focus to the button. It works by keyboard alone.
 
 ## Reuse
 

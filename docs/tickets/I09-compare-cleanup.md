@@ -33,9 +33,9 @@ The Compare page reads the test-mode flag once, from the App. It has no non-null
 
 ## Touches
 
-- `src/App.tsx` (pass the flag to the page): review Mohammad.
-- `src/features/types.ts` (add an optional `testMode?: boolean` to `PageProps`): review Mohammad. It is shared by all pages, so keep the field optional.
-- `src/features/compare/index.tsx`, `src/features/compare/TestMode.tsx`: review Mohammad.
+- `src/App.tsx` (pass the flag to the page).
+- `src/features/types.ts` (add an optional `testMode?: boolean` to `PageProps`). It is shared by all pages, so keep the field optional.
+- `src/features/compare/index.tsx`, `src/features/compare/TestMode.tsx`.
 - `src/features/compare/*.test.tsx`.
 
 ## Steps
@@ -65,7 +65,6 @@ Not applicable: no sound or visual change. Compare plays the same sounds as befo
 - No `!` remains in `src/features/compare/` apart from the ones with a comment that says why they cannot fail.
 - The new tests pass. The existing compare and test-mode tests pass with no change to their expectations, except for how the flag is passed.
 - `npm run lint && npm test && npm run build` pass.
-- Mohammad has reviewed the change.
 
 ## Checks
 

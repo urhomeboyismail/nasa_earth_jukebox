@@ -70,7 +70,7 @@ export function slopeAt(colorScale: ColorScale, grid: FrameGrid, col: number, ro
 
 - New: `src/sonify/probe.ts` and `probe.test.ts`; `src/features/explore/probeAudio.ts` and `probeAudio.test.ts`; the switch component (`ProbeSwitch.tsx`) if the explorer panel needs one.
 - Edit: `src/features/explore/useExplorer.ts` (the option and the calls), `Explorer.tsx` (the switch and the wiring). Keep `Explorer.test.tsx` passing unchanged.
-- Hotspot: `explorer`. Reviewer: Mohammad (`src/features/explore/`); the team leader for `src/sonify/probe.ts`.
+- Hotspot: `explorer`.
 
 ## Steps
 

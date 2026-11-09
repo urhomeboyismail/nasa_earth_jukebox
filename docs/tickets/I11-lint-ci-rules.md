@@ -29,11 +29,11 @@ The rules in `.claude/rules/frontend.md` that a tool can check are checked by `n
 
 ## Touches
 
-- `.oxlintrc.json`: review Roni (front-end rules) and the team leader.
-- `package.json`: scripts only, if needed. Review: the team leader.
-- `.github/workflows/ci.yml`: review Bhavish.
-- `server/ruff.toml` (new), `server/requirements.txt` (add `ruff` in the test section). Review: Mohammad.
-- Fixes in source files only where a new rule finds a real violation that is small to fix. Each such file is reviewed by its owner.
+- `.oxlintrc.json`.
+- `package.json`: scripts only, if needed.
+- `.github/workflows/ci.yml`.
+- `server/ruff.toml` (new), `server/requirements.txt` (add `ruff` in the test section).
+- Fixes in source files only where a new rule finds a real violation that is small to fix.
 
 ## Steps
 

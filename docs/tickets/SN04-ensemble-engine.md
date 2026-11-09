@@ -189,7 +189,6 @@ Builds the same graph inside `Tone.Offline` at `sampleRate` (default 44 100), st
 
 - New: `src/audio/ensemble/**` (all files listed above), with tests.
 - Do not edit `src/audio/engine.ts`, `src/audio/index.ts`, `src/audio/pan.ts` or any file outside `src/audio/ensemble/`. A shared helper that belongs in `pan.ts` goes on `docs/AGENT-BOARD.md` first.
-- Reviewer: team leader (`src/audio/`).
 
 ## Steps
 

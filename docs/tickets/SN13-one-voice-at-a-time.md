@@ -95,7 +95,6 @@ export function speechMs(text: string): number
 - Edit: `src/audio/engine.ts` (`duck`, `unduck`, the subscription; team leader); `src/audio/index.ts` (one doc comment; team leader); `src/audio/ensemble/index.ts` (SN04's file: the subscription and the unsubscribe in `dispose`; team leader); `src/assistant/ducking.ts` and its test (Mohammad); `src/components/Announcer.tsx` (Roni); `src/features/welcome/speak.ts`, `Welcome.tsx` and `welcome.test.tsx` (Roni).
 - Maybe: `src/hooks/useVoiceAssistant.ts` only to remove the ducking calls, after Mohammad says so on `docs/AGENT-BOARD.md`.
 - Do not touch the player (`usePlayer.ts`) or `src/features/player/`: the Listen page gets its ducking through the ensemble and the engine.
-- Reviewers: Mohammad (`src/assistant/`, `useVoiceAssistant`), Roni (`Announcer.tsx`, `welcome/`), team leader (`src/audio/`).
 
 ## Steps
 

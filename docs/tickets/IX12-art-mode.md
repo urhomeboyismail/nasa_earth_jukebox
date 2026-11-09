@@ -9,7 +9,6 @@
 | **Hotspots** | player |
 | **Branch** | `feature/IX12-art-mode` |
 
-**Reviewer:** the team leader (SN03's ruleset and presets are in `src/sonify/`, owned by the SN03 owner; check their file list before you start).
 
 ## Goal
 

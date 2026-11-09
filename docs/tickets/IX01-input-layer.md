@@ -114,7 +114,7 @@ Touch and mouse: a tap or click on a place is `moveTo` and sounds it. A drag is 
 
 Rules the list must keep, and a test checks:
 - No two entries in the same scope match the same key.
-- Every entry whose `keys` is one printable letter, digit or symbol has scope `map`. Space is the one exception: it is the transport key on Listen, active only while focus is inside Listen and not on a button, link or field. Its `note` says so. The team lead confirms this reading of WCAG 2.1.4 in review.
+- Every entry whose `keys` is one printable letter, digit or symbol has scope `map`. Space is the one exception: it is the transport key on Listen, active only while focus is inside Listen and not on a button, link or field. Its `note` says so.
 
 ### Dispatch (`src/interaction/registry.ts`)
 
@@ -180,10 +180,10 @@ SN04 has no bell voice; the `mark` is a single bright note instead. The test che
 ## Touches
 
 - `src/interaction/` (new): `actions.ts`, `shortcuts.ts`, `keys.ts`, `gestures.ts`, `gamepad.ts`, `registry.ts`, `useInput.ts`, `history.ts`, `speech.ts`, `notes.ts`, `feedback.ts`, `budget.ts`, and a test file next to each.
-- `src/features/player/shortcuts.ts` (S01's list, replaced or made a re-export) and `ShortcutsDialog.tsx` (its data source only). These are S01's files; the change is agreed in the S01 PR review.
+- `src/features/player/shortcuts.ts` (S01's list, replaced or made a re-export) and `ShortcutsDialog.tsx` (its data source only). These are S01's files.
 - `src/features/explore/Explorer.tsx`, `useExplorer.ts`, `Explorer.test.tsx`.
 - `src/features/player/index.tsx` and `player.test.tsx`: the Listen keys move to `useInput`. The queue's hotspot list names only `explorer`; this file also changes `player/index.tsx`, so no other player ticket runs at the same time. Say so in the PR.
-- `docs/AGENT-BOARD.md`: a request to the team leader to add `src/interaction/` (owner: Mohammad, with Roni reviewing `speech.ts`) to the ownership table in `docs/PLAN.md` §4, and an `Action` entry in §5.
+- `docs/AGENT-BOARD.md`: a request to the team leader to add `src/interaction/` (owner: Mohammad) to the ownership table in `docs/PLAN.md` §4, and an `Action` entry in §5.
 
 ## Steps
 

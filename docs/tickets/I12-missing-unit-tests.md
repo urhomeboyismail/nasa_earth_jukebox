@@ -40,7 +40,6 @@ Only the five new test files:
 - `src/features/welcome/speak.test.ts`
 - `src/assistant/audio.test.ts`
 
-Owners to tell when the PR is opened: Mohammad (`useNavDrag`, `assistant/audio`), the team leader (`config`), Roni (`learn/legendTour`, `welcome/speak`). Tests only, so review is a read.
 
 ## Steps
 

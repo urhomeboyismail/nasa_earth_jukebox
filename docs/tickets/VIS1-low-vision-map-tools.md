@@ -9,7 +9,6 @@
 | **Hotspots** | explorer |
 | **Branch** | `feature/VIS1-low-vision-map-tools` |
 
-**Reviewers:** Mohammad (the explorer's files); Roni (`src/index.css`, which owns the forced-colours block).
 
 ## Goal
 
@@ -27,7 +26,7 @@ A low-vision listener can see the cursor and the place under it on the sound map
 - **Magnifier.** `src/features/explore/Magnifier.tsx`: a lens (9rem square, corner radius `--md-sys-shape-corner-large`) next to the cursor, showing the same frame image at 3 times the size. It is a CSS background of the frame's `image`, with `background-size` set to three times the map's size and `background-position` from the cursor's fraction. `image-rendering: pixelated` keeps the cells sharp. The lens is `aria-hidden` and has no transition. It is on or off from a button in `ExplorerPanel`, "Magnifier", with `aria-pressed`, stored under `earth-jukebox:magnifier`.
 - **Bigger cursor and crosshair.** The cursor's minimum size goes to 1.25rem. Its outline is a 3 px black outline with a 2 px white inner ring, so it shows on any map colour. Two lines, one across the row and one down the column of the cursor's cell, run the whole length of the map: 2 px white with a 1 px black edge. Both are `aria-hidden` and `pointer-events: none`. The crosshair is on by default.
 - **High-contrast outline mode.** A button "High-contrast outline" with `aria-pressed`, stored under `earth-jukebox:map-outline`. When on: the cursor outline is 4 px black with a 2 px white inner ring, and the crosshair lines are solid black with a white edge. Black and white only: yellow and cyan are never placed on the map image (`docs/archive/PRE-HACKATHON-TICKETS.md` T101).
-- **Forced colours.** A block in `src/index.css` (Roni reviews): `@media (forced-colors: active)` with the explorer's cursor and focus ring drawn with `outline` in `CanvasText` (the box-shadow ring is replaced by an outline, which forced colours keeps), the slider thumb and track in `CanvasText`, the legend's swatches and bar with a `CanvasText` border, and the Viewer's region outline in `CanvasText`. Do not set `forced-color-adjust: none` anywhere.
+- **Forced colours.** A block in `src/index.css`: `@media (forced-colors: active)` with the explorer's cursor and focus ring drawn with `outline` in `CanvasText` (the box-shadow ring is replaced by an outline, which forced colours keeps), the slider thumb and track in `CanvasText`, the legend's swatches and bar with a `CanvasText` border, and the Viewer's region outline in `CanvasText`. Do not set `forced-color-adjust: none` anywhere.
 - **Nothing else changes.** The grid is read exactly as before; the settings only add elements and classes on the surface.
 
 ## Reuse
@@ -42,7 +41,7 @@ A low-vision listener can see the cursor and the place under it on the sound map
 
 - `src/features/explore/Magnifier.tsx` (new), `Magnifier.test.tsx`.
 - `src/features/explore/Explorer.tsx`, `explore.css`, `Explorer.test.tsx`.
-- `src/index.css` (the forced-colours block; Roni reviews).
+- `src/index.css` (the forced-colours block).
 - `src/features/player/Viewer.tsx`: the region outline's stroke class only (for forced colours).
 
 ## Steps

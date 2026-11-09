@@ -80,7 +80,6 @@ python3 -I scripts/eic_ingest.py --id <id> (--video <file.mp4> | --frames <dir>)
 - Edit: `docs/data-sources.md` (one new section).
 - Do not edit `scripts/convert_frames.py`. If it lacks something you need, post on `docs/AGENT-BOARD.md` for Dhruv first.
 - Do not write a data set in this ticket (EIC03 does that), and do not commit a `rehearsal-*` folder.
-- Reviewer: Dhruv (`scripts/`, the data scripts).
 
 ## Steps
 

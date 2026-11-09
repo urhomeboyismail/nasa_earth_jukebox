@@ -9,7 +9,6 @@
 | **Hotspots** | app |
 | **Branch** | `feature/VIS3-design-system-housekeeping` |
 
-**Reviewers:** Roni (`src/styles/`, `src/index.css`, `src/components/`, `scripts/make_tokens.mjs`); Mohammad (`src/App.tsx` and the feature CSS in `player`, `compare`, `explore` and `ask`).
 
 ## Goal
 
@@ -44,13 +43,13 @@ The design system says what it does: Roboto Flex is loaded, the token generator 
 
 ## Touches
 
-- `src/index.css` (the `@font-face`; Roni reviews).
+- `src/index.css` (the `@font-face`).
 - `scripts/make_tokens.mjs`, `src/styles/tokens.css` (regenerated).
 - `src/styles/tokens.test.ts`: the four blocks and the mascot tokens exist.
 - `src/components/Mascot.tsx` and `Mascot.test.tsx`.
 - `src/components/colourAt.ts`, `colourAt.test.ts` (new if missing).
 - `src/styles/components.css`, `src/styles/assistant.css`.
-- Feature CSS for the radii and fallbacks: `src/features/player/player.css`, `welcome/welcome.css`, `story/story.css`, `compare/compare.css`, `compare/test-mode.css`, `about/about.css`, `ask/ask.css`, `home/home.css`, `help/help.css`, and `src/App.css` (Mohammad reviews the player, compare, ask and App files).
+- Feature CSS for the radii and fallbacks: `src/features/player/player.css`, `welcome/welcome.css`, `story/story.css`, `compare/compare.css`, `compare/test-mode.css`, `about/about.css`, `ask/ask.css`, `home/home.css`, `help/help.css`, and `src/App.css`.
 - `src/App.tsx` (the Suspense fallback only).
 
 ## Steps

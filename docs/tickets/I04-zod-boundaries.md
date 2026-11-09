@@ -38,10 +38,10 @@ Schemas (names are a suggestion):
 
 ## Touches
 
-- `src/data/boundaries.ts` (new), `src/data/index.ts`. Review: Dhruv.
-- `src/features/compare/studyClient.ts`. Review: Mohammad.
-- `src/features/welcome/storage.ts`, `src/features/welcome/Welcome.tsx`. Review: Roni.
-- `src/features/demo/DemoControl.tsx`. Review: Mohammad (see I02's note on the demo folder).
+- `src/data/boundaries.ts` (new), `src/data/index.ts`.
+- `src/features/compare/studyClient.ts`.
+- `src/features/welcome/storage.ts`, `src/features/welcome/Welcome.tsx`.
+- `src/features/demo/DemoControl.tsx`.
 - The tests next to each file.
 
 ## Steps

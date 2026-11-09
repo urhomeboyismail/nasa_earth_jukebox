@@ -30,7 +30,6 @@ The listening sheet for the "Change from normal" sound is on `main` as `docs/tes
 ## Touches
 
 - `docs/tests/t114-listening-check.md` only.
-- Review: the team leader (the change sound is the team leader's area, `docs/PLAN.md` §4).
 
 ## Steps
 
@@ -56,7 +55,6 @@ Not applicable: no sound or visual change.
 - The five Mauritius rows are either checked after S02, or marked "pending S02" with the reason.
 - The sheet still says NOT RUN, and it has no names of listeners.
 - The links resolve.
-- The team leader has reviewed the answers.
 
 ## Checks
 

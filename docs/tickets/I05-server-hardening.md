@@ -39,9 +39,9 @@ Checked on `main` on 9 Nov:
 
 ## Touches
 
-- `server/app/api/assistant.py`, `server/app/assistant/*`: review Mohammad (`docs/PLAN.md` §4).
-- `server/app/study/api.py`, `server/app/study/db.py`: review the team leader.
-- `server/app/config.py`, `server/.env.example`, `server/requirements.txt`: review Mohammad for the assistant settings, the team leader for the study setting.
+- `server/app/api/assistant.py`, `server/app/assistant/*`.
+- `server/app/study/api.py`, `server/app/study/db.py`.
+- `server/app/config.py`, `server/.env.example`, `server/requirements.txt`.
 - `server/tests/test_assistant.py`, `server/tests/test_study.py`.
 
 ## Steps
@@ -82,7 +82,6 @@ Not applicable: no sound or visual change. The server sends only allow-listed ac
 - Each new setting is in `server/.env.example` with a comment, and `config.py` has the same name.
 - A bad first message closes the socket with a clean error, never with an exception in the log.
 - `requirements.txt` pins `google-genai`.
-- Mohammad and the team leader have reviewed their parts.
 
 ## Checks
 

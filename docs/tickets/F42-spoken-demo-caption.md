@@ -40,8 +40,8 @@ A listener in a room can hear the demo tour, not only read it. A switch, off by 
 
 ## Touches
 
-- `src/features/demo/DemoControl.tsx`, `runDemo.ts`, `script.ts` (the comment at line 8), and their tests. Review: Mohammad (the demo is not in `docs/PLAN.md` §4; the card suggests Mohammad).
-- `src/features/welcome/speak.ts`: read only. Review: Roni if it changes.
+- `src/features/demo/DemoControl.tsx`, `runDemo.ts`, `script.ts` (the comment at line 8), and their tests.
+- `src/features/welcome/speak.ts`: read only.
 
 ## Steps
 
@@ -82,7 +82,6 @@ Stub `window.speechSynthesis` and `SpeechSynthesisUtterance` with `vi.stubGlobal
 - The switch is not shown on the screen-reader path.
 - The comment at `script.ts:8` is true.
 - `npm run lint && npm test && npm run build` pass.
-- Mohammad has reviewed the change.
 
 ## Checks
 

@@ -78,7 +78,7 @@ export function scanPlan(features: FrameFeatures, preset: Preset, msPerColumn?: 
 - New: `src/sonify/scan.ts`, `src/sonify/scan.test.ts`, `src/features/player/Scan.tsx`, `Scan.test.tsx`, `src/features/player/scanFeatures.ts` (the cache and the read).
 - Edit: `src/features/player/listenMode.ts` (the `'scan'` value), `src/features/player/index.tsx` (the third choice and its render only).
 - Do not edit `usePlayer.ts`, `Viewer.tsx`, `controls.ts` or the existing player tests.
-- Hotspot: `player`. Reviewer: Mohammad (`src/features/player/`); the team leader for `src/sonify/scan.ts`.
+- Hotspot: `player`.
 
 ## Steps
 

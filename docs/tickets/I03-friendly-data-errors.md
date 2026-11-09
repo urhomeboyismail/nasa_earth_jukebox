@@ -29,8 +29,8 @@ A listener who cannot load a data set reads a plain sentence that says what to d
 
 ## Touches
 
-- `src/data/index.ts`: add the friendly function, and keep `DataError` as it is. Review: Dhruv.
-- `src/App.tsx`: use the friendly message, and log the detail. Review: Mohammad.
+- `src/data/index.ts`: add the friendly function, and keep `DataError` as it is.
+- `src/App.tsx`: use the friendly message, and log the detail.
 - `src/App.test.tsx`: the new tests.
 - A new test file next to the new function, if you put the function in a new file.
 
@@ -62,7 +62,6 @@ Not applicable: no sound or visual change. The message is text in the same box, 
 - A listener who cannot load a data set sees a sentence with no file name, status code or validation text.
 - The detail still appears in the console once per failure.
 - The tests above pass. `npm run lint && npm test && npm run build` pass.
-- Mohammad has reviewed `App.tsx`. Dhruv has reviewed `src/data/`.
 
 ## Checks
 

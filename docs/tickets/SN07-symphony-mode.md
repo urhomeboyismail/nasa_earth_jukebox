@@ -98,7 +98,7 @@ Space plays and pauses, as Simple does. The existing `isTyping` and `spaceActiva
 - New: `src/features/player/listenMode.ts`, `Symphony.tsx`, `symphony.ts`, `DetailControl.tsx`, `VoiceMixer.tsx`, `LayerCaptions.tsx`, and their tests.
 - Edit: `src/features/player/index.tsx` (the mode switch and the Symphony render only; the Simple branch is the existing code, moved inside a function without change).
 - Do not edit `usePlayer.ts`, `Viewer.tsx`, `controls.ts` or `player.test.tsx` (their behaviour must not change). If `Viewer.tsx` needs a prop, post on `docs/AGENT-BOARD.md` for Mohammad first.
-- Hotspot: `player`. Reviewer: Mohammad (`src/features/player/`, `src/App.tsx` is not touched).
+- Hotspot: `player`.
 
 ## Steps
 

@@ -100,7 +100,6 @@ export function soundRecipe(preset: Preset): RecipeRow[]
 - New: `src/describe/events.ts`, `announce.ts`, `markers.ts`, `recipe.ts`, their tests; `src/components/HotspotMarkers.tsx` (shared UI: Roni's folder) with its test; `src/features/about/SoundRecipe.tsx` with its test.
 - Edit: `src/features/about/index.tsx` (mount the recipe table, one block).
 - Mounting the markers on the picture is one line in `src/features/player/Symphony.tsx` (SN07). That file is in the `player` hotspot: this ticket must run when no player ticket is in progress (see Steps). Until then, the markers component is tested alone and not mounted.
-- Reviewers: Roni (`src/components/`, `src/features/about/`), Mohammad (`src/features/player/Symphony.tsx`), team leader (`src/describe/`).
 
 ## Steps
 

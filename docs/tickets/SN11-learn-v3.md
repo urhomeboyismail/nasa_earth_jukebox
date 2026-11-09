@@ -67,7 +67,7 @@ One entry per voice, written in plain English, with no data-set words:
 
 - New: `src/features/learn/voiceCards.ts`, `voiceCards.tsx`, `voiceCards.test.tsx`.
 - Edit: `src/features/learn/index.tsx` (one section, after the existing content). No change to the existing category cards.
-- Hotspot: `learn`. Reviewer: Roni (`src/features/learn/` is Roni's; `phases.md`).
+- Hotspot: `learn`.
 
 ## Steps
 
@@ -86,7 +86,7 @@ One entry per voice, written in plain English, with no data-set words:
 - **Accessibility.** `expectNoA11yViolations` on the section; each card is a labelled section; the buttons have names.
 - **Existing Learn tests** pass unchanged.
 
-- **Golden.** `src/features/learn/__golden__/voice-cards.json`: the card texts (`VOICE_TEACHING`) and, for the fixture, the first `MusicFrame` each card would solo, recorded as text. A change to the wording is reviewed by Roni like any other wording.
+- **Golden.** `src/features/learn/__golden__/voice-cards.json`: the card texts (`VOICE_TEACHING`) and, for the fixture, the first `MusicFrame` each card would solo, recorded as text.
 
 ## Guardrails
 

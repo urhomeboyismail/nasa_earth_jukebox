@@ -9,7 +9,6 @@
 | **Hotspots** | server-assistant, app, voice |
 | **Branch** | `feature/IX09-echo-points` |
 
-**Reviewer:** Mohammad (owns `server/app/assistant/`, `server/app/api/`, `src/hooks/useVoiceAssistant.ts`). This ticket also touches `src/App.tsx` and `src/hooks/useVoiceAssistant.ts`, which the queue's hotspot list does not name (see the report); no other voice or app ticket runs at the same time.
 
 ## Goal
 

@@ -69,11 +69,11 @@ No NASA logo, worm, meatball, flag or mission patch.
 
 ## Touches
 
-- `src/components/Mascot.tsx` and `src/components/Mascot.test.tsx`. Review: Roni (`src/components/`).
-- `docs/design/mascot-concepts.html` and `docs/design/mascot-concepts.png`. Review: Roni.
-- `server/app/assistant/knowledge.py`: the persona line only. Review: Mohammad (`server/app/assistant/`), and the team leader as the card asks.
+- `src/components/Mascot.tsx` and `src/components/Mascot.test.tsx`.
+- `docs/design/mascot-concepts.html` and `docs/design/mascot-concepts.png`.
+- `server/app/assistant/knowledge.py`: the persona line only.
 - `server/tests/test_assistant.py`: add the "program, not a person" check.
-- `README.md`: one line in the AI disclosure. Review: Bhavish.
+- `README.md`: one line in the AI disclosure.
 - `docs/PRE-HACKATHON-WORK.md`: one line.
 
 ## Steps
@@ -109,7 +109,6 @@ No NASA logo, worm, meatball, flag or mission patch.
 - The persona line says Echo is a program, not a person, and the server test checks it.
 - The concept page and its PNG show the new art.
 - `npm run lint && npm test && npm run build` pass. `(cd server && .venv/bin/python -m pytest)` passes.
-- Roni (components), Mohammad (persona) and Bhavish (README line) have reviewed their parts.
 
 ## Checks
 
