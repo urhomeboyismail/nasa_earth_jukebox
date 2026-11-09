@@ -91,4 +91,39 @@ npx vitest run src/data src/features/learn src/features/about src/features/playe
 
 ## Result
 
-Not started.
+Branch `fix/I02-neutral-words`.
+
+**Defaults** (`src/data/words.ts`): `higher: 'higher'`, `lower: 'lower'`, `highest: 'highest'`, `lowest: 'lowest'`, `edge: 'edge'`, `thing: 'values'`. One difference from the ticket's proposal: `thing` is `'values'`, not `'value'`, because three sentences print `higherPhrase` ("Which date shows higher values?", "longer for higher values", Home's question), and the plural reads correctly in all three without a new sentence.
+
+**Manifests:** the explicit temperature words were added to `fixture`, `synthetic-ocean`, `synthetic-globe` and `synthetic-change`. `mur-sst-mauritius` already had them (S02), so the ticket's note that no manifest sets `variable.words` was out of date. `rehearsal-sst` was not touched.
+
+**Sentences changed** (the listener's text; every other occurrence of the words in `src/` is a comment, an internal name, the Ask aliases or a test):
+- Learn: "all one temperature" to "all one value"; the button and its announcement "Play: all warm" to "Play: all one value"; "When the temperature changes" to "When the value changes"; "never mistaken for cold" to "never mistaken for a low value"; "A cooler place is a lower note, and a warmer place is a higher note" to "Where the value is cooler, the note is lower; where it is warmer, the note is higher" (built from the data set's words).
+- Listen and Compare: "not the temperature itself" to "not the value itself".
+- About: "never counted as cold" to "never counted as a low value".
+- Demo script: "from cold to hot" to "from the lowest category to the highest".
+- Not changed, as the ticket says: the Ask aliases ("coldest", "warmest", "coolest" and so on are words people type), `traceWarmEdge` and the comment examples.
+
+`grep -rn -i "warm\|cold\|temperature" src --include='*.ts' --include='*.tsx'`, without tests, golden files and comment lines, lists only: a developer message in `src/data/check.ts`, the Ask aliases, `traceWarmEdge`, and the local names `warmest`/`coolest` in `src/describe/index.ts`.
+
+**Tests:** `src/data/words.test.tsx` (the fixture now sets its own words, so the "no `words`" cases use the same data set with none; new tests: the defaults contain no temperature word, the fixture still reads "warmer water", the neutral reading of Compare and `describeSequence`), `src/features/compare/judge.test.ts`, `src/features/learn/learn.test.tsx` (the two old assertions, plus the own-words and neutral readings), and one new assertion each in `src/features/player/change.test.tsx`, `src/features/compare/change.test.tsx`, `src/features/about/about.test.tsx` and `src/features/demo/runDemo.test.ts`. Only assertions about the default text changed; no category ID assertion did.
+
+Also changed, outside Touches: `docs/data-sources.md` (the `variable.words` row listed the old defaults; it now lists the neutral ones and says a temperature data set should set all six), and the work-log line in `docs/PRE-HACKATHON-WORK.md`.
+
+The sound and change regression tests pass with no golden change (`git diff --stat -- src/data/__golden__` is empty).
+
+```
+$ npm run lint
+(oxlint: no warnings or errors)
+$ npm test
+ Test Files  64 passed (64)
+      Tests  1209 passed (1209)
+$ npm run build
+✓ built in 438ms
+$ npm run check-data
+ Test Files  9 passed (9)
+      Tests  192 passed (192)
+$ npx vitest run src/data/sound-regression.test.ts src/data/change-regression.test.ts
+ Test Files  2 passed (2)
+      Tests  12 passed (12)
+```

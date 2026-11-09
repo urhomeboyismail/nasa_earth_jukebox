@@ -40,6 +40,10 @@ describe('runDemo', () => {
     expect(log).toEqual([])
   })
 
+  it('names no temperature, so it fits any data set (I02)', () => {
+    expect(DEMO_STEPS.map(step => step.say).join(' ')).not.toMatch(/warm|cold|\bhot\b|temperature/i)
+  })
+
   it('names only pages that exist and says nothing about a particular data set', () => {
     for (const step of DEMO_STEPS) expect(['home', 'learn', 'listen', 'compare', 'about']).toContain(step.page)
     expect(DEMO_STEPS.map(step => step.say).join(' ')).not.toMatch(/mauritius|ocean|sea ice|°C/i)

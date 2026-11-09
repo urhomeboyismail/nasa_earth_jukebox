@@ -40,8 +40,9 @@ describe('judge', () => {
 })
 
 describe('words', () => {
-  it('says "further above its normal" for the change question and "warmer" otherwise', () => {
-    expect(answerText('a')).toBe('Date A is warmer')
+  it('says "further above its normal" for the change question and the default word "higher" otherwise', () => {
+    expect(answerText('a')).toBe('Date A is higher')
+    expect(answerText('a', false, { higher: 'warmer' })).toBe('Date A is warmer')
     expect(answerText('b', true)).toBe('Date B is further above its normal')
     expect(answerText('same', true)).toBe('About the same')
   })

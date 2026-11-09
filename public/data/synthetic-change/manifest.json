@@ -5,7 +5,15 @@
   "description": "A pretend sea through one year: it is warmest in February and coolest in August, a little warmer in the north, with grey land on the west edge and a small island. From August to October a warm patch grows in the east, up to 1.5 °C above normal in October, then goes. Each month comes with its own normal, the same picture without the patch, so the change from normal is known exactly. The season is bigger than the patch, so the warmest date is not the date furthest above normal. Every temperature is chosen by us. None of it is real data.",
   "variable": {
     "name": "Sea surface temperature",
-    "unit": "°C"
+    "unit": "°C",
+    "words": {
+      "higher": "warmer",
+      "lower": "cooler",
+      "highest": "warmest",
+      "lowest": "coolest",
+      "edge": "warm edge",
+      "thing": "water"
+    }
   },
   "source": {
     "name": "Synthetic test data",

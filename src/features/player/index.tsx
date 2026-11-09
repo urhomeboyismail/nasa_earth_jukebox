@@ -275,7 +275,7 @@ function Player({ visualization }: { visualization: Visualization }) {
             ))}
             <span>
               {player.style === 'change'
-                ? 'Hear how far each date is from its normal, not the temperature itself.'
+                ? 'Hear how far each date is from its normal, not the value itself.'
                 : player.style === 'simple' ? 'Just the main note, without the chord and slides.' : 'The main note with a chord, slides and a bell.'}
             </span>
           </div>

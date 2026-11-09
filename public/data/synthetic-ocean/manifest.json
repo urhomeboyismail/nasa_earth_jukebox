@@ -5,7 +5,15 @@
   "description": "A pretend ocean through one year: it warms for six months, cools back, has one cloudy date, and ends with two nearly identical dates. Every temperature is chosen by us, so the right answer is always known.",
   "variable": {
     "name": "Sea surface temperature",
-    "unit": "°C"
+    "unit": "°C",
+    "words": {
+      "higher": "warmer",
+      "lower": "cooler",
+      "highest": "warmest",
+      "lowest": "coolest",
+      "edge": "warm edge",
+      "thing": "water"
+    }
   },
   "source": {
     "name": "Synthetic test data",
