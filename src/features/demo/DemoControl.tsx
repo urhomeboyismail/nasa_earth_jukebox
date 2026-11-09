@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { subscribeContext } from '../../assistant/context'
 import { Button } from '../../components'
+import { Sonny } from '../../components/Mascot'
 import { currentDataParam, hashFor } from '../../route'
+import { useMascotOn } from '../help/mascotSetting'
 import { sendPlayerCommand } from '../player/controls'
 import { runDemo, type DemoDeps } from './runDemo'
 import { DEMO_STEPS } from './script'
@@ -41,6 +43,7 @@ export function DemoControl() {
   const [running, setRunning] = useState(false)
   const [caption, setCaption] = useState('')
   const abort = useRef<AbortController | null>(null)
+  const mascotOn = useMascotOn()
 
   function stop() {
     abort.current?.abort()
@@ -74,7 +77,11 @@ export function DemoControl() {
   return (
     <div className="demo">
       <Button pressed={running} onClick={running ? stop : () => void start()}>{running ? 'Stop the demo' : 'Play the demo'}</Button>
-      <p className="demo__caption" aria-live="polite">{caption}</p>
+      {/* The mascot's face sits beside what it says. It is decoration: the caption is the text. */}
+      <div className="demo__say">
+        {mascotOn && caption && <Sonny size={32} className="demo__mascot" />}
+        <p className="demo__caption" aria-live="polite">{caption}</p>
+      </div>
     </div>
   )
 }

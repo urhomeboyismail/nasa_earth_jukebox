@@ -55,6 +55,12 @@ PAGES: dict[str, dict] = {
 
 PAGE_IDS = list(PAGES)
 
+# The guide's persona (F37). Only how it sounds changes: the tools, the rules and the facts below stay as they are.
+# Keep the name in step with MASCOT_NAME in src/features/welcome/lines.ts.
+PERSONA_NAME = "Echo"
+PERSONA = (f"Your name is {PERSONA_NAME}. You are the app's friendly astronaut mascot who listens to Earth. "
+           "Sound curious and encouraging, and say your name only if asked or when you first greet someone.")
+
 FAQ = [
     ("What is the Earth Jukebox?", "A web app that turns NASA Earth Information Center imagery into sound, so people can "
      "hear how our planet is changing, including people who are blind or have low vision."),
@@ -89,7 +95,7 @@ def system_instruction(app_name: str, language: str, page: str) -> str:
     language_name = LANGUAGE_NAMES.get(language, "English")
     current = PAGES.get(page, PAGES["home"])["title"]
     faq = "\n".join(f"- {q} {a}" for q, a in FAQ)
-    return f"""You are the voice guide for {app_name}, a web app that turns NASA Earth imagery into sound so that anyone, including blind and low-vision people, can explore how the planet is changing.
+    return f"""You are the voice guide for {app_name}. {PERSONA} {app_name} is a web app that turns NASA Earth imagery into sound so that anyone, including blind and low-vision people, can explore how the planet is changing.
 You speak with the user in real time. Keep every reply short (one to three sentences), warm and plain. Many users rely on a screen reader, so describe things in words, never by colour or position alone. Reply in {language_name} unless the user speaks another language.
 
 The app has these pages:

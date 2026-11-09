@@ -2,7 +2,7 @@
 
 - **Card:** [`docs/planning/BRAINSTORM-9NOV.md`](../../planning/BRAINSTORM-9NOV.md) → F37
 - **Owner:** Roni (agent: Claude Code)
-- **Status:** in progress (T1 done, T2 not started)
+- **Status:** done
 - **Why this many tickets:** the welcome (first visit, three paths, sound check) is one self-contained piece on Home. Per-page help and the demo host touch the app shell and `DemoControl`, which belong to other owners (`docs/PLAN.md` §4), so they are a second ticket. Two is the card's own minimum.
 - **The mascot:** both tickets use **Echo** (`src/components/Mascot.tsx`, concept in `docs/design/mascot-concepts.html`), the astronaut we already have, in place of the card's yellow "Orbi". Echo is our own design, so there is no Minion or NASA-insignia risk, and the app already uses it beside the voice guide. The name is one constant (`MASCOT_NAME` in `src/features/welcome/lines.ts`), so the team can still rename it. See board entry R-20261109-F37-1.
 
@@ -31,7 +31,7 @@
 ## T2: "Help from Echo" on every page, the off switch and the demo host
 
 - **Goal:** a small help button in the same place on every page gives one tip for that page and can bring the welcome back; a setting turns the mascot off; the demo caption shows the mascot's face.
-- **Independent of:** needs T1 merged first (unavoidable: it resets T1's stored choice through `resetWelcome()`). It never changes T1's files except to import that one function.
+- **Independent of:** needs T1 merged first (unavoidable: it resets T1's stored choice through `resetWelcome()`, and Home hides the welcome when the mascot is off). It changes T1's files only in `src/features/home/index.tsx`, by one condition.
 - **Branch:** `feature/F37-T2-help`
 - **Files:** `src/features/help/` (new), `src/App.tsx` (one button, in the same place on every page), `src/features/demo/DemoControl.tsx` and `demo.css`, optionally `server/app/assistant/knowledge.py` (persona text only).
 - **Steps:**
@@ -42,7 +42,7 @@
   5. Server persona text (name and tone) in `knowledge.py`, with the same 5 tools and the page list unchanged.
 - **Done when:** the button works by keyboard on every page; each page gives its own tip; the welcome comes back after "Show the welcome again"; with the mascot off, neither the welcome nor the demo face shows; axe passes; checked at three widths.
 - **Checks:** `npm run lint && npm test && npm run build`, and `cd server && .venv/bin/python -m pytest` if `server/` changed.
-- **Status:** [x] not started · [ ] in progress · [ ] done
+- **Status:** [ ] not started · [ ] in progress · [x] done (branch `feature/F37-T2-help`, built on T1)
 
 ## Open questions
 
