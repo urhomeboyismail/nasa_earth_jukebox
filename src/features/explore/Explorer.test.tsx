@@ -690,3 +690,89 @@ describe('Explorer: accessibility', () => {
     await expectNoA11yViolations(container)
   })
 })
+
+describe('Explorer: opened by a link (F40)', () => {
+  const open = (hash: string) => window.history.replaceState(null, '', hash)
+  const column = () => (screen.getByRole('slider', { name: 'Column, west to east' }) as HTMLInputElement).value
+  const row = () => (screen.getByRole('slider', { name: 'Row, north to south' }) as HTMLInputElement).value
+  afterEach(() => { window.history.replaceState(null, '', '/') })
+
+  it('opens the map on the cell the link names, and makes no sound', async () => {
+    open('#listen?cell=5,3')
+    render(<PlayerPage visualization={visualization} />)
+    await tick(0)
+    expect(surface()).toBeInTheDocument()
+    expect(column()).toBe('5')
+    expect(row()).toBe('3')
+    expect(engine.unlock).not.toHaveBeenCalled()
+    expect(engine.playCategory).not.toHaveBeenCalled()
+    expect(engine.playMissing).not.toHaveBeenCalled()
+  })
+
+  it('unlocks the audio on the first key press, and sounds the cell it lands on', async () => {
+    open('#listen?cell=5,3')
+    const user = userEvent.setup({ delay: null })
+    render(<PlayerPage visualization={visualization} />)
+    await tick(0)
+    await user.keyboard('{ArrowRight}')
+    await tick(300)
+    expect(engine.unlock).toHaveBeenCalledTimes(1)
+    expect(column()).toBe('6')
+    // Column 6 of 22 readable columns is the second of five bands: "cool".
+    expect(engine.playCategory).toHaveBeenCalledWith('cool', expect.anything())
+    // Later presses do not unlock again.
+    await user.keyboard('{ArrowRight}')
+    await tick(300)
+    expect(engine.unlock).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not take Escape for the first press: that stops sound, it does not start it', async () => {
+    open('#listen?cell=5,3')
+    const user = userEvent.setup({ delay: null })
+    render(<PlayerPage visualization={visualization} />)
+    await tick(0)
+    await user.keyboard('{Escape}')
+    await tick(300)
+    expect(engine.unlock).not.toHaveBeenCalled()
+    expect(engine.playCategory).not.toHaveBeenCalled()
+  })
+
+  it('falls back to the middle of the map when the cell is not on it, and still opens', async () => {
+    open('#listen?cell=99,99')
+    render(<PlayerPage visualization={visualization} />)
+    await tick(0)
+    expect(surface()).toBeInTheDocument()
+    expect(column()).toBe(String(START.col))
+    expect(row()).toBe(String(START.row))
+  })
+
+  it('opens on a cell from a link pasted while Listen is already showing', async () => {
+    render(<PlayerPage visualization={visualization} />)
+    await tick(0)
+    expect(screen.queryByRole('application')).toBeNull()
+    act(() => {
+      open('#listen?cell=2,4')
+      window.dispatchEvent(new HashChangeEvent('hashchange'))
+    })
+    await tick(0)
+    expect(surface()).toBeInTheDocument()
+    expect(column()).toBe('2')
+    expect(row()).toBe('4')
+    expect(engine.playCategory).not.toHaveBeenCalled()
+  })
+
+  it('puts the cell in the address once the map has been read, and takes it out when the map is closed', async () => {
+    open('#listen')
+    const user = userEvent.setup({ delay: null })
+    render(<PlayerPage visualization={visualization} />)
+    await tick(0)
+    await user.click(screen.getByRole('button', { name: 'Explore the map' }))
+    await tick(0)
+    await user.keyboard('{ArrowRight}')
+    await tick(300)
+    expect(window.location.hash).toContain(`cell=${START.col + 1}%2C${START.row}`)
+    await user.click(screen.getByRole('button', { name: 'Explore the map' }))
+    await tick(0)
+    expect(window.location.hash).not.toContain('cell=')
+  })
+})

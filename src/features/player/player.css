@@ -76,6 +76,9 @@
 .player__sound > .player__style { justify-self: stretch; }
 
 .player__vibration { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; color: var(--text); }
+.player__share { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; color: var(--text); }
+.player__share-manual { display: flex; flex-direction: column; gap: 0.25rem; flex: 1 1 100%; min-inline-size: 0; }
+.player__share-manual input { inline-size: 100%; min-block-size: var(--control-size); font: inherit; color: var(--text); }
 
 .player__style { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: center; }
 .player__style-label { font-weight: 600; }
@@ -123,3 +126,16 @@
 .player__table th,
 .player__table td { padding: 0.5rem 0.75rem; border-block-end: 1px solid var(--border); text-align: start; white-space: nowrap; }
 .player__table thead th { color: var(--text-h); }
+
+.player__keys { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; }
+.player__keys .player__hint { margin: 0; }
+
+/* The "Keyboard shortcuts" dialog (F41): one table per scope, made from the list in shortcuts.ts. */
+.shortcuts { flex: none; overflow-x: auto; max-inline-size: 100%; }
+.shortcuts table { inline-size: 100%; border-collapse: collapse; font-size: 1rem; }
+.shortcuts caption { text-align: start; font-weight: 600; padding-block-end: 0.5rem; }
+.shortcuts th,
+.shortcuts td { text-align: start; vertical-align: top; padding: 0.5rem; border-block-end: 1px solid var(--ui-outline-variant); }
+.shortcuts th:first-child,
+.shortcuts td:first-child { white-space: nowrap; }
+.shortcuts kbd { font: inherit; font-weight: 600; padding: 0.1rem 0.5rem; border: 1px solid var(--ui-outline); border-radius: var(--ui-corner-small); }

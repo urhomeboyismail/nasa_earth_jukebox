@@ -88,4 +88,22 @@ npx vitest run src/route.test.ts src/features/player src/features/explore
 
 ## Result
 
-Not started.
+Branch `feature/S01-deep-links-shortcuts`, two commits on `main` at `4018952`: `68c559c` (F40, cherry-picked from `28eeec5`) and `20c7906` (F41, cherry-picked from `acc6095`). The only conflict was `docs/features/README.md`, resolved by taking `main`'s version. `useExplorer.ts` merged without a conflict. Neither old `TICKETS.md` file is on the branch. `docs/PRE-HACKATHON-WORK.md` has one line each for F40 and F41.
+
+```
+$ npm run lint
+(oxlint: no warnings or errors)
+
+$ npm test
+ Test Files  62 passed (62)
+      Tests  1160 passed (1160)
+
+$ npm run build
+✓ built in 433ms
+
+$ npx vitest run src/route.test.ts src/features/player src/features/explore
+ Test Files  7 passed (7)
+      Tests  198 passed (198)
+```
+
+Test coverage checked against the ticket: `player.test.tsx` has the deep-link cases (good values opened and the style not saved, bad style ignored, link applied while Listen is open and silent, copy button), the dialog cases (named "Keyboard shortcuts", Escape closes and returns focus, `expectNoA11yViolations` with it open), and `shortcuts.test.ts` has the guard test (no handler names a key outside `SHORTCUTS`).

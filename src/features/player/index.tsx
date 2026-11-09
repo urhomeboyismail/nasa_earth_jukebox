@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { useAssistantContext } from '../../assistant/context'
-import { AnnouncerProvider, Button, Legend, LoadingIndicator, Notice, Slider } from '../../components'
+import { AnnouncerProvider, Button, Legend, LoadingIndicator, Notice, Slider, useAnnounce } from '../../components'
 import type { ChangeVisualization } from '../../analysis'
 import { higherPhrase, variableWords, type Visualization } from '../../data'
 import { describeChange } from '../../describe'
@@ -15,6 +15,9 @@ import './player.css'
 import { usePlayer, type Speed } from './usePlayer'
 import { useVibrationSetting, vibrateForDate } from './vibration'
 import { DataTable } from './DataTable'
+import { momentHash, readMoment, useMomentLink } from './momentLink'
+import { shortcutFor } from './shortcuts'
+import { ShortcutsDialog } from './ShortcutsDialog'
 import { Viewer } from './Viewer'
 
 const SPEEDS: { id: Speed; label: string }[] = [
@@ -47,18 +50,49 @@ export default function PlayerPage({ visualization }: PageProps) {
 
 function Player({ visualization }: { visualization: Visualization }) {
   const vibration = useVibrationSetting()
+  const announce = useAnnounce()
+  const { frames, source } = visualization
+  // F40: the moment the address asks for, read once while the page first renders. Anything it gets wrong is already left out.
+  const dates = useMemo(() => frames.map(frame => frame.date), [frames])
+  const [linked] = useState(() => readMoment(window.location.hash, dates))
   // A pulse each time the player lands on a date, while playing or when one date is chosen. Not on page load.
   const player = usePlayer(visualization, (_index, category) => {
     if (vibration.enabled) vibrateForDate(category, visualization.mapping)
-  })
-  const { frames, source } = visualization
+  }, linked)
   const words = variableWords(visualization.variable)
   const frame = frames[player.index]
   const playing = player.status === 'playing'
   const [detail] = useDescriptionDetail()
   // The data table is built only while it is open: a closed <details> still keeps its content in the page.
   const [tableOpen, setTableOpen] = useState(false)
-  const explorer = useExplorer({ visualization, frame, engine: player.engine, vibrate: vibration.enabled, frames, formatDate: player.formatDate, onDate: player.showDate })
+  const explorer = useExplorer({ visualization, frame, engine: player.engine, vibrate: vibration.enabled, frames, formatDate: player.formatDate, onDate: player.showDate, start: linked.cell })
+
+  // F40: the address follows the date, the cell (once the map has been read) and the style, and a link opened on this page is applied.
+  const { halt, showDate, applyLinkedStyle } = player
+  const { openAt } = explorer
+  const moment = { date: frame.date, cell: explorer.on && explorer.grid ? explorer.cursor : null, style: player.style }
+  useMomentLink(moment, dates, link => {
+    if (link.index !== null) { halt(); showDate(link.index) }
+    if (link.style) applyLinkedStyle(link.style)
+    if (link.cell) openAt(link.cell)
+  })
+  const [copied, setCopied] = useState('')
+  /** Shown only when the clipboard is not available, so the listener can copy it by hand. */
+  const [manualLink, setManualLink] = useState('')
+  async function copyLink() {
+    // Built from what is on screen, so it is whole even if the address has not been rewritten yet.
+    const link = `${window.location.href.split('#')[0]}${momentHash(window.location.hash, moment)}`
+    try {
+      await navigator.clipboard.writeText(link)
+      setManualLink('')
+      announce('Link copied')
+      setCopied('Link copied.')
+      window.setTimeout(() => setCopied(''), 5000)
+    } catch {
+      setManualLink(link)
+      announce('The link could not be copied. It is shown below the button, so you can copy it yourself.')
+    }
+  }
 
   // Playing the dates takes the sound back from the explorer.
   const { on: exploring, turnOff: stopExploring } = explorer
@@ -111,28 +145,35 @@ function Player({ visualization }: { visualization: Visualization }) {
   )
 
   // Shortcuts work while focus is anywhere in the player, but never take over a text box, a button or a field's own keys.
+  // Which key means what is the list in ./shortcuts.ts, which the "Keyboard shortcuts" dialog is drawn from too.
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
   function onKeyDown(event: KeyboardEvent) {
     if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || isEditable(event.target)) return
-    if (event.key === ' ' && !spaceActivates(event.target)) {
+    const key = shortcutFor(event.key, 'player')
+    if (key === 'play' && !spaceActivates(event.target)) {
       event.preventDefault()
       if (playing) player.pause()
       else player.play()
-    } else if (event.key.toLowerCase() === 't' && player.style === 'change' && !isTyping(event.target)) {
+    } else if (key === 'trace' && player.style === 'change' && !isTyping(event.target)) {
       // "Trace the warm edge", from anywhere in the player, the sound map included (it does not use this key).
       event.preventDefault()
       void player.traceWarmEdge()
-    } else if (event.key === 'Escape' && player.tracing) {
+    } else if (key === 'stop-trace' && player.tracing) {
       player.stopTrace()
-    } else if (event.key === 'ArrowRight' && !isField(event.target)) {
+    } else if (key === 'help' && !isTyping(event.target)) {
+      event.preventDefault()
+      setShortcutsOpen(true)
+    } else if (key === 'next' && !isField(event.target)) {
       event.preventDefault()
       player.goTo(player.index + 1)
-    } else if (event.key === 'ArrowLeft' && !isField(event.target)) {
+    } else if (key === 'previous' && !isField(event.target)) {
       event.preventDefault()
       player.goTo(player.index - 1)
     }
   }
 
   return (
+    <>
     <section className="player" aria-label="Player" onKeyDown={onKeyDown}>
       <Viewer frame={frame} dateText={player.formatDate(frame.date)} region={player.region} source={source}>
         <ExplorerSurface explorer={explorer} />
@@ -272,9 +313,25 @@ function Player({ visualization }: { visualization: Visualization }) {
         </div>
       )}
 
-      <p className="player__hint">
-        Keyboard: Space plays or pauses, and the left and right arrow keys move between dates.
-      </p>
+      <div className="player__share">
+        <Button disabled={!player.ready} onClick={() => void copyLink()}>Copy link to this moment</Button>
+        <span>A link that opens this data set, date, place on the map and sound. {copied}</span>
+        {manualLink && (
+          <label className="player__share-manual">
+            <span>Copy this link</span>
+            <input type="text" readOnly value={manualLink} onFocus={event => event.currentTarget.select()} />
+          </label>
+        )}
+      </div>
+
+      <div className="player__keys">
+        <p className="player__hint">
+          Keyboard: Space plays or pauses, and the left and right arrow keys move between dates.
+        </p>
+        <Button onClick={() => setShortcutsOpen(true)}>Keyboard shortcuts</Button>
+      </div>
     </section>
+    <ShortcutsDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} visualization={visualization} />
+    </>
   )
 }

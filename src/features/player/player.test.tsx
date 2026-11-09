@@ -1,12 +1,13 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
 import { subscribeContext, type ContextUpdate } from '../../assistant/context'
-import type { Visualization } from '../../data'
+import { variableWords, type Visualization } from '../../data'
 import { expectNoA11yViolations } from '../../test/a11y'
 import { elevationFor, panFor } from '../../audio/pan'
 import { sendPlayerCommand } from './controls'
+import { keyName, SHORTCUTS } from './shortcuts'
 import PlayerPage from '.'
 
 const visualization = fixture as Visualization
@@ -742,5 +743,186 @@ describe('Player: what the sound hides (F33)', () => {
     await tick(0)
     expect(liveText()).toBe('Every one of the two changes between neighbouring dates is still heard in a coarse sound, so it hides nothing here.')
     expect(fake.sequences).toHaveLength(0)
+  })
+})
+
+describe('Player: a link to one moment (F40)', () => {
+  const open = (hash: string) => window.history.replaceState(null, '', hash)
+  afterEach(() => { window.history.replaceState(null, '', '/'); localStorage.clear() })
+
+  it('opens on the date and sound style the link names, and does not save the style', async () => {
+    open('#listen?date=2024-07-15&style=simple')
+    await renderReady()
+    expect(dateText()).toMatch(/^July 2024/)
+    expect(screen.getByRole('button', { name: 'Simple sound' })).toHaveAttribute('aria-pressed', 'true')
+    expect(fake.setStyle).toHaveBeenLastCalledWith('simple')
+    expect(localStorage.getItem('earth-jukebox:sound-style')).toBeNull()
+  })
+
+  it('ignores what this data set cannot use and still applies the rest', async () => {
+    open('#listen?date=1999-01-01&style=simple&cell=99,99x')
+    await renderReady()
+    expect(dateText()).toMatch(/^January 2024/)
+    expect(screen.getByRole('button', { name: 'Simple sound' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByRole('application')).toBeNull()
+  })
+
+  it('ignores a style that does not exist, and a style the data set has no baseline for', async () => {
+    open('#listen?date=2024-12-15&style=loud')
+    const first = await renderReady()
+    expect(dateText()).toMatch(/^December 2024/)
+    expect(screen.getByRole('button', { name: 'Simple sound' })).toHaveAttribute('aria-pressed', 'false')
+    first.unmount()
+    open('#listen?style=change')
+    await renderReady()
+    expect(screen.getByRole('button', { name: 'Simple sound' })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('lets the listener choose a style afterwards: that is saved, and the link no longer decides', async () => {
+    open('#listen?style=simple')
+    const { user } = await renderReady()
+    await user.click(screen.getByRole('button', { name: 'Simple sound' }))
+    expect(screen.getByRole('button', { name: 'Simple sound' })).toHaveAttribute('aria-pressed', 'false')
+    expect(localStorage.getItem('earth-jukebox:sound-style')).toBe('full')
+  })
+
+  it('leaves the address alone until something changes, then keeps it in step without adding history entries', async () => {
+    open('#listen?data=fixture')
+    const before = window.history.length
+    const { user } = await renderReady()
+    expect(window.location.hash).toBe('#listen?data=fixture')
+    screen.getByRole('button', { name: 'Stop' }).focus()
+    await user.keyboard('{ArrowRight}')
+    await tick(0)
+    expect(window.location.hash).toBe('#listen?data=fixture&date=2024-07-15&style=full')
+    expect(window.history.length).toBe(before)
+  })
+
+  it('applies a link opened while Listen is already showing, without a sound', async () => {
+    await renderReady()
+    fake.played.length = 0
+    act(() => {
+      open('#listen?date=2024-12-15&style=simple')
+      window.dispatchEvent(new HashChangeEvent('hashchange'))
+    })
+    await tick(0)
+    expect(dateText()).toMatch(/^December 2024/)
+    expect(screen.getByRole('button', { name: 'Simple sound' })).toHaveAttribute('aria-pressed', 'true')
+    expect(fake.played).toEqual([])
+  })
+
+  it('copies a whole link to this moment, even before the address has changed, and says so', async () => {
+    open('#listen?data=fixture')
+    const { user } = await renderReady()
+    const writeText = vi.fn(async (_text: string) => {})
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+    await user.click(screen.getByRole('button', { name: 'Copy link to this moment' }))
+    await tick(0)
+    expect(writeText).toHaveBeenCalledTimes(1)
+    expect(writeText.mock.calls[0][0]).toMatch(/#listen\?data=fixture&date=2024-01-15&style=full$/)
+    expect(liveText()).toBe('Link copied')
+  })
+
+  it('shows the link to copy by hand when the clipboard is not available', async () => {
+    const { user, container } = await renderReady()
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText: async () => { throw new Error('denied') } }, configurable: true })
+    await user.click(screen.getByRole('button', { name: 'Copy link to this moment' }))
+    await tick(0)
+    const field = screen.getByRole('textbox', { name: 'Copy this link' })
+    expect(field).toHaveAttribute('readonly')
+    expect((field as HTMLInputElement).value).toMatch(/date=2024-01-15/)
+    expect(liveText()).toMatch(/could not be copied/)
+    vi.useRealTimers() // axe waits on real timers
+    await expectNoA11yViolations(container)
+  })
+})
+
+describe('Player: the keyboard shortcuts dialog (F41)', () => {
+  const dialog = () => screen.getByRole('dialog', { name: 'Keyboard shortcuts' })
+  const opener = () => screen.getByRole('button', { name: 'Keyboard shortcuts' })
+
+  it('opens from its button, and is closed until then', async () => {
+    const { user } = await renderReady()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    await user.click(opener())
+    expect(dialog()).toBeInTheDocument()
+    expect(within(dialog()).getByRole('heading', { name: 'Keyboard shortcuts' })).toHaveFocus()
+  })
+
+  it('opens with the question mark from anywhere in the player', async () => {
+    const { user } = await renderReady()
+    screen.getByRole('button', { name: 'Stop' }).focus()
+    await user.keyboard('?')
+    expect(dialog()).toBeInTheDocument()
+  })
+
+  it('does not open from a question mark typed in a text box', async () => {
+    const { user } = await renderReady()
+    const box = screen.getByRole('textbox')
+    await user.click(box)
+    await user.keyboard('why?')
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(box).toHaveValue('why?')
+  })
+
+  it('lists the same keys as the list the handlers read, one row each, in two tables', async () => {
+    const { user } = await renderReady()
+    await user.click(opener())
+    const words = variableWords(visualization.variable)
+    const tables = within(dialog()).getAllByRole('table')
+    expect(tables).toHaveLength(2)
+    for (const [i, scope] of (['player', 'map'] as const).entries()) {
+      const rows = within(tables[i]).getAllByRole('row').slice(1)
+      const expected = SHORTCUTS.filter(shortcut => shortcut.scope === scope)
+      expect(rows).toHaveLength(expected.length)
+      expected.forEach((shortcut, r) => {
+        const [keys, does] = within(rows[r]).getAllByRole('cell')
+        expect(keys).toHaveTextContent(shortcut.keys.map(keyName).join(' or '))
+        expect(does).toHaveTextContent(shortcut.does(words))
+      })
+    }
+  })
+
+  it('says which keys work only in the player or on the map', async () => {
+    const { user } = await renderReady()
+    await user.click(opener())
+    expect(dialog()).toHaveTextContent('work only while focus is in the player or on the sound map')
+    expect(within(dialog()).getByRole('table', { name: /Anywhere in the player/ })).toBeInTheDocument()
+    expect(within(dialog()).getByRole('table', { name: /On the sound map/ })).toBeInTheDocument()
+  })
+
+  it('closes with Escape and gives focus back to the button', async () => {
+    const { user } = await renderReady()
+    await user.click(opener())
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(opener()).toHaveFocus()
+  })
+
+  it('closes with its Close button and gives focus back to what had it', async () => {
+    const { user } = await renderReady()
+    const stop = screen.getByRole('button', { name: 'Stop' })
+    stop.focus()
+    await user.keyboard('?')
+    await user.click(within(dialog()).getByRole('button', { name: 'Close' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(stop).toHaveFocus()
+  })
+
+  it('does not play or move the date while it is open', async () => {
+    const { user } = await renderReady()
+    await user.click(opener())
+    await user.keyboard(' {ArrowRight}')
+    await tick(0)
+    expect(fake.sequences).toHaveLength(0)
+    await user.keyboard('{Escape}')
+    expect(dateText()).toMatch(/^January 2024/)
+  })
+
+  it('has no accessibility violations while open', async () => {
+    const { user, container } = await renderReady()
+    await user.click(opener())
+    vi.useRealTimers() // axe waits on real timers
+    await expectNoA11yViolations(container)
   })
 })
