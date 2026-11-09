@@ -18,5 +18,10 @@
     "id": "synthetic-change",
     "title": "Synthetic change (made-up practice data)",
     "summary": "Twelve made-up monthly frames, each with its own normal, where a warm patch grows in the east, for practice."
+  },
+  {
+    "id": "mur-sst-mauritius",
+    "title": "Sea surface temperature around Mauritius, 2023",
+    "summary": "Twenty 10-day maps of sea surface temperature around Mauritius, January to August 2023, from NASA's MUR product."
   }
 ]

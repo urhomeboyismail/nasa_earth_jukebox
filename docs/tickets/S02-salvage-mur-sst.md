@@ -94,4 +94,33 @@ npx vitest run src/data src/analysis
 
 ## Result
 
-Not started.
+Branch `feature/S02-mur-sst-mauritius`: `ce3f4b1` (cherry-pick of `479df87`, 29 files) plus one commit that adds `variable.words`. Conflicts were only in `docs/AGENT-BOARD.md` and `docs/PRE-HACKATHON-WORK.md`; both kept `main`'s entries and added the new ones. The deletion of `.claude/hooks/layout-changed.sh` was left out (`git diff main -- .claude` is empty). The T85 line in `PRE-HACKATHON-WORK.md` is now the S02 line.
+
+Done:
+- Step 5: `variable.words` set explicitly (warmer, cooler, warmest, coolest, warm edge, water).
+- Step 6: every comparison's `regionId` is `regions[0]` (`mauritius`); every comparison and story frame, and the baseline frame, exists among the 20 frames; the baseline `noiseFloor` is 0.3, as in `docs/data-sources.md`. The manifest's `description` does not mention the floor.
+- Step 7: the change regression passes, so `change.json` is unchanged from the cherry-pick (three recorded Scores added by T85, none rewritten).
+- Step 8: `R-20261109-T85-1` and `R-20261109-T85-2` are on the board and still `open`.
+- No `TODO` or "not yet" text in the manifest; no `rehearsal-*` data committed.
+
+**Not done (👤, step 4): the credit and licence wording.** `source.credit` still names "GHRSST Level 4 MUR ... NASA PO.DAAC" and `source.license` is still "CC0 (...)" exactly as in `479df87`. A person has to check NASA's own page and the Earthdata data use policy, then replace or confirm both, and put who checked and when in the pull request description. The ticket is therefore not mergeable until then. The two open checks are listed in `docs/data-sources.md` under "A person still has to check".
+
+```
+$ npm run lint
+(oxlint: no warnings or errors)
+
+$ npm test
+ Test Files  61 passed (61)
+      Tests  1121 passed (1121)
+
+$ npm run build
+✓ built in 415ms
+
+$ npm run check-data
+ Test Files  9 passed (9)
+      Tests  190 passed (190)
+
+$ npx vitest run src/data src/analysis
+ Test Files  17 passed (17)
+      Tests  287 passed (287)
+```

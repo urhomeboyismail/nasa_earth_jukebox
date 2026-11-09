@@ -51,7 +51,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 |---|---|---|---|---|---|---|
 | [H01](tickets/H01-commit-rules-merge-t88b.md) | Commit the uncommitted rules and docs edits on a `chore/` branch; merge `feature/T88b-demo-script`; remove the duplicate root `brainstorm/` | S | 👤 | — | — | open |
 | [S01](tickets/S01-salvage-f40-f41.md) | Salvage F40 deep links and F41 shortcuts dialog from their unmerged branches | M | agent | — | player, explorer | done |
-| [S02](tickets/S02-salvage-mur-sst.md) | Salvage the `mur-sst-mauritius` data set; draft its comparisons and story | M | agent+👤 | — | catalogue | claimed: A, 2026-11-09 |
+| [S02](tickets/S02-salvage-mur-sst.md) | Salvage the `mur-sst-mauritius` data set; draft its comparisons and story | M | agent+👤 | — | catalogue | ready: feature/S02-mur-sst-mauritius (credit and licence wording still needs a person, step 4) |
 | [S03](tickets/S03-salvage-readme.md) | Salvage the project README and `CREATIVE_PROCESS.md`; update them for v3 | S | agent+👤 | — | — | open |
 | [S04](tickets/S04-salvage-t93-announce-rate.md) | Salvage T93 announcement rate | S | agent | I01 | player, explorer | open |
 | [S05](tickets/S05-salvage-t114-sheet.md) | Salvage the T114 change-style listening sheet | S | agent | S02 | — | open |
