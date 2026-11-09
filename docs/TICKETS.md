@@ -56,7 +56,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [S04](tickets/S04-salvage-t93-announce-rate.md) | Salvage T93 announcement rate | S | agent | I01 | player, explorer | done |
 | [S05](tickets/S05-salvage-t114-sheet.md) | Salvage the T114 change-style listening sheet | S | agent | S02 | — | done |
 | [I01](tickets/I01-app-announcer.md) | One `AnnouncerProvider` for the whole app: Home, welcome and help announcements never reach screen readers today | S | agent | — | app, player, compare, learn | done |
-| [I02](tickets/I02-neutral-words.md) | Neutral default words; remove the temperature words still in `src/` | M | agent | — | learn, player, compare | ready: fix/I02-neutral-words |
+| [I02](tickets/I02-neutral-words.md) | Neutral default words; remove the temperature words still in `src/` | M | agent | — | learn, player, compare | done |
 
 ### P1: sight to sound v3 (the core; `PLAN.md` §6.3)
 
