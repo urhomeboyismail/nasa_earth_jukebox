@@ -1,19 +1,13 @@
-// The color tokens in index.css must keep a contrast ratio of at least 4.5:1 for text (WCAG 1.4.3).
+// The Material 3 color tokens (tokens.css) and the legacy aliases built on them (index.css) must keep text
+// at a contrast ratio of at least 4.5:1 (WCAG 1.4.3), and the focus ring and borders at 3:1 (WCAG 1.4.11),
+// in every color scheme.
 import { describe, expect, it } from 'vitest'
-import css from '../index.css?raw'
+import index from '../index.css?raw'
+import tokens from './tokens.css?raw'
 
 type Rgb = [number, number, number]
 
-function hex(value: string): Rgb {
-  const full = value.length === 4 ? value.replace(/./g, (c, i) => (i ? c + c : c)) : value
-  return [1, 3, 5].map(i => parseInt(full.slice(i, i + 2), 16)) as Rgb
-}
-
-/** `rgba(r, g, b, a)` laid over `under`. */
-function over(rgba: string, under: Rgb): Rgb {
-  const [r, g, b, a] = rgba.match(/[\d.]+/g)!.map(Number)
-  return [r, g, b].map((channel, i) => channel * a + under[i] * (1 - a)) as Rgb
-}
+const hex = (value: string): Rgb => [1, 3, 5].map(i => parseInt(value.slice(i, i + 2), 16)) as Rgb
 
 const luminance = ([r, g, b]: Rgb) => {
   const [lr, lg, lb] = [r, g, b].map(c => { const s = c / 255; return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4 })
@@ -21,63 +15,121 @@ const luminance = ([r, g, b]: Rgb) => {
 }
 const ratio = (a: Rgb, b: Rgb) => { const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x); return (hi + 0.05) / (lo + 0.05) }
 
-/** Tokens declared in the first `:root` block (light) or in the dark-mode media query, dark on top of light. */
-function tokens(): { light: Record<string, string>; dark: Record<string, string> } {
-  const read = (block: string) => Object.fromEntries([...block.matchAll(/--([\w-]+):\s*([^;]+);/g)].map(m => [m[1], m[2].trim()]))
-  const light = read(css.slice(0, css.indexOf('@media (prefers-color-scheme: dark)')))
-  const darkBlock = css.slice(css.indexOf('@media (prefers-color-scheme: dark)'))
-  const dark = { ...light, ...read(darkBlock.slice(0, darkBlock.indexOf('#root')) ) }
-  return { light, dark }
+/** The declarations inside the block that starts at `header`, up to its matching closing brace. */
+function block(css: string, header: string): Record<string, string> {
+  const start = css.indexOf(header)
+  if (start < 0) throw new Error(`No block "${header}"`)
+  let depth = 0
+  let end = start
+  for (let i = css.indexOf('{', start); i < css.length; i++) {
+    if (css[i] === '{') depth++
+    if (css[i] === '}' && --depth === 0) { end = i; break }
+  }
+  return Object.fromEntries([...css.slice(start, end).matchAll(/--([\w-]+):\s*([^;]+);/g)].map(m => [m[1], m[2].trim()]))
 }
 
-describe.each(['light', 'dark'] as const)('%s color tokens', mode => {
-  const t = tokens()[mode]
-  const color = (name: string, under: Rgb = hex(t.bg)): Rgb => (t[name].startsWith('rgba') ? over(t[name], under) : hex(t[name]))
-  const bg = hex(t.bg)
+const light = block(tokens, ':root {')
+const dark = { ...light, ...block(tokens, '@media (prefers-color-scheme: dark) {') }
+const lightHc = { ...light, ...block(tokens, '@media (prefers-contrast: more) {') }
+const darkHc = { ...dark, ...block(tokens, '@media (prefers-color-scheme: dark) and (prefers-contrast: more) {') }
+const aliases = block(index, ':root {')
+
+const schemes = { light, dark, 'light, high contrast': lightHc, 'dark, high contrast': darkHc }
+
+describe.each(Object.entries(schemes))('%s scheme', (_name, scheme) => {
+  const all = { ...scheme, ...aliases }
+  /** A token's color, following var() references and `color-mix(in srgb, var(--a), var(--b) N%)`. */
+  const color = (name: string): Rgb => {
+    const value = all[name]
+    if (!value) throw new Error(`No token --${name}`)
+    const ref = value.match(/^var\(--([\w-]+)\)$/)
+    if (ref) return color(ref[1])
+    const mix = value.match(/^color-mix\(in srgb, var\(--([\w-]+)\), var\(--([\w-]+)\) ([\d.]+)%\)$/)
+    if (mix) {
+      const [a, b, share] = [color(mix[1]), color(mix[2]), Number(mix[3]) / 100]
+      return a.map((channel, i) => channel * (1 - share) + b[i] * share) as Rgb
+    }
+    return hex(value)
+  }
+  const roles = (name: string) => `md-sys-color-${name}`
 
   it.each([
-    ['text on the background', 'text', bg],
-    ['headings on the background', 'text-h', bg],
-    ['the accent as text on the background', 'accent', bg],
-    ['the error color as text on the background', 'error', bg],
-  ])('%s', (_label, name, under) => {
-    expect(ratio(color(name), under)).toBeGreaterThanOrEqual(4.5)
+    ['primary'], ['primary-container'], ['secondary'], ['secondary-container'], ['tertiary'], ['tertiary-container'],
+    ['error'], ['error-container'], ['surface'], ['inverse-surface'],
+  ])('has on-%s text that reads on it', role => {
+    const on = role === 'inverse-surface' ? 'inverse-on-surface' : `on-${role}`
+    // Material's inverse-on-surface is for large snackbar text only; it needs 3:1.
+    expect(ratio(color(roles(on)), color(roles(role)))).toBeGreaterThanOrEqual(role === 'inverse-surface' ? 3 : 4.5)
   })
 
-  it('has accent text on its tinted background', () => {
-    expect(ratio(color('accent'), color('accent-bg'))).toBeGreaterThanOrEqual(4.5)
+  it.each(['surface', 'surface-container-low', 'surface-container', 'surface-container-high', 'surface-container-highest'])(
+    'has body, secondary, primary and error text that read on %s', surface => {
+      for (const text of ['on-surface', 'on-surface-variant', 'primary', 'error']) {
+        expect(ratio(color(roles(text)), color(roles(surface))), text).toBeGreaterThanOrEqual(4.5)
+      }
+    })
+
+  it('has a focus ring and outline that stand out from the surface (3:1 for UI parts)', () => {
+    expect(ratio(color(roles('secondary')), color(roles('surface')))).toBeGreaterThanOrEqual(3)
+    expect(ratio(color(roles('outline')), color(roles('surface')))).toBeGreaterThanOrEqual(3)
   })
 
-  it('has text on a filled accent button, in both normal and hover color', () => {
-    expect(ratio(color('on-accent'), color('accent'))).toBeGreaterThanOrEqual(4.5)
-    expect(ratio(color('on-accent'), color('accent-strong'))).toBeGreaterThanOrEqual(4.5)
+  describe('legacy aliases', () => {
+    it.each([
+      ['text on the background', 'text', 'bg'],
+      ['headings on the background', 'text-h', 'bg'],
+      ['the accent as text on the background', 'accent', 'bg'],
+      ['the error color as text on the background', 'error', 'bg'],
+      ['accent text on its tinted background', 'accent', 'accent-bg'],
+      ['text on a filled accent button', 'on-accent', 'accent'],
+      ['text on a filled accent button on hover', 'on-accent', 'accent-strong'],
+      ['heading text on the error background', 'text-h', 'error-bg'],
+      ['the error label on the error background', 'error', 'error-bg'],
+    ])('%s', (_label, fg, bg) => {
+      expect(ratio(color(fg), color(bg))).toBeGreaterThanOrEqual(4.5)
+    })
+
+    it('has a focus ring and button borders of 3:1 against the background', () => {
+      expect(ratio(color('focus'), color('bg'))).toBeGreaterThanOrEqual(3)
+      expect(ratio(color('accent-border'), color('bg'))).toBeGreaterThanOrEqual(3)
+    })
+  })
+})
+
+describe('tokens', () => {
+  it('defines every alias in index.css from a token that exists', () => {
+    for (const [name, value] of Object.entries(aliases)) {
+      for (const [, ref] of value.matchAll(/var\(--([\w-]+)\)/g)) expect({ ...light, ...aliases }, `--${name}`).toHaveProperty(ref)
+    }
   })
 
-  it('has heading text on the error background', () => {
-    expect(ratio(color('text-h'), color('error-bg'))).toBeGreaterThanOrEqual(4.5)
-    expect(ratio(color('error'), color('error-bg'))).toBeGreaterThanOrEqual(4.5)
-  })
-
-  it('has a focus ring that stands out from the background (3:1 for UI parts)', () => {
-    expect(ratio(color('focus'), bg)).toBeGreaterThanOrEqual(3)
+  it('has the same color roles in every scheme', () => {
+    const names = (scheme: Record<string, string>) => Object.keys(scheme).filter(name => name.startsWith('md-sys-color-')).sort()
+    const lightNames = names(light)
+    expect(lightNames.length).toBeGreaterThan(30)
+    for (const header of ['@media (prefers-color-scheme: dark) {', '@media (prefers-contrast: more) {', '@media (prefers-color-scheme: dark) and (prefers-contrast: more) {']) {
+      expect(names(block(tokens, header)), header).toEqual(lightNames)
+    }
   })
 
   it('has controls of at least 44 px', () => {
-    expect(parseInt(t['control-size'])).toBeGreaterThanOrEqual(44)
+    expect(parseInt(aliases['control-size'])).toBeGreaterThanOrEqual(44)
+  })
+
+  it('stops every spring when people ask for less motion', () => {
+    const reduced = block(tokens, '@media (prefers-reduced-motion: reduce) {')
+    const durations = Object.keys(light).filter(name => name.startsWith('md-sys-motion-') && name.endsWith('-duration'))
+    expect(durations).toHaveLength(6)
+    for (const name of durations) expect(reduced[name], name).toBe('0ms')
   })
 })
 
 describe('index.css', () => {
-  it('no longer carries the Vite demo styles', () => {
-    expect(css).not.toMatch(/#social|\.counter|#center|1126px;\s*\n\s*max-width: 100%/)
-  })
-
-  it('has a fluid root, not a fixed width', () => {
-    expect(css).toMatch(/#root\s*\{[^}]*max-width: 1126px/)
-    expect(css).not.toMatch(/#root\s*\{[^}]*\n\s*width: 1126px/)
+  it('no longer carries the Vite demo styles or a fixed, centered frame', () => {
+    expect(index).not.toMatch(/#social|\.counter|#center|1126px|text-align: center/)
   })
 
   it('respects prefers-reduced-motion', () => {
-    expect(css).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(index).toContain('@media (prefers-reduced-motion: reduce)')
   })
 })

@@ -7,7 +7,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
-    // Tests read index.css as text (src/styles/tokens.test.ts); Vitest otherwise replaces CSS with nothing.
-    css: { include: /index\.css/ },
+    // Tests read index.css and tokens.css as text (src/styles/tokens.test.ts); Vitest otherwise replaces CSS with nothing.
+    css: { include: /(index|tokens)\.css/ },
   },
 })
