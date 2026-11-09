@@ -168,4 +168,52 @@ npm run check-data
 
 ## Result
 
-Not started.
+Built on `feature/SN05-manifest-v3-fields` by agent B, 10 Nov 2026 (Windows 11, Node, Git Bash).
+
+**What changed**
+
+- `src/data/sonification.ts` (new): `PRESET_IDS`, `DETAIL_LEVELS`, `VOICE_IDS`, their types, `LegendKind` and `legendOf`.
+- `src/data/video.ts` (new): `dateOfVideoFrame`, `videoFrameOf`, and `dayNumber` (whole UTC days; `null` for a date that is not real, such as 2024-02-30). `videoFrameOf` returns `null` instead of dividing when `frameStepDays` is not a whole number of 1 or more.
+- `src/data/types.ts`: `VideoSpec`, `SonificationSpec`, and `legend`, `video`, `sonification` on `Visualization`.
+- `src/data/schema.ts`: the three fields (`video` and `sonification` strict), the duplicate-voice rule and the date-grid rule in `checkV3`. The grid rule is skipped when `frameStepDays` is already invalid, so a step of 0 gives one message, not one per frame.
+- `src/data/check.ts`: `checkVideo`, which reports a missing file or a file with no `ftyp` box at offset 4 on `video.src`.
+- `src/data/index.ts`: the exports listed in the design, plus `LegendKind`.
+- `docs/data-sources.md`: "v3 fields (SN05)".
+- Tests: `sonification.test.ts`, `video.test.ts` (with the golden `__golden__/video-grid.json`), and new blocks in `schema.test.ts` and `check.test.ts`. The golden numbers were checked by hand: the fixture's dates are 0, 182, 335 and 425 days after 2024-01-15.
+
+**Notes for later tickets**
+
+- `video.src` stays relative to the manifest after `loadVisualization` (only frame images are resolved there today). SN06 must resolve it against the data set's folder, the way `loadVisualization` resolves `frames[].image`, or a later ticket can resolve it in `loadVisualization`. `index.test.ts` is not in this ticket's Touches, so I left that change out.
+- The design's third date helper ("The data set's frame dates on its video's grid, in order") had no signature and is not in the export list, so it is not written.
+
+**Checks** (real output, trimmed to the summary lines)
+
+```
+$ npm run lint
+> oxlint
+LINT EXIT 0
+
+$ npm test
+     × notices when one legend stop of the fixture changes 27ms
+ FAIL  src/data/sound-regression.test.ts > sound regression baseline > notices when one legend stop of the fixture changes
+ Test Files  1 failed | 65 passed (66)
+      Tests  1 failed | 1230 passed (1231)
+
+$ npm run build
+dist/assets/index-BYm4v1ZF.js             392.23 kB │ gzip: 122.82 kB
+✓ built in 793ms
+
+$ npm run check-data
+ Test Files  1 failed | 10 passed (11)
+      Tests  1 failed | 213 passed (214)
+```
+
+The one failure is the same test both times, and it is not caused by this ticket. This Windows checkout has `core.autocrlf=true` (set in `C:/Program Files/Git/etc/gitconfig`), so `src/data/__golden__/fixture.json` is on disk with CRLF line endings, and `sound-regression.test.ts:88` compares it as raw text with `toBe`. With the file converted to LF (no change to git, which stores LF), the test passes:
+
+```
+$ npx vitest run src/data/sound-regression.test.ts
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+```
+
+The file was then restored with `git checkout`. Neither the file nor the test is in this ticket's Touches. On Linux or CI they pass as they are.

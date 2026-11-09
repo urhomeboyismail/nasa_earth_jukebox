@@ -120,8 +120,25 @@ export function checkDataset(v: Visualization, readImage: (image: string) => Uin
   for (const { field, text } of todoFields(v)) problem(field, `still contains TODO ("${text}"); replace it with the real text from the source`)
 
   checkBaseline(v, readImage, problem)
+  checkVideo(v, readImage, problem)
 
   return problems
+}
+
+/** An MP4 (ISO base media) file starts with a box whose type, at offset 4, is `ftyp`. */
+const isMp4 = (bytes: Uint8Array) => bytes.length >= 8 && String.fromCharCode(...bytes.subarray(4, 8)) === 'ftyp'
+
+/** The v3 check on the video (SN05): the file is there and is an MP4. The video is not decoded, so its frames are not counted. */
+function checkVideo(v: Visualization, readFile: (path: string) => Uint8Array, problem: (field: string, message: string) => void) {
+  if (!v.video) return
+  const { src } = v.video
+  let bytes: Uint8Array
+  try {
+    bytes = readFile(src)
+  } catch {
+    return problem('video.src', `there is no file "${src}" in public/data/${v.id}/`)
+  }
+  if (!isMp4(bytes)) problem('video.src', `"${src}" is not an MP4 file (no ftyp box); convert it to H.264 MP4 (scripts/eic_ingest.py, EIC01)`)
 }
 
 /** The v2 checks on the baseline (docs/PLAN.md §5.1): the legend, the noise floor and each frame's own normal. A baseline image of another size is rejected, never resampled. */
