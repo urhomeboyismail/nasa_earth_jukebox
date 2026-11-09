@@ -76,6 +76,9 @@
 .player__sound > .player__style { justify-self: stretch; }
 
 .player__vibration { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; color: var(--text); }
+.player__share { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; color: var(--text); }
+.player__share-manual { display: flex; flex-direction: column; gap: 0.25rem; flex: 1 1 100%; min-inline-size: 0; }
+.player__share-manual input { inline-size: 100%; min-block-size: var(--control-size); font: inherit; color: var(--text); }
 
 .player__style { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: center; }
 .player__style-label { font-weight: 600; }

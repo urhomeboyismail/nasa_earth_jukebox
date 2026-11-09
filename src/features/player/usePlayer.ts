@@ -7,7 +7,7 @@ import { hasChange } from '../../analysis/available'
 import { createSoundEngine, type SequenceStep, type SoundEngine } from '../../audio'
 import { coarseCategory, hiddenChanges } from '../../audio/coarse'
 import { elevationFor, panFor, useSpatialMode } from '../../audio/pan'
-import { styleFor, useSoundStyle } from '../../audio/style'
+import { styleFor, useSoundStyle, type SoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
 import { useAnnounce } from '../../components/useAnnounce'
 import { variableWords, type Region, type SoundMapping, type Visualization } from '../../data'
@@ -47,7 +47,12 @@ export function sequenceSteps(
 }
 
 /** `onDate` is called each time the player lands on a date: at every step of a sequence, and when one date is played alone. */
-export function usePlayer(visualization: Visualization, onDate?: (index: number, category: string | null) => void) {
+export function usePlayer(
+  visualization: Visualization,
+  onDate?: (index: number, category: string | null) => void,
+  /** F40: where a link opened the page. Both are already checked against this data set; null means "as usual". */
+  start?: { index: number | null; style: SoundStyle | null },
+) {
   const { frames, regions, colorScale, mapping } = visualization
   const region = regions[0]
   const announce = useAnnounce()
@@ -55,15 +60,18 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
 
   const [results, setResults] = useState<FrameAnalysis[] | null>(null)
   const [analysisError, setAnalysisError] = useState('')
-  const [index, setIndex] = useState(0)
+  const [index, setIndex] = useState(start?.index ?? 0)
   const [status, setStatus] = useState<Status>('idle')
   const [speed, setSpeedState] = useState<Speed>('normal')
   const [volume, setVolumeState] = useState(() => welcomeVolume() ?? 0.8)
   const [finished, setFinished] = useState(false)
-  const [chosenStyle, setStyle] = useSoundStyle()
+  const [savedStyle, saveStyle] = useSoundStyle()
+  // A style from a link holds for this visit only. It is never saved, so a shared link cannot change what the listener chose, and choosing a style drops it.
+  const [linkedStyle, applyLinkedStyle] = useState<SoundStyle | null>(start?.style ?? null)
+  const setStyle = useCallback((next: SoundStyle) => { applyLinkedStyle(null); saveStyle(next) }, [saveStyle])
   // A remembered "change" is not used for a data set with no baseline: it plays as "full", exactly as before.
   const changeAvailable = hasChange(visualization)
-  const style = styleFor(chosenStyle, changeAvailable)
+  const style = styleFor(linkedStyle ?? savedStyle, changeAvailable)
   const changeOn = style === 'change'
   const [spatial, setSpatial] = useSpatialMode()
   const [downloading, setDownloading] = useState(false)
@@ -472,7 +480,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
   }), [frames])
 
   return {
-    engine, region, results, index, status, speed, volume, finished, ready, style, setStyle, changeAvailable, score, tracing, traceWarmEdge, stopTrace, spatial, setSpatial, downloading, downloadError,
+    engine, region, results, index, status, speed, volume, finished, ready, style, setStyle, applyLinkedStyle, changeAvailable, score, tracing, traceWarmEdge, stopTrace, spatial, setSpatial, downloading, downloadError,
     error: engineError || analysisError,
     loading: !engineError && !analysisError && !results,
     play, pause, stop, replay, goTo, showDate, halt, playRange, download, setSpeed, setVolume, testSound, hearLegend, hearBothWays, hearWhatIsHidden,

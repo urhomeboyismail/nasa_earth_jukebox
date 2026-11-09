@@ -43,23 +43,25 @@ type Options = {
   formatDate?: (date: string) => string
   /** Called as the locked place plays across the dates, so the picture and the date slider follow the sound. */
   onDate?: (index: number) => void
+  /** F40: open on this cell, as a link asks. It makes no sound until the first key press or touch, which is also what unlocks the audio. */
+  start?: Cursor | null
 }
 
 export type ExplorerState = ReturnType<typeof useExplorer>
 
-export function useExplorer({ visualization, frame, engine, vibrate, frames, formatDate = date => date, onDate }: Options) {
+export function useExplorer({ visualization, frame, engine, vibrate, frames, formatDate = date => date, onDate, start = null }: Options) {
   const { colorScale, mapping } = visualization
   const area = visualization.mapArea ?? WHOLE_MAP
   const announce = useAnnounce()
   const [detail] = useDescriptionDetail()
 
-  const [on, setOn] = useState(false)
+  const [on, setOn] = useState(start !== null)
   // The map read for one date. It counts only while it matches the date and settings on screen, so a new date shows "loading" at once.
   const [read, setRead] = useState<MapRead | null>(null)
   const current = on && read && read.frame === frame && read.colorScale === colorScale && read.mapping === mapping && read.mapArea === visualization.mapArea ? read : null
   const grid = current?.grid ?? null
   const error = current?.error ?? ''
-  const [cursor, setCursor] = useState<Cursor>({ col: 0, row: 0 })
+  const [cursor, setCursor] = useState<Cursor>(start ?? { col: 0, row: 0 })
   const [sweeping, setSweeping] = useState(false)
   /** F23: the cursor is locked on one place, and the dates move under it. */
   const [locked, setLocked] = useState(false)
@@ -72,7 +74,10 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   const playTimer = useRef<number | undefined>(undefined)
   const lastPlayed = useRef(-Infinity)
   const sweepEnd = useRef<number | undefined>(undefined)
-  const placed = useRef(false)
+  // A linked cell counts as already placed, so the first read keeps it (unless it is off the map).
+  const placed = useRef(start !== null)
+  /** Opened by a link: the audio is not unlocked yet. The first key press or touch does it and then plays the cell it lands on. */
+  const needsUnlock = useRef(start !== null)
   /** A locked place is playing across the dates. The date moves under it, which must not stop it the way a new date stops a sweep. */
   const scrubbing = useRef(false)
   const cursorRef = useRef(cursor)
@@ -155,6 +160,13 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     if (wait <= 0) play()
     else playTimer.current = window.setTimeout(play, wait)
   }, [engine, grid, centreX, elevationAt, vibrate, mapping])
+
+  /** In a link-opened map, the first press unlocks the audio (it has to happen in the press) and then sounds the cell the cursor is on. */
+  const wake = useCallback(() => {
+    if (!needsUnlock.current || !engine) return
+    needsUnlock.current = false
+    void engine.unlock().then(() => soundCell(cursorRef.current))
+  }, [engine, soundCell])
 
   /** Moves the cursor and plays the cell. `speak` is false for the sliders, which are announced by the screen reader itself. */
   const moveTo = useCallback((col: number, row: number, speak = true) => {
@@ -310,8 +322,20 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   const turnOn = useCallback(() => {
     // The first press has to start the audio, so it is asked for here, in the click.
     void engine?.unlock()
+    needsUnlock.current = false
     setOn(true)
   }, [engine])
+
+  /** F40: a link pasted into the open page. Opens the map on that cell, silently. A cell off the map is ignored, and a locked place is released. */
+  const openAt = useCallback((at: Cursor) => {
+    if (grid && (at.col >= grid.cols || at.row >= grid.rows)) return
+    stopSweep()
+    setLocked(false)
+    place(at)
+    placed.current = true
+    if (!on) needsUnlock.current = true
+    setOn(true)
+  }, [grid, on, stopSweep, place])
 
   const turnOff = useCallback(() => {
     setOn(false)
@@ -346,8 +370,11 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
       case 'Escape': if (locked) unlock(); stopSound(); break
       default: handled = false
     }
-    if (handled) event.preventDefault()
-  }, [grid, locked, lock, unlock, moveByKey, moveTo, sweep, stopSound])
+    if (handled) {
+      event.preventDefault()
+      if (event.key !== 'Escape') wake()
+    }
+  }, [grid, locked, lock, unlock, moveByKey, moveTo, sweep, stopSound, wake])
 
   /** The cell under a pointer, from its place on the surface (which covers just the map area). */
   const cellFromPointer = useCallback((event: PointerEvent<HTMLElement>): Cursor | null => {
@@ -367,7 +394,8 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     event.currentTarget.setPointerCapture?.(event.pointerId)
     event.currentTarget.focus()
     moveTo(at.col, at.row, false)
-  }, [cellFromPointer, moveTo])
+    wake()
+  }, [cellFromPointer, moveTo, wake])
   const onPointerMove = useCallback((event: PointerEvent<HTMLElement>) => {
     if (!dragging.current) return
     const at = cellFromPointer(event)
@@ -383,7 +411,7 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
 
   return {
     on, grid, error, cursor, sweeping, locked, area, loading: on && !grid && !error,
-    turnOn, turnOff, moveTo, sweep, stopSound, lock, unlock, playLockedAt, playAcrossDates, onKeyDown, onPointerDown, onPointerMove, onPointerUp,
+    turnOn, turnOff, openAt, moveTo, sweep, stopSound, lock, unlock, playLockedAt, playAcrossDates, onKeyDown, onPointerDown, onPointerMove, onPointerUp,
     cellAt,
   }
 }

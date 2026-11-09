@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { pages } from './pages'
-import { hashFor, parseHash } from './route'
+import { cellParam, hashFor, parseCell, parseHash, parseStyleParam, replaceParams, withParams } from './route'
 
 describe('parseHash', () => {
   it('opens each page from its own hash', () => {
@@ -65,5 +65,90 @@ describe('hashFor', () => {
 
   it('escapes anything that would break the address', () => {
     expect(parseHash(hashFor('listen', { data: 'a b&c=d' })).params.get('data')).toBe('a b&c=d')
+  })
+})
+
+describe('parseCell and cellParam (F40)', () => {
+  it('reads "col,row" and writes it back', () => {
+    expect(parseCell('3,5')).toEqual({ col: 3, row: 5 })
+    expect(parseCell('0,0')).toEqual({ col: 0, row: 0 })
+    expect(cellParam({ col: 3, row: 5 })).toBe('3,5')
+    expect(parseCell(cellParam({ col: 12, row: 6 }))).toEqual({ col: 12, row: 6 })
+  })
+
+  it('ignores anything that is not two whole numbers', () => {
+    for (const bad of [null, '', '3', '3,', ',5', '-1,2', '1.5,2', 'a,b', '1,2,3', ' 1,2', '99999,1', '3;5']) expect(parseCell(bad)).toBeNull()
+  })
+
+  it('leaves the parameter out when there is no cell', () => {
+    expect(cellParam(null)).toBeNull()
+  })
+})
+
+describe('parseStyleParam (F40)', () => {
+  it('knows the three sound styles', () => {
+    for (const style of ['full', 'simple', 'change'] as const) expect(parseStyleParam(style)).toBe(style)
+  })
+
+  it('ignores a style that does not exist, in any case', () => {
+    for (const bad of [null, '', 'loud', 'Full', 'CHANGE', 'full ']) expect(parseStyleParam(bad)).toBeNull()
+  })
+})
+
+describe('withParams (F40)', () => {
+  it('sets parameters and keeps the ones it is not told about', () => {
+    const next = withParams('#listen?data=synthetic-ocean&test=1', { date: '2024-01-15', cell: '3,5' })
+    const route = parseHash(next)
+    expect(route.page).toBe('listen')
+    expect(route.params.get('data')).toBe('synthetic-ocean')
+    expect(route.params.get('test')).toBe('1')
+    expect(route.params.get('date')).toBe('2024-01-15')
+    expect(parseCell(route.params.get('cell'))).toEqual({ col: 3, row: 5 })
+  })
+
+  it('removes a parameter set to null, and replaces one that is there', () => {
+    const next = withParams('#listen?data=a&cell=1,1&date=2024-01-15', { cell: null, date: '2024-07-15' })
+    const route = parseHash(next)
+    expect(route.params.has('cell')).toBe(false)
+    expect(route.params.get('date')).toBe('2024-07-15')
+    expect(route.params.get('data')).toBe('a')
+  })
+
+  it('works from an address with no query, and from no address at all', () => {
+    expect(withParams('#listen', { style: 'simple' })).toBe('#listen?style=simple')
+    expect(parseHash(withParams('', { style: 'simple' }))).toMatchObject({ page: 'home', known: true })
+  })
+
+  it('leaves an unknown page alone', () => {
+    expect(withParams('#nope', { date: '2024-01-15' })).toBe('#nope')
+  })
+})
+
+describe('replaceParams (F40)', () => {
+  afterEach(() => { window.history.replaceState(null, '', '/') })
+
+  it('changes the address without adding a history entry', () => {
+    window.history.replaceState(null, '', '#listen?data=fixture')
+    const before = window.history.length
+    replaceParams({ date: '2024-07-15' })
+    expect(window.location.hash).toBe('#listen?data=fixture&date=2024-07-15')
+    expect(window.history.length).toBe(before)
+  })
+
+  it('does not fire "hashchange", so the app does not treat it as a link being opened', () => {
+    window.history.replaceState(null, '', '#listen')
+    const heard = vi.fn()
+    window.addEventListener('hashchange', heard)
+    replaceParams({ date: '2024-07-15' })
+    window.removeEventListener('hashchange', heard)
+    expect(heard).not.toHaveBeenCalled()
+  })
+
+  it('does nothing when the address would not change', () => {
+    window.history.replaceState(null, '', '#listen?date=2024-07-15')
+    const spy = vi.spyOn(window.history, 'replaceState')
+    replaceParams({ date: '2024-07-15' })
+    expect(spy).not.toHaveBeenCalled()
+    spy.mockRestore()
   })
 })

@@ -744,3 +744,94 @@ describe('Player: what the sound hides (F33)', () => {
     expect(fake.sequences).toHaveLength(0)
   })
 })
+
+describe('Player: a link to one moment (F40)', () => {
+  const open = (hash: string) => window.history.replaceState(null, '', hash)
+  afterEach(() => { window.history.replaceState(null, '', '/'); localStorage.clear() })
+
+  it('opens on the date and sound style the link names, and does not save the style', async () => {
+    open('#listen?date=2024-07-15&style=simple')
+    await renderReady()
+    expect(dateText()).toMatch(/^July 2024/)
+    expect(screen.getByRole('button', { name: 'Simple sound' })).toHaveAttribute('aria-pressed', 'true')
+    expect(fake.setStyle).toHaveBeenLastCalledWith('simple')
+    expect(localStorage.getItem('earth-jukebox:sound-style')).toBeNull()
+  })
+
+  it('ignores what this data set cannot use and still applies the rest', async () => {
+    open('#listen?date=1999-01-01&style=simple&cell=99,99x')
+    await renderReady()
+    expect(dateText()).toMatch(/^January 2024/)
+    expect(screen.getByRole('button', { name: 'Simple sound' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByRole('application')).toBeNull()
+  })
+
+  it('ignores a style that does not exist, and a style the data set has no baseline for', async () => {
+    open('#listen?date=2024-12-15&style=loud')
+    const first = await renderReady()
+    expect(dateText()).toMatch(/^December 2024/)
+    expect(screen.getByRole('button', { name: 'Simple sound' })).toHaveAttribute('aria-pressed', 'false')
+    first.unmount()
+    open('#listen?style=change')
+    await renderReady()
+    expect(screen.getByRole('button', { name: 'Simple sound' })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('lets the listener choose a style afterwards: that is saved, and the link no longer decides', async () => {
+    open('#listen?style=simple')
+    const { user } = await renderReady()
+    await user.click(screen.getByRole('button', { name: 'Simple sound' }))
+    expect(screen.getByRole('button', { name: 'Simple sound' })).toHaveAttribute('aria-pressed', 'false')
+    expect(localStorage.getItem('earth-jukebox:sound-style')).toBe('full')
+  })
+
+  it('leaves the address alone until something changes, then keeps it in step without adding history entries', async () => {
+    open('#listen?data=fixture')
+    const before = window.history.length
+    const { user } = await renderReady()
+    expect(window.location.hash).toBe('#listen?data=fixture')
+    screen.getByRole('button', { name: 'Stop' }).focus()
+    await user.keyboard('{ArrowRight}')
+    await tick(0)
+    expect(window.location.hash).toBe('#listen?data=fixture&date=2024-07-15&style=full')
+    expect(window.history.length).toBe(before)
+  })
+
+  it('applies a link opened while Listen is already showing, without a sound', async () => {
+    await renderReady()
+    fake.played.length = 0
+    act(() => {
+      open('#listen?date=2024-12-15&style=simple')
+      window.dispatchEvent(new HashChangeEvent('hashchange'))
+    })
+    await tick(0)
+    expect(dateText()).toMatch(/^December 2024/)
+    expect(screen.getByRole('button', { name: 'Simple sound' })).toHaveAttribute('aria-pressed', 'true')
+    expect(fake.played).toEqual([])
+  })
+
+  it('copies a whole link to this moment, even before the address has changed, and says so', async () => {
+    open('#listen?data=fixture')
+    const { user } = await renderReady()
+    const writeText = vi.fn(async (_text: string) => {})
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+    await user.click(screen.getByRole('button', { name: 'Copy link to this moment' }))
+    await tick(0)
+    expect(writeText).toHaveBeenCalledTimes(1)
+    expect(writeText.mock.calls[0][0]).toMatch(/#listen\?data=fixture&date=2024-01-15&style=full$/)
+    expect(liveText()).toBe('Link copied')
+  })
+
+  it('shows the link to copy by hand when the clipboard is not available', async () => {
+    const { user, container } = await renderReady()
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText: async () => { throw new Error('denied') } }, configurable: true })
+    await user.click(screen.getByRole('button', { name: 'Copy link to this moment' }))
+    await tick(0)
+    const field = screen.getByRole('textbox', { name: 'Copy this link' })
+    expect(field).toHaveAttribute('readonly')
+    expect((field as HTMLInputElement).value).toMatch(/date=2024-01-15/)
+    expect(liveText()).toMatch(/could not be copied/)
+    vi.useRealTimers() // axe waits on real timers
+    await expectNoA11yViolations(container)
+  })
+})
