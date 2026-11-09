@@ -7,7 +7,7 @@ import type { SequenceStep, SoundEngine } from '../../audio'
 import { elevationForPoint, panForPoint } from '../../audio/pan'
 import { useAnnounce } from '../../components'
 import type { Frame, MapArea, Visualization } from '../../data'
-import { describeCell, describeSweep } from '../../describe'
+import { describeCell, describeCellOverTime, describePlace, describeSweep } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
 import { vibrateForDate } from '../player/vibration'
 
@@ -18,9 +18,11 @@ const ANNOUNCE_AFTER_MS = 400
 /** One cell of a sweep per step. */
 const SWEEP_STEP_MS = 250
 const CELL_NOTE_MS = 300
+/** One date of a locked place per step when it plays across the dates. */
+const DATE_STEP_MS = 600
 const BIG_STEP = 4
 /** Keys the sound map owns. Before the map has loaded they still do nothing here, and are kept from the player's shortcuts. */
-const MAP_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', ' ', 'Enter', 'Escape'])
+const MAP_KEYS = new Set(['l', 'L', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', ' ', 'Enter', 'Escape'])
 const WHOLE_MAP: MapArea = { x0: 0, y0: 0, x1: 1, y1: 1 }
 
 type Cursor = { col: number; row: number }
@@ -35,11 +37,17 @@ type Options = {
   engine: SoundEngine | null
   /** Buzz for each cell when the listener has vibration on. */
   vibrate: boolean
+  /** Every date of the data set, for the locked place (F23). */
+  frames: Frame[]
+  /** How a date is shown and spoken. Default: the date as written in the data. */
+  formatDate?: (date: string) => string
+  /** Called as the locked place plays across the dates, so the picture and the date slider follow the sound. */
+  onDate?: (index: number) => void
 }
 
 export type ExplorerState = ReturnType<typeof useExplorer>
 
-export function useExplorer({ visualization, frame, engine, vibrate }: Options) {
+export function useExplorer({ visualization, frame, engine, vibrate, frames, formatDate = date => date, onDate }: Options) {
   const { colorScale, mapping } = visualization
   const area = visualization.mapArea ?? WHOLE_MAP
   const announce = useAnnounce()
@@ -53,6 +61,10 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
   const error = current?.error ?? ''
   const [cursor, setCursor] = useState<Cursor>({ col: 0, row: 0 })
   const [sweeping, setSweeping] = useState(false)
+  /** F23: the cursor is locked on one place, and the dates move under it. */
+  const [locked, setLocked] = useState(false)
+  /** The map of each date, read once: locking and scrubbing ask for the same dates again and again. */
+  const gridCache = useRef(new Map<string, FrameGrid>())
 
   // Timers and counters that must not cause a render.
   const sweepId = useRef(0)
@@ -61,6 +73,8 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
   const lastPlayed = useRef(-Infinity)
   const sweepEnd = useRef<number | undefined>(undefined)
   const placed = useRef(false)
+  /** A locked place is playing across the dates. The date moves under it, which must not stop it the way a new date stops a sweep. */
+  const scrubbing = useRef(false)
   const cursorRef = useRef(cursor)
   /** Sets the cursor everywhere at once, so a second key pressed before the next render still starts from the right cell. */
   const place = useCallback((next: Cursor) => { cursorRef.current = next; setCursor(next) }, [])
@@ -74,6 +88,7 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
 
   const stopSweep = useCallback(() => {
     sweepId.current++
+    scrubbing.current = false
     window.clearTimeout(sweepEnd.current)
     setSweeping(false)
   }, [])
@@ -88,6 +103,7 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
         if (cancelled) return
         setRead({ frame, colorScale, mapping, mapArea, grid: done, error: '' })
         // The first read puts the cursor in the middle; a later date keeps it where it was.
+        gridCache.current.set(`${visualization.id}/${frame.id}`, done)
         const now = cursorRef.current
         if (!(placed.current && now.col < done.cols && now.row < done.rows)) {
           place({ col: Math.floor(done.cols / 2), row: Math.floor(done.rows / 2) })
@@ -99,8 +115,10 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
       })
     return () => {
       cancelled = true
-      stopSweep()
-      clearTimers()
+      if (!scrubbing.current) {
+        stopSweep()
+        clearTimers()
+      }
     }
   }, [on, frame, colorScale, mapping, visualization, clearTimers, place, stopSweep])
 
@@ -140,13 +158,13 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
 
   /** Moves the cursor and plays the cell. `speak` is false for the sliders, which are announced by the screen reader itself. */
   const moveTo = useCallback((col: number, row: number, speak = true) => {
-    if (!grid) return
+    if (!grid || locked) return
     const next = { col: Math.min(grid.cols - 1, Math.max(0, col)), row: Math.min(grid.rows - 1, Math.max(0, row)) }
     stopSweep()
     place(next)
     soundCell(next)
     if (speak) announceCell(next, ANNOUNCE_AFTER_MS)
-  }, [grid, stopSweep, place, soundCell, announceCell])
+  }, [grid, locked, stopSweep, place, soundCell, announceCell])
 
   /** A key that pushes against the edge of the map: no sound, and the edge is named once the keys rest, so a held key is not heard as a stall. */
   const hitEdge = useCallback((edge: Edge) => {
@@ -158,11 +176,15 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
   /** A move by key. Plays and announces the new cell like `moveTo`; if the cursor cannot move, it says which edge instead. */
   const moveByKey = useCallback((col: number, row: number, edge: Edge) => {
     if (!grid) return
+    if (locked) {
+      announce('Locked on this place. Press L to unlock before moving.')
+      return
+    }
     const at = cursorRef.current
     const target = { col: Math.min(grid.cols - 1, Math.max(0, col)), row: Math.min(grid.rows - 1, Math.max(0, row)) }
     if (target.col === at.col && target.row === at.row) hitEdge(edge)
     else moveTo(target.col, target.row)
-  }, [grid, moveTo, hitEdge])
+  }, [grid, locked, moveTo, hitEdge, announce])
 
   /** Plays a row west to east, or a column north to south, one cell at a time, then says what it passed over. */
   const sweep = useCallback((kind: Line) => {
@@ -201,6 +223,90 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
     engine?.stop()
   }, [stopSweep, clearTimers, engine])
 
+  /** The map of any date, from the cache or read now. */
+  const gridFor = useCallback(async (of: Frame) => {
+    const key = `${visualization.id}/${of.id}`
+    const known = gridCache.current.get(key)
+    if (known) return known
+    const made = await analyzeGrid(of, colorScale, mapping, visualization.mapArea)
+    gridCache.current.set(key, made)
+    return made
+  }, [visualization.id, visualization.mapArea, colorScale, mapping])
+
+  /** F23: holds the cursor on this place, so the dates can be heard one after another at the same spot. */
+  const lock = useCallback(() => {
+    if (!grid) return
+    stopSweep()
+    clearTimers()
+    setLocked(true)
+    announce(`Locked on ${describePlace(grid, cursorRef.current.col, cursorRef.current.row)}. Move the date slider, or play across the dates. L or Escape unlocks.`)
+  }, [grid, stopSweep, clearTimers, announce])
+
+  const unlock = useCallback(() => {
+    if (!locked) return
+    stopSweep()
+    setLocked(false)
+    announce('Unlocked. The arrow keys move over the map again.')
+  }, [locked, stopSweep, announce])
+
+  /** Sounds the locked place on one date and says what it was then. The date slider calls this while the place is locked. */
+  const playLockedAt = useCallback(async (index: number) => {
+    const target = frames[index]
+    if (!engine || !locked || !target) return
+    stopSweep()
+    window.clearTimeout(announceTimer.current)
+    const at = cursorRef.current
+    let made: FrameGrid
+    try { made = await gridFor(target) } catch { announce('That date could not be read.'); return }
+    const cell = made.cells[at.row * made.cols + at.col]
+    if (!cell) return
+    engine.stop()
+    if (cell.category === 'insufficient') engine.playMissing()
+    else engine.playCategory(cell.category, { pan: panForPoint(centreX(at.col)), elevation: elevationAt(at.row), durationMs: CELL_NOTE_MS })
+    if (vibrate && cell.category !== 'insufficient') vibrateForDate(cell.category, mapping)
+    announce(`${formatDate(target.date)}: ${describeCell(visualization, made, at.col, at.row, { detail })}`)
+  }, [frames, engine, locked, stopSweep, gridFor, centreX, elevationAt, vibrate, mapping, announce, formatDate, visualization, detail])
+
+  /** Plays the locked place on every date, one after another, and then says how it changed. */
+  const playAcrossDates = useCallback(async () => {
+    if (!engine || !locked || !grid) return
+    stopSweep()
+    window.clearTimeout(announceTimer.current)
+    window.clearTimeout(playTimer.current)
+    const mine = ++sweepId.current
+    const at = cursorRef.current
+    scrubbing.current = true
+    setSweeping(true)
+    let grids: FrameGrid[]
+    try { grids = await Promise.all(frames.map(gridFor)) } catch {
+      if (mine === sweepId.current) { scrubbing.current = false; setSweeping(false); announce('The dates could not be read.') }
+      return
+    }
+    if (mine !== sweepId.current) return
+    const cells = grids.map(made => made.cells[at.row * made.cols + at.col])
+    const pan = panForPoint(centreX(at.col))
+    const elevation = elevationAt(at.row)
+    const steps: SequenceStep[] = cells.map((cell, k) => ({
+      category: cell.category,
+      atMs: k * DATE_STEP_MS,
+      pan,
+      elevation,
+      ...(k > 0 && cell.category !== 'insufficient' && cells[k - 1].category !== 'insufficient' && { glide: true }),
+    }))
+    engine.playSequence(steps, k => {
+      if (mine !== sweepId.current) return
+      onDate?.(k)
+      if (k === steps.length - 1) {
+        sweepEnd.current = window.setTimeout(() => {
+          if (mine !== sweepId.current) return
+          scrubbing.current = false
+          setSweeping(false)
+          announce(`${describePlace(grid, at.col, at.row)}. ${describeCellOverTime(visualization, cells.map((cell, i) => ({ date: formatDate(frames[i].date), cell })), { detail })}`)
+        }, DATE_STEP_MS)
+      }
+    }, { tick: false })
+  }, [engine, locked, grid, frames, gridFor, stopSweep, centreX, elevationAt, onDate, announce, formatDate, visualization, detail])
+
   const turnOn = useCallback(() => {
     // The first press has to start the audio, so it is asked for here, in the click.
     void engine?.unlock()
@@ -210,6 +316,7 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
   const turnOff = useCallback(() => {
     setOn(false)
     setRead(null)
+    setLocked(false)
     placed.current = false
     stopSound()
   }, [stopSound])
@@ -235,11 +342,12 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
       case 'PageDown': moveByKey(col, grid.rows - 1, 'South'); break
       case ' ': moveTo(col, row); break
       case 'Enter': sweep(event.shiftKey ? 'column' : 'row'); break
-      case 'Escape': stopSound(); break
+      case 'l': case 'L': if (locked) unlock(); else lock(); break
+      case 'Escape': if (locked) unlock(); stopSound(); break
       default: handled = false
     }
     if (handled) event.preventDefault()
-  }, [grid, moveByKey, moveTo, sweep, stopSound])
+  }, [grid, locked, lock, unlock, moveByKey, moveTo, sweep, stopSound])
 
   /** The cell under a pointer, from its place on the surface (which covers just the map area). */
   const cellFromPointer = useCallback((event: PointerEvent<HTMLElement>): Cursor | null => {
@@ -274,8 +382,8 @@ export function useExplorer({ visualization, frame, engine, vibrate }: Options) 
   }, [announceCell])
 
   return {
-    on, grid, error, cursor, sweeping, area, loading: on && !grid && !error,
-    turnOn, turnOff, moveTo, sweep, stopSound, onKeyDown, onPointerDown, onPointerMove, onPointerUp,
+    on, grid, error, cursor, sweeping, locked, area, loading: on && !grid && !error,
+    turnOn, turnOff, moveTo, sweep, stopSound, lock, unlock, playLockedAt, playAcrossDates, onKeyDown, onPointerDown, onPointerMove, onPointerUp,
     cellAt,
   }
 }

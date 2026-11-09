@@ -596,6 +596,93 @@ describe('Explorer: failure and vibration', () => {
   })
 })
 
+describe('Explorer: time travel (F23)', () => {
+  it('locks the place with L, says where, and ignores the arrow keys until it is unlocked', async () => {
+    const { user } = await exploring()
+    await user.keyboard('l')
+    expect(liveText()).toBe('Locked on centre, column 13, row 7. Move the date slider, or play across the dates. L or Escape unlocks.')
+    expect(screen.getByRole('button', { name: 'Lock this place' })).toHaveAttribute('aria-pressed', 'true')
+    engine.playCategory.mockClear()
+    await user.keyboard('{ArrowRight}')
+    await tick(500)
+    expect(engine.playCategory).not.toHaveBeenCalled()
+    expect(liveText()).toBe('Locked on this place. Press L to unlock before moving.')
+    await user.keyboard('l')
+    expect(liveText()).toBe('Unlocked. The arrow keys move over the map again.')
+    await user.keyboard('{ArrowRight}')
+    expect(engine.playCategory).toHaveBeenCalledTimes(1)
+  })
+
+  it('unlocks with Escape and with the button, which works without a keyboard', async () => {
+    const { user } = await exploring()
+    await user.click(screen.getByRole('button', { name: 'Lock this place' }))
+    expect(screen.getByRole('button', { name: 'Lock this place' })).toHaveAttribute('aria-pressed', 'true')
+    act(() => surface().focus())
+    await user.keyboard('{Escape}')
+    expect(screen.getByRole('button', { name: 'Lock this place' })).toHaveAttribute('aria-pressed', 'false')
+    await user.click(screen.getByRole('button', { name: 'Lock this place' }))
+    await user.click(screen.getByRole('button', { name: 'Lock this place' }))
+    expect(screen.getByRole('button', { name: 'Lock this place' })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('plays the locked place on the date the slider is moved to, not the whole map', async () => {
+    const { user } = await exploring()
+    await user.keyboard('l')
+    engine.playCategory.mockClear()
+    analyzeGrid.mockClear()
+    await user.click(screen.getByRole('slider', { name: 'Date' }))
+    fireEvent.change(dateSlider(), { target: { value: '2' } })
+    await tick(0)
+    expect(dateSlider()).toHaveValue('2')
+    expect(analyzeGrid.mock.calls.some(call => call[0] === visualization.frames[2])).toBe(true)
+    expect(engine.playCategory).toHaveBeenCalledTimes(1)
+    expect(engine.playCategory.mock.calls[0][0]).toBe(cellOf(grid, START.col, START.row).category)
+    expect(engine.playCategory.mock.calls[0][1]).toMatchObject({ pan: panForPoint((START.col + 0.5) / COLS), elevation: heightOf(START.row) })
+    expect(engine.playSequence).not.toHaveBeenCalled()
+  })
+
+  it('plays the place across every date, one step per date, and says how it changed', async () => {
+    const { user } = await exploring()
+    await user.keyboard('l')
+    expect(screen.getByRole('button', { name: 'Play this place across the dates' })).toBeEnabled()
+    await user.click(screen.getByRole('button', { name: 'Play this place across the dates' }))
+    await tick(0)
+    expect(engine.playSequence).toHaveBeenCalledTimes(1)
+    const [steps, onStep] = engine.playSequence.mock.calls[0]
+    expect(steps).toHaveLength(visualization.frames.length)
+    expect(steps.map((step: { category: string }) => step.category)).toEqual(visualization.frames.map(() => cellOf(grid, START.col, START.row).category))
+    expect(steps.every((step: { pan: number }) => step.pan === panForPoint((START.col + 0.5) / COLS))).toBe(true)
+    // The date slider follows the sound, and the summary comes after the last date.
+    act(() => onStep(2))
+    expect(dateSlider()).toHaveValue('2')
+    act(() => onStep(steps.length - 1))
+    await tick(1000)
+    expect(liveText()).toContain('centre, column 13, row 7.')
+    expect(liveText()).toContain('steady')
+  })
+
+  it('cannot play across the dates until a place is locked, and unlocking stops a run', async () => {
+    const { user } = await exploring()
+    expect(screen.getByRole('button', { name: 'Play this place across the dates' })).toBeDisabled()
+    await user.keyboard('l')
+    await user.click(screen.getByRole('button', { name: 'Play this place across the dates' }))
+    await tick(0)
+    const onStep = engine.playSequence.mock.calls[0][1]
+    act(() => surface().focus())
+    await user.keyboard('l')
+    act(() => onStep(3))
+    await tick(1000)
+    expect(liveText()).toBe('Unlocked. The arrow keys move over the map again.')
+  })
+
+  it('has no accessibility violations while locked', async () => {
+    const { container, user } = await exploring()
+    await user.keyboard('l')
+    vi.useRealTimers()
+    await expectNoA11yViolations(container)
+  })
+})
+
 describe('Explorer: accessibility', () => {
   it('has no violations with the explorer on', async () => {
     const { container } = await exploring()

@@ -2,7 +2,7 @@
 // details written down. Rules only, never a language model: the same data always gives the same words (this folder is
 // guarded by boundary.test.ts).
 
-import type { FrameAnalysis, FrameGrid } from '../analysis'
+import type { FrameAnalysis, FrameGrid, GridCell } from '../analysis'
 import type { Frame, Visualization } from '../data'
 import { dateFormatterFor } from '../dates'
 import type { Detail } from './detail'
@@ -210,6 +210,31 @@ export function describeCell(visualization: Visualization, grid: FrameGrid, col:
   if (cell.category === 'insufficient' || cell.value === null) return `Not enough data${concise ? '' : ' (land, cloud or labels)'}, ${where}.`
   // Concise: "Warm, 21 °C, north-east."
   return `${upperFirst(vocab.label(cell.category))}, ${concise ? '' : 'about '}${withUnit(cell.value, vocab.unit)}, ${where}.`
+}
+
+/** Where a cell is, for locking on it: "north-east, column 19, row 3". `col` and `row` start at 0. */
+export function describePlace(grid: FrameGrid, col: number, row: number): string {
+  const compass = COMPASS[Math.floor((row * 3) / grid.rows)][Math.floor((col * 3) / grid.cols)]
+  return `${compass}, column ${col + 1}, row ${row + 1}`
+}
+
+/**
+ * One cell followed through the dates (F23): where it started and where it ended, and which way it went.
+ * `readings` is the cell on each date, in date order, with the date as it is shown.
+ */
+export function describeCellOverTime(visualization: Visualization, readings: { date: string; cell: GridCell }[], options: DescribeOptions = {}): string {
+  const vocab = vocabulary(visualization)
+  const valid = readings.flatMap(({ date, cell }) =>
+    cell.value === null || cell.category === 'insufficient' ? [] : [{ date, value: cell.value, category: cell.category }])
+  if (valid.length === 0) return `This place has not enough data on ${readings.length === 1 ? 'the date' : `any of the ${word(readings.length)} dates`}.`
+  const concise = options.detail === 'concise'
+  const say = ({ date, value, category }: (typeof valid)[number]) => `${upperFirst(vocab.label(category))}, ${concise ? '' : 'about '}${withUnit(value, vocab.unit)}, ${date}`
+  if (valid.length === 1) return `Across ${word(readings.length)} dates this place has data on one: ${say(valid[0])}.`
+  const first = valid[0]
+  const last = valid[valid.length - 1]
+  const missing = readings.length - valid.length
+  const move = last.value > first.value ? 'rising' : last.value < first.value ? 'falling' : 'steady'
+  return `Across ${word(readings.length)} dates, ${say(first)}, then ${say(last)}: ${move}.${missing ? ` ${upperFirst(word(missing))} ${missing === 1 ? 'date has' : 'dates have'} no data here.` : ''}`
 }
 
 /** A row or a column of the map, as runs: "Row 3, west to east: not enough data for 4 cells, cool for 6, mild for 8". `index` starts at 0. */

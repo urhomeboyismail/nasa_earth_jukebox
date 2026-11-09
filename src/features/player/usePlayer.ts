@@ -254,6 +254,9 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     }
   }, [ready, frames.length, status, speed, startFrom, playOne, speak])
 
+  /** Shows a date without sounding it, for the explorer when it plays a locked place across the dates. */
+  const showDate = useCallback((i: number) => setIndex(Math.min(frames.length - 1, Math.max(0, i))), [frames.length])
+
   /** Stops the sound and any run but stays on the same date, for the sound-map explorer to take over. */
   const halt = useCallback(() => {
     cancelRun()
@@ -403,7 +406,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     engine, region, results, index, status, speed, volume, finished, ready, style, setStyle, changeAvailable, score, tracing, traceWarmEdge, stopTrace, spatial, setSpatial, downloading, downloadError,
     error: engineError || analysisError,
     loading: !engineError && !analysisError && !results,
-    play, pause, stop, replay, goTo, halt, playRange, download, setSpeed, setVolume, testSound, hearBothWays,
+    play, pause, stop, replay, goTo, showDate, halt, playRange, download, setSpeed, setVolume, testSound, hearBothWays,
     describeDate, formatDate,
     categoryAt: (i: number) => results?.[i]?.category ?? null,
   }
