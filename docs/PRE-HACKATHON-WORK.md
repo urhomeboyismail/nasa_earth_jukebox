@@ -50,6 +50,7 @@ Add one line per piece of work, newest last.
 | 9 Nov | S02 first real data set, `mur-sst-mauritius`: sea surface temperature around Mauritius, 2023 (NASA MUR via GIBS): 5 comparisons, 4 story chapters, reference-date baseline, recorded Scores. Still to check by a person: the credit and licence wording, and the story | `feature/S02-mur-sst-mauritius` |
 | 9 Nov | I01 One announcer for the whole app: Home, the welcome and the help button now reach the screen-reader live region; Learn announces through it too | `fix/I01-app-announcer` |
 | 9 Nov | S04 (T93) Announcement rate: the player and the sound map change the live region at most once every 1.5 s while busy, the newest message replaces the older one and the last is always spoken; messages built by tested functions in `src/describe/announcements.ts`, within 160 characters (60 when concise) | `feature/S04-announce-rate` |
+| 9 Nov | S03 project README for v3 (what is built, planned and not started; n = 0; AI tools named) and `docs/CREATIVE_PROCESS.md`, with every code claim checked | `feature/S03-readme` |
 
 ## Outside resources used
 
