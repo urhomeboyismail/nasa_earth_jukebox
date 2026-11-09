@@ -1,6 +1,6 @@
 # Brainstorm, 9 Nov 2026: what is built, what is missing, what to add
 
-For the team and our coding agents. It compares [`docs/PLAN.md`](../PLAN.md) with the code on `main` (`d4fc1d9`), walks the user journey from the first visit, and lists new features as **independent cards** (F36 onward). To build one, ask your agent: *"Implement F37 following `.claude/rules/tickets.md`."* The loop is explained in [`docs/features/README.md`](../features/README.md).
+For the team and our coding agents. It compares [`docs/PLAN.md`](../PLAN.md) with the code on `main` (`d4fc1d9`), walks the user journey from the first visit, and lists new features as **independent cards** (F36 onward). To build one, ask your agent: *"Implement F37 following `.claude/rules/tickets.md`."* Since 9 Nov they enter the queue in [`docs/TICKETS.md`](../TICKETS.md); the v3 sight-to-sound design that replaces F43–F47 is `docs/PLAN.md` §6.3.
 
 How this was made: jcodemunch (repo outline and map), a code inventory of every feature folder, and an ECC-style review (product lens, accessibility architect, feasibility red team) against the judging criteria. Every "built" or "gap" claim below was checked in code, not in docs.
 
@@ -11,8 +11,10 @@ How this was made: jcodemunch (repo outline and map), a code inventory of every 
   - no real NASA data set is listed in `public/data/index.json`;
   - no tester has been through the protocol (n = 0);
   - `README.md` is still the Vite template.
-- **A rule is broken.** Temperature words are written into `src/`, so on a sea-ice or vegetation data set the app would talk about "warmer water". `IDEAS-REVIEW-9NOV.md` §6 says "None in code", which is wrong. The fix (F36) comes first.
+- **A rule is broken.** Temperature words are written into `src/`, so on a sea-ice or vegetation data set the app would talk about "warmer water". `docs/archive/planning/IDEAS-REVIEW-9NOV.md` §6 says "None in code", which is wrong. The fix (F36) comes first.
 - The headline new experience is a **welcome mascot** (F37): a small astronaut who greets the listener, asks how they want to use the app and runs a sound check. It is scripted, works with the server off, and never talks over a screen reader.
+- **The mascot could be a robot in an astronaut helmet** (F58). That is more honest about what Echo is (scripted lines, and an AI model behind the voice guide) and gives the app a sound-themed character. It is a redraw of the Echo we already have.
+- **Are piano notes enough to describe the picture? No.** A note says "higher or lower than the last one". Words, position and the other cues say what it means. The cheapest fix for what plain notes miss is to play the bottom and top of the scale before the melody (F56). Whether a piano-like voice helps is for listeners to decide (F57). See "Worked idea" in §4.
 
 ## 2. Planned vs built
 
@@ -60,7 +62,7 @@ How this was made: jcodemunch (repo outline and map), a code inventory of every 
 | 1 | **Sound check** | F29 Test sound (one note) | **F37** Left, right, centre and a volume comfort step, in the mascot's words |
 | 2 | **Learn the sounds** | Notes, chord, slide, bell, tick, hiss, "Play all" | **F38** Change style, `T`, `L`; **F36** the words come from the data set |
 | 3 | **Pick a data set** | Data set picker | **F49** A shelf of cards with a picture, dates, and "real NASA data" or "practice data" |
-| 4 | **Listen** | Play, both ways, styles, speed, volume, 3D, vibration, table, Ask | **F39** hear the legend; **F44** legend highlight; **F47** caption strip; **F41** `?` shortcuts |
+| 4 | **Listen** | Play, both ways, styles, speed, volume, 3D, vibration, table, Ask | **F39** hear the legend; **F56** anchor notes before the melody; **F57** piano-like voice (if testers prefer it); **F44** legend highlight; **F47** caption strip; **F41** `?` shortcuts |
 | 5 | **Explore the map** | Keys, sweeps, sliders, touch, `L` time travel, `T` trace | **F43** jump to the extreme; **F52** two-date difference; **F48** region picker |
 | 6 | **Story** | Chapters (synthetic-globe only) | Real chapters for each NASA data set (data, §5) |
 | 7 | **Compare / practise** | Compare, reveal, test mode | **F53** ear-training game; **F36** wording |
@@ -71,9 +73,9 @@ How this was made: jcodemunch (repo outline and map), a code inventory of every 
 
 ## 4. Feature catalogue
 
-Every card is meant to be built on its own, from `main` as it is today, by whoever claims it in [`docs/features/README.md`](../features/README.md). "Expected tickets" is the minimum; the rule in `.claude/rules/tickets.md` says to keep it there.
+Every card is meant to be built on its own, from `main` as it is today, by whoever claims it in the queue, [`docs/TICKETS.md`](../TICKETS.md). "Expected tickets" is the minimum; the rule in `.claude/rules/tickets.md` says to keep it there.
 
-Common rules for every card: nothing specific to one data set in `src/` (`phases.md`); no model in `src/analysis`, `src/audio`, `src/describe` or `judge.ts` (`src/boundary.test.ts`); every control labelled and keyboard-usable, changes announced through `useAnnounce`; 44 px targets, checked at 360, 768 and 1280 px (`platform.md`); the app works with the server off.
+Common rules for every card: nothing specific to one data set in `src/` (`phases.md`); no model in `src/analysis`, `src/audio`, `src/describe` or `judge.ts` (`src/boundary.test.ts`); every control labelled and keyboard-usable, changes announced through `useAnnounce`; the app works with the server off.
 
 ### Now (before 12 Nov)
 
@@ -90,6 +92,7 @@ Common rules for every card: nothing specific to one data set in `src/` (`phases
 - **The look:** a small, round, yellow character with big goggles inside a white astronaut suit and a clear helmet.
   - **It must be our own original character, inspired by the idea, not a Minion.** Minions belong to Illumination and Universal, the submission is public, and our rules forbid other people's branding. Use our own name, shape and details, and none of the film's art or name.
   - Working name "Orbi"; the team agrees the final name on the board (R-20261109-F37-1).
+  - **Update:** F37 shipped with our existing mascot, **Echo**, in place of the yellow character above. A new look for Echo, a robot in an astronaut helmet, is card **F58**.
   - Drawn as an inline SVG by the team, or generated with AI and disclosed in the README. No NASA logo, insignia or mission patch.
 - **The flow:**
   1. On the first visit, a welcome section sits on Home after the heading: the mascot, one line of greeting, and three large buttons. "Skip" comes first in focus order.
@@ -161,6 +164,137 @@ Common rules for every card: nothing specific to one data set in `src/` (`phases
 | F54 | Earth Symphony | A 20 s sequential medley of each real data set, made with WAV export, for the video only (parked idea, revive condition met once two real data sets exist) | M, 1 |
 | F55 | Sound postcards | A printable card with a QR code to an F40 deep link, for Mauritius classrooms (Local Impact) | S, 1 (after F40) |
 
+### Worked idea: are piano tones enough to describe the sound? (F56, F57)
+
+**The question:** could the app just play piano notes, low for cool and high for warm, and let the notes describe the picture?
+
+**Short answer: no.** A piano is a fine voice, but a note on its own doesn't describe anything. It tells you one thing well: whether this value is higher or lower than the last one. Someone who hears only notes can't tell:
+- what a pitch means;
+- where on the map it is;
+- whether a cell had no data;
+- whether the place is unusual for the season.
+
+Listen already carries all of these, as other sound layers and in words. Switching to a piano would change the voice and nothing else.
+
+**What a note can and cannot tell the listener**
+
+| The listener needs to know | A piano note alone | What carries it today |
+|---|---|---|
+| Higher or lower than the date before | Yes, if the steps are far enough apart | The melody note, one per category (`SoundMapping`) |
+| What a pitch means (a category's label and range) | No. Most people hear pitch relative to other notes, not as an absolute value | Legend in words (F39, Learn "Play all"), descriptions (`src/describe/`) |
+| Where a note sits on the whole scale | Only after hearing the scale | Nothing at the start of playback → **F56** |
+| Where on the map | No | Stereo pan (F13), 3D (F20) |
+| No data here | No: a quiet low note sounds like "cold" | The pink-noise missing cue |
+| How mixed the area is | No | The chord (pad), full style |
+| It changed, or jumped | Partly. A piano has fixed pitches and can't slide | Glide and bell |
+| Unusual for the season | No | Change style: bed, contour, accents (F18, F27, F28) |
+| Anything at all, for a deaf listener | No | Data table (F31), vibration (F15), caption strip (F47) |
+
+**Why context matters.** In tests where listeners estimated values from sound, they did better when the sound came with context, the audio version of axis labels and tick marks: reference tones for the scale and clicks for time (Smith & Walker 2005, as reported in Metatla et al. 2016, ["Sonification of reference markers for auditory graphs"](https://peerj.com/articles/cs-51), *PeerJ Computer Science*). Short practice with feedback also helped (Nees 2005). The notes give the shape of the data, and the anchors and words give it meaning. Learn and test mode already provide the practice. What's missing is the anchors.
+
+**About the piano itself**
+
+- **For it:**
+  - every listener knows the sound, including children and teachers;
+  - it sounds like music, not an alarm;
+  - each note has a clear start, so the dates stay separate.
+- **Against a sampled grand piano:**
+  - several MB of samples to download before the first note, which breaks "keep the first load small" and the offline backup;
+  - a licence credit;
+  - WAV export has to wait until the samples load;
+  - no slides, and long notes fade at slow speed.
+- **What we have today:** the melody is already a struck "mallet" sound (a triangle wave with `MALLET_ENVELOPE`, `src/audio/engine.ts:46`), close to how a piano sounds. Changing the voice would be a small step, and whether it helps is for listeners to say, not for the design to assume.
+
+**Decision**
+
+1. Keep pitched notes as the core, and keep every layer.
+2. Add what plain notes miss most: anchors before each playback (**F56**, Next).
+3. Try a piano-like voice built from synth oscillators, not samples, and offer it only if testers prefer it (**F57**, Later, after the practice test).
+4. Words stay the description. Every note keeps its text equivalent through `useAnnounce`, as it does now.
+
+#### F56 Anchor notes
+- **Goal:** before a sequence plays, the listener hears the bottom and the top of the scale with their labels ("Lowest: \<label\>", then its note; "Highest: \<label\>", then its note), a short pause, then the melody. It is the audio version of an axis.
+- **Helps:**
+  - first-time and blind listeners who haven't learned the legend;
+  - listeners with no musical training;
+  - a judge who presses Play once;
+  - downloaded WAV files, which have no legend beside them.
+- **Scope:**
+  - **The switch:** "Anchor notes" on Listen, on by default, remembered in `localStorage` with try/catch like `src/audio/style.ts`.
+  - **The notes:** the first and last categories of the manifest's sound mapping, labelled with the F36 words. In the change style, the lowest and highest change steps instead.
+  - **Building the steps:** reuse `src/features/learn/legendTour.ts` (two steps instead of all).
+  - **Labels:** announced through `useAnnounce`, never with text-to-speech.
+  - **WAV export:** anchors are included when the switch is on.
+  - **Out of scope:** speaking every note; new manifest fields.
+- **Touches:** `src/features/player/` (`usePlayer.ts`, the controls), `src/features/learn/legendTour.ts`.
+- **Done when:**
+  - **Switch on:** Play schedules the two anchor steps and then the sequence, shifted by the anchor time (fake engine), and both labels are announced. The date display and the map ignore the anchors.
+  - **Switch off:** the sequence is unchanged and the existing player tests pass untouched.
+  - **Data sets:** it works on `fixture`, `synthetic-ocean` and `synthetic-change`.
+  - **Checks:** axe passes.
+- **Size:** S. **Expected tickets:** 1. **Suggested owner:** Mohammad (player).
+
+#### F57 Piano-like voice (a listening test first)
+- **Goal:** find out whether a piano-like melody is easier to follow than today's mallet, and offer it only if it is.
+- **Scope:**
+  - **The voice:** built from Tone.js synth voices (for example an FM voice, or a few harmonics with a fast attack and a long decay), with no audio files. That keeps it offline, keeps the first load small, gives the same WAV for the same input, and needs no licence credit. Slides still work because it is a synth.
+  - **The choice:** "Voice: mallet / piano" next to the sound style, remembered like the style. Mallet stays the default.
+  - **The test:** at least 3 listeners hear the same 3 comparisons in each voice, in random order. Record correct answers and which voice they prefer in `docs/evidence/`. Make piano the default only if it is at least as accurate and preferred.
+- **Touches:** `src/audio/engine.ts` (melody options), a new `src/audio/voice.ts` beside `style.ts` (team leader); the selector in `src/features/player/` (Mohammad).
+- **Done when:**
+  - both voices render the same steps (fake engine) and the WAV output is deterministic;
+  - with mallet chosen, the existing engine tests pass unchanged;
+  - axe passes;
+  - the listening results are written down, whatever they show.
+- **Size:** S–M. **Expected tickets:** 1. It can only be worth building once the 12 Nov practice test has run.
+
+### Worked idea: the mascot as a robot in an astronaut helmet (F58)
+
+#### F58 Robot mascot: a new look for Echo
+- **Goal:** Echo, our guide, becomes a small friendly robot wearing a clear astronaut helmet.
+- **Why a robot:**
+  - **Honest.** Echo's welcome lines are scripted, and with the server on its answers come from an AI model. A robot says "I am a program". A human astronaut could suggest a real person is listening.
+  - **A sound identity.** The robot can carry the app's idea on its body: speaker discs for ears, because it listens to Earth, and a tiny waveform on its chest.
+  - **Memorable for judges.** A robot in a helmet reads in one second on a slide or in the 30 s video, and children like it (the Youth category).
+  - **Cheap.** Echo already has the Earth reflected in its visor and four poses, so this is a redraw, not a new system.
+- **The look:**
+  - **Helmet:** a clear glass dome with a collar ring. The Earth reflection we already draw stays on the glass.
+  - **Head and face:** a rounded robot head inside the helmet, with a dark face screen, two glowing eyes and a mouth line.
+  - **Ears:** two round speaker discs on the sides of the head. The small badge version, Sonny, is just this helmeted head.
+  - **Body:** a short, rounded torso with a chest panel. No antenna (it would poke through the helmet).
+  - **The four poses become screen expressions,** so `MascotPose` and every caller stay the same:
+    - idle: a smile;
+    - listening: wider eyes and the ear discs glow;
+    - talking: the mouth becomes a few waveform bars;
+    - thinking: eyes glance up and the mouth becomes dots.
+  - **Colours:** only the tokens already in `Mascot.tsx` (purple, light shell, cyan glow). No new colours.
+- **Our own design.** Echo must not look like a robot from a film or a brand. Avoid:
+  - twin binocular eyes on stalks (WALL-E);
+  - a glossy white egg body (EVE);
+  - a dome head on a barrel body (R2-D2);
+  - a round ball (BB-8);
+  - a soft white inflatable (Baymax).
+
+  No NASA logo, worm, meatball, flag or mission patch. Two team members compare the finished art with this list before it merges. If it is drawn with an AI image tool, say so in the README's AI disclosure.
+- **Scope:**
+  - Redraw `Echo` and `Sonny` in `src/components/Mascot.tsx`, keeping the same props and sizes, so the voice guide, the welcome, the help button and the demo caption change without edits of their own.
+  - Refresh `docs/design/mascot-concepts.html` and its PNG.
+  - One persona line for the voice guide in `server/app/assistant/knowledge.py`: Echo is a friendly robot guide in an astronaut helmet, and a program, not a person; it says so if asked. The page list and the 5 tools do not change.
+  - **Out of scope:** new poses, new animation, a second character, beeps or other sound effects (they would clash with the data's sounds and need WCAG 1.4.2 handling), and a rename (`MASCOT_NAME` stays "Echo").
+- **Accessibility:**
+  - Decorative as now (`aria-hidden`). Its name and every state stay in text.
+  - Each pose differs by shape (mouth, eye size), not only by colour or glow.
+  - The glowing features keep at least 3:1 against the dark face screen (WCAG 1.4.11).
+  - Motion only under `prefers-reduced-motion: no-preference`, and nothing flashes.
+- **Touches:** `src/components/Mascot.tsx` and its test (Roni's components); `docs/design/mascot-concepts.*`; `server/app/assistant/knowledge.py` (persona only, reviewed by the team leader); one line in the README's AI disclosure (Bhavish).
+- **Done when:**
+  - all four poses render at full size and as the badge, and each is drawn differently from the others (one test);
+  - the existing Mascot, welcome, help and demo tests pass unchanged, and axe passes;
+  - with reduced motion on, nothing moves;
+  - the server tests pass, and a test checks that the persona text says Echo is a program, not a person;
+  - the "do not resemble" list is ticked in the PR.
+- **Size:** S–M. **Expected tickets:** 1. **Suggested owner:** Roni.
+
 ### Cut, with the reason
 
 | Idea | Why |
@@ -169,7 +303,7 @@ Common rules for every card: nothing specific to one data set in `src/` (`phases
 | Settings panel (contrast, text size) | The browser already does it. Support `prefers-contrast`, `forced-colors`, `prefers-reduced-motion`, and check reflow at 200% and 400% |
 | MIDI export | No audience for it in this challenge |
 | New voice-guide action tools | They extend what a model can do just when data and evidence are the gaps; F50's read-only context is enough |
-| F21, F22, F24, F25, ADK, live-model Q&A | Still cut. None meets its revive condition (`FEATURE-REVIEW.md`, `brainstorm/parked-ideas.md`) |
+| F21, F22, F24, F25, ADK, live-model Q&A | Still cut. None meets its revive condition (`docs/archive/planning/FEATURE-REVIEW.md`, `brainstorm/parked-ideas.md`) |
 
 ## 5. Data refinement (manifests only, through `DATASET-PLAYBOOK.md`)
 
@@ -185,8 +319,8 @@ No code. Each is one data set's folder and its `index.json` entry.
 | Criterion or award | What shows it | Source |
 |---|---|---|
 | Influence, Most Inspirational | The mascot welcome on the screen-reader path; a blind tester's quote, with permission | F37, T87 |
-| Creativity, Art & Technology | The warm-edge trace on headphones; Earth Symphony in the video | F18, F54 |
-| Validity, Best Use of Data | "What the sound hides"; the sound recipe card; a real baseline and comparisons with known answers | F33, F45, §5 |
+| Creativity, Art & Technology | The warm-edge trace on headphones; Earth Symphony in the video; a robot guide in an astronaut helmet | F18, F54, F58 |
+| Validity, Best Use of Data | "What the sound hides"; the sound recipe card; anchor notes before every playback; a real baseline and comparisons with known answers | F33, F45, F56, §5 |
 | Relevance | The full journey in §3 working with the server off | — |
 | Presentation, Best Storytelling | Demo mode hosted by the mascot, read aloud; the Mauritius story | F35, F37, F42, §5 |
 | Local Impact | Mauritius sea temperature; postcards for classrooms | §5, F55 |
@@ -197,6 +331,8 @@ No code. Each is one data set's folder and its `index.json` entry.
 
 ## 7. Open questions (ask on `docs/AGENT-BOARD.md`)
 
-- The mascot's final name and who draws it (R-20261109-F37-1).
+- The mascot's final name and who draws it (R-20261109-F37-1). F37 shipped with Echo, so the open part is whether to keep that name for the robot (F58 assumes yes).
+- Who draws the robot: a team member in SVG, or an AI image tool as a reference that is then redrawn as SVG (disclosed in the README)? F58 is easier if one person owns the drawing.
 - Whether the "screen reader" path should also choose the Simple sound style, or leave the style alone until the 12 Nov practice test decides.
 - Which NASA data sets are chosen on 13 Nov, and each one's baseline kind.
+- Should the 12 Nov practice test include the mallet-or-piano comparison (F57)? It adds about five minutes per tester.

@@ -4,8 +4,8 @@ The ideas and planning work behind Earth Jukebox. It was moved here on 7 Nov 202
 
 | Path | What it is |
 |---|---|
-| [`IDEAS-REVIEW-9NOV.md`](IDEAS-REVIEW-9NOV.md) | 9 Nov review at the start of the hackathon: what's a Must, what to improve, what to add next, what stays cut. What was built before 9 Nov is in [`../PRE-HACKATHON-WORK.md`](../PRE-HACKATHON-WORK.md) |
-| [`FEATURE-REVIEW.md`](FEATURE-REVIEW.md) | 7 Nov review of every feature: built or not, what to keep and improve, and what was cut and why |
+| [`IDEAS-REVIEW-9NOV.md`](../archive/planning/IDEAS-REVIEW-9NOV.md) (archived) | 9 Nov review at the start of the hackathon: what's a Must, what to improve, what to add next, what stays cut. What was built before 9 Nov is in [`../PRE-HACKATHON-WORK.md`](../PRE-HACKATHON-WORK.md) |
+| [`FEATURE-REVIEW.md`](../archive/planning/FEATURE-REVIEW.md) (archived) | 7 Nov review of every feature: built or not, what to keep and improve, and what was cut and why |
 | [`brainstorm/`](brainstorm/) | The multi-round brainstorm: `PRODUCT-BRIEF.md`, rounds `r1` to `r6`, `FINAL.md` (final concept, rev 3), `decisions.md` (decision log with dissent), `parked-ideas.md` (every cut idea and what would revive it), `weaknesses/` (W1–W7), `adk/` (agent design study), `reports/` |
 | [`adr/`](adr/) | Architecture decision records 0001–0005, from the planning prototype |
 | [`original-plan.md`](original-plan.md) | The original "Earth, Out Loud" project plan |

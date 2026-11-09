@@ -2,8 +2,8 @@
 
 Adapted from ECC `rules/common` (development-workflow, code-review, testing) for Earth Jukebox.
 
-- Before starting, read `AGENTS.md`, `docs/PLAN.md` and your ticket in `docs/TICKETS.md`. Do only that ticket.
-- For a feature from the catalogue (F36 onward), follow `tickets.md`: its tickets live in `docs/features/<ID>-<slug>/TICKETS.md`. At the start of a session, check `docs/AGENT-BOARD.md` for open requests addressed to you.
+- Before starting, read `AGENTS.md`, `docs/PLAN.md` and the queue in `docs/TICKETS.md`. Claim one ticket as `tickets.md` says and do only that ticket, from its file in `docs/tickets/`.
+- At the start of a session, check `docs/AGENT-BOARD.md` for open requests addressed to you.
 - One ticket per branch: `feature/<ID>-short-name`, `fix/<short-name>` or `chore/<short-name>`, branched from `main`.
 - Don't push, open a PR, rewrite history or delete a branch without asking the user first. Local commits are fine.
 - Keep changes small. Don't refactor code the ticket doesn't touch.

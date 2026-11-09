@@ -43,6 +43,8 @@ Add one line per piece of work, newest last.
 | 9 Nov | F39 Hear the legend: a button under the colour legend on Listen plays the categories coolest to warmest and announces each label; the steps are shared with Learn's "Play all" | `feature/F39-T1-hear-legend` |
 | 9 Nov | F35 Demo mode: one button plays a scripted tour | `feature/F23-time-travel` |
 | 9 Nov | T120 phone support: 360 px check, installable PWA manifest and icons | `feature/T120-phone` |
+| 9 Nov | T88b demo script for the video, slides and live demo | `feature/T88b-demo-script` |
+| 9 Nov | Plan v3 "sight into sound in real time" (`PLAN.md` §6.3) and the ticket reorganisation: one queue for two agents (`TICKETS.md`, `tickets/`), done and replaced tickets moved to `archive/` | `chore/tickets-v3` |
 
 ## Outside resources used
 

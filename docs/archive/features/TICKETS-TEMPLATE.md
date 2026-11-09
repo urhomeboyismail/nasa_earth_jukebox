@@ -15,7 +15,6 @@
   1. …
 - **Done when:**
   - …
-  - Layout checked at 360, 768 and 1280 px (if it changes layout)
 - **Checks:** `npm run lint && npm test && npm run build` (plus `npm run check-data` if `public/data/` changed; `cd server && .venv/bin/python -m pytest` if `server/` or `src/pages.ts` changed)
 - **Status:** [ ] not started · [ ] in progress · [ ] done (branch and commit)
 

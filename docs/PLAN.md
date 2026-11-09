@@ -281,7 +281,7 @@ Rules:
 | F16 | A second visualization | Could | Dhruv |
 | F17 | ~~Background drone from the whole-frame average~~ Replaced by the change bed (F28) | Cut | Team leader |
 | F18 | **Contour voice and rhythm** (replaces Sobel texture): trace the fixed change levels with marching squares; the line is heard moving in space, and its sharp turns set the rhythm (5.9, 6.2) | Should | Team leader + Bhavish (`contour.ts`, spatial path) |
-| F19 | Persona narration: concise or rich descriptions (built, T82). ~~Optional ADK rewording~~ cut 7 Nov (see `docs/planning/FEATURE-REVIEW.md`) | Should | Roni + Mohammad |
+| F19 | Persona narration: concise or rich descriptions (built, T82). ~~Optional ADK rewording~~ cut 7 Nov (see `docs/archive/planning/FEATURE-REVIEW.md`) | Should | Roni + Mohammad |
 | F20 | 3D spatial audio: HRTF panning, elevation as height in space (never pitch). Built (T84), off by default | Could | Bhavish |
 | F21 | ~~Anomaly haptics on touch devices~~ Cut 7 Nov: Android-only, and F15 already vibrates | Cut | — |
 | F22 | ~~Reef style~~ Cut 7 Nov: needs licensed recordings, a new sound source and its own listening check; the change bed is not yet reachable (T111) | Cut | — |
@@ -292,7 +292,7 @@ Rules:
 | F27 | **Change field and change steps**: `readField`, `changeField`, `smoothField`, `summarizeChange`, `changeStep` in `FrameAnalysis` (5.2, 5.9) | Should (v2 core) | Team leader |
 | F28 | **Change sound style**: the change bed and the hiss in the `"change"` style; Compare judges by change step; `describeChange` (6.2) | Should (v2 core) | Team leader + Mohammad + Roni |
 
-**Added by the brainstorm merge (9 Nov; verdicts in `docs/planning/MERGE-VERDICT.md`).** All are deterministic and use no model.
+**Added by the brainstorm merge (9 Nov; verdicts in `docs/archive/planning/MERGE-VERDICT.md`).** All are deterministic and use no model.
 
 | ID | Feature | Priority | Status |
 |---|---|---|---|
@@ -306,19 +306,22 @@ Rules:
 
 Dropped from the brainstorm: ADK tiers and the audit log, the `story.json` contract, and a live-model Q&A selector.
 
-**Proposed by the 9 Nov brainstorm** ([`docs/planning/BRAINSTORM-9NOV.md`](planning/BRAINSTORM-9NOV.md) §4, where each has a full card). Each is built through its own ticket file in [`docs/features/`](features/README.md) (`.claude/rules/tickets.md`). Status here changes to "Built" when its last ticket merges.
+**Proposed by the 9 Nov brainstorm** ([`docs/planning/BRAINSTORM-9NOV.md`](planning/BRAINSTORM-9NOV.md) §4, where each has a full card). Each is built as a ticket in the queue, [`docs/TICKETS.md`](TICKETS.md) (`.claude/rules/tickets.md`). Status here changes to "Built" when its last ticket merges.
 
 | ID | Feature | Priority | Status |
 |---|---|---|---|
-| F36 | Manifest wording: comparison words ("warmer", "warm edge") come from the manifest, not `src/` | Must (fixes a `phases.md` breach) | Proposed |
-| F37 | Welcome mascot (an original astronaut character) and onboarding: three paths, sound check, per-page help, hosts the demo | Should | Proposed |
-| F38 | Learn teaches the change style, `T` and `L` | Should | Proposed |
-| F39 | Hear the legend on Listen | Should | Proposed |
-| F40 | Deep links (date, cell, style) and Share | Should | Proposed |
-| F41 | Keyboard shortcuts dialog | Should | Proposed |
+| F36 | Manifest wording: comparison words ("warmer", "warm edge") come from the manifest, not `src/` | Must (fixes a `phases.md` breach) | Built |
+| F37 | Welcome mascot (an original astronaut character) and onboarding: three paths, sound check, per-page help, hosts the demo | Should | Built |
+| F38 | Learn teaches the change style, `T` and `L` | Should | Built |
+| F39 | Hear the legend on Listen | Should | Built |
+| F40 | Deep links (date, cell, style) and Share | Should | Built on a branch; salvage S01 |
+| F41 | Keyboard shortcuts dialog | Should | Built on a branch; salvage S01 |
 | F42 | Opt-in spoken demo caption | Should | Proposed |
 | F43–F50 | Jump to extreme, legend highlight, sound recipe card, text transcript, caption strip, region picker, Jukebox shelf, guide sees the explorer | Could | Proposed |
 | F51–F55 | Service worker, two-date difference, ear-training game, Earth Symphony medley, sound postcards | Later | Proposed |
+| F56 | Anchor notes: the lowest and highest notes, with their labels, before each playback | Could | Proposed |
+| F57 | Piano-like melody voice, offered only if a listening test prefers it | Later | Proposed |
+| F58 | Robot mascot: Echo redrawn as a friendly robot in an astronaut helmet, with a "program, not a person" persona line for the voice guide | Could | Proposed |
 
 ### 6.1 The Earth Information Jukebox ensemble
 
@@ -337,7 +340,7 @@ The Jukebox is described as four cooperating roles. They are **roles, not separa
 
 - **F18 Contour voice.** Replaces the Sobel texture: edge density says "something is busy here", while a contour says "this is the edge of the warm water, and this is its shape", which a scientist can check. Same input, same line, same rhythm (5.9, 6.2).
 - **F20 3D audio.** Extends F13: `pan.ts` gains HRTF placement (`PannerNode`) and an `elevation`, where north sounds above the listener and south below. Elevation is a place in space, not a pitch: pitch already means "warmer", the main cue, so a higher-pitched north would make a cool northern cell sound like a warm southern one. Stereo panning stays the default and the fallback for speakers; 3D is a toggle for headphones, off by default.
-- **F21, F22, F24, F25, ADK rewording: cut on 7 Nov.** None had code. Reasons and revive conditions are in `docs/planning/FEATURE-REVIEW.md`.
+- **F21, F22, F24, F25, ADK rewording: cut on 7 Nov.** None had code. Reasons and revive conditions are in `docs/archive/planning/FEATURE-REVIEW.md`.
 - **F23 Time travel.** In the sound map, a key locks the current cell and the date slider then plays that one cell across all dates. The root pitch stays fixed and the voicing follows the data, so a rising value is heard as harmony moving from calm to tense. The dates are those in the catalog: synthetic until 13 Nov, then whatever span the real data has. A 1980 to 2026 span is a goal, not a promise.
 - **F19 ADK.** Cut 7 Nov. The T86 spike (`docs/adk-spike.md`) could not prove live voice or tool calls, and the voice guide already works on the current bridge.
 
@@ -377,13 +380,81 @@ F18 to F23 are part B of the tickets in `docs/TICKETS.md` (or T84). Part B start
 
 **When each layer plays.** In a sequence of dates (Listen, story, WAV) each date plays the bed for its step length, as the note does now. A contour takes 2 to 8 s, too long for a date step, so it plays **on request**: "Trace the warm edge" on Listen and the `T` key in the sound map (T115), which also announces `describeContour`.
 
-**Build alongside, then decide.** v2 is a new style, `"change"`, next to `"full"` and `"simple"`, which must sound exactly as they do now (T88's golden files stay unchanged). It is used only for a data set with a baseline. **13 Nov decision rule:** if the bed scores at least as well as the current notes in a pilot "which date is further above normal?" check (T114), `"change"` becomes the default for data sets with a baseline; otherwise it stays an opt-in style and the demo uses v1. T105 to T107 (`docs/PRE-HACKATHON-TICKETS.md`) are superseded: the bed already carries brightness, and their tension and tremolo cues are not carried over.
+**Build alongside, then decide.** v2 is a new style, `"change"`, next to `"full"` and `"simple"`, which must sound exactly as they do now (T88's golden files stay unchanged). It is used only for a data set with a baseline. **13 Nov decision rule:** if the bed scores at least as well as the current notes in a pilot "which date is further above normal?" check (T114), `"change"` becomes the default for data sets with a baseline; otherwise it stays an opt-in style and the demo uses v1. T105 to T107 (`docs/archive/PRE-HACKATHON-TICKETS.md`) are superseded: the bed already carries brightness, and their tension and tremolo cues are not carried over.
 
 **Timing.** The pure functions (T111 to T113) change nothing a listener hears, so they may start before the 12 Nov cut line, but only after their owners' Must tickets. The sound (T114) and wiring (T115) are after the cut line, like any part B.
 
+### 6.3 v3: translating sight into sound in real time (9 Nov)
+
+**Why.** The challenge asks for "an interface, script, or application that pairs EIC visual frames with dynamic sonifications generated in real time". v1 and v2 reduce a frame to one category per region and play one fixed note for it (`categories[].note`, for example `"C4"`). That is too basic to tell a listener what an EIC visualisation shows: currents, storms, warm tongues of water, spreading ice. v3 reads every displayed frame **live**, pulls out what the eye sees, and drives a musical ensemble from it, with every voice tied to a visual feature and a text equivalent. v1 stays as the **Simple** mode, for comparison, the listening test and listeners who prefer it. The tickets are SN01–SN13, IX01–IX12 and EIC01–EIC03 in [`docs/TICKETS.md`](TICKETS.md).
+
+**Pipeline.**
+
+```
+EIC visualisation
+ ├─ live:      MP4 / image sequence playing in <video> ──requestVideoFrameCallback──┐
+ └─ extracted: checked dated PNG frames (converter) ─────────────────────────────────┤
+                                                                                      ▼
+                    ImageBitmap → Web Worker: FEATURE EXTRACTOR (src/analysis/features/)
+                         decode through the legend (data mode) or perceptual colour (picture mode)
+                         → FrameFeatures (10–20 per second live; one per frame offline)
+                                                                                      ▼
+                    RULESET (pure, src/sonify/): features + preset → MusicFrame (smoothed, deterministic)
+                                                                                      ▼
+                    ENSEMBLE (Tone.js, src/audio/ensemble/): 7 voices → master bus → out
+                         the same graph renders offline for WAV export and the playlist
+                                                                                      ▼
+                    TEXT AND VISUAL EQUIVALENTS: layer captions, scan line, hot-spot markers,
+                         announcements (useAnnounce), descriptions (src/describe/)
+```
+
+**What the extractor sees (`FrameFeatures`).** In **data mode** (a colour bar exists, as in most EIC data products) pixels are decoded through `colorScale`, reusing `pixels.ts` and `analyzeGrid`. In **picture mode** (no legend: true-colour imagery, clouds) it uses lightness, hue and saturation, and the app says so ("Picture mode: the sound follows brightness and colour, not measured values").
+
+| Feature | How | What it shows |
+|---|---|---|
+| `grid` | Value per cell on a 64 × 32 grid (`analyzeGrid`); `null` where there is no data | The whole map |
+| `stats` | Median, spread (IQR), minimum and maximum with their places, share of valid pixels | The overall level |
+| `histogram` | Share of the frame in each legend band | How mixed the picture is |
+| `hotspots` | Connected regions in the top and bottom bands: centroid, area, peak; tracked across frames by nearest centroid | Warm pools, storms, ice edges |
+| `edges` | Sobel gradient: overall density and the strongest edge line (reuses `contour.ts`) | Fronts and boundaries |
+| `motion` | Block matching (8 × 4 blocks) between consecutive frames: mean flow direction and speed, how much changed | Currents, drift, spreading |
+| `change` | Difference from the baseline where one exists (§6.2, `field.ts`, `change.ts`) | Unusual for the season |
+| `confidence` | Agreement with the legend; video compression and unmatched pixels lower it | Honesty about live decoding |
+
+**How features become music (the ruleset).** Each voice has one job, and Learn teaches it in those words. Key, scale and instruments come from a **preset**, which is artistic, the same for every frame and never carries data; the app says so.
+
+| Voice | Driven by | How it sounds |
+|---|---|---|
+| Melody | `stats.median`, mapped continuously over 2–3 octaves and snapped to the preset's scale, with glide | A line rising and falling with the overall level |
+| Harmony | `histogram`: band shares become a weighted chord of scale degrees; changes only when the mix changes | Uniform is a thin chord, mixed is a thick one |
+| Bass | Change from the baseline (or from the first frame) | The long-term shift under the melody |
+| Hot-spot voices (up to 3) | `hotspots`: pitch from the peak, loudness from the area, pan and height from the centroid, following the spot | Where the warm pool or storm is, and how it moves |
+| Rhythm | `edges.density` → notes per beat; an arpeggio stepping along the strongest edge, panned along its line | Busy fronts versus calm fields |
+| Motion | `motion`: speed opens the pad's filter, direction sweeps the stereo image | Currents and drift as movement |
+| Time | A soft pulse each frame, accented each month or year; tempo follows playback speed | Where you are in time |
+
+Fixed in every preset: **missing data** is silence for that voice plus a distinct rhythmic double "dropout" from a seeded buffer (noise textures are banned elsewhere, so missing data is never confused with anything), and the start and end chimes. Every parameter ramps; a compressor and a −1 dBFS limiter sit on the master bus in every mode; a **Detail** control goes from Calm (melody, harmony, time) through Standard to Full (all seven); any voice can be soloed or muted.
+
+**Ways to listen.** **Symphony** (default): the animation plays and the ensemble follows it live. **Scan**: one frame is swept west to east (or around the globe), rows map to scale degrees and the value to loudness and brightness, so shapes become audible. **Explore**: the cursor or a finger plays a continuous tone for the value under it, plus a slope cue towards higher values; locking a place and scrubbing time (F23) stay. **Simple**: today's one note per date.
+
+**Interaction: the listener plays the map instead of being read to.** Many low-vision apps narrate a screen and leave the person waiting. Here the listener acts and the planet answers in sound at once; words come only on request or for events the listener did not cause.
+1. Every action has a sound answer within 50 ms (interactive voices bypass Tone's look-ahead).
+2. Sound first, then touch, then words on request: `I` or a long press asks "What's here?", a second press gives more; automatic speech is rate-limited.
+3. The listener is always in control: Space plays and pauses, Esc stops any speech, every move can be undone, nothing traps.
+4. One input layer maps keyboard, touch, mouse and gamepad to the same actions; the map is `role="application"` with direct-touch hints for VoiceOver and TalkBack.
+5. Learn by doing: the first minute is a game, not a paragraph.
+
+The loops built on this are touch and explore, scrub time, follow a hot spot, the Find game, predict then hear, sculpt the mix, compare by hand (A left, B right), mark and share, Echo pointing with a sound beacon instead of describing, and art mode (IX01–IX12).
+
+**Text and visual equivalents.** A layer caption strip (`aria-hidden`, made from the same `MusicFrame`), rate-limited announcements of events ("a new warm area appeared in the north-east") from `src/describe/`, hot-spot markers and the scan line on the map, and a sound-recipe table on About made from the active preset. Everything is still under reduced motion.
+
+**EIC data.** Most EIC visualisations come from NASA's Scientific Visualization Studio as MP4s or PNG sequences with a colour bar. `scripts/eic_ingest.py` (EIC01) takes either, extracts frames with `convert_frames.py`'s guarantees, maps frames to dates, finds the colour bar and map area (with manual overrides), samples the colour bar into `colorScale.stops`, and writes a same-origin web MP4 for live mode. New optional manifest fields, with defaults so every data set still validates: `video { src, fps, firstFrameDate, frameStepDays }`, `sonification { preset, detail?, voices? }`, `legend: "data" | "picture"` (SN05). H.264 shifts colours, so live decoding uses a wider tolerance and reports `confidence`; a cell below the threshold is missing, never guessed. Comparisons, the listening test and WAV export use the checked extracted frames.
+
+**Rules kept.** No model in `analysis/`, `audio/`, `describe/` or `sonify/` (`boundary.test.ts` gains `sonify/`). Nothing specific to one data set in `src/`: presets are general and a manifest only names one. The same input always gives the same features, music frames and WAV.
+
 ## 7. Workstreams
 
-Tickets are in [`docs/TICKETS.md`](TICKETS.md): one file, listing only the work not yet built. Who owns what now:
+Tickets are in [`docs/TICKETS.md`](TICKETS.md): one queue that two agents claim from, with one file per ticket in [`docs/tickets/`](tickets/). Built and replaced tickets are in [`docs/archive/`](archive/README.md). Who owned what before the queue:
 
 | Person | Load | Tickets |
 |---|---|---|
@@ -412,7 +483,6 @@ A ticket is done when all of these hold:
 - `npm run build` and `npm run lint` pass; `server/.venv/bin/python -m pytest` passes if `server/` changed.
 - New logic has unit tests (Vitest on the frontend, pytest on the server).
 - It works by keyboard only, and each control has a label.
-- If it changes layout, it works on phone and desktop: checked at 360, 768 and 1280 px wide, with no horizontal scroll, touch targets at least 44 × 44 px, nothing that needs hover, and the main navigation in a bottom bar below 768 px (full rule in `AGENTS.md` → Conventions).
 - Nothing specific to one data set goes in `src/`; it belongs in that data set's manifest (`.claude/rules/phases.md`).
 - No secrets or `.env` files are committed.
 - The PR describes what changed and how it was tested.

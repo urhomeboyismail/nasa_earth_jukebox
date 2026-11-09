@@ -1,6 +1,8 @@
 # ADK spike (T86, step 1)
 
-**Decision, 7 Nov: T86 is cut.** See `docs/planning/FEATURE-REVIEW.md`. The voice guide stays on the current bridge.
+**Decision, 7 Nov: T86 is cut.** See `docs/archive/planning/FEATURE-REVIEW.md`. The voice guide stays on the current bridge.
+
+**Update, 9 Nov: reopened as G01–G07** (`docs/TICKETS.md`). Ask and the voice guide move to ADK, with the offline matcher as the fallback and the old bridge kept behind `assistant_engine` until the four checks below pass (ticket H02). The checks in "What is still needed" are H02's checklist.
 
 **Result so far: not finished, and not a yes.** The two things that decide it (a live voice session and tool calls) need a
 `GEMINI_API_KEY`, which the machine this was run on did not have. Everything that could be measured without one is below.
