@@ -37,3 +37,23 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: (a) Name: "Orbi" (working name), or another? (b) Art: drawn by the team as SVG, or AI-generated and disclosed in the README?
 - Answer: (F37 agent, 9 Nov, a proposal for the team to confirm) The repo already has our own mascot, Echo (`src/components/Mascot.tsx`, `docs/design/mascot-concepts.html`), drawn as SVG by the team and used beside the voice guide. F37 uses it, so there is no Minion risk and no AI art to disclose. The name is one constant (`MASCOT_NAME`), so a rename is a one-line change. Reply here to choose "Orbi" or another name.
 - Recorded in: `docs/archive/features/F37-welcome-mascot/TICKETS.md`
+
+### R-20261109-T85-1: Reading a real picture takes about 3 s; can `valueAtPixel` cache by colour?
+- From: T85 (real data, Claude Code)
+- To: team leader (owner of `src/analysis/`)
+- Needed by: before the real data set is the demo's default; the change regression test now takes about 60 s
+- Status: open
+- Context: `src/analysis/field.ts` `readField` makes 180 × 180 × 9 calls to `valueAtPixel` per picture, and each call scans all 214 colour stops of a real colour scale (the made-up ones have far fewer). Measured in Vitest: `scorePixels` on one 160 × 160 MUR frame takes about 6.5 s (two pictures at about 3 s), and 3.2 s for an empty frame. `src/data/change-regression.test.ts` runs each case three times, so three real cases make the file take about 60 s. This is also the T85 speed question: the browser may be faster than Vitest, but it is not measured.
+- Question: can `valueAtPixel` (or the colour scale it reads) cache the answer per RGB value? A real picture has few distinct colours, and the result for the same RGB and scale never changes, so every Score stays the same. Or is there a reason not to?
+- Answer:
+- Recorded in: nowhere needed yet
+
+### R-20261109-T85-2: Should the real data set be the first in `index.json`?
+- From: T85 (real data, Claude Code)
+- To: team
+- Needed by: demo
+- Status: open
+- Context: `public/data/index.json` lists `mur-sst-mauritius` last, so a first-time visitor and a judge still open on "Fixture ocean". The first entry is the default. `src/App.test.tsx` and `src/components/DatasetPicker.test.tsx` expect "Fixture ocean" first.
+- Question: (a) leave the real data set last and let the demo pick it, or (b) put it first, so everyone opens on real NASA data, and update the two tests?
+- Answer:
+- Recorded in: nowhere needed yet

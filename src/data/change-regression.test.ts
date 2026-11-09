@@ -65,6 +65,11 @@ const cases = {
   'synthetic-change/2024-09-15': () => datasetScore('synthetic-change', '2024-09-15'),
   'synthetic-change/2024-10-15': () => datasetScore('synthetic-change', '2024-10-15'),
   'synthetic-change/2024-11-15': () => datasetScore('synthetic-change', '2024-11-15'),
+  // mur-sst-mauritius (T85): real NASA data, measured against 23 January 2023 (a reference-date baseline): the warmest date, the coolest, and 2 February, which has
+  // no data at all. Only three, because reading a real picture takes about 3 s (see docs/AGENT-BOARD.md, R-20261109-T85-1) and each case runs three times in this file.
+  'mur-sst-mauritius/2023-02-02': () => datasetScore('mur-sst-mauritius', '2023-02-02'),
+  'mur-sst-mauritius/2023-04-03': () => datasetScore('mur-sst-mauritius', '2023-04-03'),
+  'mur-sst-mauritius/2023-07-22': () => datasetScore('mur-sst-mauritius', '2023-07-22'),
 }
 
 /** A data set with a baseline, scored from its real PNGs and manifest: the frame against its own normal, as Listen and Compare read them. */
@@ -72,8 +77,12 @@ function datasetScore(id: string, frameId: string): Score {
   const v = visualizationSchema.parse(JSON.parse(readFileSync(`${dataDir}/${id}/manifest.json`, 'utf8')))
   const frame = v.frames.find(f => f.id === frameId)!
   const { baseline, mapping } = v
-  if (baseline?.kind !== 'climatology' || !mapping.changeSteps || !mapping.contourLevels) throw new Error(`${id} is not a climatology data set with change steps.`)
-  return scorePixels(decodePng(readFileSync(`${dataDir}/${id}/${frame.image}`)), decodePng(readFileSync(`${dataDir}/${id}/${frame.baselineImage}`)), {
+  if (!baseline || !mapping.changeSteps || !mapping.contourLevels) throw new Error(`${id} has no baseline with change steps.`)
+  if (baseline.kind === 'anomaly-product') throw new Error(`${id} is an anomaly product: it has no normal picture to score against.`)
+  // A climatology data set has its own normal picture for each frame; a reference-date one measures every frame against one earlier frame (docs/data-sources.md, "Baselines").
+  const normal = baseline.kind === 'climatology' ? frame.baselineImage : v.frames.find(f => f.id === baseline.frameId)?.image
+  if (!normal) throw new Error(`${id}: there is no normal picture to score ${frameId} against (baseline kind "${baseline.kind}").`)
+  return scorePixels(decodePng(readFileSync(`${dataDir}/${id}/${frame.image}`)), decodePng(readFileSync(`${dataDir}/${id}/${normal}`)), {
     frameId: `${id}/${frameId}`,
     colorScale: v.colorScale,
     mapping: { minValidFraction: mapping.minValidFraction, changeSteps: mapping.changeSteps, contourLevels: mapping.contourLevels },
@@ -113,10 +122,10 @@ describe('change regression baseline', () => {
     expect(contours[0].box).toEqual([0.389, 0.278, 0.611, 0.722].map(v => expect.closeTo(v, 1)))
   })
 
-  // Scores every case twice (some read real PNGs), which takes about 11 s on a busy machine, so it gets a longer limit than the default 5 s.
+  // Scores every case twice (some read real PNGs, about 3 s a picture), which takes about 40 s, so it gets a longer limit than the default 5 s.
   it('gives the same Score every time', () => {
     for (const run of Object.values(cases)) expect(JSON.stringify(run())).toBe(JSON.stringify(run()))
-  }, 30_000)
+  }, 90_000)
 
   it('notices when the maths moves', () => {
     const moved = scorePixels(scene({ season: 4, patch: 1.5 }), scene({ season: 4 }), { ...input('july-planted-patch'), mapping: { ...SCENE_MAPPING, contourLevels: [{ value: 1.7 }, { value: 2 }] } })
@@ -129,7 +138,7 @@ describe('change regression baseline', () => {
     const withBaseline = catalog
       .filter(({ id }) => !id.startsWith('rehearsal-') && 'baseline' in JSON.parse(readFileSync(`${dataDir}/${id}/manifest.json`, 'utf8')))
       .map(({ id }) => id)
-    expect(withBaseline).toEqual(['synthetic-change']) // add a data set with a baseline here, and record its Scores in `cases`
+    expect(withBaseline).toEqual(['synthetic-change', 'mur-sst-mauritius']) // add a data set with a baseline here, and record its Scores in `cases`
     for (const id of withBaseline) expect(Object.keys(cases).some(key => key.startsWith(`${id}/`)), id).toBe(true)
   })
 })

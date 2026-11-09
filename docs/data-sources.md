@@ -159,3 +159,20 @@ A **baseline** is what a frame's change is measured against. With one, the data 
 
 It writes `baselines/<date>.png` and `frames[].baselineImage`, and with any baseline it also writes default `changeSteps` and `contourLevels` for a change in degrees C (the schema needs all three together). **Check those numbers** if the variable or the size of its changes is different. `baselineImage` is resolved like `image` when the data set loads, so the manifest holds the relative path.
 
+
+## Real data set: `mur-sst-mauritius` (T85)
+
+Sea surface temperature around Mauritius, twenty 10-day maps from 23 January to 1 August 2023, from NASA's MUR analysis as drawn by NASA GIBS. Each frame is a 160 × 160 pixel crop (about 1.6 degrees across) with no legend, title or logo, so it has no `mapArea`. The island is flat grey, which the manifest declares as no data, and 2 February is entirely grey (no data at all).
+
+- **Baseline:** `reference-date`, 23 January 2023, noise floor 0.3 °C. Over eight months this measures the season, not the climate, so "change" here mostly follows the warm season and the cooling after it. A same-month `climatology` would be better (the Baselines list above puts it first); it needs the same dates from earlier years.
+- **Categories:** cold below 25 °C, cool 25 to 26, mild 26 to 27, warm 27 to 28, hot above 28. Across the twenty frames the region's median covers all five.
+- **Comparisons:** five, with `answer` by temperature. `january-vs-june` is "same", six months apart; `february-vs-may` is "same" by temperature and a larger change for 23 May by change, which is the two-answers case a baseline data set needs.
+- **Numbers in the comparisons and the story** are the app's own reading of the pictures' colours (`analyzePixels` on the real PNGs), so they are "about", not measurements from NASA's files. Nothing in them comes from outside the pictures.
+- **Recorded Scores:** three frames (the warmest, the coolest and the empty one) in `src/data/__golden__/change.json`.
+
+**Credit and licence, and what was checked.** The wording in the manifest uses only text read word for word on NASA pages on 9 Nov 2026:
+- the dataset's title, "GHRSST Level 4 MUR Global Foundation Sea Surface Temperature Analysis (v4.1)", from https://podaac.jpl.nasa.gov/dataset/MUR-JPL-L4-GLOB-v4.1;
+- GIBS's requested acknowledgement, "We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS).", from https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api;
+- NASA's data use guidance, that data from NASA-led missions are licensed as Creative Commons Zero (CC0) unless marked with a restriction or licence, from https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance.
+
+**A person still has to check (T85 step 5):** (1) the PO.DAAC page states no licence of its own, so whether NASA's CC0 default applies to MUR rests on the general guidance above; (2) the PO.DAAC suggested citation ("JPL MUR MEaSUREs Project. 2015. ...", DOI 10.5067/GHGMR-4FJ04) was only seen in a summary of the page, so it is **not** in the manifest yet: read the live page and add it if it is right; (3) the numbers and sentences in the story and comparisons, against the pictures.
