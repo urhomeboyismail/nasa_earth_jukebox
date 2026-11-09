@@ -18,7 +18,7 @@
   "source": {
     "name": "NASA GIBS, GHRSST Level 4 MUR Global Foundation Sea Surface Temperature Analysis (v4.1)",
     "url": "https://podaac.jpl.nasa.gov/dataset/MUR-JPL-L4-GLOB-v4.1",
-    "credit": "GHRSST Level 4 MUR Global Foundation Sea Surface Temperature Analysis (v4.1), NASA PO.DAAC. We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS).",
+    "credit": "JPL MUR MEaSUREs Project. 2015. GHRSST Level 4 MUR Global Foundation Sea Surface Temperature Analysis. Ver. 4.1. PO.DAAC, CA, USA. Dataset accessed 2026-11-07 at https://doi.org/10.5067/GHGMR-4FJ04. We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS).",
     "license": "CC0 (NASA's default licence for data from NASA-led missions, unless marked otherwise; NASA Earthdata data use guidance)",
     "retrievedOn": "2026-11-07"
   },
