@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { expectNoA11yViolations } from '../test/a11y'
-import { AnnouncerProvider, Button, Card, Notice, Slider, useAnnounce } from '.'
+import { AnnouncerProvider, Button, ButtonGroup, Card, Notice, Slider, useAnnounce } from '.'
 
 describe('Button', () => {
   it('is a button that does not submit forms by default, and passes accessibility checks', async () => {
@@ -118,5 +118,90 @@ describe('Notice', () => {
     const { container } = render(<Notice>Now playing.</Notice>)
     expect(screen.getByRole('status')).toHaveTextContent('Now playing.')
     await expectNoA11yViolations(container)
+  })
+})
+
+describe('Material 3 Expressive variants (T116)', () => {
+  it.each(['primary', 'filled', 'secondary', 'tonal', 'outlined', 'text', 'elevated'] as const)('draws a %s button that is still an accessible button', async variant => {
+    const { container } = render(<Button variant={variant}>Play</Button>)
+    const button = screen.getByRole('button', { name: 'Play' })
+    expect(button).toHaveClass('ui-button', `ui-button--${variant === 'filled' ? 'primary' : variant}`)
+    await expectNoA11yViolations(container)
+  })
+
+  it('keeps the original look when no new prop is given', () => {
+    render(<Button>Play</Button>)
+    const button = screen.getByRole('button', { name: 'Play' })
+    expect(button.className).toBe('ui-button ui-button--secondary')
+  })
+
+  it('has three sizes, the smallest being the original 44 px one, and a square shape', () => {
+    render(<>
+      <Button size="s">Small</Button>
+      <Button size="m">Medium</Button>
+      <Button size="l" shape="square">Large</Button>
+    </>)
+    expect(screen.getByRole('button', { name: 'Small' })).not.toHaveClass('ui-button--m', 'ui-button--l')
+    expect(screen.getByRole('button', { name: 'Medium' })).toHaveClass('ui-button--m')
+    expect(screen.getByRole('button', { name: 'Large' })).toHaveClass('ui-button--l', 'ui-button--square')
+  })
+
+  it('stays a toggle with a square shape', async () => {
+    function Toggle() {
+      const [on, setOn] = useState(false)
+      return <Button shape="square" pressed={on} onClick={() => setOn(!on)}>Vibration</Button>
+    }
+    const { container } = render(<Toggle />)
+    const button = screen.getByRole('button', { name: 'Vibration' })
+    expect(button).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(button)
+    expect(button).toHaveAttribute('aria-pressed', 'true')
+    await expectNoA11yViolations(container)
+  })
+
+  it('joins buttons in a labelled group that is reached and used by keyboard', async () => {
+    function Choice() {
+      const [style, setStyle] = useState('full')
+      return (
+        <ButtonGroup label="Sound style">
+          <Button pressed={style === 'full'} onClick={() => setStyle('full')}>Full</Button>
+          <Button pressed={style === 'change'} onClick={() => setStyle('change')}>Change</Button>
+        </ButtonGroup>
+      )
+    }
+    const { container } = render(<Choice />)
+    expect(screen.getByRole('group', { name: 'Sound style' })).toBeInTheDocument()
+    await userEvent.tab()
+    expect(screen.getByRole('button', { name: 'Full' })).toHaveFocus()
+    await userEvent.tab()
+    await userEvent.keyboard('{Enter}')
+    expect(screen.getByRole('button', { name: 'Change' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Full' })).toHaveAttribute('aria-pressed', 'false')
+    await expectNoA11yViolations(container)
+  })
+
+  it('draws a card as outlined, filled or elevated, with its heading intact', async () => {
+    const { container } = render(<main><h1>Page</h1>
+      <Card title="Outlined">a</Card>
+      <Card title="Filled" variant="filled">b</Card>
+      <Card title="Elevated" variant="elevated">c</Card>
+    </main>)
+    const section = (title: string) => screen.getByRole('heading', { name: title }).closest('section')
+    expect(section('Outlined')?.className).toBe('ui-card')
+    expect(section('Filled')).toHaveClass('ui-card--filled')
+    expect(section('Elevated')).toHaveClass('ui-card--elevated')
+    await expectNoA11yViolations(container)
+  })
+
+  it('tells the slider how far along the track the value is, without changing what it reports', () => {
+    render(<Slider label="Date" min={10} max={20} value={15} onChange={() => {}} />)
+    const slider = screen.getByRole('slider', { name: 'Date' })
+    expect(slider.style.getPropertyValue('--pct')).toBe('50%')
+    expect(slider).toHaveAttribute('aria-valuetext', '15')
+  })
+
+  it('has a slider with no range and no fill rather than a broken one', () => {
+    render(<Slider label="Date" min={0} max={0} value={0} onChange={() => {}} />)
+    expect(screen.getByRole('slider', { name: 'Date' }).style.getPropertyValue('--pct')).toBe('0%')
   })
 })
