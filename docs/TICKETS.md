@@ -54,7 +54,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [S02](tickets/S02-salvage-mur-sst.md) | Salvage the `mur-sst-mauritius` data set; draft its comparisons and story | M | agent+👤 | — | catalogue | done |
 | [S03](tickets/S03-salvage-readme.md) | Salvage the project README and `CREATIVE_PROCESS.md`; update them for v3 | S | agent+👤 | — | — | claimed: A, 2026-11-09 |
 | [S04](tickets/S04-salvage-t93-announce-rate.md) | Salvage T93 announcement rate | S | agent | I01 | player, explorer | done |
-| [S05](tickets/S05-salvage-t114-sheet.md) | Salvage the T114 change-style listening sheet | S | agent | S02 | — | claimed: A, 2026-11-09 |
+| [S05](tickets/S05-salvage-t114-sheet.md) | Salvage the T114 change-style listening sheet | S | agent | S02 | — | ready: feature/S05-t114-sheet |
 | [I01](tickets/I01-app-announcer.md) | One `AnnouncerProvider` for the whole app: Home, welcome and help announcements never reach screen readers today | S | agent | — | app, player, compare, learn | done |
 | [I02](tickets/I02-neutral-words.md) | Neutral default words; remove the temperature words still in `src/` | M | agent | — | learn, player, compare | open |
 
