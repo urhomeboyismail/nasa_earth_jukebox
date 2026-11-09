@@ -1,17 +1,1 @@
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/layout-changed.sh",
-            "timeout": 10,
-            "statusMessage": "Checking for layout changes"
-          }
-        ]
-      }
-    ]
-  }
-}
+{}
