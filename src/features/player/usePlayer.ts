@@ -14,6 +14,7 @@ import { variableWords, type Region, type SoundMapping, type Visualization } fro
 import { dateFormatterFor } from '../../dates'
 import { describeContour, describeHidden } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
+import { welcomeVolume } from '../welcome/storage'
 import { onPlayerCommand } from './controls'
 
 export type Speed = 'slow' | 'normal' | 'fast'
@@ -56,7 +57,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
   const [index, setIndex] = useState(0)
   const [status, setStatus] = useState<Status>('idle')
   const [speed, setSpeedState] = useState<Speed>('normal')
-  const [volume, setVolumeState] = useState(0.8)
+  const [volume, setVolumeState] = useState(() => welcomeVolume() ?? 0.8)
   const [finished, setFinished] = useState(false)
   const [chosenStyle, setStyle] = useSoundStyle()
   // A remembered "change" is not used for a data set with no baseline: it plays as "full", exactly as before.

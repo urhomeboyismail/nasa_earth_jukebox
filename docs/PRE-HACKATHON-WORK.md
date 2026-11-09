@@ -37,6 +37,7 @@ Add one line per piece of work, newest last.
 | 9 Nov | F23 time travel: lock one cell, scrub the dates | `feature/F23-time-travel` |
 | 9 Nov | F33 What the sound hides | `feature/F23-time-travel` |
 | 9 Nov | F36 Manifest wording: `variable.words` replaces the hard-coded "warmer", "warm edge" and "water" | `feature/F36-T1-manifest-wording` |
+| 9 Nov | F37 T1 Welcome: Echo greets a first visit on Home with three paths (screen reader, map, just play), a sound check (note, left, right, centre, volume) and the defaults each path sets | `feature/F37-T1-welcome` |
 | 9 Nov | F35 Demo mode: one button plays a scripted tour | `feature/F23-time-travel` |
 | 9 Nov | T120 phone support: 360 px check, installable PWA manifest and icons | `feature/T120-phone` |
 
