@@ -50,7 +50,9 @@ def live_config(language: str, page: str):
 def connect_live(language: str, page: str):
     """Async context manager yielding a Gemini Live session. Replaced in tests."""
     from google import genai
-    client = genai.Client(api_key=settings.gemini_api_key.get_secret_value())
+    from google.genai import types
+    client = genai.Client(api_key=settings.gemini_api_key.get_secret_value(),
+                          http_options=types.HttpOptions(api_version=settings.gemini_api_version))
     return client.aio.live.connect(model=settings.gemini_live_model, config=live_config(language, page))
 
 
@@ -135,6 +137,12 @@ class _Bridge:
                     return
 
 
+def _scrub(text: str) -> str:
+    """Remove the API key from text before it is logged."""
+    key = settings.gemini_api_key.get_secret_value()
+    return text.replace(key, "[redacted]") if key else text
+
+
 async def _close(ws: WebSocket, payload: dict) -> None:
     with contextlib.suppress(Exception):
         await ws.send_json(payload)
@@ -191,8 +199,10 @@ async def assistant_live(ws: WebSocket) -> None:
                     reason = "service_ended"
     except WebSocketDisconnect:
         return
-    except Exception:
-        logger.exception("voice assistant session failed")
+    except Exception as exc:
+        # One readable line for Render's logs: class and message, with the API key scrubbed out.
+        logger.warning("voice assistant session failed: %s: %s", type(exc).__name__, _scrub(str(exc)))
+        logger.debug("voice assistant traceback", exc_info=True)
         await _close(ws, {"type": "error", "code": "upstream", "message": "The voice guide stopped unexpectedly."})
         return
     finally:
