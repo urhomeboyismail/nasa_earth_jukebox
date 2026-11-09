@@ -1,5 +1,5 @@
 import { Card, Legend } from '../../components'
-import type { Visualization } from '../../data'
+import { variableWords, type Visualization } from '../../data'
 import { dateFormatterFor, formatDate } from '../../dates'
 import type { PageProps } from '../types'
 import './about.css'
@@ -20,6 +20,7 @@ function About({ visualization }: { visualization: Visualization }) {
   const formatFrameDate = dateFormatterFor(dates)
   const missing = frames.filter(frame => frame.note)
   const unit = variable.unit
+  const lower = variableWords(variable).lower
 
   return (
     <div className="about">
@@ -54,7 +55,7 @@ function About({ visualization }: { visualization: Visualization }) {
         <h3>The ranges and their notes</h3>
         <div className="about__table" role="region" aria-label="Ranges and notes" tabIndex={0}>
           <table>
-            <caption>Cooler is always a lower note. Notes are from {mapping.scale}.</caption>
+            <caption>{lower.charAt(0).toUpperCase() + lower.slice(1)} is always a lower note. Notes are from {mapping.scale}.</caption>
             <thead><tr><th scope="col">Sound</th><th scope="col">Range{unit && ` (${unit})`}</th><th scope="col">Note</th></tr></thead>
             <tbody>
               {mapping.categories.map(category => (

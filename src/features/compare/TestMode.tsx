@@ -8,7 +8,7 @@ import { createSoundEngine, type SoundEngine } from '../../audio'
 import { useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
 import { Button, Card, Notice } from '../../components'
-import type { Comparison, Visualization } from '../../data'
+import { variableWords, type Comparison, type Visualization } from '../../data'
 import { dateFormatterFor } from '../../dates'
 import { StudyClient, type Participant, type StudyStatus } from './studyClient'
 
@@ -33,6 +33,7 @@ const CONFIDENCE = [
 
 export default function TestMode({ visualization, client: given }: { visualization: Visualization; client?: StudyClient }) {
   const { comparisons, frames, regions, colorScale, mapping } = visualization
+  const words = variableWords(visualization.variable)
   const client = useMemo(() => given ?? new StudyClient(), [given])
   const [status, setStatus] = useState<StudyStatus>(client.status)
   useEffect(() => {
@@ -98,7 +99,7 @@ export default function TestMode({ visualization, client: given }: { visualizati
       {step === 'consent' && (
         <form onSubmit={(event: FormEvent) => { event.preventDefault(); setStep('about') }} className="test__form">
           <h2 ref={heading} tabIndex={-1}>Before you start</h2>
-          <p>We are testing whether people can hear changes in NASA Earth data by sound alone. You will listen to pairs of dates and say which one is warmer. It takes about {Math.max(2, comparisons.length * 2)} minutes.</p>
+          <p>We are testing whether people can hear changes in NASA Earth data by sound alone. You will listen to pairs of dates and say which one is {words.higher}. It takes about {Math.max(2, comparisons.length * 2)} minutes.</p>
           <ul className="test__list">
             <li>We keep your answers and how long you took. We do not ask for your name or email, and we do not store your IP address.</li>
             <li>It tests the app, not you. There are no wrong ways to find it hard, and we want to hear if you do.</li>
@@ -187,6 +188,7 @@ function Question({ comparison, number, of, visualization, engine, results, show
   const shownAt = useRef<number | null>(null)
   useEffect(() => { shownAt.current = performance.now() }, [])
   const formatDate = dateFormatterFor(visualization.frames.map(frame => frame.date))
+  const words = variableWords(visualization.variable)
   const frameA = visualization.frames.find(f => f.id === comparison.frameA)!
   const frameB = visualization.frames.find(f => f.id === comparison.frameB)!
   const ready = !!engine && !!results
@@ -242,8 +244,8 @@ function Question({ comparison, number, of, visualization, engine, results, show
       )}
 
       <fieldset>
-        <legend>Which date is warmer?</legend>
-        {([['a', 'A is warmer'], ['b', 'B is warmer'], ['same', 'About the same']] as const).map(([value, label]) => (
+        <legend>Which date is {words.higher}?</legend>
+        {([['a', `A is ${words.higher}`], ['b', `B is ${words.higher}`], ['same', 'About the same']] as const).map(([value, label]) => (
           <label key={value} className="test__option">
             <input type="radio" name="answer" value={value} checked={answer === value} onChange={() => setAnswer(value)} />
             <span>{label}</span>

@@ -1,4 +1,5 @@
 import { Card } from '../../components'
+import { higherPhrase, variableWords } from '../../data'
 import { pages, type Page } from '../../pages'
 import { currentDataParam, hashFor } from '../../route'
 import type { PageProps } from '../types'
@@ -21,7 +22,7 @@ export default function HomePage({ visualization }: PageProps) {
       {visualization && <p>Now playing from: {visualization.title}. {visualization.summary}</p>}
 
       <Card title="What you will try" headingLevel={2}>
-        <p>Can you hear, without seeing the image, which date shows warmer water, and when the change happened?</p>
+        <p>Can you hear, without seeing the image, which date shows {higherPhrase(variableWords(visualization?.variable))}, and when the change happened?</p>
       </Card>
 
       <Card title="Start here" headingLevel={2}>

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Button, Card, Notice } from '../../components'
 import { createSoundEngine, type SequenceStep, type SoundEngine } from '../../audio'
 import { useSoundStyle } from '../../audio/style'
-import type { CategoryId, SoundMapping } from '../../data'
+import { variableWords, type CategoryId, type SoundMapping } from '../../data'
 import { currentDataParam, hashFor } from '../../route'
 import type { PageProps } from '../types'
 import './learn.css'
@@ -49,6 +49,7 @@ export default function LearnPage({ visualization }: PageProps) {
 
   if (!visualization) return <p>Loading the sounds…</p>
   const { mapping, variable } = visualization
+  const words = variableWords(variable)
   const unit = variable.unit
 
   /** Browsers only allow sound after a click or key press, so the first press unlocks the engine. */
@@ -89,8 +90,8 @@ export default function LearnPage({ visualization }: PageProps) {
     <div className="learn">
       <p>Learn what each sound means before you listen to the data.</p>
       <p>
-        {mapping.categories.length} sounds, coolest to warmest: {mapping.categories.map(category => category.label).join(', ')}.
-        {' '}A cooler place is a lower note, and a warmer place is a higher note.
+        {mapping.categories.length} sounds, {words.lowest} to {words.highest}: {mapping.categories.map(category => category.label).join(', ')}.
+        {' '}A {words.lower} place is a lower note, and a {words.higher} place is a higher note.
       </p>
 
       {error && <Notice variant="error">The sounds could not be set up. {error}</Notice>}
@@ -173,7 +174,7 @@ export default function LearnPage({ visualization }: PageProps) {
       </Card>
 
       <div className="learn__actions">
-        <Button variant="primary" disabled={!engine} onClick={playAll}>Play all, coolest to warmest</Button>
+        <Button variant="primary" disabled={!engine} onClick={playAll}>Play all, {words.lowest} to {words.highest}</Button>
         <Button disabled={!engine || !playingAll} onClick={stop}>Stop</Button>
       </div>
 

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { useAssistantContext } from '../../assistant/context'
 import { AnnouncerProvider, Button, Legend, Notice, Slider } from '../../components'
 import type { ChangeVisualization } from '../../analysis'
-import type { Visualization } from '../../data'
+import { higherPhrase, variableWords, type Visualization } from '../../data'
 import { describeChange } from '../../describe'
 import { Description } from '../../describe/Description'
 import { useDescriptionDetail } from '../../describe/detail'
@@ -52,6 +52,7 @@ function Player({ visualization }: { visualization: Visualization }) {
     if (vibration.enabled) vibrateForDate(category, visualization.mapping)
   })
   const { frames, source } = visualization
+  const words = variableWords(visualization.variable)
   const frame = frames[player.index]
   const playing = player.status === 'playing'
   const [detail] = useDescriptionDetail()
@@ -245,7 +246,7 @@ function Player({ visualization }: { visualization: Visualization }) {
         {player.style === 'change' && (
           <>
             <Button disabled={!player.ready || !player.score?.contours.length} onClick={() => void player.traceWarmEdge()}>
-              Trace the warm edge
+              Trace the {words.edge}
             </Button>
             <span>Plays each line of change on this date as a sound that moves across the map. Press T, or Escape to stop.</span>
           </>
@@ -262,7 +263,7 @@ function Player({ visualization }: { visualization: Visualization }) {
       {vibration.supported && (
         <div className="player__vibration">
           <Button pressed={vibration.enabled} onClick={() => vibration.setEnabled(!vibration.enabled)}>Vibration</Button>
-          <span>A short buzz at each date, longer for warmer water.</span>
+          <span>A short buzz at each date, longer for {higherPhrase(variableWords(visualization.variable))}.</span>
         </div>
       )}
 

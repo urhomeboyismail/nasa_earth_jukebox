@@ -4,7 +4,7 @@
 
 import type { FrameAnalysis, FrameGrid, GridCell } from '../analysis'
 import type { HiddenChange } from '../audio/coarse'
-import type { Frame, Visualization } from '../data'
+import { variableWords, type Frame, type Visualization } from '../data'
 import { dateFormatterFor } from '../dates'
 import type { Detail } from './detail'
 
@@ -41,6 +41,7 @@ function vocabulary(visualization: Visualization) {
   const formatDate = dateFormatterFor(visualization.frames.map(frame => frame.date))
   return {
     unit: visualization.variable.unit,
+    words: variableWords(visualization.variable),
     formatDate,
     /** The date without its year ("February"), for a sentence that is already about that year. Years alone stay as they are. */
     withoutYear: (iso: string) => {
@@ -174,8 +175,8 @@ export function describeSequence(visualization: Visualization, results: FrameAna
   if (warmest === coolest) {
     sentences.push(`Every date with data is ${labelAt(warmest)}, so there is no change.`)
   } else {
-    sentences.push(`Warmest: ${labelAt(warmest)}, ${datesIn(namesAt(warmest))}.`)
-    sentences.push(`Coolest: ${labelAt(coolest)}, ${datesIn(namesAt(coolest))}.`)
+    sentences.push(`${upperFirst(vocab.words.highest)}: ${labelAt(warmest)}, ${datesIn(namesAt(warmest))}.`)
+    sentences.push(`${upperFirst(vocab.words.lowest)}: ${labelAt(coolest)}, ${datesIn(namesAt(coolest))}.`)
     // The first of equal changes wins, so the same data always names the same pair.
     let biggest = { size: 0, at: 1 }
     for (let i = 1; i < withData.length; i++) {

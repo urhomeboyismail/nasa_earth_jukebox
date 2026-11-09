@@ -104,13 +104,19 @@ export type MapArea = { x0: number; y0: number; x1: number; y1: number }
 /** One chapter of the story mode. fromFrame and toFrame are frame ids; fromFrame comes first in date order. */
 export type StoryChapter = { id: string; title: string; text: string; fromFrame: string; toFrame: string }
 
+/**
+ * The words for comparing values (F36). `higher`/`lower` ("warmer"), `highest`/`lowest` ("warmest"), `edge` ("warm edge", the boundary
+ * the change style traces) and `thing` ("water", what the value is about; may be empty). Any left out use the defaults in words.ts.
+ */
+export type VariableWords = { higher: string; lower: string; highest: string; lowest: string; edge: string; thing: string }
+
 /** The request's "FrameManifest": one data set's manifest.json. */
 export type Visualization = {
   id: string
   title: string
   summary: string
   description: string
-  variable: { name: string; unit: string }
+  variable: { name: string; unit: string; words?: Partial<VariableWords> }
   source: { name: string; url: string; credit: string; license: string; retrievedOn: string }
   colorScale: ColorScale
   regions: Region[]

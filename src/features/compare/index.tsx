@@ -7,7 +7,7 @@ import { voicingFor } from '../../audio/voicing'
 import { useAssistantContext } from '../../assistant/context'
 import { AnnouncerProvider, Button, Card, Notice } from '../../components'
 import { useAnnounce } from '../../components/useAnnounce'
-import type { Visualization } from '../../data'
+import { higherPhrase, variableWords, type Visualization } from '../../data'
 import { describeFrame } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
 import { dateFormatterFor } from '../../dates'
@@ -44,6 +44,7 @@ export default function ComparePage({ visualization }: PageProps) {
 
 function Compare({ visualization }: { visualization: Visualization }) {
   const { frames, comparisons, regions, colorScale, mapping } = visualization
+  const words = variableWords(visualization.variable)
   const announce = useAnnounce()
   const changeAvailable = hasChange(visualization)
   const formatDate = useMemo(() => dateFormatterFor(frames.map(frame => frame.date)), [frames])
@@ -164,7 +165,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
   function reveal() {
     engine?.stop()
     setRevealed(true)
-    announce(`${right ? 'Correct.' : 'Not quite.'} ${correct ? `${answerText(correct, changeOn)}.` : ''} ${explanation}`)
+    announce(`${right ? 'Correct.' : 'Not quite.'} ${correct ? `${answerText(correct, changeOn, words)}.` : ''} ${explanation}`)
   }
 
   function tryAgain() {
@@ -214,7 +215,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
       )}
 
       <p className="compare__question">
-        {changeOn ? 'Which date is further above its normal?' : (preset?.question ?? 'Which date shows warmer water?')}
+        {changeOn ? 'Which date is further above its normal?' : (preset?.question ?? `Which date shows ${higherPhrase(words)}?`)}
       </p>
 
       <div className="compare__play" ref={playRef}>
@@ -228,7 +229,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
 
       <fieldset className="compare__answer" disabled={revealed || !canAnswer}>
         <legend>Your answer</legend>
-        {([['a', changeOn ? 'A is further above' : 'A is warmer'], ['b', changeOn ? 'B is further above' : 'B is warmer'], ['same', 'About the same']] as const).map(([value, label]) => (
+        {([['a', changeOn ? 'A is further above' : `A is ${words.higher}`], ['b', changeOn ? 'B is further above' : `B is ${words.higher}`], ['same', 'About the same']] as const).map(([value, label]) => (
           <label key={value} className="compare__option">
             <input type="radio" name="answer" value={value} checked={answer === value} onChange={() => setAnswer(value)} />
             <span>{label}</span>
@@ -242,7 +243,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
         <div className="compare__result" ref={resultRef} tabIndex={-1} role="region" aria-label="Result">
           <Notice>
             <strong>{right ? 'Correct. ' : 'Not quite. '}</strong>
-            {correct && `${answerText(correct, changeOn)}.`} {explanation}
+            {correct && `${answerText(correct, changeOn, words)}.`} {explanation}
           </Notice>
           <ul className="compare__images">
             {([['Date A', frameA], ['Date B', frameB]] as const).map(([label, frame]) => (

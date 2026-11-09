@@ -1,7 +1,7 @@
 // What the right answer is when someone picks their own two dates: compare the categories the analysis gave.
 
 import type { FrameAnalysis } from '../../analysis'
-import type { SoundMapping } from '../../data'
+import { DEFAULT_WORDS, type SoundMapping, type VariableWords } from '../../data'
 
 export type Answer = 'a' | 'b' | 'same'
 
@@ -35,8 +35,8 @@ export function categoryLabel(result: FrameAnalysis | undefined, mapping: SoundM
 }
 
 /** `change` is for a data set with a baseline, where the question is how far each date is above its normal. */
-export function answerText(answer: Answer, change = false): string {
-  const word = change ? 'further above its normal' : 'warmer'
+export function answerText(answer: Answer, change = false, words: Pick<VariableWords, 'higher'> = DEFAULT_WORDS): string {
+  const word = change ? 'further above its normal' : words.higher
   return answer === 'a' ? `Date A is ${word}` : answer === 'b' ? `Date B is ${word}` : 'About the same'
 }
 
