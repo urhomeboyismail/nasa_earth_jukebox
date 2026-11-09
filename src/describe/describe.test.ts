@@ -8,7 +8,7 @@ import type { ChangeVisualization, Contour, FrameAnalysis, FrameGrid, GridCell, 
 import { analyzePixels, gridFromPixels } from '../analysis/analyze'
 import { decodePng } from '../analysis/png'
 import type { CategoryId, Visualization } from '../data'
-import { describeCell, describeChange, describeContour, describeFrame, describeSequence, describeSweep } from '.'
+import { describeCell, describeCellOverTime, describeChange, describeContour, describeFrame, describeHidden, describePlace, describeSequence, describeSweep } from '.'
 
 // The globe has twelve monthly frames of 2024, five categories (cold, cool, mild, warm, hot) and a region called
 // "North-east patch": the data the sentences in ticket T69 are written for.
@@ -396,5 +396,44 @@ describe('describeContour', () => {
   it('never names a sea or a country, and never says "anomaly" for a reference date', () => {
     const text = describeContour(referenceDate, line([[0.1, 0.1], [0.8, 0.8]]))
     expect(text).not.toMatch(/ocean|sea|anomal/i)
+  })
+})
+
+describe('describePlace and describeCellOverTime (F23)', () => {
+  const cell = (category: GridCell['category'], value: number | null): GridCell => ({ category, value })
+  const grid = { frameId: 'f', cols: 24, rows: 11, area: { x0: 0, y0: 0, x1: 1, y1: 1 }, cells: [] } as FrameGrid
+
+  it('names a place by compass, column and row', () => {
+    expect(describePlace(grid, 18, 2)).toBe('north-east, column 19, row 3')
+    expect(describePlace(grid, 12, 5)).toBe('centre, column 13, row 6')
+  })
+
+  it('says where a place started, where it ended and which way it went', () => {
+    const text = describeCellOverTime(visualization, [
+      { date: 'January 2024', cell: cell('cold', 3) },
+      { date: 'February 2024', cell: cell('insufficient', null) },
+      { date: 'March 2024', cell: cell('hot', 27) },
+    ])
+    expect(text).toBe('Across three dates, Cold, about 3 °C, January 2024, then Hot, about 27 °C, March 2024: rising. One date has no data here.')
+  })
+
+  it('says falling and steady, and never invents a reading', () => {
+    expect(describeCellOverTime(visualization, [{ date: 'A', cell: cell('hot', 27) }, { date: 'B', cell: cell('cold', 3) }])).toContain('falling')
+    expect(describeCellOverTime(visualization, [{ date: 'A', cell: cell('mild', 15) }, { date: 'B', cell: cell('mild', 15) }])).toContain('steady')
+    expect(describeCellOverTime(visualization, [{ date: 'A', cell: cell('insufficient', null) }])).toBe('This place has not enough data on the date.')
+  })
+})
+
+describe('describeHidden (F33)', () => {
+  it('counts the changes a coarse sound hides and gives one example', () => {
+    const results = resultsFor(['cold', 'cool', 'mild', 'warm', 'hot', 'hot', 'hot', 'hot', 'hot', 'hot', 'hot', 'hot'])
+    const text = describeHidden(visualization, results, [{ from: 0, to: 1 }, { from: 2, to: 3 }], 4)
+    expect(text).toBe('Two of four changes between neighbouring dates sound the same in a coarse sound with three notes. For example January 2024 to February 2024: cold to cool. First the coarse sound, where they match, then the strict sound, where they differ.')
+  })
+
+  it('says when nothing is hidden and when nothing changes', () => {
+    const results = resultsFor(['cold', 'mild', 'hot', 'hot', 'hot', 'hot', 'hot', 'hot', 'hot', 'hot', 'hot', 'hot'])
+    expect(describeHidden(visualization, results, [], 2)).toBe('Every one of the two changes between neighbouring dates is still heard in a coarse sound, so it hides nothing here.')
+    expect(describeHidden(visualization, results, [], 0)).toBe('The dates stay on the same step, so there is no change for a coarse sound to hide.')
   })
 })

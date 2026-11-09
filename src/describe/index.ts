@@ -2,7 +2,8 @@
 // details written down. Rules only, never a language model: the same data always gives the same words (this folder is
 // guarded by boundary.test.ts).
 
-import type { FrameAnalysis, FrameGrid } from '../analysis'
+import type { FrameAnalysis, FrameGrid, GridCell } from '../analysis'
+import type { HiddenChange } from '../audio/coarse'
 import type { Frame, Visualization } from '../data'
 import { dateFormatterFor } from '../dates'
 import type { Detail } from './detail'
@@ -210,6 +211,49 @@ export function describeCell(visualization: Visualization, grid: FrameGrid, col:
   if (cell.category === 'insufficient' || cell.value === null) return `Not enough data${concise ? '' : ' (land, cloud or labels)'}, ${where}.`
   // Concise: "Warm, 21 °C, north-east."
   return `${upperFirst(vocab.label(cell.category))}, ${concise ? '' : 'about '}${withUnit(cell.value, vocab.unit)}, ${where}.`
+}
+
+/**
+ * F33, "What the sound hides": how many of the changes between neighbouring dates a coarse sound would make inaudible, with one example.
+ * `hidden` is from `hiddenChanges` (src/audio/coarse.ts); `changes` is the count of all changes.
+ */
+export function describeHidden(visualization: Visualization, results: FrameAnalysis[], hidden: HiddenChange[], changes: number): string {
+  if (changes === 0) return 'The dates stay on the same step, so there is no change for a coarse sound to hide.'
+  if (hidden.length === 0) return `Every one of the ${word(changes)} ${changes === 1 ? 'change' : 'changes'} between neighbouring dates is still heard in a coarse sound, so it hides nothing here.`
+  const vocab = vocabulary(visualization)
+  const dateOf = (i: number) => {
+    const frame = frameOf(visualization, results[i])
+    return frame ? vocab.formatDate(frame.date) : `date ${i + 1}`
+  }
+  const example = hidden[0]
+  const from = results[example.from].category
+  const to = results[example.to].category
+  return `${upperFirst(word(hidden.length))} of ${word(changes)} ${changes === 1 ? 'change' : 'changes'} between neighbouring dates sound the same in a coarse sound with three notes. For example ${dateOf(example.from)} to ${dateOf(example.to)}: ${vocab.label(from)} to ${vocab.label(to)}. First the coarse sound, where they match, then the strict sound, where they differ.`
+}
+
+/** Where a cell is, for locking on it: "north-east, column 19, row 3". `col` and `row` start at 0. */
+export function describePlace(grid: FrameGrid, col: number, row: number): string {
+  const compass = COMPASS[Math.floor((row * 3) / grid.rows)][Math.floor((col * 3) / grid.cols)]
+  return `${compass}, column ${col + 1}, row ${row + 1}`
+}
+
+/**
+ * One cell followed through the dates (F23): where it started and where it ended, and which way it went.
+ * `readings` is the cell on each date, in date order, with the date as it is shown.
+ */
+export function describeCellOverTime(visualization: Visualization, readings: { date: string; cell: GridCell }[], options: DescribeOptions = {}): string {
+  const vocab = vocabulary(visualization)
+  const valid = readings.flatMap(({ date, cell }) =>
+    cell.value === null || cell.category === 'insufficient' ? [] : [{ date, value: cell.value, category: cell.category }])
+  if (valid.length === 0) return `This place has not enough data on ${readings.length === 1 ? 'the date' : `any of the ${word(readings.length)} dates`}.`
+  const concise = options.detail === 'concise'
+  const say = ({ date, value, category }: (typeof valid)[number]) => `${upperFirst(vocab.label(category))}, ${concise ? '' : 'about '}${withUnit(value, vocab.unit)}, ${date}`
+  if (valid.length === 1) return `Across ${word(readings.length)} dates this place has data on one: ${say(valid[0])}.`
+  const first = valid[0]
+  const last = valid[valid.length - 1]
+  const missing = readings.length - valid.length
+  const move = last.value > first.value ? 'rising' : last.value < first.value ? 'falling' : 'steady'
+  return `Across ${word(readings.length)} dates, ${say(first)}, then ${say(last)}: ${move}.${missing ? ` ${upperFirst(word(missing))} ${missing === 1 ? 'date has' : 'dates have'} no data here.` : ''}`
 }
 
 /** A row or a column of the map, as runs: "Row 3, west to east: not enough data for 4 cells, cool for 6, mild for 8". `index` starts at 0. */

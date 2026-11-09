@@ -285,7 +285,7 @@ Rules:
 | F20 | 3D spatial audio: HRTF panning, elevation as height in space (never pitch). Built (T84), off by default | Could | Bhavish |
 | F21 | ~~Anomaly haptics on touch devices~~ Cut 7 Nov: Android-only, and F15 already vibrates | Cut | — |
 | F22 | ~~Reef style~~ Cut 7 Nov: needs licensed recordings, a new sound source and its own listening check; the change bed is not yet reachable (T111) | Cut | — |
-| F23 | Time-travel scrubbing: lock one cell, scrub the dates | Should | Mohammad |
+| F23 | Time-travel scrubbing: lock one cell, scrub the dates | Should | Built 9 Nov (L, the date slider, "Play this place across the dates") |
 | F24 | ~~Acoustic fire alarm~~ Cut 7 Nov: the bell (5.7) already marks a two-step jump; a second, louder cue adds noise, not data | Cut | — |
 | F25 | ~~Sound buoys~~ Cut 7 Nov: needs the sleeping free-tier server and a second user; judges test alone | Cut | — |
 | F26 | **Baseline in the manifest**: `baseline`, `changeSteps`, `contourLevels`, `baselineImage`; `check-data` rules; a synthetic baseline with a known answer (5.1) | Should (v2 core) | Dhruv |
@@ -300,7 +300,8 @@ Rules:
 | F30 | **Hear this date both ways**: the date in the full sound, then the simple sound (restores the chosen style if interrupted) | Should | Built |
 | F31 | **Data table**: one row per date, "No data" never shown as a number; the date slider already has sourced `aria-valuetext` | Should | Built |
 | F32 | **Ask about this data**: cited answers made by rules from the analysis (`src/features/ask/`); "Not in this record." for anything else; no runtime model | Should | Built |
-| F33 | **What the sound hides**: a coarse mapping next to the strict one, so a listener hears what coarse sound loses | Could | Open: needs a coarse style and a listener check |
+| F33 | **What the sound hides**: a coarse mapping next to the strict one, so a listener hears what coarse sound loses | Could | Built 9 Nov (`src/audio/coarse.ts`, the "What the sound hides" button). Open: a listener check before any claim |
+| F35 | **Demo mode**: "Play the demo" walks Home, Learn, Listen (plays to the end), Compare and About with a spoken caption; Escape stops it. The script (`src/features/demo/script.ts`) names pages only | Should | Built 9 Nov |
 | F34 | **Evidence pack**: tester protocol and results note in `docs/evidence/`; 30 s video and 7 slides rebuilt on real data after 13 Nov | Must (with T87) | Protocol copied; n = 0 |
 
 Dropped from the brainstorm: ADK tiers and the audit log, the `story.json` contract, and a live-model Q&A selector.
@@ -397,7 +398,7 @@ A ticket is done when all of these hold:
 - `npm run build` and `npm run lint` pass; `server/.venv/bin/python -m pytest` passes if `server/` changed.
 - New logic has unit tests (Vitest on the frontend, pytest on the server).
 - It works by keyboard only, and each control has a label.
-- If it changes layout, it works on desktop: checked at 1280 px (and 768 px where width matters), with no horizontal scroll, touch targets at least 44 × 44 px, nothing that needs hover, and no fixed widths that would block phones later. The full phone pass (360 px, bottom navigation bar) is T120, done once the workflow is final (full rule in `AGENTS.md` → Conventions).
+- If it changes layout, it works on phone and desktop: checked at 360, 768 and 1280 px wide, with no horizontal scroll, touch targets at least 44 × 44 px, nothing that needs hover, and the main navigation in a bottom bar below 768 px (full rule in `AGENTS.md` → Conventions).
 - Nothing specific to one data set goes in `src/`; it belongs in that data set's manifest (`.claude/rules/phases.md`).
 - No secrets or `.env` files are committed.
 - The PR describes what changed and how it was tested.

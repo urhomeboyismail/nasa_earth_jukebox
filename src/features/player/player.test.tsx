@@ -657,3 +657,32 @@ describe('Player: test sound, both ways and the data table', () => {
     expect(screen.getByRole('row', { name: /Not enough data/ })).toBeInTheDocument()
   })
 })
+
+describe('Player: what the sound hides (F33)', () => {
+  // An earlier test chose the simple sound, and the choice is kept in localStorage.
+  beforeEach(() => localStorage.clear())
+
+  it('plays a change the coarse sound hides as one note twice, then as two notes, and puts the chosen sound back', async () => {
+    analyzeAll.mockImplementation(async () =>
+      visualization.frames.map((frame, i) => ({ frameId: frame.id, regionId: 'centre', sampled: 9, valid: 9, category: ['cold', 'cool', 'mild', 'hot'][i] })))
+    const { user } = await renderReady()
+    fake.setStyle.mockClear()
+    await user.click(screen.getByRole('button', { name: 'What the sound hides' }))
+    await tick(0)
+    expect(liveText()).toMatch(/^One of three changes between neighbouring dates sound the same in a coarse sound with three notes\. For example .+: cold to cool\./)
+    expect(fake.setStyle).toHaveBeenLastCalledWith('simple')
+    expect(fake.sequences[0].map((step: { category: string }) => step.category)).toEqual(['cold', 'cold'])
+    await tick(1600)
+    expect(fake.sequences[1].map((step: { category: string }) => step.category)).toEqual(['cold', 'cool'])
+    await tick(1600)
+    expect(fake.setStyle).toHaveBeenLastCalledWith('full')
+  })
+
+  it('says so, and plays nothing, when every change is still heard', async () => {
+    const { user } = await renderReady()
+    await user.click(screen.getByRole('button', { name: 'What the sound hides' }))
+    await tick(0)
+    expect(liveText()).toBe('Every one of the two changes between neighbouring dates is still heard in a coarse sound, so it hides nothing here.')
+    expect(fake.sequences).toHaveLength(0)
+  })
+})

@@ -51,7 +51,7 @@ export function ExplorerSurface({ explorer }: { explorer: ExplorerState }) {
       <p id={instructions} className="explorer__instructions">
         Arrow keys move over the map and play each place; Shift with an arrow moves four places. Home and End go to the west and east
         edges, Page Up and Page Down to the north and south. Space plays the place again. Enter plays the row from west to east, and
-        Shift with Enter plays the column from north to south. Escape stops the sound.
+        Shift with Enter plays the column from north to south. L locks the place you are on, so the date slider then plays that one place on each date; L or Escape unlocks. Escape also stops the sound.
       </p>
     </>
   )
@@ -79,6 +79,7 @@ export function ExplorerPanel({ visualization, explorer }: { visualization: Visu
               min={0}
               max={grid.cols - 1}
               value={cursor.col}
+              disabled={explorer.locked}
               onChange={col => explorer.moveTo(col, cursor.row, false)}
               describe={() => here}
             />
@@ -87,6 +88,7 @@ export function ExplorerPanel({ visualization, explorer }: { visualization: Visu
               min={0}
               max={grid.rows - 1}
               value={cursor.row}
+              disabled={explorer.locked}
               onChange={row => explorer.moveTo(cursor.col, row, false)}
               describe={() => here}
             />
@@ -95,6 +97,10 @@ export function ExplorerPanel({ visualization, explorer }: { visualization: Visu
             <Button onClick={() => explorer.sweep('row')}>Sweep this row</Button>
             <Button onClick={() => explorer.sweep('column')}>Sweep this column</Button>
             <Button onClick={explorer.stopSound}>Stop</Button>
+          </div>
+          <div className="explorer__buttons" role="group" aria-label="Time travel">
+            <Button pressed={explorer.locked} onClick={explorer.locked ? explorer.unlock : explorer.lock}>Lock this place</Button>
+            <Button disabled={!explorer.locked} onClick={() => void explorer.playAcrossDates()}>Play this place across the dates</Button>
           </div>
         </>
       )}

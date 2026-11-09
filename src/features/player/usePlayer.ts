@@ -5,13 +5,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { analyzeAll, analyzeChange, type ChangeVisualization, type Contour, type FrameAnalysis, type Score } from '../../analysis'
 import { hasChange } from '../../analysis/available'
 import { createSoundEngine, type SequenceStep, type SoundEngine } from '../../audio'
+import { coarseCategory, hiddenChanges } from '../../audio/coarse'
 import { elevationFor, panFor, useSpatialMode } from '../../audio/pan'
 import { styleFor, useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
 import { useAnnounce } from '../../components/useAnnounce'
 import type { Region, SoundMapping, Visualization } from '../../data'
 import { dateFormatterFor } from '../../dates'
-import { describeContour } from '../../describe'
+import { describeContour, describeHidden } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
 import { onPlayerCommand } from './controls'
 
@@ -23,6 +24,9 @@ const TRACE_GAP_MS = 600
 
 /** Length of each of the two sounds in "Hear this date both ways". */
 const BOTH_WAYS_MS = 2000
+/** F33: the time between the two dates of a pair, and the pause between the coarse pair and the strict pair. */
+const HIDDEN_STEP_MS = 800
+const HIDDEN_GAP_MS = 1600
 
 /** Time between dates. */
 export const STEP_MS: Record<Speed, number> = { slow: 1600, normal: 1000, fast: 500 }
@@ -254,6 +258,9 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     }
   }, [ready, frames.length, status, speed, startFrom, playOne, speak])
 
+  /** Shows a date without sounding it, for the explorer when it plays a locked place across the dates. */
+  const showDate = useCallback((i: number) => setIndex(Math.min(frames.length - 1, Math.max(0, i))), [frames.length])
+
   /** Stops the sound and any run but stays on the same date, for the sound-map explorer to take over. */
   const halt = useCallback(() => {
     cancelRun()
@@ -335,6 +342,42 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     }, BOTH_WAYS_MS)
   }, [engine, results, index, mapping, region, cancelRun, announce])
 
+  /**
+   * "What the sound hides" (F33): the first pair of neighbouring dates that differ by a step but share one note in a coarse sound, played coarse
+   * (the same note twice) and then strict (two notes), both in the simple sound so only the notes differ.
+   */
+  const hearWhatIsHidden = useCallback(async () => {
+    if (!engine || !results) return
+    cancelRun()
+    const mine = run.current
+    await engine.unlock()
+    if (mine !== run.current) return
+    engine.setVolume(volumeRef.current)
+    engine.stop()
+    setStatus('idle')
+    const { hidden, changes } = hiddenChanges(mapping.categories, results.map(result => result.category))
+    announce(describeHidden(visualization, results, hidden, changes))
+    if (hidden.length === 0) return
+    const { from, to } = hidden[0]
+    const at = (atMs: number, category: string) => ({ category, atMs, pan: panFor(region), elevation: elevationFor(region) })
+    borrowedStyle.current = true
+    engine.setStyle('simple')
+    engine.playSequence([
+      at(0, coarseCategory(mapping.categories, results[from].category)),
+      at(HIDDEN_STEP_MS, coarseCategory(mapping.categories, results[to].category)),
+    ], () => {})
+    endTimer.current = window.setTimeout(() => {
+      if (mine !== run.current) return
+      engine.stop()
+      engine.playSequence([at(0, results[from].category), at(HIDDEN_STEP_MS, results[to].category)], () => {})
+      endTimer.current = window.setTimeout(() => {
+        // Put the listener's own choice of sound back.
+        borrowedStyle.current = false
+        engine.setStyle(styleRef.current)
+      }, HIDDEN_GAP_MS)
+    }, HIDDEN_GAP_MS)
+  }, [engine, results, mapping, visualization, region, cancelRun, announce])
+
   /** Ends a trace at once. */
   const stopTrace = useCallback(() => {
     if (!tracing) return
@@ -403,7 +446,7 @@ export function usePlayer(visualization: Visualization, onDate?: (index: number,
     engine, region, results, index, status, speed, volume, finished, ready, style, setStyle, changeAvailable, score, tracing, traceWarmEdge, stopTrace, spatial, setSpatial, downloading, downloadError,
     error: engineError || analysisError,
     loading: !engineError && !analysisError && !results,
-    play, pause, stop, replay, goTo, halt, playRange, download, setSpeed, setVolume, testSound, hearBothWays,
+    play, pause, stop, replay, goTo, showDate, halt, playRange, download, setSpeed, setVolume, testSound, hearBothWays, hearWhatIsHidden,
     describeDate, formatDate,
     categoryAt: (i: number) => results?.[i]?.category ?? null,
   }

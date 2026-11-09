@@ -33,9 +33,14 @@ Reviewed with ECC's `production-audit` and `product-lens` lenses. Sources: [`FEA
 | **Demo mode**: one button that plays the scripted demo path (data set, story, compare) | A reliable 3-minute demo with no fumbling | Low: a script over existing player commands |
 | **Second real data set** (sea ice or the global temperature anomaly, `data-sources.md`) | Proves the design is general, which is the point of the two phases | Data work only, through the playbook |
 
-## 4. Later: the phone phase (T120)
+## 4. Status after 9 Nov (later the same day)
 
-The full 360 px pass with the bottom navigation bar; F12 ducking and F15 vibration on a real phone; a PWA manifest and home-screen install (ADR 0001); offline caching of data sets. Until then, follow the "don't block the phone" rules in `.claude/rules/platform.md`.
+Built: **F23** time travel, **F33** What the sound hides, **F35** demo mode, and **T120** phone support (360 px checked on Home and Listen; installable manifest and icons). Still open from this review:
+
+- Real-phone checks of F12 ducking and F15 vibration, and the 360 px check on Learn, Compare and About.
+- A listener check for F33 before any claim about it.
+- Demo mode on a real data set: run it end to end, and edit `src/features/demo/script.ts` if the wording needs the data set's story.
+- Offline caching of the data sets (a service worker) is not built; the app needs the network.
 
 ## 5. Keep cut
 

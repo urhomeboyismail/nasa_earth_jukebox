@@ -31,20 +31,20 @@ F1 to F13, F15 and F12's ducking are on `main`, as are the dataset picker, legen
 | ID | Title | Owner | Part A due | Priority | Covers |
 |---|---|---|---|---|---|
 | T80 | Musical engine and WAV rendering | Team leader | 9 Nov | A Must (built); B Should | §5.7, F14 engine; B: F18 (F22, F24 cut) |
-| T81 | Listen: sound-map explorer and player wiring | Mohammad | 10 Nov | A Must (built); B Should | §5.6 explorer, F13 in use, F14 button, style toggle; B: F23 (F25 cut) |
+| T81 | Listen: sound-map explorer and player wiring | Mohammad | 10 Nov | A Must (built); B Should | §5.6 explorer, F13 in use, F14 button, style toggle; B: F23 (**built 9 Nov**; F25 cut) |
 | T82 | Learn the new sounds, and concise or rich descriptions | Roni | 11 Nov | A Must (built) | Learn cards, F19 rules (F21 cut) |
 | T83 | Story mode | Bhavish | 11 Nov | Should | `story` chapters (§5.1) |
 | T84 | 3D spatial audio | Bhavish | after 12 Nov | Could | F20 |
 | T85 | Real NASA data | Dhruv + Team leader | 10 Nov (speed), 14 Nov (data) | Must | F16, real `mapArea`, story text, comparisons, speed |
 | ~~T86~~ | ~~Voice guide on ADK~~ Cut 7 Nov after the spike | — | — | Cut | — |
 | T87 | Evidence, write-up and submission | Roni, Team leader, Bhavish, Dhruv | 12 to 15 Nov | Must | F11 evidence, playlist, creative process, README, demo |
-| T88b | Brainstorm merge. **F29 to F32 built 9 Nov** (Test sound, both ways, data table, Ask). Open: F33 "What the sound hides", F34 video and slides on real data. See `docs/planning/MERGE-VERDICT.md` | Mohammad (player, Ask), Roni (Learn, evidence) | F33 after 12 Nov | Should | F29 to F34 |
+| T88b | Brainstorm merge. **F29 to F33 built 9 Nov** (Test sound, both ways, data table, Ask, What the sound hides). Open: F34 video and slides on real data. See `docs/planning/MERGE-VERDICT.md` | Mohammad (player, Ask), Roni (Learn, evidence) | F33 after 12 Nov | Should | F29 to F34 |
 | ~~T111~~ | v2: baseline in the manifest, and a synthetic data set with a known change. **Built 7 Nov**; `types.ts` still needs the team leader's review | Dhruv (team leader reviews `types.ts`) | done | Built | F26, PLAN.md §5.1 |
 | T112 | v2: change field and change steps | Team leader | 11 Nov | Should (v2 core) | F27, PLAN.md §5.2, §5.9 |
 | T113 | v2: contour tracing (marching squares) | Bhavish suggested (team leader reviews) | 12 Nov | Should | F18 analysis, PLAN.md §5.9 |
 | T114 | v2: the `"change"` sound style (bed, contour voice, hiss) | Team leader (engine), Bhavish (spatial path, listening check) | 13 Nov | Should | F28 sound, F18 sound, PLAN.md §6.2 |
 | T115 | v2: wiring, Compare, descriptions and Learn | Mohammad (Listen, explorer, Compare), Roni (describe, Learn, About) | 14 Nov | Should | F28 wiring, F18 trace button |
-| T120 | Phone support, done once the workflow is final: the 360 px check on every page, the bottom navigation bar below 768 px (clear of the home indicator, nothing hidden behind it), F12 ducking and F15 vibration on a real phone, a PWA manifest and icons (ADR 0001). Until then, build desktop-first without blocking phones (`.claude/rules/platform.md`) | Mohammad (layout), Roni (phone checks) | finalising, after the data sets | Should | PLAN.md §9, `AGENTS.md` layout rule |
+| T120 | Phone support. **Built 9 Nov**: 360 px checked on Home and Listen (bottom navigation bar, safe-area, no sideways scroll), PWA manifest and icons (`public/manifest.webmanifest`, `scripts/make_icons.py`). **Open:** F12 ducking and F15 vibration on a real phone, and the 360 px check on Learn, Compare and About | Mohammad (layout), Roni (phone checks) | real-phone checks before the demo | Should | PLAN.md §9, `AGENTS.md` layout rule |
 
 ### Integration lines
 

@@ -57,7 +57,7 @@ function Player({ visualization }: { visualization: Visualization }) {
   const [detail] = useDescriptionDetail()
   // The data table is built only while it is open: a closed <details> still keeps its content in the page.
   const [tableOpen, setTableOpen] = useState(false)
-  const explorer = useExplorer({ visualization, frame, engine: player.engine, vibrate: vibration.enabled })
+  const explorer = useExplorer({ visualization, frame, engine: player.engine, vibrate: vibration.enabled, frames, formatDate: player.formatDate, onDate: player.showDate })
 
   // Playing the dates takes the sound back from the explorer.
   const { on: exploring, turnOff: stopExploring } = explorer
@@ -178,6 +178,7 @@ function Player({ visualization }: { visualization: Visualization }) {
         <Button disabled={!player.ready} onClick={player.stop}>Stop</Button>
         <Button disabled={!player.ready} onClick={player.replay}>Replay this date</Button>
         <Button disabled={!player.ready} onClick={() => void player.hearBothWays()}>Hear this date both ways</Button>
+        <Button disabled={!player.ready} onClick={() => void player.hearWhatIsHidden()}>What the sound hides</Button>
         <Button disabled={!player.ready} onClick={() => void player.testSound()}>Test sound</Button>
         <Button disabled={!player.ready || storyOpen} pressed={exploring} onClick={toggleExplorer}>Explore the map</Button>
       </div>
@@ -189,7 +190,13 @@ function Player({ visualization }: { visualization: Visualization }) {
           max={frames.length - 1}
           value={player.index}
           disabled={!player.ready}
-          onChange={player.goTo}
+          onChange={i => {
+            // A locked place is heard on the new date, not the whole map.
+            if (explorer.locked) {
+              player.showDate(i)
+              void explorer.playLockedAt(i)
+            } else player.goTo(i)
+          }}
           describe={i => player.ready ? player.describeDate(i) : player.formatDate(frames[i].date)}
         />
       </div>

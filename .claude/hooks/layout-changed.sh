@@ -36,6 +36,6 @@ rel="${file#"$project"/}"
 jq -n --arg rel "$rel" '{
   hookSpecificOutput: {
     hookEventName: "PostToolUse",
-    additionalContext: ("Layout file changed: " + $rel + ". Before finishing, apply the responsive-layout skill (.claude/skills/responsive-layout/SKILL.md): pick the pattern for this content and check the rules. For now the app is desktop first: verify at 1280 px (and 768 px where width matters), and do not block phones later (flexible widths, 44 px targets, nothing hover-only). The phone pass at 360 px with the bottom navigation bar is ticket T120 (.claude/rules/platform.md). Report the widths checked.")
+    additionalContext: ("Layout file changed: " + $rel + ". Before finishing, apply the responsive-layout skill (.claude/skills/responsive-layout/SKILL.md): pick the pattern for this content, keep it mobile first with the bottom navigation bar below 768 px, check the rules, and verify at 360, 768 and 1280 px (.claude/rules/platform.md). Report the widths checked.")
   }
 }'

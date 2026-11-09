@@ -1,20 +1,11 @@
-# Platform: desktop now, phone later
+# Platform: phone and desktop
 
-The app will run on phones as well as desktops, but the phone pass waits until the workflow is final (ticket T120 in `docs/TICKETS.md`).
+The app runs on phones and desktops, and can be installed from the browser (PWA manifest and icons, T120).
 
-**Now (building and refining):**
-- Design and check for desktop at 1280 px. Also check 768 px for anything whose width matters.
-- Don't build anything that will block the phone later:
-  - flexible widths (`%`, `rem`, `min()`/`clamp()`, `flex-wrap`, grid), no fixed pixel widths;
-  - touch targets at least 44 × 44 px;
-  - nothing that works only on hover;
-  - body text at least 16 px, and the page works at 200% zoom;
-  - images keep their aspect ratio.
-- Say in your PR which widths you checked.
-
-**Later (T120, finalising):** the full phone pass at 360 px:
-- the main navigation in a bottom bar below 768 px, clear of the home indicator (`env(safe-area-inset-bottom)`);
-- F12 ducking and F15 vibration checked on a real phone;
-- a PWA manifest so the app can be added to the home screen (ADR 0001).
-
-Use `.claude/skills/responsive-layout/SKILL.md` for both phases.
+- Check every layout change at 360 px (phone), 768 px (tablet) and 1280 px (desktop). No horizontal scroll at any of them.
+- Flexible widths (`%`, `rem`, `min()`/`clamp()`, `flex-wrap`, grid), no fixed pixel widths.
+- Touch targets at least 44 × 44 px with space between them; nothing that works only on hover.
+- Body text at least 16 px, and the page works at 200% zoom. Images scale and keep their aspect ratio.
+- Below 768 px the main navigation is a bar fixed to the bottom, clear of `env(safe-area-inset-bottom)`. Content and floating panels must not sit behind it.
+- Say in your PR which widths you checked. Use `.claude/skills/responsive-layout/SKILL.md` for patterns and the screenshot script.
+- Still to do on real devices: F12 (music pauses while the guide talks) and F15 (vibration; iOS has none).
