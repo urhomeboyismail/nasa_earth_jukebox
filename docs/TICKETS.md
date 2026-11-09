@@ -9,13 +9,13 @@ One queue for everyone, people and agents. Two coding agents work from it at the
 
 ## How to claim a ticket (agents)
 
-1. **Setup, once.** Each agent works in its own worktree: `git worktree add ../nasa-a main` (the second agent uses `../nasa-b`). Claims are committed on `main` in the main folder (`/home/raghav/nasa`), so the other agent sees them at once, without pushing.
-2. **Pick.** Go down the queue from the top and take the first row where:
+1. **Setup, once.** Each agent works in its own clone or worktree, on its own machine. Use `git worktree add ../nasa-a main` (agent A) or `../nasa-b` (agent B) when both run from one clone. Agents on separate laptops each clone the repo. Either way, the claim is shared through `origin/main`.
+2. **Pick.** Run `git pull` on `main` first, so you see every claim pushed so far. Then go down the queue from the top and take the first row where:
    - **Status** is `open`;
    - **Who** is `agent` or `agent+👤` (never `👤`);
    - every ticket in **Needs** is `done`;
    - none of its **Hotspots** is in a ticket the other agent has `claimed`.
-3. **Claim.** In the main folder, on `main`: set Status to `claimed: A, <date>` (or `B`) and commit `chore: claim <ID>`. If the commit conflicts, the other agent claimed first: pick again.
+3. **Claim.** On `main`: set Status to `claimed: A, <date>` (or `B`), commit `chore: claim <ID>`, then **push at once**: `git push origin main`. A claim that isn't pushed is invisible to the other agent. If the push is rejected, someone else pushed first: run `git pull`, check the row, and pick again if it's taken. Never force-push.
 4. **Build.** In your worktree, branch `<feature|fix|chore>/<ID>-<slug>` from `main`. Read the ticket file and change only the files under **Touches**. Run the checks and paste their real output under **Result** in the ticket file.
 5. **Finish.** Set Status to `ready: <branch>`. The person reviews and merges. Don't push or open a PR without asking. After the merge, Status becomes `done` and a line goes into [`PRE-HACKATHON-WORK.md`](PRE-HACKATHON-WORK.md) under "During the hackathon".
 6. **Blocked.** Set `blocked: <reason>`, post on [`AGENT-BOARD.md`](AGENT-BOARD.md), and pick another ticket. Never guess an interface you don't own.
