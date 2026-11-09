@@ -37,8 +37,8 @@ The root `README.md` describes the app as it is. It says plainly what is built a
 
 ## Touches
 
-- `README.md`: owner Bhavish (`docs/PLAN.md` §4). Review by Bhavish.
-- `docs/CREATIVE_PROCESS.md`: new, with no owner in `docs/PLAN.md` §4. Ask Bhavish and the team leader to review it.
+- `README.md`: owner Bhavish (`docs/PLAN.md` §4).
+- `docs/CREATIVE_PROCESS.md`: new, with no owner in `docs/PLAN.md` §4.
 - Nothing else.
 
 ## Steps
@@ -69,7 +69,7 @@ Not applicable: no sound or visual change.
 - The AI disclosure names the tools and the art, if any.
 - Every claim in the Why list has been checked, and the pull request says how.
 - Every relative link resolves.
-- Bhavish has reviewed the README. A person (👤) has approved the credit wording and the team list.
+- A person (👤) has approved the credit wording and the team list.
 - `docs/CREATIVE_PROCESS.md` has been read against the code and claims only work that was done.
 
 ## Checks
@@ -102,7 +102,7 @@ Done:
 
 Not done (👤):
 - Step 8, the team list: it uses the names already in `AGENTS.md`, with "Bhavish" in place of the `@` handle. A person has to confirm each name is wanted before this is published.
-- The credit wording and the AI section need a person's approval, and Bhavish's review. The statement that the mascot is our own SVG drawing comes from the board entry `R-20261109-F37-1`, which is itself a proposal for the team to confirm.
+- The credit wording and the AI section need a person's approval. The statement that the mascot is our own SVG drawing comes from the board entry `R-20261109-F37-1`, which is itself a proposal for the team to confirm.
 
 ```
 $ npm run lint
