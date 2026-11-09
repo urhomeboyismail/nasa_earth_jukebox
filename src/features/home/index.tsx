@@ -4,6 +4,7 @@ import { higherPhrase, variableWords } from '../../data'
 import { pages, type Page } from '../../pages'
 import { currentDataParam, hashFor } from '../../route'
 import type { PageProps } from '../types'
+import { useMascotOn } from '../help/mascotSetting'
 import { useWelcome } from '../welcome/storage'
 import './home.css'
 
@@ -22,10 +23,11 @@ const titleOf = (page: Page) => pages.find(item => item.id === page)?.title ?? p
 export default function HomePage({ visualization }: PageProps) {
   const data = currentDataParam()
   const welcome = useWelcome()
+  const mascotOn = useMascotOn()
   return (
     <div className="home">
       <p>Hear how our planet is changing. The Earth Jukebox turns NASA Earth imagery into sound.</p>
-      {!welcome.done && <Suspense fallback={null}><Welcome visualization={visualization} /></Suspense>}
+      {!welcome.done && mascotOn && <Suspense fallback={null}><Welcome visualization={visualization} /></Suspense>}
       {visualization && <p>Now playing from: {visualization.title}. {visualization.summary}</p>}
 
       <Card title="What you will try" headingLevel={2}>

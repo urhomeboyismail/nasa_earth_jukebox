@@ -5,6 +5,7 @@ import { Icon, type IconName } from './components/Icon'
 import { Sonny } from './components/Mascot'
 import { loadCatalog, loadVisualization, type CatalogEntry, type Visualization } from './data'
 import { DemoControl } from './features/demo/DemoControl'
+import { HelpButton } from './features/help/HelpButton'
 import HomePage from './features/home'
 import type { PageProps } from './features/types'
 import { noteGuidePlaybackCommand, useDucking } from './assistant/ducking'
@@ -212,6 +213,8 @@ function App() {
 
       <main className={`app-main app-main--${wideTools.has(page) ? 'wide' : 'prose'}`}>
         <h1 ref={heading} tabIndex={-1}>{title}</h1>
+        {/* The same place on every page (WCAG 3.2.6); a new page closes the panel. */}
+        <HelpButton key={page} page={page} />
         <DemoControl />
         {catalog && catalog.length > 1 && dataId && !testMode && (
           <DatasetPicker catalog={catalog} value={dataId} onChange={id => { window.location.hash = hashFor(page, { data: id }) }} />

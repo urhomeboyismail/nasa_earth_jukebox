@@ -1,0 +1,16 @@
+/* "Help from Echo" (F37 T2): inline under the page title, in the same place on every page. Flexible units, 48 px buttons. */
+.help { display: grid; gap: 0.75rem; margin-block: 0.5rem; justify-items: start; }
+.help > .ui-button { display: inline-flex; align-items: center; gap: 0.5rem; }
+.help__mascot { flex: none; }
+.help__panel {
+  inline-size: 100%;
+  box-sizing: border-box;
+  padding: 1rem;
+  border-radius: 1.25rem;
+  background: var(--ui-surface-container-highest);
+  color: var(--ui-on-surface-variant);
+  display: grid;
+  gap: 0.75rem;
+}
+.help__panel p { margin: 0; }
+.help__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }

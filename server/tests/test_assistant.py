@@ -236,6 +236,22 @@ def test_the_guide_is_told_about_the_playback_tools():
     assert "control_playback" in text and "set_date" in text
 
 
+def test_the_guide_speaks_as_the_mascot_and_keeps_its_rules():
+    from app.assistant.knowledge import PERSONA_NAME, system_instruction
+    from app.assistant.tools import tools
+    text = system_instruction("Earth Jukebox", "en", "home")
+    assert f"Your name is {PERSONA_NAME}" in text
+    assert "Rules you must never break" in text and "never play sound yourself" in text
+    # The persona changes how the guide sounds, not what it can do: the same five tools.
+    assert len(tools()[0].function_declarations) == 5
+
+
+def test_the_persona_name_matches_the_frontend():
+    source = (REPO_ROOT / "src" / "features" / "welcome" / "lines.ts").read_text(encoding="utf-8")
+    from app.assistant.knowledge import PERSONA_NAME
+    assert f"MASCOT_NAME = '{PERSONA_NAME}'" in source
+
+
 def test_pages_match_frontend():
     source = (REPO_ROOT / "src" / "pages.ts").read_text(encoding="utf-8")
     assert re.findall(r'id: "([a-z]+)"', source) == PAGE_IDS
