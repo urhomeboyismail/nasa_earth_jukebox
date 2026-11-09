@@ -1,4 +1,4 @@
-// The checks behind `npm run check-data` (docs/PRE-HACKATHON-TICKETS.md, T89). Pure: the files are read through a callback, so
+// The checks behind `npm run check-data` (docs/archive/PRE-HACKATHON-TICKETS.md, T89). Pure: the files are read through a callback, so
 // check.test.ts can feed it bad input. datasets.test.ts runs it on every data set in public/data/index.json. Each problem names
 // the file and the field, so a person adding a real data set knows what to fix. Nothing in the app imports this file.
 

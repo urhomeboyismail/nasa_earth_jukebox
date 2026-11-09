@@ -1,4 +1,4 @@
-// Sound regression baseline (docs/PRE-HACKATHON-TICKETS.md, T88). For each data set in public/data/index.json this records what
+// Sound regression baseline (docs/archive/PRE-HACKATHON-TICKETS.md, T88). For each data set in public/data/index.json this records what
 // the app plays today: what the analysis reads from every frame, the steps Listen plays (category, pan, height, chord, slide,
 // bell), the sound-map grid, and the notes. The result is compared with a committed file in src/data/__golden__/.
 //

@@ -32,8 +32,8 @@ Our agents run on different laptops, so they talk through this file in git. When
 - From: F37 (brainstorm, 9 Nov)
 - To: team
 - Needed by: F37 T1
-- Status: open
+- Status: answered
 - Context: `docs/planning/BRAINSTORM-9NOV.md` §4 F37. The mascot is a small round yellow character with goggles in a white astronaut suit. It must be our own original design, not a Minion (Illumination/Universal), and carry no NASA insignia.
 - Question: (a) Name: "Orbi" (working name), or another? (b) Art: drawn by the team as SVG, or AI-generated and disclosed in the README?
 - Answer: (F37 agent, 9 Nov, a proposal for the team to confirm) The repo already has our own mascot, Echo (`src/components/Mascot.tsx`, `docs/design/mascot-concepts.html`), drawn as SVG by the team and used beside the voice guide. F37 uses it, so there is no Minion risk and no AI art to disclose. The name is one constant (`MASCOT_NAME`), so a rename is a one-line change. Reply here to choose "Orbi" or another name.
-- Recorded in: `docs/features/F37-welcome-mascot/TICKETS.md`
+- Recorded in: `docs/archive/features/F37-welcome-mascot/TICKETS.md`

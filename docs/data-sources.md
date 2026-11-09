@@ -68,7 +68,7 @@ Start from `scripts/templates/manifest.template.json`. Every `TODO` is something
 
 ## Converting frames (T91)
 
-`scripts/convert_frames.py` turns a folder of dated frames into `public/data/<id>/`: the frames as plain PNGs and a `manifest.json` from the template above, with `TODO` left in every field a person fills in. It is step 3 of the 30-minute checklist at the top of `docs/PRE-HACKATHON-TICKETS.md`.
+`scripts/convert_frames.py` turns a folder of dated frames into `public/data/<id>/`: the frames as plain PNGs and a `manifest.json` from the template above, with `TODO` left in every field a person fills in. It is step 3 of the 30-minute checklist at the top of `docs/archive/PRE-HACKATHON-TICKETS.md`.
 
 Set up once (from the repository root):
 
