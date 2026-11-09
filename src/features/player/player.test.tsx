@@ -491,6 +491,21 @@ describe('Player: vibration', () => {
   })
 })
 
+describe('Player: starting volume', () => {
+  it('starts at the volume chosen in the welcome sound check, and at 80 percent otherwise', async () => {
+    const first = await renderReady()
+    expect(screen.getByRole('slider', { name: 'Volume' })).toHaveValue('80')
+    first.unmount()
+    localStorage.setItem('earth-jukebox:welcome', JSON.stringify({ done: true, volume: 0.5 }))
+    try {
+      await renderReady()
+      expect(screen.getByRole('slider', { name: 'Volume' })).toHaveValue('50')
+    } finally {
+      localStorage.removeItem('earth-jukebox:welcome')
+    }
+  })
+})
+
 describe('Player: sound', () => {
   it('gives every step the stereo pan of the region', async () => {
     const { user } = await renderReady()

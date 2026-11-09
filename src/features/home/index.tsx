@@ -1,9 +1,14 @@
+import { lazy, Suspense } from 'react'
 import { Card } from '../../components'
 import { higherPhrase, variableWords } from '../../data'
 import { pages, type Page } from '../../pages'
 import { currentDataParam, hashFor } from '../../route'
 import type { PageProps } from '../types'
+import { useWelcome } from '../welcome/storage'
 import './home.css'
+
+// The welcome is only for a first visit, so its code is fetched only then.
+const Welcome = lazy(() => import('../welcome/Welcome'))
 
 /** The order a new listener should take the pages in, and what each one is for. */
 const STEPS: { page: Page; text: string }[] = [
@@ -16,9 +21,11 @@ const titleOf = (page: Page) => pages.find(item => item.id === page)?.title ?? p
 
 export default function HomePage({ visualization }: PageProps) {
   const data = currentDataParam()
+  const welcome = useWelcome()
   return (
     <div className="home">
       <p>Hear how our planet is changing. The Earth Jukebox turns NASA Earth imagery into sound.</p>
+      {!welcome.done && <Suspense fallback={null}><Welcome visualization={visualization} /></Suspense>}
       {visualization && <p>Now playing from: {visualization.title}. {visualization.summary}</p>}
 
       <Card title="What you will try" headingLevel={2}>

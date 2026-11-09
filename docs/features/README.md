@@ -21,6 +21,7 @@ Add a row when you claim a feature (one row per feature). Don't take a feature s
 | Feature | Owner | Ticket file | Status |
 |---|---|---|---|
 | F36 Manifest wording | Dhruv Bhantoo (agent: Claude Code) | [`F36-manifest-wording/TICKETS.md`](F36-manifest-wording/TICKETS.md) | done |
+| F37 Welcome mascot and onboarding | Roni (agent: Claude Code) | [`F37-welcome-mascot/TICKETS.md`](F37-welcome-mascot/TICKETS.md) | in progress |
 
 Status is one of `claimed`, `tickets written`, `in progress`, `done`.
 
