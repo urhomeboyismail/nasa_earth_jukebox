@@ -48,6 +48,7 @@ Add one line per piece of work, newest last.
 | 9 Nov | T88b demo script for the video, slides and live demo | `feature/T88b-demo-script` |
 | 9 Nov | Plan v3 "sight into sound in real time" (`PLAN.md` §6.3) and the ticket reorganisation: one queue for two agents (`TICKETS.md`, `tickets/`), done and replaced tickets moved to `archive/` | `chore/tickets-v3` |
 | 9 Nov | S02 first real data set, `mur-sst-mauritius`: sea surface temperature around Mauritius, 2023 (NASA MUR via GIBS): 5 comparisons, 4 story chapters, reference-date baseline, recorded Scores. Still to check by a person: the credit and licence wording, and the story | `feature/S02-mur-sst-mauritius` |
+| 9 Nov | S03 project README for v3 (what is built, planned and not started; n = 0; AI tools named) and `docs/CREATIVE_PROCESS.md`, with every code claim checked | `feature/S03-readme` |
 
 ## Outside resources used
 

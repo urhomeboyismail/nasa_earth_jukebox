@@ -88,4 +88,30 @@ for f in README.md docs/CREATIVE_PROCESS.md; do grep -o '](\([^)#]*\)' "$f" | se
 
 ## Result
 
-Not started.
+Branch `feature/S03-readme`: `f434632` cherry-picked (no conflicts), then one commit with the v3 changes.
+
+Done:
+- Step 2: a Status section with the three columns (built now, planned, not started) and no ticket IDs.
+- Step 3: the limits keep n = 0 and now say the practice listening test has not been run and the phone checks are not done.
+- Step 4: S02 has merged, so the Mauritius paragraph stays, with the PO.DAAC suggested citation read on the live page (S02). The licence is not stated in the README.
+- Step 5: the AI section names Gemini Live, and Claude Code and Codex, and what each does and does not do. The mascot is named as our own SVG drawing.
+- Step 6: claims checked against the code: `src/features/player/DataTable.tsx` exists; "Download this soundscape (WAV)" is in `src/features/player/index.tsx:305`; `L` locks the place in `src/features/explore/Explorer.tsx:54`; `src/features/ask/` exists; `public/manifest.webmanifest` lists three icons; `.claude/rules/platform.md` says iOS has no vibration. Every code reference in `docs/CREATIVE_PROCESS.md` (`valueAtPixel`, `analyzePixels`, `analyzeGrid`, `voicingFor`, `Freeverb`, `describeSequence`, `src/boundary.test.ts`, `docs/adk-spike.md`) was found. No claim was removed.
+- Step 7: the link check from the Checks section prints nothing for either file.
+- Step 9: two rows in `docs/CREATIVE_PROCESS.md` were out of date after the v3 plan (live video, and ADK, now planned in the queue); they are corrected. The T114 reference now points at the S05 ticket file.
+- Step 10: one line in `docs/PRE-HACKATHON-WORK.md`.
+
+Not done (👤):
+- Step 8, the team list: it uses the names already in `AGENTS.md`, with "Bhavish" in place of the `@` handle. A person has to confirm each name is wanted before this is published.
+- The credit wording and the AI section need a person's approval, and Bhavish's review. The statement that the mascot is our own SVG drawing comes from the board entry `R-20261109-F37-1`, which is itself a proposal for the team to confirm.
+
+```
+$ npm run lint
+(oxlint: no warnings or errors)
+$ npm test
+ Test Files  62 passed (62)
+      Tests  1166 passed (1166)
+$ npm run build
+✓ built in 491ms
+$ link check for README.md and docs/CREATIVE_PROCESS.md
+(no output: every relative link resolves)
+```

@@ -16,6 +16,18 @@ Hear NASA Earth data. The Earth Jukebox turns dated NASA maps into **sound and t
 
 How the sound is made, and why, is in [`docs/CREATIVE_PROCESS.md`](docs/CREATIVE_PROCESS.md).
 
+## Status
+
+What the app does today, what is designed but not built, and what has not been started. The design is in [`docs/PLAN.md`](docs/PLAN.md) §6.3.
+
+| Built now | Planned (`docs/PLAN.md` §6.3) | Not started |
+|---|---|---|
+| Listen with three sound styles: Simple, Full and Change from normal | A live ensemble that follows the playing EIC animation frame by frame, with one voice for each job (level, mix, change, hot spots, edges, motion, time) | A listening test with blind or low-vision people |
+| The sound map: explore by keyboard, finger or mouse; lock one place across the dates | A feature extractor that reads hot spots, edges and motion from each frame, including from video | Checks on real phones |
+| Learn, Compare and Ask, with a data table and text for every sound | Scan mode: sweep a frame so its shapes become audible | More NASA data sets from the Earth Information Center, beyond the Mauritius one |
+| Download the sound as a WAV file; a scripted demo tour | Playing the map: follow a hot spot, find the warmest place by ear, predict then hear, compare dates left and right | A voice guide built on Google's Agent Development Kit |
+| An optional voice guide (Gemini Live) | Offline rendering of every data set to WAV with a captions file | |
+
 ## Run it
 
 Needs Node.js. The voice guide also needs Python and a Gemini API key; the rest does not.
@@ -38,7 +50,7 @@ cp .env.example .env    # then set GEMINI_API_KEY
 
 ## NASA data and credits
 
-Each data set names its source, credit and licence in its own `manifest.json` and is described in [`docs/data-sources.md`](docs/data-sources.md). The real data set so far is **sea surface temperature around Mauritius, 2023**, from the GHRSST Level 4 MUR Global Foundation Sea Surface Temperature Analysis (v4.1), as drawn by NASA GIBS.
+Each data set names its source, credit and licence in its own `manifest.json` and is described in [`docs/data-sources.md`](docs/data-sources.md). The real data set so far is **sea surface temperature around Mauritius, 2023**, from the GHRSST Level 4 MUR Global Foundation Sea Surface Temperature Analysis (v4.1), as drawn by NASA GIBS. Its suggested citation, from the PO.DAAC dataset page: *JPL MUR MEaSUREs Project. 2015. GHRSST Level 4 MUR Global Foundation Sea Surface Temperature Analysis. Ver. 4.1. PO.DAAC, CA, USA. Dataset accessed 2026-11-07 at https://doi.org/10.5067/GHGMR-4FJ04.*
 
 > We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS).
 
@@ -56,19 +68,20 @@ Stack: React, TypeScript and Vite; Tone.js for sound; a small FastAPI server for
 
 ## AI tools
 
-- **Google Gemini Live** runs the optional voice guide. It can reword and use a short list of allow-listed actions (go to a page, play, pause, step a date, read the screen). It never touches the analysis, the sound or the descriptions.
-- **Coding assistants (Claude Code, Codex)** helped write code and documents. The team reviewed every change.
-- The mascot, Echo, is our own SVG drawing.
+- **Google Gemini Live** runs the optional voice guide. It can reword and use a short list of allow-listed actions (go to a page, play, pause, step a date, read the screen). It never touches the analysis, the sound or the descriptions, and the app works with it switched off.
+- **Claude Code and Codex** (coding assistants) helped write code, tests and documents. The sound itself is computed by rules in the code: no AI model sits between a picture and what you hear. The team reviews what the assistants write.
+- **The art:** the mascot, Echo, is our own SVG drawing (`src/components/Mascot.tsx`). If an AI image tool is ever used for any art, it will be named here.
 
 ## Limits
 
 - **Not yet tested with blind or low-vision users.** No test session has been run yet, so n = 0 (see [`docs/evidence/`](docs/evidence/)). We make no claim about how well it works for them until it has.
 - The app reads colours from NASA's rendered maps, not NASA's data files, so values are approximate.
+- The practice listening test has not been run, so we cannot yet say which sound style listeners find clearer.
 - The "change from normal" sound has not had its listening check, so it is opt-in.
-- Vibration does not work on iPhones.
+- The checks on real phones are not done yet. Vibration does not work on iPhones.
 - The voice guide's server sleeps when idle (free hosting) and can take up to a minute to wake. The rest of the app does not use it.
 - Test results are saved on the server's disk, which the free tier wipes on every restart; download the CSV after each session.
 
 ## Team
 
-Mohammad Ismail Iftikhar Oozeerally, Dhruv Bhantoo, Roni, @bhavish.tb and the team leader.
+Mohammad Ismail Iftikhar Oozeerally, Dhruv Bhantoo, Roni, Bhavish and the team leader.

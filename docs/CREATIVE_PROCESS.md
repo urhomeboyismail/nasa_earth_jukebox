@@ -49,9 +49,9 @@ Everything specific to one data set (colour scale, categories, words, comparison
 
 | Idea | Why not |
 |---|---|
-| Video or live satellite imagery in the app | Heavy and unpredictable. Frames are converted to PNG offline. |
+| Live video in the first version | Heavy and unpredictable, so frames were converted to PNG offline. The next version plans to read each displayed frame as it plays (`docs/PLAN.md` §6.3), still computed by rules. |
 | A language model that "describes the picture" | Not repeatable, and it could say things the data does not show. Descriptions are written by rules. |
-| The voice guide on Google's Agent Development Kit | The spike showed it added weight without adding anything a listener needs (`docs/adk-spike.md`). Cut on 7 Nov. |
+| The voice guide on Google's Agent Development Kit | The first spike added weight without adding anything a listener needs (`docs/adk-spike.md`), so it was cut on 7 Nov. It is planned again in the queue (`docs/TICKETS.md`), but it is not built. |
 | Timbre (instrument) as the carrier of the value | Instrument-to-meaning matches are weak and differ between people. Timbre may say *what*, never *how much* (`docs/SOUND_MAPPINGS.md` §1). |
 | A listening-test results page | With no testers yet, empty statistics would hurt. We report n and the caveats instead. |
 | MIDI export, a contrast and text-size settings panel | No audience for the first; the browser already does the second. |
@@ -69,7 +69,7 @@ Everything specific to one data set (colour scale, categories, words, comparison
 ## 7. Limits (as of 9 Nov 2026)
 
 - **Not yet tested with blind or low-vision users.** n = 0 (`docs/evidence/results-note.md`). Anything about how well it works for them is still a claim to test.
-- **The change style has not had its listening check**, so it stays opt-in (`docs/TICKETS.md` T114).
+- **The change style has not had its listening check**, so it stays opt-in (the sheet is in `docs/tickets/S05-salvage-t114-sheet.md`).
 - **Numbers are read from pictures.** The app reads colours from NASA's rendered maps, not NASA's data files, so values are "about" (within the colour scale's steps).
 - **One real data set so far:** sea surface temperature around Mauritius (`public/data/mur-sst-mauritius`). Its baseline is a reference date, so "change" there partly follows the season (`docs/data-sources.md`).
 - **Vibration does not work on iOS.** The music-pauses-for-the-guide behaviour and vibration have not been checked on a real phone.
