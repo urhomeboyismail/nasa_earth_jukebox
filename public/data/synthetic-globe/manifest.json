@@ -5,7 +5,15 @@
   "description": "A pretend globe through one year: warm at the equator and cold towards the top and bottom, two grey land masses, a warm current, and a marine heatwave that grows in the north-east from March to August and fades by November. One date is hidden by cloud. Every temperature is chosen by us, so the right answer is always known. None of it is real data.",
   "variable": {
     "name": "Sea surface temperature",
-    "unit": "°C"
+    "unit": "°C",
+    "words": {
+      "higher": "warmer",
+      "lower": "cooler",
+      "highest": "warmest",
+      "lowest": "coolest",
+      "edge": "warm edge",
+      "thing": "water"
+    }
   },
   "source": {
     "name": "Synthetic test data",

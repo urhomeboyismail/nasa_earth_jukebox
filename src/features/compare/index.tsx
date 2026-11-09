@@ -208,7 +208,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
       {changeAvailable && (
         <div className="compare__style">
           <Button pressed={changeOn} onClick={() => setSoundStyle(changeOn ? 'full' : 'change')}>Change from normal</Button>
-          <span>Hear how far each date is from its normal, not the temperature itself.</span>
+          <span>Hear how far each date is from its normal, not the value itself.</span>
         </div>
       )}
 

@@ -78,6 +78,7 @@ describe('Compare with a baseline', () => {
     await renderReady(withBaseline)
     expect(screen.getByRole('button', { name: 'Change from normal' })).toHaveAttribute('aria-pressed', 'false')
     expect(engine.setStyle).toHaveBeenLastCalledWith('full')
+    expect(screen.getByText('Hear how far each date is from its normal, not the value itself.')).toBeInTheDocument()
   })
 
   it('asks which date is further above its normal, in the change style', async () => {

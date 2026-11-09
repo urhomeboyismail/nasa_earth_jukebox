@@ -50,6 +50,17 @@ describe('Learn page', () => {
     expect(screen.getByText(/Cold, Cool, Mild, Warm, Hot/)).toBeInTheDocument()
   })
 
+  it('reads in the data set\'s own words, and neutrally when it names none (I02)', () => {
+    const { unmount } = render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
+    expect(screen.getByText(/Where the value is cooler, the note is lower; where it is warmer, the note is higher\./)).toBeInTheDocument()
+    unmount()
+    const bare = { ...visualization, variable: { name: visualization.variable.name, unit: visualization.variable.unit } }
+    render(<LearnPage visualization={bare} />, { wrapper: AnnouncerProvider })
+    expect(screen.getByText(/Where the value is lower, the note is lower; where it is higher, the note is higher\./)).toBeInTheDocument()
+    expect(screen.getByText(/When the value changes from one date to the next/)).toBeInTheDocument()
+    expect(screen.getByText(/never mistaken for a low value/)).toBeInTheDocument()
+  })
+
   it('gives each category its temperature range from the data, not typed by hand', () => {
     render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
     expect(screen.getByText(/0 to 6 °C/)).toBeInTheDocument()
@@ -134,14 +145,14 @@ describe('Learn page: the chord, the slide and the bell', () => {
     for (const title of ['The soft chord underneath', 'The slide', 'The bell']) {
       expect(screen.getByRole('heading', { level: 2, name: title })).toBeInTheDocument()
     }
-    expect(screen.getByText(/all one temperature you hear one deep note under the melody/)).toBeInTheDocument()
+    expect(screen.getByText(/all one value you hear one deep note under the melody/)).toBeInTheDocument()
     expect(screen.getByText(/A longer slide is a bigger change/)).toBeInTheDocument()
     expect(screen.getByText(/two or more steps at once/)).toBeInTheDocument()
   })
 
-  it('plays a single deep note for "all warm", and the chord of cool, mild and warm for "mixed"', async () => {
+  it('plays a single deep note for "all one value", and the chord of cool, mild and warm for "mixed"', async () => {
     render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
-    await userEvent.click(screen.getByRole('button', { name: 'Play: all warm' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Play: all one value' }))
     expect(engine.playCategory).toHaveBeenLastCalledWith('warm', { pad: ['warm'] })
     await userEvent.click(screen.getByRole('button', { name: 'Play: mixed' }))
     expect(engine.playCategory).toHaveBeenLastCalledWith('mild', { pad: ['cool', 'mild', 'warm'] })

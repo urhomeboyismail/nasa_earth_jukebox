@@ -5,7 +5,15 @@
   "description": "A tiny test dataset: one cold, one mild, one hot and one missing frame of a pretend ocean.",
   "variable": {
     "name": "Sea surface temperature",
-    "unit": "°C"
+    "unit": "°C",
+    "words": {
+      "higher": "warmer",
+      "lower": "cooler",
+      "highest": "warmest",
+      "lowest": "coolest",
+      "edge": "warm edge",
+      "thing": "water"
+    }
   },
   "source": {
     "name": "Synthetic test data",

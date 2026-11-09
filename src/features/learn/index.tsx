@@ -136,7 +136,7 @@ export default function LearnPage({ visualization }: PageProps) {
       <p>Learn what each sound means before you listen to the data.</p>
       <p>
         {mapping.categories.length} sounds, {words.lowest} to {words.highest}: {mapping.categories.map(category => category.label).join(', ')}.
-        {' '}A {words.lower} place is a lower note, and a {words.higher} place is a higher note.
+        {' '}Where the value is {words.lower}, the note is lower; where it is {words.higher}, the note is higher.
       </p>
 
       {error && <Notice variant="error">The sounds could not be set up. {error}</Notice>}
@@ -157,11 +157,11 @@ export default function LearnPage({ visualization }: PageProps) {
             <li>
               <Card title="The soft chord underneath" headingLevel={2}>
                 <p>
-                  When the place you listen to is all one temperature you hear one deep note under the melody; when it is mixed, you hear a chord.
+                  When the place you listen to is all one value you hear one deep note under the melody; when it is mixed, you hear a chord.
                 </p>
                 <div className="learn__buttons">
-                  <Button disabled={!engine} onClick={() => void play('all warm', e => e.playCategory(categoryAt(mapping, 0.75), { pad: [categoryAt(mapping, 0.75)] }))}>
-                    Play: all warm
+                  <Button disabled={!engine} onClick={() => void play('all one value', e => e.playCategory(categoryAt(mapping, 0.75), { pad: [categoryAt(mapping, 0.75)] }))}>
+                    Play: all one value
                   </Button>
                   <Button
                     disabled={!engine}
@@ -176,7 +176,7 @@ export default function LearnPage({ visualization }: PageProps) {
             </li>
             <li>
               <Card title="The slide" headingLevel={2}>
-                <p>When the temperature changes from one date to the next, the note slides to its new pitch. A longer slide is a bigger change.</p>
+                <p>When the value changes from one date to the next, the note slides to its new pitch. A longer slide is a bigger change.</p>
                 <Button disabled={!engine} onClick={() => playPair('the slide', { glide: true })}>Play: the slide</Button>
               </Card>
             </li>
@@ -202,7 +202,7 @@ export default function LearnPage({ visualization }: PageProps) {
         </li>
         <li>
           <Card title="Missing data" headingLevel={2}>
-            <p>A rough, hissing sound instead of a note. It means there is not enough data for that date, so it is never mistaken for cold.</p>
+            <p>A rough, hissing sound instead of a note. It means there is not enough data for that date, so it is never mistaken for a low value.</p>
             <Button disabled={!engine} onClick={() => void play('missing data', e => e.playMissing())}>Play: missing data</Button>
           </Card>
         </li>

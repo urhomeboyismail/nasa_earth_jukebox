@@ -119,6 +119,12 @@ describe('Listen with a baseline', () => {
     expect(analyzeAll).toHaveBeenCalledWith(withBaseline.frames, withBaseline.regions[0], withBaseline.colorScale, withBaseline.mapping, withBaseline)
   })
 
+  it('explains the change sound without naming a temperature (I02)', async () => {
+    const { user } = await renderReady(withBaseline)
+    await user.click(screen.getByRole('radio', { name: 'Change from normal' }))
+    expect(screen.getByText('Hear how far each date is from its normal, not the value itself.')).toBeInTheDocument()
+  })
+
   it('puts the change step and size on each step in the change style, and on none in the others', async () => {
     const { user } = await renderReady(withBaseline)
     await user.click(screen.getByRole('button', { name: 'Play' }))

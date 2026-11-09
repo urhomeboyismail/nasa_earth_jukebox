@@ -92,7 +92,7 @@ function About({ visualization }: { visualization: Visualization }) {
         <ul className="about__limits">
           <li>The values are approximate. They come from the colours of a published image, not from the measurements behind it, and a colour can only be matched to the legend so closely.</li>
           <li>Each date is one of {mapping.categories.length} sounds, so small changes inside a range cannot be heard.</li>
-          <li>Missing data is left out, never counted as cold.{missing.length > 0 && ` ${missing.length === 1 ? 'One date has' : `${missing.length} dates have`} missing data: ${missing.map(frame => formatFrameDate(frame.date)).join(', ')}.`}</li>
+          <li>Missing data is left out, never counted as a low value.{missing.length > 0 && ` ${missing.length === 1 ? 'One date has' : `${missing.length} dates have`} missing data: ${missing.map(frame => formatFrameDate(frame.date)).join(', ')}.`}</li>
           <li>We listen to {region.name} only. Other places can behave differently.</li>
         </ul>
       </Card>

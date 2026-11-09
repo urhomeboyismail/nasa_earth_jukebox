@@ -79,6 +79,12 @@ describe('About the data page', () => {
     expect(screen.getByText('2 dates, from 15 September 2024 to 16 September 2024')).toBeInTheDocument()
   })
 
+  it('says missing data is never counted as a low value, in no temperature words (I02)', () => {
+    render(<AboutPage visualization={visualization} />)
+    expect(screen.getByText(/never counted as a low value/)).toBeInTheDocument()
+    expect(screen.queryByText(/never counted as cold/)).toBeNull()
+  })
+
   it('lists the dates with missing data', () => {
     render(<AboutPage visualization={visualization} />)
     expect(screen.getByText(/One date has missing data: March 2025/)).toBeInTheDocument()
