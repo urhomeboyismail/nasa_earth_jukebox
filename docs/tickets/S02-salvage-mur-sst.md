@@ -41,7 +41,6 @@ The first real NASA data set, sea surface temperature around Mauritius from Janu
 
 - `public/data/mur-sst-mauritius/**`, `public/data/index.json`, `docs/data-sources.md`, `docs/AGENT-BOARD.md`, `docs/PRE-HACKATHON-WORK.md`.
 - `src/data/__golden__/change.json`, `src/data/change-regression.test.ts`, `src/App.test.tsx`, `src/components/DatasetPicker.test.tsx`.
-- Review: Dhruv (`public/data/`, `src/data/`). The team leader approves any change to a golden file (`src/data/sound-regression.test.ts` header). Mohammad for `src/App.test.tsx`.
 
 ## Steps
 
@@ -75,7 +74,6 @@ Data only. The sound engine and the visuals are not changed. The existing guardr
 - `variable.words` is set explicitly, and the Mauritius text reads as it did before.
 - `docs/data-sources.md` matches the manifest: dates, frame count, baseline, number of comparisons and story chapters.
 - The rehearsal copy is not committed.
-- Dhruv has reviewed the data, and the team leader has approved any golden change.
 
 ## Checks
 

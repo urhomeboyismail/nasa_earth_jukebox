@@ -35,7 +35,6 @@ Deep links (F40) and the Shortcuts dialog (F41) are on `main`, built from their 
 
 - From F40 and F41: the files listed in Why, except the three ticket files and the README rows.
 - `docs/PRE-HACKATHON-WORK.md`: one line for F40 and one for F41.
-- Review: Mohammad for `src/features/player/`, `src/features/explore/` and `src/route.ts` (the App shell's route, not in `docs/PLAN.md` §4, so ask on `docs/AGENT-BOARD.md` before changing more than the cherry-pick). Roni for `src/components/Dialog.tsx`, `src/components/index.ts` and `src/styles/components.css`.
 
 ## Steps
 
@@ -71,7 +70,6 @@ Deep links (F40) and the Shortcuts dialog (F41) are on `main`, built from their 
 - A link such as `#listen?data=<id>&date=<date>&cell=<col>,<row>&style=<style>` opens on those values. Bad values are ignored.
 - Neither old `TICKETS.md` file is on the branch.
 - `docs/PRE-HACKATHON-WORK.md` has the two lines.
-- Mohammad has reviewed the player and explorer changes. Roni has reviewed `Dialog.tsx` and the CSS.
 
 ## Checks
 
