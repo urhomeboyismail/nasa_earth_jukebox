@@ -1,0 +1,19 @@
+/* Symphony (SN07). Uses the player's own look; only what Symphony adds is here. */
+.symphony__video { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: fill; background: var(--code-bg); }
+/* Not shown, but still laid out so the browser keeps decoding it for the reading. */
+.symphony__video--hidden { opacity: 0; pointer-events: none; }
+
+.symphony__status, .symphony__now { margin: 0; color: var(--text); }
+.symphony__now strong { color: var(--text-h); }
+
+.symphony__captions { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.25rem; color: var(--text); min-block-size: 1.5rem; }
+
+.symphony__detail { border: 1px solid var(--border); border-radius: 0.5rem; margin: 0; padding: 0.25rem 1rem; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: center; color: var(--text); }
+.symphony__detail legend { font-weight: 600; color: var(--text-h); padding-inline: 0.25rem; }
+
+.symphony__mixer { display: grid; gap: 0.5rem; }
+.symphony__voice { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.symphony__voice-name { min-inline-size: 6rem; font-weight: 600; color: var(--text-h); text-transform: capitalize; }
+
+.symphony__mode { border: 0; margin: 0 0 1rem; padding: 0; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: center; color: var(--text); }
+.symphony__mode legend { font-weight: 600; color: var(--text-h); padding: 0; margin-inline-end: 0.5rem; float: inline-start; }

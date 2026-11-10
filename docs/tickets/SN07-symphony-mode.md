@@ -161,4 +161,29 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Built on `feature/SN07-symphony-mode`. Only files under Touches changed, plus `symphony.css`, `symphonyTestSupport.ts` and the golden file (new files in the same folder).
+
+**Checks (real output):**
+- `npm run lint`: 0 warnings, 0 errors.
+- `npm test`: 95 files, 1693 tests passed (the 111 existing player tests pass unchanged; 38 new: `listenMode.test.ts` 6, `Symphony.test.tsx` 31, `symphony.golden.test.tsx` 1).
+- `npm run build`: built, no errors.
+
+**Manual check (Chromium, `npm run dev`, a temporary git-ignored copy of `synthetic-storm` with a `video` (H.264 made from its frames) and `sonification` (dorian); removed afterwards):**
+- The page opened in Symphony; Simple stays one click away and is remembered.
+- Nothing started before Play. After the click: "Reading the video. Reading confidence 100%.", the dates followed the video, the Now line and captions changed per frame.
+- Pause stopped the video and the reading ("Paused."); Resume continued.
+- A hidden page (visibilitychange): the ensemble paused, the video stopped, status "Paused while the page was hidden. Press Resume to continue."; coming back did NOT resume; Resume did.
+- Detail: choosing a level announced "Detail: Full. Melody, harmony, bass, hot spots, rhythm, motion and time." through the shared live region; the mixer rows followed the level.
+- Not seen: the "Turn sound on" path with a really suspended browser context (only in tests with a fake ensemble). A person should check it on a phone (H06).
+
+**Decisions to check:**
+1. The mode switch is two radio buttons named "Symphony mode" and "Simple mode" (legend "Listen as"), not "Symphony"/"Simple". `change.test.tsx` looks for a radio named exactly "Simple" (the sound style), so a second radio with that name broke tests that must pass unchanged.
+2. The hidden-page message says "Press Resume to continue" (the ticket says "Press Play"), because the button reads Resume then.
+3. Space and Escape work when focus is on the page, not on a button, field or radio (the same rule as Simple). A button keeps its own Space.
+4. The player shortcuts dialog (`SHORTCUTS` in `shortcuts.ts`) is not changed; Symphony shows its own hint line.
+5. There is no volume slider in Symphony (the ticket does not list one); `ensemble.setVolume` is ready for it.
+6. A speed change makes a new source (SN06 fixes the checked-frame pace when it is made); a performance that was running carries on with it.
+7. **SN06 finding, worked around here:** after `stop()` then `start()`, `LiveSource` does not report `'video'` again (status stays `'stopped'`), so the status line would say "Starting." for ever. Symphony says "Reading the picture." once frames arrive with the sound on. A one-line fix in `LiveSource.start()` would remove the need; it is outside this ticket's Touches.
+8. Captions already start with the voice name ("Melody: low"), so the strip shows them as they are.
+
+**Not done:** the "Turn sound on" check on a real device, and Symphony with a real EIC video (EIC01).
