@@ -234,4 +234,32 @@ npm run check-data                          # only if public/data/ changed (it s
 
 ## Result
 
-Not started.
+Built on `feature/SN03-ruleset-presets`, with SN01 and SN05 already on `main`, so the golden test (step 6) is included.
+
+### Checks (real output)
+
+```
+$ npm run lint                      exit 0 (no warnings)
+$ npm test                          exit 0   Test Files 80 passed (80)   Tests 1449 passed (1449)
+$ npm run build                     exit 0   built in 469ms
+```
+
+`npm run check-data` was not needed: `public/data/` did not change. Only `src/sonify/**` and `src/boundary.test.ts` (the allowed edit) changed. The boundary test now guards `sonify/`; as step 4 asks, a temporary `fetch()` appended to `src/sonify/detail.ts` made it fail with `sonify/detail.ts calls fetch()`, and after reverting it passes (6 of 6).
+
+### What was built
+
+`ranges.ts`, `types.ts`, `presets.ts`, `detail.ts`, `captions.ts`, `music.ts`, `index.ts` as designed. `toMusicFrame(features, preset, prev)` is a pure function; every rule in "The rules" has its own test. Two test-only helpers, `testFeatures.ts` (hand-made `FrameFeatures`) and `purity.test.ts` (the sources read no clock, no random number, no page, no Tone or React), plus `__golden__/music.json`: the first twelve frames of the fixture, `synthetic-ocean`, `synthetic-globe` and `synthetic-change`, read by the real extractor with `previous` carried, turned into music with the `major` and the `pentatonic` presets. Tests: 73 in `captions`, `music`, `presets`, plus `golden` (5) and `purity` (2).
+
+### Decisions where the ticket was silent or its lines disagreed (for review)
+
+1. **A dropout is only the time pulse.** Rule 2 says the harmony is null only when the histogram is all zeros, but a frame with too few readable cells (a coast, say) has a histogram and no median, and the ticket says the dropout summary "says that only the time pulse sounds". So when `stats.position` is null the harmony is also null (named missing, with the melody and bass), and the hot spots, rhythm and motion are quiet too: a picture that unreadable is not trusted for its shapes either. `dropout` is still exactly "position is null".
+2. **Motion follows rule 6, not the closing paragraph.** Rule 6 says the voice is null only when `features.motion` is null; the paragraph on quiet voices says "motion with no speed" is null. A measured speed of 0 gives `{ openness: 0, sweep: 0, level: motionBase }` (the pad is there, with its filter closed), and its caption says "Motion: still".
+3. Where the ticket left it open: each scale degree becomes the lowest note of its pitch class at or above `HARMONY_LOW_MIDI`; if no band reaches `HARMONY_MIN_SHARE` (more than ten bands) the fullest band sounds; the caption wording ("Harmony: thin chord, 1 note", "Bass: high, rising", "Hot spots: 2, the largest is a low one in the north-east") and the summary sentence are mine, using only high, middle and low, rising, falling and steady, and compass sectors.
+
+### Things later tickets should know
+
+- **Below-normal is inaudible in pitch for the `major` preset.** The bass starts at `BASS_LOW_MIDI + tonic` and the range starts there too (C2 to C3), so a shift of −1 (31) is clamped to 36, the same note as a shift of 0. Only the level (`bassBase + bassRange × |shift|`) tells them apart. `dorian` (tonic D, start 38) and `pentatonic` (tonic A, start 45) can go below their start. If SN04's listening test shows it matters, the bass could start in the middle of its range.
+- **Every frame of a monthly data set carries a month accent**, and the summary says "a new month" each time (see `synthetic-ocean` in the golden file). The rule is as written; SN04 and SN07 may want to treat a month accent as a rhythm cue only when the step between frames is shorter than a month, or to drop it from the summary.
+- **A uniform frame is a hot spot** (SN01 finding): the `fixture` frames that are all one band sound as one hot spot at the centre, full level. Ignoring a spot whose `areaShare` is near 1 would be a one-line rule here or in SN01; it is not in either ticket.
+- **The chord hold is true by construction.** `chordKey` is the notes joined, so a frame with the same key has the same notes; the hold is there because the ticket asks for it and because it keeps the previous frame's array out of the new frame.
+- **`src/audio/pan.ts` imports React** (the spatial-mode hook lives in the same file as `panForPoint`). `sonify/` reuses the two pure helpers as the ticket says, so React is in its import graph even though no `sonify/` file imports it. Splitting the hook out of `pan.ts` belongs to a ticket that owns `src/audio/` (SN04).
