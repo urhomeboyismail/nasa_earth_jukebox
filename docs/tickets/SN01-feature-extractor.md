@@ -272,4 +272,46 @@ npm run check-data                          # only if public/data/ changed (it s
 
 ## Result
 
-Not started.
+Built on `feature/SN01-feature-extractor`. Only `src/analysis/features/**` changed.
+
+### Checks (real output)
+
+```
+$ npm run lint
+> oxlint
+(no warnings or errors)                                   exit 0
+
+$ npm test
+ Test Files  73 passed (73)
+      Tests  1325 passed (1325)                           exit 0
+   (src/analysis/features: 7 files, 94 tests)
+
+$ npm run build
+✓ built in 667ms                                          exit 0
+```
+
+`npm run check-data` was not needed: `public/data/` did not change. `src/boundary.test.ts` already covers `analysis/**` and passes (no `fetch`, no `assistant` import in `features/`).
+
+### Time to extract one frame (Vitest on this laptop, pure V8, so indicative)
+
+- 800 × 400 frame, 2-stop legend: median 17 ms (10 runs).
+- Real data (`mur-sst-mauritius`, 160 × 160, 215 colour stops): about 230 ms. Before caching confidence by colour it was about 700 ms. What is left is `readField`'s one pass: `valueAtPixel` walks all 215 stops for each of the 18 432 samples. A cache by colour inside `valueAtPixel` (board request R-20261109-T85-1, owner: team leader) is the next step if live reading (SN06) needs 10 to 20 frames a second on a real legend.
+
+### Files
+
+`types.ts`, `extract.ts`, `hotspots.ts`, `edges.ts`, `motion.ts`, `bitmap.ts`, `protocol.ts`, `worker.ts`, `index.ts` as designed, plus `stream.ts` (the stream rules shared by the worker and the main-thread path, so both give the same features and the worker path can be tested), and two test-only helpers, `testScenes.ts` and `testBitmap.ts`. Tests: `extract`, `hotspots`, `motion`, `edges`, `bitmap`, `index` (worker, main thread, reset) and `golden` (`__golden__/features.json`: fixture, synthetic-ocean, synthetic-globe, synthetic-change, every frame in date order with `previous` carried; it also agrees with `src/data/__golden__/change.json` on the change step of every frame that file records).
+
+### Decisions where the ticket was silent or two lines disagreed (for review)
+
+1. **`hotspotSerial?: number` added to `FrameFeatures`** (optional, set by `extractFeatures`). The ticket says ids "never repeat within a stream" but also that a new id is "one more than the largest number among the previous ids". If the highest-numbered spot vanishes for one frame, the second rule reissues its id to a different spot (a follow mode would follow the wrong spot). The counter fixes that; without it the code falls back to the second rule. The golden shows it working (`h6` appears in April, October's new spot is `h7`).
+2. `trackHotspots(previous, current, { serial?, aspect? })`: `aspect` (image height ÷ width) makes TRACK_DISTANCE "a fraction of the image width" in both directions.
+3. A `previous` of the other mode is ignored (its numbers mean something else). A baseline in picture mode is ignored (`change` is null), and `change` is also null when the mapping has no `changeSteps`.
+4. `reference` also falls back to this frame's position when the previous frame had none (the first readable position of the run).
+5. The edge line's level is rounded to Float32 before tracing, because the cells are Float32 and a cell exactly at the median must count as at the level.
+6. Motion direction uses `atan2(0 - dy, dx)`: `atan2(-0, -1)` is −π, which would have made a move straight west read as −π.
+
+### Things later tickets should know
+
+- **Motion has an aperture problem.** A block that sees only the place where an edge *used to be* is explained equally well by several shifts, and the ticket's tie-break ("then smaller dy, then smaller dx", read as numbers) can pick a vertical or opposite one. Example: a 6 × 4 square moving east by 2 gives dx 2, dy 0 at columns 20 to 22, but dx 1.5, dy −0.5 at columns 22 to 24 (3 blocks say (2, 0), one says (0, −2)). The maths follows the ticket; the tests use layouts where the answer is clear. SN02 (known-answer sets for motion) is where to decide whether to skip tied blocks or use a median instead of a mean.
+- **A uniform frame is one giant hot spot** (all 2048 cells in the coolest or warmest category): see `fixture` frames 1 and 3 in the golden. SN03 may want to ignore a spot whose `areaShare` is near 1.
+- **A plateau frame has no `edges.strongest`**: cells at the median count as above it (the contour rule), so a frame that is mostly one value has no line at its median.
