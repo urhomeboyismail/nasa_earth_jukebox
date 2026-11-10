@@ -179,4 +179,34 @@ No front-end file changes, so the `npm` checks do not apply.
 
 ## Result
 
-Not started.
+**In progress** (agent B, 10 Nov 2026, Windows 11, Python 3.13.7). Steps 1, 2, 4 and 5 are done. Step 3 (the settings in `config.py` and `.env.example`) and test 6 wait for the team leader's answer to `R-20261110-G01-1` on `docs/AGENT-BOARD.md`, because `config.py` is the team leader's file.
+
+**Dependencies**
+
+- `google-genai`: 3.0.0 before, 2.34.0 after. `google-adk`: 2.13.0. FastAPI stayed at 0.162.2 (already above ADK's `>=0.133`); pip added `python-multipart` 0.0.33.
+- Fresh venv, `pip install -r requirements.txt`, then `pip check`: `No broken requirements found.`
+- The bridge tests (`test_assistant.py`) and the study API tests pass on 2.34.0 unchanged.
+
+**API checked in the installed wheel (step 1), and what differs from the ticket**
+
+- `ToolContext` is an alias of `google.adk.agents.context.Context` (`google/adk/tools/tool_context.py:27`). `before_tool_callback` and `after_tool_callback` have the signatures the ticket gives (`google/adk/agents/llm_agent.py`).
+- `FunctionTool(fn)` builds the schema from the signature: `Literal[...]` becomes `enum`, and `tool_context` is left out of what the model sees (checked by a test).
+- **`keyed_model` does not subclass `Gemini`.** In 2.13.0, `Gemini.api_client` is a per-event-loop cached property, and its docstring warns that overriding it pins one client to the model and breaks on a second event loop. 2.13.0 has a `client_kwargs` field that it applies to both the request client and the Live client (`google/adk/models/google_llm.py`, `api_client` and `_live_api_client`). `keyed_model` passes `api_key` (from settings) and `http_options.api_version` (from `settings.gemini_api_version`) there. Nothing is put in `os.environ`, and no client is built until the model is first called.
+- `FakeLlm.script` takes the `LlmRequest`, as the ticket says, so `keyword_script` matches its rules against the newest user text in the request (`last_user_text`) instead of a question string. `calls` uses `Field(default_factory=list)`; a test checks two instances do not share it.
+
+**Model id.** A model list with a real key (no billed call) shows `gemini-2.5-flash` and `gemini-3.8-live` as available, 10 Nov 2026. The `[unverified]` note on `agent_model` can go once G07 makes a real call.
+
+**Checks** (pytest is run with `--basetemp` in a writable folder, because this machine denies pytest its default temp folder; that is not a code problem)
+
+```
+$ .venv/Scripts/python -m pip check
+No broken requirements found.
+
+$ .venv/Scripts/python -m pytest -q
+132 passed in 16.61s
+
+$ env -u GEMINI_API_KEY -u GOOGLE_API_KEY .venv/Scripts/python -m pytest -q
+132 passed in 14.34s
+```
+
+`tests/test_agent_core.py` alone: 50 passed. There is no `.env` in this worktree, so no key was present in either run.
