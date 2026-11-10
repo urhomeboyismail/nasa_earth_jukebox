@@ -259,4 +259,49 @@ Plus the manual peak check above, with its real output under Result.
 
 ## Result
 
-Not started.
+Built on `feature/SN04-ensemble-engine`, with SN01, SN03 and SN05 already on `main`, so the golden test is included. Only `src/audio/ensemble/**` changed.
+
+### Checks (real output)
+
+```
+$ npm run lint                      exit 0 (no warnings)
+$ npm test                          exit 0   Test Files 87 passed (87)   Tests 1573 passed (1573)
+                                    (src/audio/ensemble: 7 files, 124 tests)
+$ npm run build                     exit 0   built in 524ms
+```
+
+`npm run check-data` was not needed: `public/data/` did not change. `src/boundary.test.ts` (which guards `audio/**`) passes: no `fetch`, no `WebSocket`, no `assistant` or `config` import in `ensemble/`.
+
+### The manual peak check, measured in a real browser
+
+jsdom has no audio, so the check ran in Chrome against the dev server (`npm run dev`), calling the real `renderOffline` on a worst-case schedule: twelve frames half a second apart with **every voice at level 1** (melody gliding, a four-note chord, bass, three hot spots, a four-notes-a-beat rhythm, motion fully open, a 120 bpm pulse with a year and a month accent), then a dropout. No WAV file was written; the peak was taken from the rendered channels after rounding to 16 bits, which is what the ticket's Python line computes from a WAV (`max |sample| / 32768`, in dB).
+
+```
+detail   peak dBFS   rms dBFS
+full       -1.003     -10.5
+standard   -1.003     -10.6
+calm       -1.003     -11.8
+```
+The peak is −1.00 dBFS or lower in all three. It sits exactly on the ceiling because this worst case drives the clip (see decision 2).
+
+### What was built
+
+`constants.ts`, `types.ts`, `dropout.ts`, `plan.ts`, `graph.ts`, `voices.ts`, `lifecycle.ts`, `index.ts` (`createEnsemble`) and `useEnsemble.ts` as designed, plus two test-only helpers: `toneMock.ts` (a recording stand-in for Tone) and nothing else. `createEnsemble` implements every method of `Ensemble`. Tests: `plan` (14), `dropout` (5), `graph` (11), `voices` (47), `ensemble` (36: lifecycle, visibility, suspended context, detail/solo/mute, offline, dispose), `useEnsemble` (7, including StrictMode) and `plan.golden` (4, `__golden__/plan.json`: the fixture and the three synthetic sets, first twelve frames, at `full` and `calm`).
+
+### Decisions where the ticket was wrong or silent (for review)
+
+1. **`Freeverb` and `PolySynth` are not repeatable, so neither is used.** The ticket says a `Freeverb` "is deterministic". Measured in Chrome with `Tone.Offline`, two renders of the same notes through a `Freeverb` differ (about 1e-6, and up to 1.7e-4 on the melody), and so do two renders of a `PolySynth`. Plain `Synth`s and `FeedbackDelay`s do not. So the room around the melody and harmony is two short `FeedbackDelay` lines in series (`SPACE`, 0.15 wet), and the chord is four plain sine `Synth`s.
+2. **A hard clip follows the limiter.** `Tone.Limiter` is a compressor, not a brick wall: on the worst case above it let the peak reach **0 dBFS**. The chain is now bus → compressor → limiter (−1 dB) → clip (`CEILING_LINEAR` 0.891, −1.003 dBFS) → master → speakers. The ticket's test line "the limiter is the last node before the master" becomes "the limiter, then the clip".
+3. **The browser's own mixer is not repeatable to the last bit, and no app code can change that.** With no Tone at all, four native oscillators summed in an `OfflineAudioContext` give different samples from run to run (about 1.2e-7, in 20 to 40 percent of the samples). After the two fixes above, three renders of the worst case compare as: 144 000 to 152 000 of 705 600 float samples differ, by at most 6.9e-6 (−103 dBFS), and **573 of 705 600 16-bit samples (0.08 percent) differ, always by exactly 1**. So "the same schedule gives identical channels" holds in the tests (the mock is exact) and to within one 16-bit step in Chrome, but a byte-identical WAV from a browser render is **not** guaranteed. SN12's "byte-identical WAV" needs a different promise (identical within one least-significant bit, checked with a tolerance) or a different way to mix.
+4. `planFrame` gained optional fields on `VoiceAction` (`id`, `perBeat`, `accent`, `pulseBpm`) and a `brightness` on its `mix` argument, because the plan could not otherwise carry a hot spot's id, the rhythm's density, the time voice's accent or the preset's brightness. The detail level always applies; a solo only narrows it (a soloed voice outside the level stays silent).
+5. Centred voices (melody, harmony, bass, time) have no panner; hot spots, rhythm, motion, the explore tone and each scan note do.
+6. `renderOffline` applies the same 50 ms rate limit as `apply`: frames closer than `MIN_APPLY_GAP_S` are dropped. It sorts the schedule, and refuses an empty one ("There is nothing to render yet.").
+7. The Tone Transport is shared with the old engine. The ensemble clears only the events it scheduled (by id), never `cancel(0)`; `stop()` stops the Transport, as the ticket says, which would also stop the old engine if both were playing. The Listen page (SN07) uses one engine at a time.
+8. Constants added to `constants.ts` beyond the ticket's list: `SPACE`, `CEILING_LINEAR`, `CLIP_CURVE_POINTS`, `MALLET_ENVELOPE`, `MOTION_PAD_MIDI`, `ACCENT_DB`, `CLICK_S`, `DROPOUT_TAP_S`, `RHYTHM_NOTE_SHARE`.
+9. A test caught a leak in the first `useEnsemble`: when the preset changed, the old ensemble was never disposed. The hook now tracks which ensemble is mounted and defers disposal by a microtask, so StrictMode's mount, unmount, mount keeps the ensemble and a real unmount or a new preset disposes it.
+
+### Things later tickets should know
+
+- `Ensemble.now()` is the raw context's clock; SN07, SN08 and SN09 should line the picture up with it, and pass `atTime` explicitly for scheduled frames.
+- A month accent sounds on the next click only; a frame without an accent does not cancel one that is waiting.
+- `pause()` releases every voice at the end of its fade, so a melody held through a pause starts again with the next `apply` rather than sustaining under the resume.
