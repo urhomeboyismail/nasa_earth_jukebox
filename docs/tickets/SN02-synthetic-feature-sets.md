@@ -149,4 +149,41 @@ git status --short public/data/synthetic-motion public/data/synthetic-storm   # 
 
 ## Result
 
-Not started.
+Built on `feature/SN02-synthetic-feature-sets`, with SN01 already on `main`, so step 7 is included.
+
+### Checks (real output)
+
+```
+$ npm run lint                      exit 0 (no warnings)
+$ npm test                          exit 0   Test Files 75 passed (75)   Tests 1369 passed (1369)
+$ npm run check-data                exit 0   Test Files 12 passed (12)   Tests 248 passed (248)
+$ npm run build                     exit 0   built in 461ms
+$ python -I scripts/make_synthetic_motion.py && python -I scripts/make_synthetic_storm.py   (run twice)
+  sha256 of every file under public/data/synthetic-motion, synthetic-storm and index.json: identical on both runs
+```
+
+No existing data set, golden file or script changed (`git diff` over `synthetic-ocean`, `-globe`, `-change`, `fixture` and both `__golden__` folders is empty).
+
+### What was built
+
+- `scripts/make_synthetic_motion.py` and `scripts/make_synthetic_storm.py`, `public/data/synthetic-motion/**` (12 frames) and `public/data/synthetic-storm/**` (10 frames), two entries appended to `public/data/index.json`.
+- `src/data/synthetic-feature-sets.test.ts` (step 5): labelling, frame counts and sizes, the drawn value at every sample point (within 0.1 °C of legend rounding), hot-spot categories, and for the motion set that each frame is the one before moved 25 pixels east, pixel for pixel.
+- `src/analysis/features/synthetic.test.ts` (step 7): `extractFeatures` over each set with `previous` carried.
+
+### What the extractor finds (SN01 on these sets)
+
+- `synthetic-motion`: motion between frames is dx 1.89 to 1.94, dy 0 to −0.11, direction within 0.1 of east on every step (drawn: dx 2, dy 0). Six hot spots every frame (four high, two low, 18 to 19 cells each), within one cell of the drawn centres, and each keeps its id (`h1` to `h6`) through all twelve frames.
+- `synthetic-storm`: one `high` spot on frames 0 to 8 (one id, `h1`), the cold patch on frames 5 to 7 (`h2`), none on frame 9, which has `validShare` 0 and no median. `validShare` equals the share computed from the drawn land mask (0.9219).
+
+### Decisions and differences from the ticket text (for review)
+
+1. **Patch spacing 70 pixels, not 100.** The ticket's formula `x = 50 + 25 k + 100 i` puts the sixth patch at x = 825 on frame 11, off the 800-pixel picture, while the ticket also says patches never leave the image and the last stays below x = 700. Spacing 70 gives 675. Patch heights alternate between pixel rows 160 and 240 (the ticket gave none).
+2. **No legend bar or label drawn.** The manifest has no `mapArea`, so the whole picture is the map and the 64 × 32 grid covers it as the ticket's 12.5-pixel cell assumes.
+3. **`expected.json` is a superset of the ticket's layout.** The existing `src/data/datasets.test.ts` requires every `expected.json` to carry `frameId`, `regionId`, `sampled`, `valid`, `medianValue` and `category` per frame, and `check-data` failed without them. Both files now have those (from the drawn model, not the images) next to the ticket's `date`, `valueAt`, `hotspots`, `motion`/`validShare`.
+4. **Two files outside Touches changed, one line each:** `src/App.test.tsx` and `src/components/DatasetPicker.test.tsx` list every catalogue title, so they now end with the two new titles. Adding the catalogue entries breaks them otherwise.
+
+### Things later tickets should know
+
+- **Motion cannot see more than two cells a step.** `MOTION_SEARCH` is 2. The storm travels about 3 cells east a frame (37 pixels) and 0.8 south, and the extractor reports dx about 1.1 to 1.8, dy 0.25 to 1. The direction is right, the speed is capped. The ticket keeps the storm's path as is; if SN03's motion voice needs the real speed, the search range has to grow or the frames have to be closer together.
+- **The aperture problem shows here too:** the motion set's dy is not exactly 0 (down to −0.11), because some blocks see only a patch's trailing edge. It stays well inside the ticket's ±0.25.
+- **The last storm frame has motion 0/0 rather than null:** the frame before it was readable, so SN01 compares them (a frame that goes from data to no data).

@@ -108,7 +108,7 @@ describe('Choosing a data set', () => {
     const select = await picker()
     expect(select).toHaveValue('fixture')
     expect(await screen.findByText(/Now playing from: Fixture ocean/)).toBeInTheDocument()
-    expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual(['Fixture ocean', 'Synthetic ocean', 'Synthetic globe (made-up practice data)', 'Synthetic change (made-up practice data)', 'Sea surface temperature around Mauritius, 2023'])
+    expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual(['Fixture ocean', 'Synthetic ocean', 'Synthetic globe (made-up practice data)', 'Synthetic change (made-up practice data)', 'Sea surface temperature around Mauritius, 2023', 'Synthetic motion (made-up practice data)', 'Synthetic storm (made-up practice data)'])
   })
 
   it('switches data set, shows it on the page, and keeps the choice in the address', async () => {

@@ -1,0 +1,401 @@
+{
+  "id": "synthetic-storm",
+  "note": "Computed from the values and the land mask drawn, not from the images. frameId, regionId, sampled, valid, medianValue and category: what the region reading must find (the format every data set's expected.json shares). valueAt: the value at each sample point (null where it is land or missing). hotspots: the drawn centre of each hot spot, with a name that stays the same from day to day (the extractor's cell centroid may differ by one cell). validShare: the share of the 64 x 32 cells that can be read.",
+  "frames": [
+    {
+      "frameId": "2026-03-01",
+      "regionId": "open-sea",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 14.0,
+      "category": "mild",
+      "date": "2026-03-01",
+      "valueAt": [
+        {
+          "x": 0.5,
+          "y": 0.1,
+          "value": 14.0
+        },
+        {
+          "x": 0.97,
+          "y": 0.5,
+          "value": null
+        },
+        {
+          "x": 0.250625,
+          "y": 0.35125,
+          "value": 28.0
+        }
+      ],
+      "hotspots": [
+        {
+          "name": "storm",
+          "band": "high",
+          "centre": {
+            "x": 0.25,
+            "y": 0.35
+          }
+        }
+      ],
+      "validShare": 0.921875
+    },
+    {
+      "frameId": "2026-03-02",
+      "regionId": "open-sea",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 14.0,
+      "category": "mild",
+      "date": "2026-03-02",
+      "valueAt": [
+        {
+          "x": 0.5,
+          "y": 0.1,
+          "value": 14.0
+        },
+        {
+          "x": 0.97,
+          "y": 0.5,
+          "value": null
+        },
+        {
+          "x": 0.296875,
+          "y": 0.37625,
+          "value": 28.0
+        }
+      ],
+      "hotspots": [
+        {
+          "name": "storm",
+          "band": "high",
+          "centre": {
+            "x": 0.2963,
+            "y": 0.375
+          }
+        }
+      ],
+      "validShare": 0.921875
+    },
+    {
+      "frameId": "2026-03-03",
+      "regionId": "open-sea",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 14.0,
+      "category": "mild",
+      "date": "2026-03-03",
+      "valueAt": [
+        {
+          "x": 0.5,
+          "y": 0.1,
+          "value": 14.0
+        },
+        {
+          "x": 0.97,
+          "y": 0.5,
+          "value": null
+        },
+        {
+          "x": 0.343125,
+          "y": 0.40125,
+          "value": 28.0
+        }
+      ],
+      "hotspots": [
+        {
+          "name": "storm",
+          "band": "high",
+          "centre": {
+            "x": 0.3425,
+            "y": 0.4
+          }
+        }
+      ],
+      "validShare": 0.921875
+    },
+    {
+      "frameId": "2026-03-04",
+      "regionId": "open-sea",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 14.0,
+      "category": "mild",
+      "date": "2026-03-04",
+      "valueAt": [
+        {
+          "x": 0.5,
+          "y": 0.1,
+          "value": 14.0
+        },
+        {
+          "x": 0.97,
+          "y": 0.5,
+          "value": null
+        },
+        {
+          "x": 0.389375,
+          "y": 0.42625,
+          "value": 28.0
+        }
+      ],
+      "hotspots": [
+        {
+          "name": "storm",
+          "band": "high",
+          "centre": {
+            "x": 0.3887,
+            "y": 0.425
+          }
+        }
+      ],
+      "validShare": 0.921875
+    },
+    {
+      "frameId": "2026-03-05",
+      "regionId": "open-sea",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 14.0,
+      "category": "mild",
+      "date": "2026-03-05",
+      "valueAt": [
+        {
+          "x": 0.5,
+          "y": 0.1,
+          "value": 14.0
+        },
+        {
+          "x": 0.97,
+          "y": 0.5,
+          "value": null
+        },
+        {
+          "x": 0.435625,
+          "y": 0.45125,
+          "value": 28.0
+        }
+      ],
+      "hotspots": [
+        {
+          "name": "storm",
+          "band": "high",
+          "centre": {
+            "x": 0.435,
+            "y": 0.45
+          }
+        }
+      ],
+      "validShare": 0.921875
+    },
+    {
+      "frameId": "2026-03-06",
+      "regionId": "open-sea",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 14.0,
+      "category": "mild",
+      "date": "2026-03-06",
+      "valueAt": [
+        {
+          "x": 0.5,
+          "y": 0.1,
+          "value": 14.0
+        },
+        {
+          "x": 0.97,
+          "y": 0.5,
+          "value": null
+        },
+        {
+          "x": 0.481875,
+          "y": 0.47625,
+          "value": 28.0
+        },
+        {
+          "x": 0.800625,
+          "y": 0.70125,
+          "value": 2.0
+        }
+      ],
+      "hotspots": [
+        {
+          "name": "storm",
+          "band": "high",
+          "centre": {
+            "x": 0.4813,
+            "y": 0.475
+          }
+        },
+        {
+          "name": "cold-patch",
+          "band": "low",
+          "centre": {
+            "x": 0.8,
+            "y": 0.7
+          }
+        }
+      ],
+      "validShare": 0.921875
+    },
+    {
+      "frameId": "2026-03-07",
+      "regionId": "open-sea",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 14.0,
+      "category": "mild",
+      "date": "2026-03-07",
+      "valueAt": [
+        {
+          "x": 0.5,
+          "y": 0.1,
+          "value": 14.0
+        },
+        {
+          "x": 0.97,
+          "y": 0.5,
+          "value": null
+        },
+        {
+          "x": 0.528125,
+          "y": 0.50125,
+          "value": 28.0
+        },
+        {
+          "x": 0.800625,
+          "y": 0.70125,
+          "value": 2.0
+        }
+      ],
+      "hotspots": [
+        {
+          "name": "storm",
+          "band": "high",
+          "centre": {
+            "x": 0.5275,
+            "y": 0.5
+          }
+        },
+        {
+          "name": "cold-patch",
+          "band": "low",
+          "centre": {
+            "x": 0.8,
+            "y": 0.7
+          }
+        }
+      ],
+      "validShare": 0.921875
+    },
+    {
+      "frameId": "2026-03-08",
+      "regionId": "open-sea",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 14.0,
+      "category": "mild",
+      "date": "2026-03-08",
+      "valueAt": [
+        {
+          "x": 0.5,
+          "y": 0.1,
+          "value": 14.0
+        },
+        {
+          "x": 0.97,
+          "y": 0.5,
+          "value": null
+        },
+        {
+          "x": 0.574375,
+          "y": 0.52625,
+          "value": 28.0
+        },
+        {
+          "x": 0.800625,
+          "y": 0.70125,
+          "value": 2.0
+        }
+      ],
+      "hotspots": [
+        {
+          "name": "storm",
+          "band": "high",
+          "centre": {
+            "x": 0.5737,
+            "y": 0.525
+          }
+        },
+        {
+          "name": "cold-patch",
+          "band": "low",
+          "centre": {
+            "x": 0.8,
+            "y": 0.7
+          }
+        }
+      ],
+      "validShare": 0.921875
+    },
+    {
+      "frameId": "2026-03-09",
+      "regionId": "open-sea",
+      "sampled": 30,
+      "valid": 30,
+      "medianValue": 14.0,
+      "category": "mild",
+      "date": "2026-03-09",
+      "valueAt": [
+        {
+          "x": 0.5,
+          "y": 0.1,
+          "value": 14.0
+        },
+        {
+          "x": 0.97,
+          "y": 0.5,
+          "value": null
+        },
+        {
+          "x": 0.620625,
+          "y": 0.55125,
+          "value": 28.0
+        }
+      ],
+      "hotspots": [
+        {
+          "name": "storm",
+          "band": "high",
+          "centre": {
+            "x": 0.62,
+            "y": 0.55
+          }
+        }
+      ],
+      "validShare": 0.921875
+    },
+    {
+      "frameId": "2026-03-10",
+      "regionId": "open-sea",
+      "sampled": 30,
+      "valid": 0,
+      "medianValue": null,
+      "category": "insufficient",
+      "date": "2026-03-10",
+      "valueAt": [
+        {
+          "x": 0.5,
+          "y": 0.1,
+          "value": null
+        },
+        {
+          "x": 0.97,
+          "y": 0.5,
+          "value": null
+        }
+      ],
+      "hotspots": [],
+      "validShare": 0.0
+    }
+  ]
+}
