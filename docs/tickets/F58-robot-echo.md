@@ -1,4 +1,4 @@
-# F58 Robot Echo redraw
+# F58 Echo as Juke-Bot: art, five visor expressions, motion states
 
 | | |
 |---|---|
@@ -7,108 +7,138 @@
 | **Who** | agent |
 | **Needs** | H05 |
 | **Hotspots** | — |
-| **Branch** | `feature/F58-robot-echo` |
+| **Branch** | `feature/F58-juke-bot` |
 
 ## Goal
 
-Echo, the guide, is drawn as a small friendly robot in a clear astronaut helmet. It is our own design. Its four poses stay the same, so every place that shows Echo is unchanged. The persona line says Echo is a program, not a person.
+Echo, the guide, is redrawn as **Juke-Bot**: a small friendly robot with an LED visor helmet, headphones, a chest screen (equalizer bars and a mini globe), gloves and glowing air-booster boots. It is our own design. The component gains five visor expressions and four motion states as props, so the later Juke-Bot tickets (JB01–JB07) only have to set props. Every place that shows Echo today still works unchanged. The persona line says Echo is a program, not a person.
 
 ## Why
 
-- Echo is now a full-body astronaut (`src/components/Mascot.tsx:1` and `:60`: "an astronaut who listens to Earth", "Echo: the full-body astronaut"). The persona line in `server/app/assistant/knowledge.py:61` calls it "the app's friendly astronaut mascot".
-- The brainstorm card (`docs/planning/BRAINSTORM-9NOV.md` §4, F58) gives the reasons. Echo's welcome lines are scripted, and with the server on its answers come from an AI model. A robot says it is a program. A human astronaut suggests a real person is listening.
-- The redraw is cheap: the four poses (`MascotPose`: `idle`, `listening`, `talking`, `thinking`) and the Sonny badge already exist. The sizes and props do not change.
-- The concept page `docs/design/mascot-concepts.html` (and `mascot-concepts.png`) shows the current astronaut, and must be refreshed.
-- The name stays "Echo". `MASCOT_NAME` is in `src/features/welcome/lines.ts:4`, and `PERSONA_NAME` in `knowledge.py:60`. The test `test_the_persona_name_matches_the_frontend` checks they match.
-- The decision on the name and the art (H05) must be made first. This ticket is the drawing.
-
-## Reuse
-
-- `Echo`, `Sonny` and `MascotPose` in `src/components/Mascot.tsx`. Keep their names, props and default sizes.
-- The colour constants `C` in `Mascot.tsx:8` to `:16`. Use only those colours. Do not add new ones.
-- The tests in `src/components/Mascot.test.tsx`.
-- The persona test `test_the_guide_speaks_as_the_mascot_and_keeps_its_rules` in `server/tests/test_assistant.py:239`, which must keep passing, and the name test at `:249`.
+- H05 is decided (2026-11-10, `docs/AGENT-BOARD.md` R-20261109-F37-1): the art is the Juke-Bot design, the name stays "Echo".
+- Echo is now a full-body astronaut (`src/components/Mascot.tsx:1` and `:61`). The persona line in `server/app/assistant/knowledge.py:61` calls it "the app's friendly astronaut mascot". The brainstorm card (`docs/planning/BRAINSTORM-9NOV.md` §4, F58) explains why a robot is more honest: the guide's answers come from code and an AI model, not a person.
+- `MascotPose` (`Mascot.tsx:6`: `idle`, `listening`, `talking`, `thinking`) is used by the voice panel (`src/VoiceAssistant.tsx:73-77`), the welcome and help. Those callers must not change.
+- The colours are hard-coded in `C` (`Mascot.tsx:8`). JB04 recolours the accent per data set, so they have to become CSS variables with the current values as fallbacks.
+- The chest already has small equalizer bars; JB03 drives them from the sound, so their heights must come from a prop.
+- The concept page `docs/design/mascot-concepts.html` (and `.png`) shows the old astronaut.
 
 ## Design
 
-**Look.** From the card:
+**Look.**
 
-- Helmet: a clear glass dome with a collar ring. The Earth reflection on the glass stays.
-- Head and face: a rounded robot head inside the helmet, with a dark face screen (`C.visor`), two glowing eyes (`C.glow`) and a mouth line.
-- Ears: two round speaker discs on the sides of the head.
-- Body: a short, rounded torso with a chest panel. No antenna (it would poke through the helmet).
-- Colours: only the tokens already in `Mascot.tsx` (purple, light shell, cyan glow).
+- Helmet: a rounded robot head in a helmet with a dark LED visor (`--mascot-visor`), the Earth reflection kept on the glass.
+- Headphones: two ear cups over the helmet, each with a small LED (`--mascot-accent`).
+- Torso: short and rounded, with a chest screen holding at least four EQ bars and a mini globe (a circle with two meridian arcs).
+- Gloves: rounded; one arm has a `pointing` variant.
+- Boots: chunky air-booster boots, each with a nozzle and a flame path (hidden unless `motion` is `boosting` or `retro`).
+- Glow: one `<filter>` with `feGaussianBlur` and `feMerge` in `<defs>`, used on the visor, LEDs and flames. Ids come from `useId`, as the clip paths already do.
+- No antenna, no NASA logo, worm, meatball, flag or mission patch.
 
-**Poses as expressions.** `MascotPose` and every caller stay the same.
+**Do not resemble** (two team members compare the art with this list before the merge; tick it in the pull request): twin binocular eyes on stalks (WALL-E); a glossy white egg body (EVE); a dome head on a barrel body (R2-D2); a round ball (BB-8); a soft white inflatable (Baymax); a blue-and-white jet-boot robot boy (Astro Boy); any existing game robot.
 
-- `idle`: a smile.
-- `listening`: wider eyes, and the ear discs glow.
-- `talking`: the mouth becomes a few waveform bars.
-- `thinking`: the eyes glance up, and the mouth becomes dots.
+**Props** (all optional, so every caller keeps working):
 
-**Do not resemble** (from the card; two team members compare the finished art with this list before the merge, and it is ticked in the pull request):
+```ts
+export type MascotPose = 'idle' | 'listening' | 'talking' | 'thinking'          // unchanged
+export type MascotExpression = 'happy' | 'searching' | 'eq_active' | 'alert' | 'resting'
+export type MascotMotion = 'idle' | 'boosting' | 'retro' | 'pointing'
+type EchoProps = {
+  pose?: MascotPose
+  expression?: MascotExpression   // default from pose: talking → eq_active, thinking → searching, otherwise happy
+  motion?: MascotMotion           // default 'idle'
+  thrust?: number                 // 0–1, flame length while boosting
+  levels?: ArrayLike<number>      // 0–255, one per chest bar; default a fixed resting shape
+  globeSpin?: number              // 0–1, the mini globe's turn speed
+  className?: string
+}
+```
 
-- twin binocular eyes on stalks (WALL-E);
-- a glossy white egg body (EVE);
-- a dome head on a barrel body (R2-D2);
-- a round ball (BB-8);
-- a soft white inflatable (Baymax).
+Props become `data-expression`, `data-motion` and the CSS variables `--thrust`, `--globe-spin` on the root `<svg>`. Bar heights are set as SVG attributes (`y`, `height`), not CSS, so they render without animation.
 
-No NASA logo, worm, meatball, flag or mission patch.
+Put the types and the `pose → expression` mapping in `src/components/mascotTypes.ts` (a file that exports components exports only components).
 
-**Persona line.** In `knowledge.py`, `PERSONA` says Echo is a friendly robot guide in an astronaut helmet, and a program, not a person. It says so if asked. The tools and the rules do not change.
+**Visor expressions.** Each differs by **shape**, not only colour (WCAG 1.4.1):
 
-**AI disclosure.** If any AI image tool is used for a reference, say so in the README's AI section (S03). The final art is drawn as SVG by a team member.
+| Expression | Visor shape |
+|---|---|
+| `happy` | Two arc eyes and a small smile path |
+| `searching` | A horizontal radar line that sweeps, and three query dots |
+| `eq_active` | Five wave bars in the visor |
+| `alert` | A warning triangle with "!", in a high-contrast orange or red with at least 3:1 against the visor |
+| `resting` | Two closed-eye lines, no mouth |
+
+The old pose looks carry over: `listening` lights the ear-cup LEDs.
+
+**Colours.** `C` becomes CSS variables (`--mascot-shell`, `--mascot-visor`, `--mascot-accent`, …), each with the current value as its fallback, so nothing looks different until JB04 sets `--mascot-accent`. `--mascot-trail` is a style hook (`data-trail` attribute) JB04 fills in; the default is a generic spark.
+
+**Motion** (`src/components/mascot.css`, new, imported by `Mascot.tsx`). Every animation sits inside `@media (prefers-reduced-motion: no-preference)`:
+
+- `floatIdle`: a 4 s ease-in-out vertical float (about 4 px), infinite, for `motion='idle'`.
+- `boosting`: the body group rotates to −15° (forward tilt) with a quick transition; the flames show, and their `scaleY` is `0.4 + 0.6 × var(--thrust)`; `flickerFlame` changes flame opacity at most 3 times a second.
+- `retro`: `retroBurn`, a short flame burst pointing forward (the boots tilt back) for about 400 ms.
+- `pointing`: the pointing arm rotates out; no loop.
+- `visorPulse`: a gentle glow pulse for `eq_active` and `alert`, at most once a second.
+- The mini globe turns with `--globe-spin`.
+
+Under reduced motion: no keyframes run, the tilt and flames still show as a still picture (so the state is visible), and nothing moves.
+
+## Reuse
+
+- `Echo`, `Sonny` and `MascotPose` in `src/components/Mascot.tsx`. Keep their names, default sizes and the `useId` clip-path pattern.
+- The tests in `src/components/Mascot.test.tsx`.
+- The global reduced-motion clamp in `src/index.css:130-139` stays as a backstop; don't remove it.
+- The persona tests in `server/tests/test_assistant.py` (`test_the_guide_speaks_as_the_mascot_and_keeps_its_rules`, `test_the_persona_name_matches_the_frontend`).
 
 ## Accessibility
 
-- The mascot stays decorative (`aria-hidden`). Its name and every state are in text, in the guide and the welcome.
-- Each pose differs by shape (mouth, eye size, the discs), not by colour or glow alone.
-- The glowing features keep at least 3:1 contrast against the dark face screen (WCAG 1.4.11).
-- Motion only under `prefers-reduced-motion: no-preference`. Nothing flashes.
+- The mascot stays decorative (`aria-hidden`). Its name and every state are in text where it is used (the guide, the welcome, and later the JB01 dock).
+- Each expression differs by shape. The glow and the alert symbol keep at least 3:1 contrast against the visor (WCAG 1.4.11).
+- Nothing flashes more than 3 times a second (WCAG 2.3.1). Under reduced motion everything is still.
 
 ## Touches
 
-- `src/components/Mascot.tsx` and `src/components/Mascot.test.tsx`.
-- `docs/design/mascot-concepts.html` and `docs/design/mascot-concepts.png`.
-- `server/app/assistant/knowledge.py`: the persona line only.
-- `server/tests/test_assistant.py`: add the "program, not a person" check.
-- `README.md`: one line in the AI disclosure.
-- `docs/PRE-HACKATHON-WORK.md`: one line.
+- `src/components/Mascot.tsx`, `src/components/Mascot.test.tsx`
+- `src/components/mascotTypes.ts` (new), `src/components/mascot.css` (new)
+- `docs/design/mascot-concepts.html` and `docs/design/mascot-concepts.png`
+- `server/app/assistant/knowledge.py`: the persona line only
+- `server/tests/test_assistant.py`: the "program, not a person" check
+- `README.md`: one line in the AI disclosure, only if an AI image tool was used for a reference
+- `docs/PRE-HACKATHON-WORK.md`: one line
 
 ## Steps
 
-1. Read H05's decision on the name and the art, in the queue and on `docs/AGENT-BOARD.md`. If the name is not "Echo", stop and ask.
-2. Draw the four poses and the Sonny badge in `Mascot.tsx`, as SVG, with the design above. Keep the props and sizes.
-3. Update the comments at the top of `Mascot.tsx` and at `:60` (no more "astronaut who listens to Earth", say the helmeted robot).
-4. Update the persona text in `knowledge.py`. Keep the name and the rules.
-5. Update the persona test in `server/tests/test_assistant.py` with the new check (see Tests).
-6. Refresh `docs/design/mascot-concepts.html` and export its PNG again.
-7. Check the "Do not resemble" list by eye against the art, and tick it in the pull request.
-8. Run the checks.
-9. Add one line to `docs/PRE-HACKATHON-WORK.md` under "During the hackathon".
+1. Read H05's decision on `docs/AGENT-BOARD.md` (R-20261109-F37-1). The name is "Echo"; if it says otherwise, stop and ask.
+2. Write `mascotTypes.ts` (types and `expressionForPose`).
+3. Redraw `Echo` as Juke-Bot with the new props, and `Sonny` as the helmet head with the visor (it shows `happy` unless told otherwise).
+4. Move `C` to CSS variables with fallbacks; write `mascot.css`.
+5. Update the comments at the top of `Mascot.tsx` and at `:61`.
+6. Update the persona text in `knowledge.py` (a friendly robot guide, a program, not a person; name and rules unchanged) and its test.
+7. Refresh the concept page and export its PNG again.
+8. Run the checks. Add one line to `docs/PRE-HACKATHON-WORK.md` under "During the hackathon".
 
 ## Tests
 
-- `Mascot.test.tsx`: all four poses render for `Echo` and `Sonny` at full size and as the badge. Each pose produces a different set of SVG shapes (compare the markup of the four poses, for example the number of `ellipse` or `path` elements, or a `data-pose` attribute). Keep the test that checks the markup is `aria-hidden`.
-- `Mascot.test.tsx`: with reduced motion (`matchMedia` stub), no animation class is applied.
-- The existing tests of the welcome, help and demo (`welcome.test.tsx`, `help.test.tsx`, `DemoControl.test.tsx`) pass unchanged. `await expectNoA11yViolations(container)` where they render the mascot.
-- `server/tests/test_assistant.py`: the persona text says "program" and "not a person", and it says so when asked (check the text, not the model). The name test and the rules test pass unchanged.
-- The server tests: `(cd server && .venv/bin/python -m pytest)`.
+- `Mascot.test.tsx`: each of the five expressions renders a distinct visor element (for example a `data-part="visor-alert"` group), and `pose` alone still picks the old look.
+- `levels={[255, 0, 128, 64]}` sets four different bar heights; no `levels` gives the resting shape.
+- `motion='boosting'` shows the flame elements; `motion='idle'` hides them.
+- The markup stays `aria-hidden`; two `Echo`s on one page have different filter and clip ids.
+- `await expectNoA11yViolations(container)`.
+- The welcome, help and demo tests (`welcome.test.tsx`, `help.test.tsx`, `DemoControl.test.tsx`) pass unchanged.
+- Server: the persona says "program" and "not a person"; the name test passes.
 
 ## Guardrails
 
-- Visual only. No sound, no beep, no new animation. Motion is off under reduced motion, and nothing flashes more than 3 times a second.
-- Each pose can be told apart without colour (WCAG 1.4.1), and the glow keeps 3:1 contrast (WCAG 1.4.11).
-- The name, "Echo", is not changed.
+- Visual only: no sound, no beep.
+- New motion only under `prefers-reduced-motion: no-preference`. Nothing flashes more than 3 times a second.
+- Each expression can be told apart without colour (WCAG 1.4.1); glow and alert keep 3:1 contrast (WCAG 1.4.11).
+- The name, "Echo", is not changed. Nothing specific to one data set goes in `src/`.
 
 ## Done when
 
-- The four poses and the badge render; the tests above pass.
+- Echo and Sonny render as Juke-Bot; the five expressions and four motion states work through props; the tests above pass.
 - The "Do not resemble" list is ticked in the pull request, and two team members have looked at the art.
 - The persona line says Echo is a program, not a person, and the server test checks it.
 - The concept page and its PNG show the new art.
-- `npm run lint && npm test && npm run build` pass. `(cd server && .venv/bin/python -m pytest)` passes.
 
 ## Checks
 
@@ -120,8 +150,9 @@ npx vitest run src/components/Mascot.test.tsx src/features/welcome src/features/
 
 ## Out of scope
 
-- New poses, new animation, a second character, beeps or other sound effects (they would clash with the data's sounds).
+- Where Echo appears and what drives its props: the corner dock (JB01), scrolling (JB02), the sound (JB03), data-set colours and trails (JB04), the tour (JB05), alerts (JB06), the explorer (JB07).
 - A rename. `MASCOT_NAME` stays "Echo".
+- Beeps or other sound effects (they would clash with the data's sounds).
 - The voice guide's behaviour (G04, G05).
 
 ## Result

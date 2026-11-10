@@ -321,7 +321,8 @@ Dropped from the brainstorm: ADK tiers and the audit log, the `story.json` contr
 | F51–F55 | Service worker, two-date difference, ear-training game, Earth Symphony medley, sound postcards | Later | Proposed |
 | F56 | Anchor notes: the lowest and highest notes, with their labels, before each playback | Could | Proposed |
 | F57 | Piano-like melody voice, offered only if a listening test prefers it | Later | Proposed |
-| F58 | Robot mascot: Echo redrawn as a friendly robot in an astronaut helmet, with a "program, not a person" persona line for the voice guide | Could | Proposed |
+| F58 | Echo as Juke-Bot: redrawn as a robot with a visor helmet, headphones, chest screen and booster boots; five visor expressions and motion states; "program, not a person" persona line | Could | Ticketed (F58) |
+| JB01–JB07 | Juke-Bot guide: corner widget and speech bubble, scroll boosters, audio-reactive chest, data-set colours from the manifest, tour flight path, alert visor, explorer mirror and playable legend | Could | Ticketed (JB01–JB07) |
 
 ### 6.1 The Earth Information Jukebox ensemble
 

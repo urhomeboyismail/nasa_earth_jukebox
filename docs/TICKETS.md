@@ -136,8 +136,22 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [VIS3](tickets/VIS3-design-system-housekeeping.md) | Design-system housekeeping | M | agent | — | app | open |
 | [F42](tickets/F42-spoken-demo-caption.md) | Spoken demo caption; demo fixes | S | agent | — | — | open |
 | [F48](tickets/F48-region-picker.md) | Region picker | M | agent | I06 | player, compare, schema | open |
-| [F58](tickets/F58-robot-echo.md) | Robot Echo redraw | M | agent | H05 | — | open |
 | [AU-UI](tickets/AU-UI-interface-sounds.md) | Interface sounds, quiet and behind a switch | M | agent | SN04, H03 | player, compare, voice | open |
+
+### P2: Echo as Juke-Bot (the guide)
+
+Echo, the guide, redrawn as Juke-Bot (helmet visor, headphones, chest screen, air-booster boots) and brought to life. F58 first; the rest set its props. Nothing specific to one data set in `src/`: colours and trails come from each manifest (JB04).
+
+| ID | Ticket | Size | Who | Needs | Hotspots | Status |
+|---|---|---|---|---|---|---|
+| [F58](tickets/F58-robot-echo.md) | Echo as Juke-Bot: art, five visor expressions, motion states | M | agent | H05 | — | open |
+| [JB01](tickets/JB01-mascot-dock.md) | Corner widget, glass speech bubble and `useMascotGuide()`; Echo's face follows the app | L | agent | F58 | app | open |
+| [JB02](tickets/JB02-scroll-boosters.md) | Scroll-driven air boosters: tilt, thrust and retro-burn | S | agent | JB01 | — | open |
+| [JB03](tickets/JB03-audio-chest.md) | Audio-reactive chest: EQ bars and mini globe from the playing sound | M | agent | JB01 | — | open |
+| [JB04](tickets/JB04-dataset-mascot-theme.md) | Data-set colour themes and trails from the manifest | M | agent | F58 | schema, catalogue | open |
+| [JB05](tickets/JB05-tour-flight-path.md) | Guided tour flight path with a glowing jet trail | L | agent | JB01, JB02 | player | open |
+| [JB06](tickets/JB06-alert-visor.md) | Alert visor on notable data events | S | agent | JB01, SN10 | player | open |
+| [JB07](tickets/JB07-explorer-mirror-legend.md) | Echo mirrors the explorer; the legend becomes playable | M | agent | JB01, SN09, IX02 | explorer | open |
 
 ### P3: people, evidence and submission
 
@@ -145,7 +159,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 |---|---|---|---|---|---|---|
 | [H03](tickets/H03-practice-listening-test.md) | Practice listening test: Symphony against Simple, Find and Predict, with a blind or low-vision tester | M | 👤 | SN07 | — | open |
 | [H04](tickets/H04-change-style-check.md) | Change-style check on real data | S | 👤 | S02, S05 | — | open |
-| [H05](tickets/H05-mascot-decision.md) | Mascot name and art decision | S | 👤 | — | — | open |
+| [H05](tickets/H05-mascot-decision.md) | Mascot name and art decision | S | 👤 | — | — | done |
 | [H06](tickets/H06-device-numbers.md) | Device numbers, live-video CPU on a phone, real-phone checks | S | 👤 | SN06 | — | open |
 | [H07](tickets/H07-video-slides.md) | 30 s video and 7 slides | M | 👤 | H01, S02, H03 | — | open |
 | [H08](tickets/H08-final-check.md) | Final check: keyboard, NVDA and VoiceOver, server off | M | 👤 | S02 | — | open |

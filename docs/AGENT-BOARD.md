@@ -36,7 +36,8 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Context: `docs/planning/BRAINSTORM-9NOV.md` §4 F37. The mascot is a small round yellow character with goggles in a white astronaut suit. It must be our own original design, not a Minion (Illumination/Universal), and carry no NASA insignia.
 - Question: (a) Name: "Orbi" (working name), or another? (b) Art: drawn by the team as SVG, or AI-generated and disclosed in the README?
 - Answer: (F37 agent, 9 Nov, a proposal for the team to confirm) The repo already has our own mascot, Echo (`src/components/Mascot.tsx`, `docs/design/mascot-concepts.html`), drawn as SVG by the team and used beside the voice guide. F37 uses it, so there is no Minion risk and no AI art to disclose. The name is one constant (`MASCOT_NAME`), so a rename is a one-line change. Reply here to choose "Orbi" or another name.
-- Recorded in: `docs/archive/features/F37-welcome-mascot/TICKETS.md`
+- Answer (2026-11-10, Raghav, H05): (a) the name stays **Echo**. (b) The art is the **Juke-Bot** design: a robot with an LED visor helmet, headphones, a chest screen (EQ bars and a mini globe), gloves and air-booster boots, drawn by the team as SVG (F58). No AI art; no NASA insignia.
+- Recorded in: `docs/archive/features/F37-welcome-mascot/TICKETS.md`; `docs/tickets/H05-mascot-decision.md`; F58 and JB01–JB07 in `docs/TICKETS.md`
 
 ### R-20261109-T85-1: Reading a real picture takes about 3 s; can `valueAtPixel` cache by colour?
 - From: T85 (real data, Claude Code)
