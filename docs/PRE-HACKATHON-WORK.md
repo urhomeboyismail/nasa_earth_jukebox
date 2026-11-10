@@ -58,6 +58,7 @@ Add one line per piece of work, newest last.
 | 10 Nov | SN02 Synthetic data sets with known answers: `synthetic-motion` (patches move east two cells a step) and `synthetic-storm` (a storm on a known path, a cold patch, a day with no data) | `feature/SN02-synthetic-feature-sets` |
 | 10 Nov | SN03 Ruleset and presets: `toMusicFrame` turns `FrameFeatures` into a `MusicFrame` (seven voices, dropout, captions) with three artistic presets | `feature/SN03-ruleset-presets` |
 | 10 Nov | SN04 Ensemble engine: `createEnsemble` plays a `MusicFrame` through seven voices into a limited master bus (compressor, limiter, hard clip at -1 dBFS), with a lifecycle (start, pause, suspended, page hidden) and an offline render | `feature/SN04-ensemble-engine` |
+| 11 Nov | SN06 Live video source: `LiveSource` reads each frame a `<video>` presents (rVFC or rAF, back-pressure, 20 fps cap) through the feature worker with date and confidence, and falls back to the checked PNG frames with a plain-words reason | `feature/SN06-live-video-source` |
 
 ## Outside resources used
 
