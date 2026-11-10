@@ -23,5 +23,15 @@
     "id": "mur-sst-mauritius",
     "title": "Sea surface temperature around Mauritius, 2023",
     "summary": "Twenty 10-day maps of sea surface temperature around Mauritius, January to August 2023, from NASA's MUR product."
+  },
+  {
+    "id": "synthetic-motion",
+    "title": "Synthetic motion (made-up practice data)",
+    "summary": "Twelve made-up daily frames of a pretend current that moves east by exactly two grid cells a step, for practice and tests."
+  },
+  {
+    "id": "synthetic-storm",
+    "title": "Synthetic storm (made-up practice data)",
+    "summary": "Ten made-up daily frames of a warm storm that travels a known path, a cold patch and a day with no data, for practice and tests."
   }
 ]
