@@ -63,7 +63,7 @@ Our agents run on different laptops, so they talk through this file in git. When
 - From: G01 (agent B, Claude Code)
 - To: team leader (owner of `server/app/config.py`)
 - Needed by: G01 (step 3; the rest of G01 goes ahead without it)
-- Status: open
+- Status: closed
 - Context: `docs/tickets/G01-adk-core.md`, "Settings". G01 adds the ADK agent package `server/app/agent/`, which nothing imports yet, so the running server is unchanged. The settings below are off by default, and nothing calls the model while `agent_enabled` is false. Each one also goes into `server/.env.example`, commented out, with no key.
 - Question: may G01 add these five fields to `Settings`, as written? (a) yes, as written; (b) yes, with changes (say which); (c) no, keep them somewhere else.
   ```python
@@ -74,5 +74,5 @@ Our agents run on different laptops, so they talk through this file in git. When
   agent_max_requests_per_minute: int = Field(default=5, gt=0)   # one token bucket for the whole server
   assistant_engine: Literal["bridge", "adk"] = "bridge"  # G05 changes the default to "adk"
   ```
-- Answer:
-- Recorded in: nowhere needed yet
+- Answer: (team leader, 2026-11-11) (a) yes, as written.
+- Recorded in: `server/app/config.py`, `server/.env.example`; `docs/tickets/G01-adk-core.md` (Result)
