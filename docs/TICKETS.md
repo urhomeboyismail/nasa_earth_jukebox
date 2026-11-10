@@ -64,7 +64,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 |---|---|---|---|---|---|---|
 | [SN01](tickets/SN01-feature-extractor.md) | Feature extractor: `FrameFeatures` from any frame (data and picture mode), in the worker | L | agent | — | — | done |
 | [SN02](tickets/SN02-synthetic-feature-sets.md) | Synthetic data sets with known answers for motion and hot spots | M | agent | SN01 | catalogue | done |
-| [SN03](tickets/SN03-ruleset-presets.md) | Ruleset and presets: `FrameFeatures` → `MusicFrame`, pure and deterministic | L | agent | SN01, SN05 | — | open |
+| [SN03](tickets/SN03-ruleset-presets.md) | Ruleset and presets: `FrameFeatures` → `MusicFrame`, pure and deterministic | L | agent | SN01, SN05 | — | claimed: A, 2026-11-10 |
 | [SN04](tickets/SN04-ensemble-engine.md) | Ensemble engine: seven voices, master bus with limiter, dropout cue, lifecycle | L | agent | SN03, SN05 | — | open |
 | [SN05](tickets/SN05-manifest-v3-fields.md) | Manifest fields `video`, `sonification`, `legend`, with defaults | M | agent | — | schema, catalogue | done |
 | [SN06](tickets/SN06-live-video-source.md) | Live video source: read each displayed EIC frame as it plays | M | agent | SN01, SN05 | — | open |
