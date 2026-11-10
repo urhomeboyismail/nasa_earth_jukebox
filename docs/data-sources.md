@@ -66,6 +66,20 @@ Start from `scripts/templates/manifest.template.json`. Every `TODO` is something
 | `story` | person | Optional chapters; each runs forward in time |
 | `baseline`, `mapping.changeSteps`, `mapping.contourLevels`, `frames[].baselineImage` | converter (`--baseline-*`), then person | v2, optional, all three of the first together or none (see "Baselines" below). `changeSteps` are five steps of change from normal, most below first, each starting where the one before ends, with a note C3 to C4 rising step by step; `contourLevels` are the fixed changes to trace, lowest first, notes C3 to C6 |
 
+### v3 fields (SN05)
+
+Three optional fields for the v3 sonification (`docs/PLAN.md` §6.3). Their defaults keep every data set as it is: a manifest without them validates and plays exactly as before. `scripts/eic_ingest.py` (EIC01) writes them; a person checks them.
+
+| Field | Default when left out | What it does |
+|---|---|---|
+| `legend` | `"data"` | `"data"`: the colour bar decodes values through `colorScale`. `"picture"`: true-colour imagery with no measured values, so the extractor reads brightness and colour. `colorScale` is still required for a picture data set |
+| `video` | none: Symphony reads the checked frames | The animation for live reading: `{ src, fps, firstFrameDate, frameStepDays }`. `src` is relative to the manifest (for example `video/<id>.mp4`), an H.264 MP4 the site serves itself. `fps` is above 0 and at most 60. `firstFrameDate` (YYYY-MM-DD) is the date shown in the first video frame, and `frameStepDays` (a whole number, 1 or more) the days between video frames, so video frame n shows `firstFrameDate + n × frameStepDays` |
+| `sonification` | preset `"major"`, detail `"standard"`, all seven voices | `{ preset, detail?, voices? }`. `preset` is one of `major`, `dorian`, `pentatonic`; `detail` one of `calm`, `standard`, `full`; `voices` a non-empty list of distinct voices from `melody`, `harmony`, `bass`, `hotspots`, `rhythm`, `motion`, `time`. A voice left out is never sounded for this data set |
+
+**The date grid.** When `video` is given, every frame's `date` must be on the video's grid: `firstFrameDate` plus a whole number of `frameStepDays`, and not before `firstFrameDate`. A frame off the grid is reported by name, for example `frames.3.date: 2026-01-04 is not on the video's grid: the first video frame is 2026-01-01 and frames are 7 days apart`.
+
+`video` and `sonification` are strict: a field inside them that the schema does not know (a typo such as `frameStep`) is reported, not dropped. `npm run check-data` also checks that the video file exists and is an MP4 (it has an `ftyp` box). The video is not decoded, so its frame count is not checked.
+
 ## Converting frames (T91)
 
 `scripts/convert_frames.py` turns a folder of dated frames into `public/data/<id>/`: the frames as plain PNGs and a `manifest.json` from the template above, with `TODO` left in every field a person fills in. It is step 3 of the 30-minute checklist at the top of `docs/archive/PRE-HACKATHON-TICKETS.md`.

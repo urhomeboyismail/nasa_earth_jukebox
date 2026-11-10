@@ -2,6 +2,8 @@
 // T30 adds Zod schemas whose inferred types must equal these; change both together, and only after agreeing
 // with everyone who uses them.
 
+import type { DetailLevel, LegendKind, PresetId, VoiceId } from './sonification'
+
 export type RGB = [number, number, number]
 
 /** A category id from `mapping.categories`, for example "warm". */
@@ -110,6 +112,24 @@ export type StoryChapter = { id: string; title: string; text: string; fromFrame:
  */
 export type VariableWords = { higher: string; lower: string; highest: string; lowest: string; edge: string; thing: string }
 
+/** The animation a live reader plays (SN06). The file is in the data set's folder. Video frame n shows the date `firstFrameDate + n × frameStepDays`. */
+export type VideoSpec = {
+  /** Relative to the manifest, for example "video/<id>.mp4". Same origin: an H.264 MP4 the site serves itself. */
+  src: string
+  /** Video frames a second, 1 to 60. */
+  fps: number
+  /** YYYY-MM-DD: the date shown in the first video frame. */
+  firstFrameDate: string
+  /** Whole days between consecutive video frames, 1 or more. */
+  frameStepDays: number
+}
+
+/**
+ * How the data set is sonified by default (SN07). Every field after `preset` is optional. `voices`, when given, is a non-empty list of
+ * distinct voice ids; a voice left out is never sounded for this data set.
+ */
+export type SonificationSpec = { preset: PresetId; detail?: DetailLevel; voices?: VoiceId[] }
+
 /** The request's "FrameManifest": one data set's manifest.json. */
 export type Visualization = {
   id: string
@@ -128,6 +148,12 @@ export type Visualization = {
   story?: StoryChapter[]
   /** v2. Comes with `mapping.changeSteps` and `mapping.contourLevels`, or not at all; without them the data set plays exactly as before. */
   baseline?: Baseline
+  /** v3: 'data' (default) when the colour bar decodes values; 'picture' for true-colour imagery with no measured values (the extractor reads brightness). Read it with `legendOf`. */
+  legend?: LegendKind
+  /** v3: the animation for live reading. Optional; without it, Symphony reads the checked frames. */
+  video?: VideoSpec
+  /** v3: the default sonification. Optional; without it, Listen uses preset 'major', detail 'standard', all seven voices. */
+  sonification?: SonificationSpec
 }
 
 export type CatalogEntry = { id: string; title: string; summary: string }

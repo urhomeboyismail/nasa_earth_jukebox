@@ -3,6 +3,8 @@
 
 import { Note } from 'tonal'
 import { z } from 'zod'
+import { DETAIL_LEVELS, PRESET_IDS, VOICE_IDS } from './sonification'
+import { dayNumber, videoFrameOf } from './video'
 
 const rgb = z.tuple([z.number().min(0).max(255), z.number().min(0).max(255), z.number().min(0).max(255)])
 const fraction = z.number().min(0).max(1)
@@ -87,6 +89,24 @@ const mapFraction = z.number().min(0, 'must be between 0 and 1').max(1, 'must be
 const mapArea = z.object({ x0: mapFraction, y0: mapFraction, x1: mapFraction, y1: mapFraction })
 const storyChapter = z.object({ id: nonEmpty, title: nonEmpty, text: nonEmpty, fromFrame: nonEmpty, toFrame: nonEmpty })
 
+// v3 (SN05). `video` and `sonification` are strict, so a typo inside them is reported instead of dropped.
+const legend = z.enum(['data', 'picture'], { error: 'must be "data" or "picture"' })
+const video = z
+  .object({
+    src: nonEmpty,
+    fps: z.number().positive('must be above 0').max(60, 'must be 60 or less'),
+    firstFrameDate: isoDate,
+    frameStepDays: z.number().int('must be a whole number of days').min(1, 'must be 1 or more'),
+  })
+  .strict()
+const sonification = z
+  .object({
+    preset: z.enum(PRESET_IDS, { error: `must be one of ${PRESET_IDS.join(', ')}` }),
+    detail: z.enum(DETAIL_LEVELS, { error: `must be one of ${DETAIL_LEVELS.join(', ')}` }).optional(),
+    voices: z.array(z.enum(VOICE_IDS, { error: `must be one of ${VOICE_IDS.join(', ')}` })).min(1, 'needs at least one voice; leave it out to use all seven').optional(),
+  })
+  .strict()
+
 export const visualizationSchema = z
   .object({
     id: nonEmpty,
@@ -114,6 +134,9 @@ export const visualizationSchema = z
     mapArea: mapArea.optional(),
     story: z.array(storyChapter).optional(),
     baseline: baseline.optional(),
+    legend: legend.optional(),
+    video: video.optional(),
+    sonification: sonification.optional(),
   })
   .superRefine((data, ctx) => {
     const problem = (path: (string | number)[], message: string) => ctx.addIssue({ code: 'custom', path, message })
@@ -173,6 +196,7 @@ export const visualizationSchema = z
     })
 
     checkChange(data, problem)
+    checkV3(data, problem)
   })
 
 type Issue = (path: (string | number)[], message: string) => void
@@ -238,6 +262,26 @@ function checkChange(data: ChangeFields, problem: Issue) {
     const m = midi(level.note)
     if (m === null) problem(['mapping', 'contourLevels', i, 'note'], `"${level.note}" is not a note name such as C5`)
     else if (m < contourLow || m > contourHigh) problem(['mapping', 'contourLevels', i, 'note'], `${level.note} must be between ${CONTOUR_NOTES[0]} and ${CONTOUR_NOTES[1]}`)
+  })
+}
+
+/** The v3 rules (SN05): every frame's date on the video's grid, and no voice named twice. */
+function checkV3(data: { frames: { date: string }[]; video?: z.infer<typeof video>; sonification?: z.infer<typeof sonification> }, problem: Issue) {
+  data.sonification?.voices?.forEach((voice, i, voices) => {
+    if (voices.indexOf(voice) !== i) problem(['sonification', 'voices', i], `"${voice}" is listed more than once; name each voice once`)
+  })
+
+  const spec = data.video
+  // A step that is not a whole number of 1 or more is already reported on video.frameStepDays; there is no grid to check against.
+  if (!spec || !Number.isInteger(spec.frameStepDays) || spec.frameStepDays < 1) return
+  const first = dayNumber(spec.firstFrameDate)
+  if (first === null) return problem(['video', 'firstFrameDate'], `${spec.firstFrameDate} is not a real date`)
+  const apart = `${spec.frameStepDays} ${spec.frameStepDays === 1 ? 'day' : 'days'} apart`
+  data.frames.forEach((frame, i) => {
+    const day = dayNumber(frame.date)
+    if (day === null || videoFrameOf(spec, frame.date) !== null) return
+    if (day < first) problem(['frames', i, 'date'], `${frame.date} is before the video's first frame (${spec.firstFrameDate}); every dated frame must be in the video`)
+    else problem(['frames', i, 'date'], `${frame.date} is not on the video's grid: the first video frame is ${spec.firstFrameDate} and frames are ${apart}`)
   })
 }
 

@@ -275,3 +275,26 @@ describe('checkDataset: baselines (v2)', () => {
     })).toEqual([])
   })
 })
+
+describe('checkDataset: the video (SN05)', () => {
+  const SRC = 'video/fixture.mp4'
+  /** The first bytes of an MP4: a box of 32 bytes whose type is ftyp, brand isom. Enough for the check, which never decodes the video. */
+  const mp4 = Uint8Array.from([0, 0, 0, 32, ...[...'ftypisom'].map(c => c.charCodeAt(0)), 0, 0, 2, 0])
+  const withVideo = (v: any) => { v.video = { src: SRC, fps: 12, firstFrameDate: v.frames[0].date, frameStepDays: 1 } }
+
+  it('finds nothing wrong with an MP4 that is there', () => {
+    expect(problemsAfter(withVideo, { [SRC]: mp4 })).toEqual([])
+  })
+
+  it('names video.src when the file is missing', () => {
+    expect(problemsAfter(withVideo, { [SRC]: null })).toEqual([
+      'public/data/fixture/manifest.json: video.src: there is no file "video/fixture.mp4" in public/data/fixture/',
+    ])
+  })
+
+  it('names video.src when the file is not an MP4', () => {
+    const notMp4 = 'public/data/fixture/manifest.json: video.src: "video/fixture.mp4" is not an MP4 file (no ftyp box); convert it to H.264 MP4 (scripts/eic_ingest.py, EIC01)'
+    expect(problemsAfter(withVideo, { [SRC]: png(10, 10) })).toEqual([notMp4])
+    expect(problemsAfter(withVideo, { [SRC]: new Uint8Array(3) })).toEqual([notMp4])
+  })
+})

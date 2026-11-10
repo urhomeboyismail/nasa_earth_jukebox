@@ -344,3 +344,71 @@ describe('baselines (v2)', () => {
     expect(errorAfter(v => { withChange(v); v.mapping.contourLevels = [] })).toBe('mapping.contourLevels: needs at least one level')
   })
 })
+
+describe('v3 fields: legend, video and sonification (SN05)', () => {
+  const video = (overrides = {}) => ({ src: 'video/fixture.mp4', fps: 12, firstFrameDate: '2024-01-15', frameStepDays: 1, ...overrides })
+  const accepts = (change: (v: any) => void) => {
+    const v: any = valid()
+    change(v)
+    const result = visualizationSchema.safeParse(v)
+    expect(result.success ? '' : describeIssues(result.error, 10)).toBe('')
+  }
+
+  it('leaves every committed manifest exactly as it was: none of the three fields, so the defaults apply', () => {
+    for (const manifest of [fixture, synthetic, globe]) {
+      const parsed = visualizationSchema.parse(manifest)
+      for (const field of ['legend', 'video', 'sonification']) expect(parsed).not.toHaveProperty(field)
+    }
+  })
+
+  it('accepts a picture legend, a video on its grid and a full sonification', () => {
+    accepts(v => {
+      v.legend = 'picture'
+      v.video = video()
+      v.sonification = { preset: 'dorian', detail: 'calm', voices: ['melody', 'time'] }
+    })
+    accepts(v => { v.legend = 'data'; v.sonification = { preset: 'major' } })
+    // The fixture's dates are 0, 182, 335 and 425 days after the first one, so a grid of 1 day holds them all.
+    accepts(v => { v.video = video({ fps: 60 }) })
+  })
+
+  it('rejects an unknown legend and names the field', () => {
+    expect(errorAfter(v => { v.legend = 'sepia' })).toBe('legend: must be "data" or "picture"')
+  })
+
+  it('rejects a frame date off the video grid, and names the frame', () => {
+    expect(errorAfter(v => { v.video = video({ frameStepDays: 7 }) })).toBe(
+      'frames.2.date: 2024-12-15 is not on the video\'s grid: the first video frame is 2024-01-15 and frames are 7 days apart; '
+        + 'frames.3.date: 2025-03-15 is not on the video\'s grid: the first video frame is 2024-01-15 and frames are 7 days apart',
+    )
+  })
+
+  it('rejects a video whose first frame comes after the first dated frame', () => {
+    expect(errorAfter(v => { v.video = video({ firstFrameDate: '2024-02-01' }) })).toBe(
+      "frames.0.date: 2024-01-15 is before the video's first frame (2024-02-01); every dated frame must be in the video",
+    )
+  })
+
+  it('rejects a video with a bad date, rate or step, or a field it does not know', () => {
+    expect(errorAfter(v => { v.video = video({ firstFrameDate: '2024-02-30' }) })).toBe('video.firstFrameDate: 2024-02-30 is not a real date')
+    expect(errorAfter(v => { v.video = video({ fps: 0 }) })).toBe('video.fps: must be above 0')
+    expect(errorAfter(v => { v.video = video({ fps: 61 }) })).toBe('video.fps: must be 60 or less')
+    expect(errorAfter(v => { v.video = video({ frameStepDays: 0.5 }) })).toBe('video.frameStepDays: must be a whole number of days')
+    expect(errorAfter(v => { v.video = video({ frameStepDays: 0 }) })).toBe('video.frameStepDays: must be 1 or more')
+    expect(errorAfter(v => { v.video = video({ src: '' }) })).toBe('video.src: must not be empty')
+    expect(errorAfter(v => { v.video = video({ frameStep: 1 }) })).toMatch(/^video: .*frameStep/)
+  })
+
+  it('rejects an unknown preset or detail, a duplicate or unknown voice, an empty voice list and a misspelt field', () => {
+    expect(errorAfter(v => { v.sonification = { preset: 'jazz' } })).toBe('sonification.preset: must be one of major, dorian, pentatonic')
+    expect(errorAfter(v => { v.sonification = { preset: 'major', detail: 'loud' } })).toBe('sonification.detail: must be one of calm, standard, full')
+    expect(errorAfter(v => { v.sonification = { preset: 'major', voices: ['melody', 'bass', 'melody'] } })).toBe(
+      'sonification.voices.2: "melody" is listed more than once; name each voice once',
+    )
+    expect(errorAfter(v => { v.sonification = { preset: 'major', voices: ['drums'] } })).toBe(
+      'sonification.voices.0: must be one of melody, harmony, bass, hotspots, rhythm, motion, time',
+    )
+    expect(errorAfter(v => { v.sonification = { preset: 'major', voices: [] } })).toBe('sonification.voices: needs at least one voice; leave it out to use all seven')
+    expect(errorAfter(v => { v.sonification = { preset: 'major', detial: 'calm' } })).toMatch(/^sonification: .*detial/)
+  })
+})
