@@ -53,6 +53,7 @@ Add one line per piece of work, newest last.
 | 9 Nov | S03 project README for v3 (what is built, planned and not started; n = 0; AI tools named) and `docs/CREATIVE_PROCESS.md`, with every code claim checked | `feature/S03-readme` |
 | 9 Nov | S05 (T114) Listening sheet for the change-from-normal sound: every answer re-derived from the data, and corrected where the app plays two lines in one trace; still NOT RUN | `feature/S05-t114-sheet` |
 | 9 Nov | I02 Neutral default words: the defaults name no temperature (higher, lower, edge, values), each data set in the repo sets its own words in its manifest, and the sentences that said warm, cold or temperature are neutral | `fix/I02-neutral-words` |
+| 10 Nov | SN05 Manifest v3 fields: optional `video`, `sonification` and `legend`, with defaults so every data set still validates | `feature/SN05-manifest-v3-fields` |
 | 10 Nov | SN01 Feature extractor: `FrameFeatures` (grid, stats, hot spots, edges, motion, change, confidence) from any frame, in data and picture mode | `feature/SN01-feature-extractor` |
 | 10 Nov | SN02 Synthetic data sets with known answers: `synthetic-motion` (patches move east two cells a step) and `synthetic-storm` (a storm on a known path, a cold patch, a day with no data) | `feature/SN02-synthetic-feature-sets` |
 
