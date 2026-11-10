@@ -1,0 +1,51 @@
+// The three artistic presets (docs/PLAN.md §6.3, ticket SN03): the key, the scale and the tempo. A preset is a choice of taste, the same for every
+// frame of every data set; it never carries data. A manifest only names one (`sonification.preset`).
+
+import type { PresetId } from '../data/sonification'
+import type { Preset, ScaleName } from './types'
+
+export const SCALES: Record<ScaleName, readonly number[]> = {
+  major: [0, 2, 4, 5, 7, 9, 11],
+  dorian: [0, 2, 3, 5, 7, 9, 10],
+  minorPentatonic: [0, 3, 5, 7, 10],
+}
+
+export const PRESETS: Record<PresetId, Preset> = {
+  major: {
+    id: 'major', label: 'Major', tonic: 0, scale: 'major', bpm: 84, brightness: 0.5,
+    note: 'A bright, open key. The choice is artistic: it is the same for every frame and never carries data.',
+  },
+  dorian: {
+    id: 'dorian', label: 'Dorian', tonic: 2, scale: 'dorian', bpm: 72, brightness: 0.4,
+    note: 'A calm key with a slightly darker colour. The choice is artistic: it is the same for every frame and never carries data.',
+  },
+  pentatonic: {
+    id: 'pentatonic', label: 'Pentatonic', tonic: 9, scale: 'minorPentatonic', bpm: 100, brightness: 0.7,
+    note: 'Five notes with no clashing intervals, so every combination sounds consonant. The choice is artistic: it never carries data.',
+  },
+}
+
+export function presetFor(id: PresetId): Preset {
+  return PRESETS[id]
+}
+
+/** The pitch classes (0 to 11) of the preset's scale. */
+export function pitchClasses(preset: Preset): Set<number> {
+  return new Set(SCALES[preset.scale].map(interval => (preset.tonic + interval) % 12))
+}
+
+/**
+ * The note of the preset's scale nearest to `midi`, inside [low, high] (both included). `midi` may be fractional; one outside the range is
+ * first moved to its nearest end. A tie goes down. If the range holds no note of the scale, the nearest whole note in range is returned.
+ */
+export function snapToScale(midi: number, preset: Preset, low: number, high: number): number {
+  const target = Math.min(high, Math.max(low, midi))
+  const classes = pitchClasses(preset)
+  let best: number | null = null
+  for (let note = low; note <= high; note++) {
+    if (!classes.has(note % 12)) continue
+    // Notes come in ascending order, so on a tie the lower note was found first and stays.
+    if (best === null || Math.abs(note - target) < Math.abs(best - target)) best = note
+  }
+  return best ?? Math.round(target)
+}
