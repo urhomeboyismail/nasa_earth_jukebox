@@ -63,7 +63,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
 | [SN01](tickets/SN01-feature-extractor.md) | Feature extractor: `FrameFeatures` from any frame (data and picture mode), in the worker | L | agent | — | — | done |
-| [SN02](tickets/SN02-synthetic-feature-sets.md) | Synthetic data sets with known answers for motion and hot spots | M | agent | SN01 | catalogue | ready: feature/SN02-synthetic-feature-sets |
+| [SN02](tickets/SN02-synthetic-feature-sets.md) | Synthetic data sets with known answers for motion and hot spots | M | agent | SN01 | catalogue | done |
 | [SN03](tickets/SN03-ruleset-presets.md) | Ruleset and presets: `FrameFeatures` → `MusicFrame`, pure and deterministic | L | agent | SN01, SN05 | — | open |
 | [SN04](tickets/SN04-ensemble-engine.md) | Ensemble engine: seven voices, master bus with limiter, dropout cue, lifecycle | L | agent | SN03, SN05 | — | open |
 | [SN05](tickets/SN05-manifest-v3-fields.md) | Manifest fields `video`, `sonification`, `legend`, with defaults | M | agent | — | schema, catalogue | ready: feature/SN05-manifest-v3-fields |
