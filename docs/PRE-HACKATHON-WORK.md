@@ -56,6 +56,7 @@ Add one line per piece of work, newest last.
 | 10 Nov | SN05 Manifest v3 fields: optional `video`, `sonification` and `legend`, with defaults so every data set still validates | `feature/SN05-manifest-v3-fields` |
 | 10 Nov | SN01 Feature extractor: `FrameFeatures` (grid, stats, hot spots, edges, motion, change, confidence) from any frame, in data and picture mode | `feature/SN01-feature-extractor` |
 | 10 Nov | SN02 Synthetic data sets with known answers: `synthetic-motion` (patches move east two cells a step) and `synthetic-storm` (a storm on a known path, a cold patch, a day with no data) | `feature/SN02-synthetic-feature-sets` |
+| 10 Nov | SN03 Ruleset and presets: `toMusicFrame` turns `FrameFeatures` into a `MusicFrame` (seven voices, dropout, captions) with three artistic presets | `feature/SN03-ruleset-presets` |
 
 ## Outside resources used
 
