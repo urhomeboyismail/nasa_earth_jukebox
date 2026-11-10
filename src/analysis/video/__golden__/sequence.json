@@ -1,0 +1,104 @@
+{
+  "fixture": [
+    {
+      "date": "2024-01-15",
+      "videoIndex": null,
+      "mediaTime": null,
+      "confidence": 1,
+      "videoIndexAt10Fps": 0
+    },
+    {
+      "date": "2024-07-15",
+      "videoIndex": null,
+      "mediaTime": null,
+      "confidence": 1,
+      "videoIndexAt10Fps": 1
+    },
+    {
+      "date": "2024-12-15",
+      "videoIndex": null,
+      "mediaTime": null,
+      "confidence": 1,
+      "videoIndexAt10Fps": 2
+    },
+    {
+      "date": "2025-03-15",
+      "videoIndex": null,
+      "mediaTime": null,
+      "confidence": 0,
+      "videoIndexAt10Fps": 3
+    }
+  ],
+  "synthetic-storm": [
+    {
+      "date": "2026-03-01",
+      "videoIndex": null,
+      "mediaTime": null,
+      "confidence": 1,
+      "videoIndexAt10Fps": 0
+    },
+    {
+      "date": "2026-03-02",
+      "videoIndex": null,
+      "mediaTime": null,
+      "confidence": 1,
+      "videoIndexAt10Fps": 1
+    },
+    {
+      "date": "2026-03-03",
+      "videoIndex": null,
+      "mediaTime": null,
+      "confidence": 1,
+      "videoIndexAt10Fps": 2
+    },
+    {
+      "date": "2026-03-04",
+      "videoIndex": null,
+      "mediaTime": null,
+      "confidence": 1,
+      "videoIndexAt10Fps": 3
+    },
+    {
+      "date": "2026-03-05",
+      "videoIndex": null,
+      "mediaTime": null,
+      "confidence": 1,
+      "videoIndexAt10Fps": 4
+    },
+    {
+      "date": "2026-03-06",
+      "videoIndex": null,
+      "mediaTime": null,
+      "confidence": 1,
+      "videoIndexAt10Fps": 5
+    },
+    {
+      "date": "2026-03-07",
+      "videoIndex": null,
+      "mediaTime": null,
+      "confidence": 1,
+      "videoIndexAt10Fps": 6
+    },
+    {
+      "date": "2026-03-08",
+      "videoIndex": null,
+      "mediaTime": null,
+      "confidence": 1,
+      "videoIndexAt10Fps": 7
+    },
+    {
+      "date": "2026-03-09",
+      "videoIndex": null,
+      "mediaTime": null,
+      "confidence": 1,
+      "videoIndexAt10Fps": 8
+    },
+    {
+      "date": "2026-03-10",
+      "videoIndex": null,
+      "mediaTime": null,
+      "confidence": 0,
+      "videoIndexAt10Fps": 9
+    }
+  ]
+}

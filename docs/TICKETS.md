@@ -67,7 +67,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [SN03](tickets/SN03-ruleset-presets.md) | Ruleset and presets: `FrameFeatures` → `MusicFrame`, pure and deterministic | L | agent | SN01, SN05 | — | done |
 | [SN04](tickets/SN04-ensemble-engine.md) | Ensemble engine: seven voices, master bus with limiter, dropout cue, lifecycle | L | agent | SN03, SN05 | — | done |
 | [SN05](tickets/SN05-manifest-v3-fields.md) | Manifest fields `video`, `sonification`, `legend`, with defaults | M | agent | — | schema, catalogue | done |
-| [SN06](tickets/SN06-live-video-source.md) | Live video source: read each displayed EIC frame as it plays | M | agent | SN01, SN05 | — | claimed: A, 2026-11-10 |
+| [SN06](tickets/SN06-live-video-source.md) | Live video source: read each displayed EIC frame as it plays | M | agent | SN01, SN05 | — | ready: feature/SN06-live-video-source |
 | [SN07](tickets/SN07-symphony-mode.md) | Listen: Symphony mode wired end to end; Detail, mixer, layer captions; Simple mode kept | L | agent | SN01, SN03, SN04, SN06 | player | open |
 | [SN08](tickets/SN08-scan-mode.md) | Scan mode: sweep a frame so shapes become audible | M | agent | SN01, SN03, SN04, SN07 | player | open |
 | [SN09](tickets/SN09-explore-v2.md) | Explore v2: continuous tone and slope cue under the cursor or finger | M | agent | SN03, SN04 | explorer | open |

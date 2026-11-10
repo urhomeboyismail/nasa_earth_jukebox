@@ -173,4 +173,48 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Built on `feature/SN06-live-video-source`, with SN01 and SN05 already on `main`. Only `src/analysis/video/**` changed.
+
+### Checks (real output)
+
+```
+$ npm run lint                      exit 0 (no warnings)
+$ npm test                          exit 0   Test Files 92 passed (92)   Tests 1655 passed (1655)
+                                    (src/analysis/video: 6 files, 82 tests)
+$ npm run build                     exit 0   built in 454ms
+```
+
+`npm run check-data` was not needed: `public/data/` did not change. `src/boundary.test.ts` (which guards `analysis/**`) passes: no `fetch` and no `assistant` import in `video/` (the PNG reads go through `readPixels`).
+
+### The manual browser check (Step 5), run in Chromium
+
+There is no real EIC MP4 yet (that is EIC01), so the check used a real H.264 clip made in the browser from the `synthetic-storm` frames (`MediaRecorder`, `video/mp4;codecs=avc1.42E01E`, 4 Mbit/s) and played in a real `<video>`, with the real `LiveSource`, the real feature worker (SN01) and `requestVideoFrameCallback`, against the dev server.
+
+```
+Path: "video" (requestVideoFrameCallback present). Statuses: video, then stopped. No fallback.
+Slow clip (one picture every 0.4 s):   10 readings, dates 2026-03-01 to 2026-03-10 exactly, from media times 0, 0.399, 0.799 s ...
+                                        confidence 0.998 to 0.999 on H.264 (0 on the last, all-land frame: nothing to read)
+Fast clip (30 fps, content changes every frame, 4 s):
+                                        browser presented   29.8 frames a second
+                                        frames read         14.7 a second (59 readings)
+                                        dropped, back-pressure   53 (never queued)
+                                        gap between readings     min 50 ms, median 67 ms, p95 80 ms
+Fallback (video src does not exist):    status "frames" with "The video could not be played, so the checked frames
+                                        are used.", then 6 checked PNG frames read in date order at the fast speed, confidence 1.
+```
+
+**Not done, and it is part of the ticket's "Done when": a second browser.** Only Chromium is available here. Safari and Firefox (the ticket asks for at least one other) and a real EIC MP4 still need a person, on the day EIC01 produces one. Everything above should be repeated with that file: a real colour bar and gradients may shift under H.264 more than flat synthetic colours do. Also not exercised in a real browser: the animation-frame fallback for a browser without `requestVideoFrameCallback` (Chromium has it); it is covered by tests with a stubbed `requestAnimationFrame`.
+
+### What was built
+
+`clock.ts`, `liveSource.ts` (`LiveSource`), `frameSequence.ts` (`FrameSequenceSource`), `useLiveSource.ts` as designed, plus `types.ts`, `input.ts` (the request both sources build, so a video frame and a checked frame of one date are read by the same rules) and a test-only `testSupport.ts` (a fake `<video>`, bitmaps, animation frames, a controllable extractor). Tests: `clock` (7, including that `SEQUENCE_STEP_MS` equals the player's `STEP_MS`, read from its source without importing it), `liveSource` (39), `frameSequence` (20), `useLiveSource` (9, including StrictMode), `sequence.golden` (4, `__golden__/sequence.json`: the fixture and `synthetic-storm`, with the real extractor behind the seam).
+
+### Decisions where the ticket was silent or wrong (for review)
+
+1. **A frame with nothing readable does not raise the "colours are a little off" reason.** Confidence is 0 for an all-land frame because there was nothing to be sure of, and the first browser run showed the reason firing on exactly that frame. The reason now needs `stats.validShare > 0`.
+2. **The video's own frame size decides whether a normal can be used.** In live mode the normal is read from the checked files for the frame of the same date, and left out (so `change` is null) when there is no checked frame for that date or its picture is a different size from the video's, because the extractor refuses to compare pictures of two sizes. A video is usually not the same size as the PNGs, so for most real data sets the live reading will have no `change` unless EIC01 renders the video at the PNG size. Worth a line in EIC01.
+3. **The normal is posted to the worker with every reading** (the extractor takes it in each request). At 800 × 400 that is 1.3 MB cloned per reading. Fine at 15 a second; worth caching in the worker if it shows up in H06's device numbers.
+4. `LiveSource` also has `seek(index)` (a video frame in video mode, a checked frame in frames mode) and `start()` after `stop()` carries on. `status` is `idle` until the first frame shows, then `video`.
+5. A reading that throws (a worker that stopped, a size mismatch) hands over to the checked frames with the message, instead of leaving the listener with silence.
+6. The checked-frames source times its steps with `Date.now()`; one that is read slower than the step skips the steps it overran (it reads the frame the clock has reached) rather than falling behind. At the end it says `stopped` with "The checked frames have ended."
+7. `SourceStatus 'error'` is used only by the checked-frames source, when its own reading fails.
