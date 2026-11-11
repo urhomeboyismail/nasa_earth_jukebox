@@ -5,6 +5,7 @@ import catalog from '../public/data/index.json'
 import fixture from '../public/data/fixture/manifest.json'
 import App from './App'
 import { resetDucking } from './assistant/ducking'
+import { DUCK_LINEAR, duck } from './audio/duck'
 import { onPlayerCommand, type PlayerCommand } from './features/player/controls'
 import type { AssistantAction } from './hooks/useVoiceAssistant'
 
@@ -42,10 +43,11 @@ describe('voice guide playback actions', () => {
     expect(received).toEqual(['pause', { setDate: '2024-07-15' }])
   })
 
-  it('pauses the player while the guide is listening', () => {
+  it('ducks the music, and does not pause the player, while the guide is listening', () => {
     guide.status = 'listening'
     render(<App />)
-    expect(received).toEqual(['pause'])
+    expect(received).toEqual([])
+    expect(duck.target()).toBe(DUCK_LINEAR)
   })
 
   it('leaves the player alone while the guide is closed', () => {

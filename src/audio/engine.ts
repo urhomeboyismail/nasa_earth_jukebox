@@ -19,7 +19,8 @@ import type { SequenceStep, SoundEngine } from '.'
 import {
   BED_HIGHEST, BED_LOWEST, bedFor, CONTOUR_HIGHEST, CONTOUR_LOWEST, contourEvents, END_HISS_MS, SAW_SHARE, stepIndexOf, type ChangeSounds,
 } from './changeVoice'
-import { aimPanner, createPanner, type Panner, type SpatialMode } from './pan'
+import { duck as duckControl } from './duck'
+import { aimPanner,createPanner, type Panner, type SpatialMode } from './pan'
 import type { SoundStyle } from './style'
 import { encodeWav } from './wav'
 
@@ -27,7 +28,7 @@ type ToneModule = typeof import('tone')
 
 /** Fade used for volume changes: long enough to avoid clicks, short enough to feel instant. */
 const VOLUME_RAMP_S = 0.05
-/** Fade used by stop() and duck(). Together with the node's own latency this stays well inside 50 ms. */
+/** Fade used by stop().Together with the node's own latency this stays well inside 50 ms. */
 const CUT_RAMP_S = 0.02
 const DEFAULT_NOTE_MS = 600
 /** Audio is scheduled this far ahead of now, so the first step is not cut off. */
@@ -379,6 +380,9 @@ export function createSoundEngine(mapping: EngineMapping): SoundEngine {
   let unlocking: Promise<void> | null = null
   let unlocked = false
   let volume = 1
+  /** The duck controller's target (1, or DUCK_LINEAR): the master level is volume × this. */
+  let duckGain = 1
+  let engineDucked = false
   let style: SoundStyle = 'full'
   let spatial: SpatialMode = 'stereo'
   let voices: Voices
@@ -393,8 +397,15 @@ export function createSoundEngine(mapping: EngineMapping): SoundEngine {
       const t = await import('tone')
       await t.start()
       tone = t
-      voices = createVoices(t, style, volume, spatial)
+      duckGain = duckControl.target()
+      voices = createVoices(t, style, volume * duckGain, spatial)
       unlocked = true
+      // Told the current target at once, then on every change: the master ramps; nothing pauses. (Subscribed here, not at creation, so an
+      // engine that never makes sound is never held by the controller.)
+      duckControl.subscribe((gain, rampS) => {
+        duckGain = gain
+        if (rampS > 0) voices.master.gain.rampTo(volume * duckGain, rampS)
+      })
     })()
     return unlocking
   }
@@ -535,7 +546,7 @@ export function createSoundEngine(mapping: EngineMapping): SoundEngine {
     playSequence,
     setVolume(zeroToOne) {
       volume = Math.min(1, Math.max(0, Number.isFinite(zeroToOne) ? zeroToOne : 0))
-      if (unlocked) voices.master.gain.rampTo(volume, VOLUME_RAMP_S)
+      if (unlocked) voices.master.gain.rampTo(volume * duckGain, VOLUME_RAMP_S)
     },
     pause() {
       pause()
@@ -563,12 +574,14 @@ export function createSoundEngine(mapping: EngineMapping): SoundEngine {
     },
     isPlaying() { return state === 'playing' },
     duck() {
-      pause()
-      silence()
+      if (engineDucked) return
+      engineDucked = true
+      duckControl.begin('engine')
     },
     unduck() {
-      // Deliberately does not resume: the caller decides, with resume().
-      if (unlocked) open()
+      if (!engineDucked) return
+      engineDucked = false
+      duckControl.end('engine')
     },
     renderToWav,
     traceContour,

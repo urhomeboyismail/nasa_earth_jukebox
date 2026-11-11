@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../public/data/fixture/manifest.json'
 import type { Contour } from '../analysis/types'
 import type { SoundMapping, Visualization } from '../data'
+import { DUCK_ATTACK_S, DUCK_LINEAR, DUCK_RELEASE_S, duck } from './duck'
 import { validateMapping } from './engine'
 import * as wav from './wav'
 import { createSoundEngine, type SequenceStep } from '.'
@@ -102,6 +103,7 @@ beforeEach(() => {
   for (const key of Object.keys(mocks.nodes)) delete mocks.nodes[key]
   mocks.transport.reset()
   mocks.draw.times.length = 0
+  duck.reset()
 })
 
 async function unlocked(map: SoundMapping = mapping) {
@@ -255,31 +257,62 @@ describe('stop and duck', () => {
     expect(cutNode.gain.value).toBe(1)
   })
 
-  it('duck() pauses, remembers its place and silences the sound', async () => {
-    const engine = await unlocked()
-    const onStep = vi.fn()
-    engine.playSequence(steps, onStep)
-    mocks.transport.advance(0.5)
-    engine.duck()
-    expect(engine.isPlaying()).toBe(false)
-    expect(fade()).toHaveLength(1)
-    mocks.transport.advance(5)
-    expect(onStep.mock.calls).toEqual([[0]])
-    expect(mocks.transport.position).toBe(0.5)
-  })
+  describe('duck (SN13)', () => {
+    const masterRamps = () => mocks.calls.filter(c => c.node === 'Gain' && c.method === 'gain.rampTo')
 
-  it('unduck() does not resume by itself; resume() continues from the next step', async () => {
-    const engine = await unlocked()
-    const onStep = vi.fn()
-    engine.playSequence(steps, onStep)
-    mocks.transport.advance(0.5)
-    engine.duck()
-    engine.unduck()
-    mocks.transport.advance(5)
-    expect(onStep.mock.calls).toEqual([[0]])
-    engine.resume()
-    mocks.transport.advance(0.5)
-    expect(onStep.mock.calls).toEqual([[0], [1]])
+    it('duck() ramps the master to DUCK_LINEAR over DUCK_ATTACK_S, with no pause and no silence', async () => {
+      const engine = await unlocked()
+      const onStep = vi.fn()
+      engine.playSequence(steps, onStep)
+      mocks.transport.advance(0.5)
+      engine.duck()
+      expect(masterRamps()).toEqual([{ node: 'Gain', method: 'gain.rampTo', args: [DUCK_LINEAR, DUCK_ATTACK_S] }])
+      expect(engine.isPlaying()).toBe(true)
+      expect(fade()).toHaveLength(0)
+      mocks.transport.advance(1)
+      expect(onStep.mock.calls).toEqual([[0], [1]])
+    })
+
+    it('unduck() ramps back over DUCK_RELEASE_S', async () => {
+      const engine = await unlocked()
+      engine.duck()
+      engine.unduck()
+      expect(masterRamps().at(-1)?.args).toEqual([1, DUCK_RELEASE_S])
+      expect(fade()).toHaveLength(0)
+    })
+
+    it('keeps the chosen volume under the duck, and a volume set while ducked is ducked too', async () => {
+      const engine = await unlocked()
+      engine.setVolume(0.5)
+      engine.duck()
+      expect(masterRamps().at(-1)?.args).toEqual([0.5 * DUCK_LINEAR, DUCK_ATTACK_S])
+      engine.setVolume(0.8)
+      expect(masterRamps().at(-1)?.args).toEqual([0.8 * DUCK_LINEAR, 0.05])
+      engine.unduck()
+      expect(masterRamps().at(-1)?.args).toEqual([0.8, DUCK_RELEASE_S])
+    })
+
+    it('follows a duck from the guide, the speech or an announcement, and begins ducked when unlocked during one', async () => {
+      const engine = await unlocked()
+      duck.begin('guide')
+      expect(masterRamps().at(-1)?.args).toEqual([DUCK_LINEAR, DUCK_ATTACK_S])
+      duck.end('guide')
+      expect(masterRamps().at(-1)?.args).toEqual([1, DUCK_RELEASE_S])
+      expect(engine.isPlaying()).toBe(false)
+
+      duck.begin('speech')
+      await createSoundEngine(mapping).unlock()
+      expect(mocks.calls.find(c => c.node === 'Gain' && c.method === 'new')?.args[0]).toBeCloseTo(DUCK_LINEAR, 6)
+      duck.end('speech')
+    })
+
+    it('calling duck() twice holds one reason, so one unduck() releases it', async () => {
+      const engine = await unlocked()
+      engine.duck()
+      engine.duck()
+      engine.unduck()
+      expect(duck.target()).toBe(1)
+    })
   })
 })
 
