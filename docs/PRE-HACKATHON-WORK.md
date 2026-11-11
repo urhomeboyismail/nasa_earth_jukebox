@@ -59,6 +59,7 @@ Add one line per piece of work, newest last.
 | 10 Nov | SN03 Ruleset and presets: `toMusicFrame` turns `FrameFeatures` into a `MusicFrame` (seven voices, dropout, captions) with three artistic presets | `feature/SN03-ruleset-presets` |
 | 10 Nov | SN04 Ensemble engine: `createEnsemble` plays a `MusicFrame` through seven voices into a limited master bus (compressor, limiter, hard clip at -1 dBFS), with a lifecycle (start, pause, suspended, page hidden) and an offline render | `feature/SN04-ensemble-engine` |
 | 11 Nov | SN06 Live video source: `LiveSource` reads each frame a `<video>` presents (rVFC or rAF, back-pressure, 20 fps cap) through the feature worker with date and confidence, and falls back to the checked PNG frames with a plain-words reason | `feature/SN06-live-video-source` |
+| 11 Nov | SN11 Learn v3: a "Seven voices" section on Learn, one card per voice with Play alone and Stop, playing the data set on screen with only that voice audible | `feature/SN11-learn-v3` |
 
 ## Outside resources used
 
