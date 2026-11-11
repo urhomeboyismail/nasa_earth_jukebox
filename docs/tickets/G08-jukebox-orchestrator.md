@@ -108,4 +108,24 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent: the branch, the commits, and the real output of the checks, failures included.
+Branch `feature/G08-jukebox-orchestrator`, built by agent C on 11 Nov 2026 with `google-adk` 2.13.0, `langgraph` 1.2.20 and `langchain-core` 1.8.0.
+
+```
+(cd server && .venv/bin/python -m pytest)   162 passed, 13 warnings   (132 before; 30 new in tests/test_orchestrator.py)
+npm run lint                                exit 0, nothing reported
+npm test                                    Test Files 103 passed (103), Tests 1741 passed (1741)
+npm run build                               ✓ built
+```
+
+The 13 warnings are one `DeprecationWarning` from `langsmith`, a package LangGraph brings in, on Python 3.14. The three `npm` checks ran on `main`, whose front end is the same as this branch's.
+
+**Not tested: a real model.** Every test uses `FakeLlm`, so no Gemini call has been made. Checked offline only: the Gemini SDK accepts the three schemas as response schemas, and each tool shows the model `location` and `date_range` and nothing else.
+
+Choices made while building:
+
+- `tracks` and `descriptions` are lists of typed models (`AudioTrack`, `VisionDescription`), not free dictionaries, so a wrong answer is refused. They still come out as the dictionaries asked for. `pitch_range` is two MIDI notes, lowest first; `volume_curve` values are 0 to 1; `intensity_level` is `low`, `medium` or `high`.
+- The supervisor's tools write the data into the state themselves. The model is never asked to type the numbers back out.
+- If the supervisor fetches no data, the run ends with `critic_feedback` saying so, and the other three agents are not called.
+- An answer that does not fit its schema raises `AgentOutputError`. The message names the agent and never quotes the model.
+- On a rejected round both makers are sent the feedback and both previous payloads.
+- One new setting, `ORCHESTRATOR_MODEL` (default `gemini-flash-latest`).
