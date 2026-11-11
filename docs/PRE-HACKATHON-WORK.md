@@ -63,6 +63,7 @@ Add one line per piece of work, newest last.
 | 11 Nov | SN12 Offline render: "Render the playlist" on About renders every data set to a 16-bit stereo WAV, a WebVTT captions file and a JSON sidecar, in the browser from the checked frames through the ensemble; the pipeline is deterministic, the real engine's WAV matches to within one 16-bit step (R-20261111-SN12-1) | `feature/SN12-offline-render-playlist` |
 | 11 Nov | SN13 One voice at a time: a shared duck controller lowers the music by 18 dB (0.3 s attack, 0.8 s release) under the voice guide, browser speech and announcements instead of pausing it, in both engines and on every page; `speak()` resolves when the speech ends and the Welcome sound check plays its note after the spoken question | `feature/SN13-one-voice-at-a-time` |
 | 11 Nov | EIC01 `scripts/eic_ingest.py`: an EIC MP4 or frame folder in, a data set folder out (dated frames, colour scale read from the colour bar, map area, same-origin H.264 web video, manifest with `video`, `legend` and `sonification`), with `--detect-only` to preview the bar first; calls `convert_frames.py` as a library | `feature/EIC01-ingest-script` |
+| 11 Nov | F58: Echo redrawn as Juke-Bot; five visor expressions and four motion states as props; persona says Echo is a program | `feature/F58-juke-bot` |
 
 ## Outside resources used
 

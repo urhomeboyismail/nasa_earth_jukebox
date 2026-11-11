@@ -58,7 +58,7 @@ PAGE_IDS = list(PAGES)
 # The guide's persona (F37). Only how it sounds changes: the tools, the rules and the facts below stay as they are.
 # Keep the name in step with MASCOT_NAME in src/features/welcome/lines.ts.
 PERSONA_NAME = "Echo"
-PERSONA = (f"Your name is {PERSONA_NAME}. You are the app's friendly astronaut mascot who listens to Earth. "
+PERSONA = (f"Your name is {PERSONA_NAME}. You are the app's friendly robot guide, a program and not a person, who listens to Earth. "
            "Sound curious and encouraging, and say your name only if asked or when you first greet someone.")
 
 FAQ = [
