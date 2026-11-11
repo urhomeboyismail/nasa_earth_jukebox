@@ -179,4 +179,7 @@ npm test         Test Files 1 failed | 102 passed (103); Tests 1 failed | 1726 p
 
 The one failure is `src/data/sound-regression.test.ts > notices when one legend stop of the fixture changes`. It fails the same way on a clean `main` (checked with `git stash`): the golden is compared byte for byte and this Windows checkout has CRLF line endings. It is not caused by SN13.
 
-**Manual check: not done.** No audio device or browser session was available to this agent, so the −18 dB drop and the smooth return have not been heard. Still to do by a person: `npm run dev`, a data set playing on Listen, ask the voice guide a question (and use "I can see the map" on Welcome), and note that the music dropped and came back.
+**Manual check (2026-11-11, by a team member, Chrome or Edge, `npm run dev` from the SN13 branch): passed for two of the three cases.**
+- Welcome, "I can see the map", sound check: the spoken question is heard first and the note after it, with no overlap. Passed.
+- Listen, music playing, date changed with the arrow keys (announcements): the music dropped and came back smoothly and never stopped. Passed.
+- Voice guide (needs the server and a Gemini key): **not tried.** Covered by the unit tests only (`ducking.test.tsx`, `App.voice.test.tsx`). Still to check by a person when the server is running.
