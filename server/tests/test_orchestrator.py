@@ -3,18 +3,25 @@ import asyncio
 import json
 from types import SimpleNamespace
 
+import httpx
 import pytest
+from google.genai import types
+from langgraph.errors import GraphRecursionError
+from langgraph.graph import END
 from pydantic import ValidationError
 
 from app.agent import orchestrator
 from app.agent.fake import FakeLlm, FunctionCallSpec, last_user_text
 from app.agent.orchestrator import (
-    MAX_FRAMES,
+    FRAME_HOSTS,
+    MOCK_FRAME_URLS,
     MAX_POINTS,
     MAX_REVISIONS,
+    RECURSION_LIMIT,
     NO_DATA_FEEDBACK,
     REJECTED_WITHOUT_REASON,
     AgentOutputError,
+    FrameFetchError,
     AudioPayload,
     VisionPayload,
     build_graph,
@@ -81,6 +88,19 @@ def _context():
     return SimpleNamespace(state={})
 
 
+@pytest.fixture(autouse=True)
+def _no_network(monkeypatch):
+    """The vision node fetches its frames. Here each one is a few fake bytes, and the addresses asked for are kept."""
+    asked = []
+
+    async def frames(uris):
+        asked.append(list(uris))
+        return [types.Part.from_bytes(data=b"frame", mime_type="image/jpeg") for _ in uris]
+
+    monkeypatch.setattr(orchestrator, "_frame_parts", frames)
+    return asked
+
+
 # 1. The graph
 
 
@@ -92,18 +112,20 @@ def test_an_approved_run_returns_both_payloads_and_no_feedback():
     assert result["audio_json_payload"] == AudioPayload.model_validate(AUDIO).model_dump()
     assert result["vision_text_payload"] == VisionPayload.model_validate(VISION).model_dump()
     assert len(result["nasa_numeric_data"][0]["values"]) == 5
-    assert result["nasa_visual_data"][0] == "mock://gibs/port-louis/2024-07-01.png"
-    assert len(result["nasa_visual_data"]) == 5
+    assert result["nasa_visual_data"] == list(MOCK_FRAME_URLS)
     assert [len(_calls(model, name)) for name in ("supervisor", "synthesizer", "vision", "critic")] == [3, 1, 1, 1]
 
 
-def test_the_makers_get_the_data_and_the_profile():
+def test_the_makers_get_the_data_and_the_profile(_no_network):
     model = _model([APPROVE])
     result = _run(model)
     heard = json.loads(last_user_text(_calls(model, "synthesizer")[0]))
     seen = json.loads(last_user_text(_calls(model, "vision")[0]))
     assert heard == {"nasa_numeric_data": result["nasa_numeric_data"], "accessibility_profile": {"detail_level": "verbose"}}
     assert seen == {"nasa_visual_data": result["nasa_visual_data"], "accessibility_profile": {"detail_level": "verbose"}}
+    images = [part.inline_data for part in _calls(model, "vision")[0].contents[-1].parts if part.inline_data]
+    assert [image.mime_type for image in images] == ["image/jpeg"] * 3  # The describer gets the pixels, not only addresses.
+    assert _no_network == [list(MOCK_FRAME_URLS)]
     audited = json.loads(last_user_text(_calls(model, "critic")[0]))
     assert audited["audio_payload"] == result["audio_json_payload"]
     assert audited["vision_payload"] == result["vision_text_payload"]
@@ -166,6 +188,20 @@ def test_an_answer_that_does_not_fit_its_schema_is_an_error_that_does_not_quote_
     assert "not json" not in str(caught.value)
 
 
+def test_the_compiled_graph_carries_the_step_cap():
+    assert RECURSION_LIMIT == 4 + 3 * MAX_REVISIONS
+    assert build_graph(_model([APPROVE])).config["recursion_limit"] == RECURSION_LIMIT
+
+
+def test_a_critic_loop_that_never_ends_is_cut_off_by_the_step_cap(monkeypatch):
+    monkeypatch.setattr(orchestrator, "route_after_critic", lambda state: "prepare_revision")
+    model = _model([REJECT])
+    with pytest.raises(GraphRecursionError):
+        _run(model)
+    # Not one model call past what the longest allowed run makes.
+    assert [len(_calls(model, name)) for name in ("synthesizer", "vision", "critic")] == [MAX_REVISIONS + 1] * 3
+
+
 def test_the_graph_builds_with_the_keyed_model_and_makes_no_call():
     assert build_graph() is not None
 
@@ -175,11 +211,11 @@ def test_the_graph_builds_with_the_keyed_model_and_makes_no_call():
 
 def test_routes():
     assert route_after_supervisor({"nasa_numeric_data": [1], "nasa_visual_data": ["a"]}) == ["synthesizer", "vision"]
-    assert route_after_supervisor({"nasa_numeric_data": [1], "nasa_visual_data": []}) == ["finalize"]
-    assert route_after_supervisor({}) == ["finalize"]
-    assert route_after_critic({"critic_feedback": "", "revision_count": 0}) == "finalize"
+    assert route_after_supervisor({"nasa_numeric_data": [1], "nasa_visual_data": []}) == [END]
+    assert route_after_supervisor({}) == [END]
+    assert route_after_critic({"critic_feedback": "", "revision_count": 0}) == END
     assert route_after_critic({"critic_feedback": "x", "revision_count": MAX_REVISIONS - 1}) == "prepare_revision"
-    assert route_after_critic({"critic_feedback": "x", "revision_count": MAX_REVISIONS}) == "finalize"
+    assert route_after_critic({"critic_feedback": "x", "revision_count": MAX_REVISIONS}) == END
 
 
 # 3. The mock tools
@@ -198,8 +234,55 @@ def test_the_mock_tools_give_the_same_data_for_the_same_request():
 def test_the_mock_tools_cap_what_they_return():
     context = _context()
     assert fetch_nasa_power_data("Port Louis", "2020-01-01/2024-12-31", context)["points"] == MAX_POINTS
-    assert fetch_nasa_gibs_images("Port Louis", "2020-01-01/2024-12-31", context)["frames"] == MAX_FRAMES
-    assert len(context.state["nasa_visual_data"]) == MAX_FRAMES
+
+
+def test_the_mock_frames_are_three_real_addresses_on_an_allowed_host():
+    context = _context()
+    assert fetch_nasa_gibs_images("Port Louis", RANGE, context) == {"ok": True, "frames": 3}
+    assert context.state["nasa_visual_data"] == list(MOCK_FRAME_URLS)
+    assert len(set(MOCK_FRAME_URLS)) == 3
+    assert all(httpx.URL(url).scheme == "https" and httpx.URL(url).host in FRAME_HOSTS for url in MOCK_FRAME_URLS)
+
+
+def _fetch(uri, handler):
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            return await orchestrator._fetch_frame(client, uri)
+
+    return asyncio.run(run())
+
+
+def test_a_frame_comes_back_as_image_bytes():
+    part = _fetch(MOCK_FRAME_URLS[0], lambda request: httpx.Response(200, content=b"jpeg", headers={"content-type": "image/jpeg"}))
+    assert part.inline_data.data == b"jpeg" and part.inline_data.mime_type == "image/jpeg"
+
+
+@pytest.mark.parametrize("uri", [
+    "http://gibs.earthdata.nasa.gov/a.jpg",
+    "https://example.com/a.jpg",
+    "https://gibs.earthdata.nasa.gov.example.com/a.jpg",
+    "https://169.254.169.254/latest/meta-data",
+    "file:///etc/passwd",
+    "mock://gibs/a.png",
+    None,
+])
+def test_an_address_off_the_list_is_refused_before_any_request(uri):
+    def handler(request):
+        raise AssertionError("A request was made")
+
+    with pytest.raises(FrameFetchError):
+        _fetch(uri, handler)
+
+
+@pytest.mark.parametrize("response", [
+    httpx.Response(404, content=b"", headers={"content-type": "image/jpeg"}),
+    httpx.Response(200, content=b"<html>", headers={"content-type": "text/html"}),
+    httpx.Response(302, headers={"location": "https://example.com/a.jpg"}),
+    httpx.Response(200, content=b"x" * (orchestrator.MAX_FRAME_BYTES + 1), headers={"content-type": "image/png"}),
+])
+def test_a_frame_that_is_not_a_usable_image_is_an_error(response):
+    with pytest.raises(FrameFetchError):
+        _fetch(MOCK_FRAME_URLS[0], lambda request: response)
 
 
 @pytest.mark.parametrize(("location", "date_range"), [

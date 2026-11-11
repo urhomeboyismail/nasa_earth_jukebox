@@ -1,6 +1,6 @@
 """The Jukebox orchestrator (G08): a LangGraph that runs four Google ADK agents.
 
-    START → supervisor → (synthesizer ∥ vision) → critic → finalize → END
+    START → supervisor → (synthesizer ∥ vision) → critic → END
                               ↑                      │ rejected, and revisions left
                               └── prepare_revision ──┘
 
@@ -9,20 +9,32 @@ turns the frames into time-coded text. The critic checks the two against each ot
 rejected round redoes both, so they stay in step, at most MAX_REVISIONS times. After that the graph returns the last payloads
 with `critic_feedback` still set, so the caller can tell they were not approved.
 
-Nothing in the running server imports this module. Every run is billed (up to 12 model calls after the supervisor), so it needs a
-route with a rate limit and a cap before it is exposed. The two NASA tools are mocks: they never reach the network.
+Exception to ADR-0005: The Vision Context Agent is permitted to generate raw user-facing sentences because dynamic alt-text
+generation is a core accessibility requirement for screen readers, unlike standard UI copy.
+
+Every run is billed, so two caps hold whatever the critic says: `route_after_critic` stops after MAX_REVISIONS, and the compiled
+graph carries RECURSION_LIMIT, one step more than the longest allowed run takes. If the routing were ever wrong, LangGraph would
+raise GraphRecursionError there, and that one extra step is `prepare_revision`, which calls no model. The longest run is a few supervisor calls
+plus 3 calls a round for MAX_REVISIONS + 1 rounds.
+
+The two NASA tools are mocks. The numbers are made up. The frames are three fixed, real NASA GIBS images, so the vision agent
+has pixels to look at; they are the same three whatever place or dates are asked for. The vision node fetches them itself, only
+over https and only from FRAME_HOSTS, and sends the bytes to the model.
 
 Model output is untrusted. Each payload is checked against its Pydantic schema before it enters the graph state, and the fetched
 data is put into the state by the tools, never copied from text the model wrote.
 """
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
-import re
 from dataclasses import dataclass
 from datetime import date, timedelta
-from typing import Annotated, Literal, TypedDict, TypeVar
+from typing import Annotated, Literal, Sequence, TypedDict, TypeVar
+from urllib.parse import urlsplit
+
+import httpx
 
 from google.adk.agents import LlmAgent
 from google.adk.models import BaseLlm
@@ -36,15 +48,31 @@ from app.agent.models import keyed_model
 from app.config import settings
 
 MAX_REVISIONS = 3
-#: The mock tools return at most this many days of values, and this many frames.
+#: The longest allowed run takes 3 steps (supervisor, the two makers together, critic) plus 3 for each revision
+#: (prepare_revision, the two makers, critic). LangGraph needs the limit to be one above that. A run that tried to go on would
+#: spend that last step on prepare_revision, which calls no model, and be stopped before the makers ran again.
+RECURSION_LIMIT = 4 + 3 * MAX_REVISIONS
+#: The mock numbers tool returns at most this many days of values.
 MAX_POINTS = 62
-MAX_FRAMES = 12
 MAX_LOCATION_CHARS = 80
 
 APP_NAME = "jukebox_orchestrator"
 USER_ID = "jukebox"
 NUMERIC_KEY = "nasa_numeric_data"
 VISUAL_KEY = "nasa_visual_data"
+
+_GIBS_FRAME = (
+    "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0"
+    "&LAYERS=MODIS_Terra_CorrectedReflectance_TrueColor&FORMAT=image/jpeg&WIDTH=768&HEIGHT=384&CRS=EPSG:4326"
+    "&BBOX=-90,-180,90,180&TIME={day}"
+)
+#: The mock frames: the whole Earth in true colour (MODIS Terra, from NASA GIBS) on three days of 2024.
+MOCK_FRAME_URLS = tuple(_GIBS_FRAME.format(day=day) for day in ("2024-01-15", "2024-04-15", "2024-07-15"))
+#: The only hosts the vision node will fetch a frame from, and what it will accept back.
+FRAME_HOSTS = frozenset({"gibs.earthdata.nasa.gov"})
+FRAME_TYPES = frozenset({"image/jpeg", "image/png"})
+MAX_FRAME_BYTES = 2_000_000
+FRAME_TIMEOUT_SECONDS = 15.0
 
 NO_DATA_FEEDBACK = "No NASA data was fetched for this request, so no sound or description was made."
 REJECTED_WITHOUT_REASON = "The auditor rejected the payloads without saying what to change."
@@ -65,6 +93,10 @@ class JukeboxState(TypedDict, total=False):
 
 class AgentOutputError(RuntimeError):
     """An agent's final answer did not fit its schema. The message names the agent only, never what the model wrote."""
+
+
+class FrameFetchError(RuntimeError):
+    """A frame could not be fetched for the vision agent, or its address is not one the server may fetch."""
 
 
 # --- Schemas the agents must answer in --------------------------------------------------------------------------------
@@ -166,11 +198,9 @@ def fetch_nasa_gibs_images(location: str, date_range: str, tool_context: ToolCon
     checked = _checked(location, date_range)
     if isinstance(checked, dict):
         return checked
-    place, days = checked
-    days = days[:MAX_FRAMES]
-    slug = re.sub(r"[^a-z0-9]+", "-", place.lower()).strip("-") or "place"
-    tool_context.state[VISUAL_KEY] = [f"mock://gibs/{slug}/{day.isoformat()}.png" for day in days]
-    return {"ok": True, "frames": len(days)}
+    # A mock: the same three real frames whatever was asked for.
+    tool_context.state[VISUAL_KEY] = list(MOCK_FRAME_URLS)
+    return {"ok": True, "frames": len(MOCK_FRAME_URLS)}
 
 
 SUPERVISOR_TOOLS = [FunctionTool(fetch_nasa_power_data), FunctionTool(fetch_nasa_gibs_images)]
@@ -250,11 +280,32 @@ def build_agents(model: BaseLlm | None = None) -> JukeboxAgents:
 # --- Running one agent ----------------------------------------------------------------------------------------------------
 
 
-async def _run_agent(agent: LlmAgent, text: str) -> tuple[str, dict]:
+async def _fetch_frame(client: httpx.AsyncClient, uri: str) -> types.Part:
+    """One frame as image bytes for the model. Refuses any address that is not https on an allowed host, before any request."""
+    address = urlsplit(uri) if isinstance(uri, str) else None
+    if address is None or address.scheme != "https" or address.hostname not in FRAME_HOSTS:
+        raise FrameFetchError("A frame address is not one the server may fetch.")
+    try:
+        response = await client.get(uri)
+    except httpx.HTTPError as error:
+        raise FrameFetchError("A frame could not be fetched.") from error
+    kind = response.headers.get("content-type", "").split(";")[0].strip().lower()
+    if response.status_code != 200 or kind not in FRAME_TYPES or len(response.content) > MAX_FRAME_BYTES:
+        raise FrameFetchError("A frame did not come back as a usable image.")
+    return types.Part.from_bytes(data=response.content, mime_type=kind)
+
+
+async def _frame_parts(uris: Sequence[str]) -> list[types.Part]:
+    """Every frame, in order. One that fails fails the run: text for fewer frames than the sound covers would be out of step."""
+    async with httpx.AsyncClient(timeout=FRAME_TIMEOUT_SECONDS, follow_redirects=False) as client:
+        return list(await asyncio.gather(*(_fetch_frame(client, uri) for uri in uris)))
+
+
+async def _run_agent(agent: LlmAgent, text: str, images: Sequence[types.Part] = ()) -> tuple[str, dict]:
     """One turn of one agent in a fresh session. Returns its final text and the session state its tools left behind."""
     runner = InMemoryRunner(agent=agent, app_name=APP_NAME)
     session = await runner.session_service.create_session(app_name=APP_NAME, user_id=USER_ID)
-    message = types.Content(role="user", parts=[types.Part(text=text)])
+    message = types.Content(role="user", parts=[types.Part(text=text), *images])
     final = ""
     async for event in runner.run_async(user_id=USER_ID, session_id=session.id, new_message=message):
         if event.is_final_response() and event.content:
@@ -263,9 +314,11 @@ async def _run_agent(agent: LlmAgent, text: str) -> tuple[str, dict]:
     return final, dict(stored.state) if stored else {}
 
 
-async def _run_structured(agent: LlmAgent, payload: dict, schema: type[Schema]) -> Schema:
-    """Run an agent on a JSON message and check its answer against the schema."""
-    final, _ = await _run_agent(agent, json.dumps(payload, default=str))
+async def _run_structured(
+    agent: LlmAgent, payload: dict, schema: type[Schema], images: Sequence[types.Part] = ()
+) -> Schema:
+    """Run an agent on a JSON message, with any images after it, and check its answer against the schema."""
+    final, _ = await _run_agent(agent, json.dumps(payload, default=str), images)
     try:
         return schema.model_validate_json(final)
     except ValidationError as error:
@@ -278,19 +331,20 @@ async def _run_structured(agent: LlmAgent, payload: dict, schema: type[Schema]) 
 def route_after_supervisor(state: JukeboxState) -> list[str]:
     if state.get("nasa_numeric_data") and state.get("nasa_visual_data"):
         return ["synthesizer", "vision"]  # Fan out: sound and text are made in parallel from the same data.
-    return ["finalize"]  # Nothing to work from; critic_feedback says so.
+    return [END]  # Nothing to work from; critic_feedback says so.
 
 
-def route_after_critic(state: JukeboxState) -> Literal["finalize", "prepare_revision"]:
+def route_after_critic(state: JukeboxState) -> str:
     if not state.get("critic_feedback"):
-        return "finalize"  # Approved.
+        return END  # Approved.
     if state.get("revision_count", 0) >= MAX_REVISIONS:
-        return "finalize"  # Out of revisions: the last payloads go back with the feedback still set.
+        return END  # Out of revisions: the last payloads go back with the feedback still set.
     return "prepare_revision"
 
 
 def build_graph(model: BaseLlm | None = None):
-    """Compile the graph. Run it with `await graph.ainvoke({"user_query": ..., "accessibility_profile": ...})`."""
+    """Compile the graph, capped at RECURSION_LIMIT steps. Run it with
+    `await graph.ainvoke({"user_query": ..., "accessibility_profile": ...})`."""
     agents = build_agents(model)
 
     async def supervisor(state: JukeboxState) -> dict:
@@ -330,7 +384,9 @@ def build_graph(model: BaseLlm | None = None):
             "accessibility_profile": state.get("accessibility_profile", {}),
             **_revision_context(state),
         }
-        payload = await _run_structured(agents.vision, message, VisionPayload)
+        # The frames follow the message as images, in the order nasa_visual_data lists them.
+        images = await _frame_parts(message["nasa_visual_data"])
+        payload = await _run_structured(agents.vision, message, VisionPayload, images)
         return {"vision_text_payload": payload.model_dump()}
 
     async def critic(state: JukeboxState) -> dict:
@@ -347,24 +403,20 @@ def build_graph(model: BaseLlm | None = None):
     def prepare_revision(state: JukeboxState) -> dict:
         return {"revision_count": state.get("revision_count", 0) + 1}
 
-    def finalize(state: JukeboxState) -> dict:
-        return {}
-
     graph = StateGraph(JukeboxState)
     graph.add_node("supervisor", supervisor)
     graph.add_node("synthesizer", synthesizer)
     graph.add_node("vision", vision)
     graph.add_node("critic", critic)
     graph.add_node("prepare_revision", prepare_revision)
-    graph.add_node("finalize", finalize)
 
     graph.add_edge(START, "supervisor")
-    graph.add_conditional_edges("supervisor", route_after_supervisor, ["synthesizer", "vision", "finalize"])
+    graph.add_conditional_edges("supervisor", route_after_supervisor, ["synthesizer", "vision", END])
     # Fan in: the critic runs once, after both have finished.
     graph.add_edge(["synthesizer", "vision"], "critic")
-    graph.add_conditional_edges("critic", route_after_critic, ["finalize", "prepare_revision"])
+    graph.add_conditional_edges("critic", route_after_critic, [END, "prepare_revision"])
     # A rejected round redoes both payloads, each reading critic_feedback.
     graph.add_edge("prepare_revision", "synthesizer")
     graph.add_edge("prepare_revision", "vision")
-    graph.add_edge("finalize", END)
-    return graph.compile()
+    # The hard cap on a run, whatever the routes above do. See RECURSION_LIMIT.
+    return graph.compile().with_config({"recursion_limit": RECURSION_LIMIT})

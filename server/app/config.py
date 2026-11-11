@@ -38,6 +38,11 @@ class Settings(BaseSettings):
     assistant_max_sessions: int = Field(default=4, gt=0)
     # The Jukebox orchestrator's four agents (app/agent/orchestrator.py). Text in and JSON out, so not a Live model.
     orchestrator_model: str = "gemini-flash-latest"
+    # Its route, POST /api/v1/jukebox/generate. Every run is billed (up to about 15 model calls) and there are no accounts, so
+    # it is off unless switched on, limited to a few runs a minute for the whole server, and each run has a time limit.
+    jukebox_enabled: bool = False
+    jukebox_runs_per_minute: int = Field(default=4, gt=0)
+    jukebox_timeout_seconds: float = Field(default=120, gt=0)
 
     # Listening-test results (src/features/test, docs/PLAN.md §5.5). On Render the file needs a persistent
     # disk to survive restarts; without one, download the CSV after every session.
