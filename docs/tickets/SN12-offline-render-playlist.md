@@ -161,9 +161,11 @@ npm test       -> Test Files 1 failed | 99 passed (100); Tests 1 failed | 1698 p
 The one failure is `src/data/sound-regression.test.ts` "notices when one legend stop of the fixture changes". It is not from this ticket: it compares a golden file read from disk with text generated in code, and in this Windows worktree the golden files have CRLF line endings (`core.autocrlf=true`; `od -c src/data/__golden__/fixture.json` shows `
 `), so the strings differ only by ``. The new tests (schedule, vtt, sidecar, renderSequence, renderPlaylist, PlaylistPanel, golden) all pass, and so does About.
 
-**Manual check in a real browser (headless Edge, Tone, `synthetic-storm`, 10 dates, 10.5 s, `full` detail): NOT MET.**
+**Manual check in a real browser (headless Edge, Tone, `synthetic-storm`, 10 dates, 10.5 s, `full` detail): byte-identical NOT MET; accepted as "same to within one 16-bit step".**
 
 - Peak: -8.21 dBFS (the limit is -1.00 dBFS or lower). Met.
 - Two renders of the same data set: the VTT and the sidecar are byte-identical, but the **WAV hashes differ**. Three renders gave `fee3ab55...`, `94c46d59...`, `32ae181b...`. Each pair differs in about 100 of 926,100 samples, and each difference is 1 step of the 16-bit value (about 3e-5 of full scale).
 - By detail level (two renders each, differing samples): `calm` 0, `standard` 104, `full` 111. With single voices removed from a `full` schedule: no hot spots 70, no bass 71, no rhythm 68, no motion 0, only bass 2, only hot spots 27. So the noise is sporadic and not one voice's.
 - So the pipeline (features, music, schedule, captions, sidecar, WAV encoding) is deterministic (the byte-identity test and the golden file show that), but the real ensemble graph's offline render is not byte-identical in Chrome-family browsers above `calm`. That is in `src/audio/ensemble/` (SN04), which this ticket may not edit. Posted as R-20261111-SN12-1 on `docs/AGENT-BOARD.md`.
+
+**Decision (2026-11-11, the person who owns this work):** accept the real engine's render as identical to within one 16-bit step (about 3e-5 of full scale, inaudible), and mark SN12 ready. Byte identity holds for the pipeline (tests and golden file) and for the captions and sidecar, not for the Tone WAV above `calm`. A byte-exact WAV needs a fix in `src/audio/ensemble/` (R-20261111-SN12-1).

@@ -86,3 +86,4 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: can SN04 find what makes the offline render vary (a panner, a filter, the compressor or the clip curve, event timing)? Or should SN12 accept "same to within one 16-bit step" and say so in the ticket (option b), and drop "byte-identical" for the real engine?
 - Answer:
 - Recorded in: nowhere needed yet
+- Note (2026-11-11, SN12): option (b) was chosen for SN12 to ship: "same to within one 16-bit step". SN04 may still look for the source; no deadline.
