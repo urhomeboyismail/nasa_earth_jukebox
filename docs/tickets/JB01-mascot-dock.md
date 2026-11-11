@@ -184,7 +184,7 @@ $ npm test
  FAIL  src/data/sound-regression.test.ts > sound regression baseline > notices when one legend stop of the fixture changes
 
 $ npm run build
-✓ built in 1.02s   (MascotDock is its own chunk: 4.5 kB, 2.0 kB gzip; index-*.js 388.8 kB, down from 392.2 kB)
+✓ built in 1.02s   (MascotDock is its own chunk: 4.5 kB, 2.0 kB gzip; the main chunk is index-*.js, 388.8 kB)
 ```
 
 The one failure is not from JB01: it fails the same way on `main` (Git writes that golden file with CRLF on this Windows checkout and the test compares it against LF text). An earlier full run, on a busy machine, also timed out four tests (`App.test.tsx`, `test-mode.test.tsx`, `features/golden.test.ts`, `change-regression.test.ts`); run alone they pass (56 tests), and the rerun above is clean.
