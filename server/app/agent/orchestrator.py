@@ -17,9 +17,10 @@ graph carries RECURSION_LIMIT, one step more than the longest allowed run takes.
 raise GraphRecursionError there, and that one extra step is `prepare_revision`, which calls no model. The longest run is a few supervisor calls
 plus 3 calls a round for MAX_REVISIONS + 1 rounds.
 
-The two NASA tools are mocks. The numbers are made up. The frames are three fixed, real NASA GIBS images, so the vision agent
-has pixels to look at; they are the same three whatever place or dates are asked for. The vision node fetches them itself, only
-over https and only from FRAME_HOSTS, and sends the bytes to the model.
+The two NASA tools are mocks. The numbers are made up. The frames are real NASA GIBS images of the whole Earth, whatever place
+is asked for, so the vision agent has pixels to look at. Given the same date range, both tools cover it from its first day to
+its last: the numbers are spread evenly across it and the frames are its first, middle and last day. The vision node fetches the
+frames itself, only over https and only from FRAME_HOSTS, and sends the bytes to the model.
 
 Model output is untrusted. Each payload is checked against its Pydantic schema before it enters the graph state, and the fetched
 data is put into the state by the tools, never copied from text the model wrote.
@@ -52,8 +53,11 @@ MAX_REVISIONS = 3
 #: (prepare_revision, the two makers, critic). LangGraph needs the limit to be one above that. A run that tried to go on would
 #: spend that last step on prepare_revision, which calls no model, and be stopped before the makers ran again.
 RECURSION_LIMIT = 4 + 3 * MAX_REVISIONS
-#: The mock numbers tool returns at most this many days of values.
+#: The mock tools return at most this many values and this many frames, spread evenly from the first day asked for to the last.
 MAX_POINTS = 62
+FRAME_COUNT = 3
+#: The first day the mock frames' layer has an image for (MODIS on Terra).
+FIRST_FRAME_DAY = date(2000, 2, 24)
 MAX_LOCATION_CHARS = 80
 
 APP_NAME = "jukebox_orchestrator"
@@ -66,13 +70,12 @@ _GIBS_FRAME = (
     "&LAYERS=MODIS_Terra_CorrectedReflectance_TrueColor&FORMAT=image/jpeg&WIDTH=768&HEIGHT=384&CRS=EPSG:4326"
     "&BBOX=-90,-180,90,180&TIME={day}"
 )
-#: The mock frames: the whole Earth in true colour (MODIS Terra, from NASA GIBS) on three days of 2024.
-MOCK_FRAME_URLS = tuple(_GIBS_FRAME.format(day=day) for day in ("2024-01-15", "2024-04-15", "2024-07-15"))
 #: The only hosts the vision node will fetch a frame from, and what it will accept back.
 FRAME_HOSTS = frozenset({"gibs.earthdata.nasa.gov"})
 FRAME_TYPES = frozenset({"image/jpeg", "image/png"})
 MAX_FRAME_BYTES = 2_000_000
 FRAME_TIMEOUT_SECONDS = 15.0
+FRAME_ATTEMPTS = 2
 
 NO_DATA_FEEDBACK = "No NASA data was fetched for this request, so no sound or description was made."
 REJECTED_WITHOUT_REASON = "The auditor rejected the payloads without saying what to change."
@@ -167,6 +170,18 @@ def _checked(location: str, date_range: str) -> tuple[str, list[date]] | dict:
     return place, days
 
 
+def _spread(days: list[date], count: int) -> list[date]:
+    """`count` of the days, evenly spaced and always with the first and the last. All of them if there are no more than that."""
+    if len(days) <= count:
+        return days
+    return [days[round(index * (len(days) - 1) / (count - 1))] for index in range(count)]
+
+
+def frame_url(day: date) -> str:
+    """The address of the mock frame for one day: the whole Earth in true colour (MODIS on Terra, from NASA GIBS)."""
+    return _GIBS_FRAME.format(day=day.isoformat())
+
+
 def _mock_value(place: str, day: date) -> float:
     """A value from 0 to 1 that depends only on the place and the day, so the same request always gives the same data."""
     digest = hashlib.sha256(f"{place.lower()}|{day.isoformat()}".encode()).digest()
@@ -180,7 +195,7 @@ def fetch_nasa_power_data(location: str, date_range: str, tool_context: ToolCont
     if isinstance(checked, dict):
         return checked
     place, days = checked
-    days = days[:MAX_POINTS]
+    days = _spread(days, MAX_POINTS)
     series = {
         "mock": True,
         "location": place,
@@ -198,9 +213,13 @@ def fetch_nasa_gibs_images(location: str, date_range: str, tool_context: ToolCon
     checked = _checked(location, date_range)
     if isinstance(checked, dict):
         return checked
-    # A mock: the same three real frames whatever was asked for.
-    tool_context.state[VISUAL_KEY] = list(MOCK_FRAME_URLS)
-    return {"ok": True, "frames": len(MOCK_FRAME_URLS)}
+    _, days = checked
+    if days[0] < FIRST_FRAME_DAY or days[-1] >= date.today():
+        return {"error": f"Frames exist from {FIRST_FRAME_DAY.isoformat()} to yesterday. Give a date range inside that."}
+    # A mock: the whole Earth, whatever place was asked for.
+    days = _spread(days, FRAME_COUNT)
+    tool_context.state[VISUAL_KEY] = [frame_url(day) for day in days]
+    return {"ok": True, "frames": len(days), "first": days[0].isoformat(), "last": days[-1].isoformat()}
 
 
 SUPERVISOR_TOOLS = [FunctionTool(fetch_nasa_power_data), FunctionTool(fetch_nasa_gibs_images)]
@@ -210,7 +229,10 @@ SUPERVISOR_TOOLS = [FunctionTool(fetch_nasa_power_data), FunctionTool(fetch_nasa
 
 SUPERVISOR_INSTRUCTION = (
     "You are the Jukebox Supervisor. Use your tools to fetch the data required to answer the user's query. Once fetched, "
-    "output the data directly into the graph state as nasa_numeric_data and nasa_visual_data."
+    "output the data directly into the graph state as nasa_numeric_data and nasa_visual_data. If the user does not specify a "
+    "location, default to a 'Global' context or global bounding box. You must also enforce temporal alignment: ensure the date "
+    "range passed to the tools results in numerical data and visual frames that cover the exact same time period (e.g., do not "
+    "fetch 62 days of audio data for 6 months of visual frames)."
 )
 SYNTHESIZER_INSTRUCTION = (
     "You are the Audio Engineer. Map the nasa_numeric_data to the AudioPayload schema. Read the accessibility_profile to "
@@ -225,7 +247,12 @@ VISION_INSTRUCTION = (
 CRITIC_INSTRUCTION = (
     "You are the Accessibility Auditor. Review the Audio Payload and Vision Payload. Does the sonic contrast match the text's "
     "intensity? Does it follow the user's accessibility_profile? If perfectly synced and compliant, set is_approved to True. "
-    "If not, set it to False and write explicitly what the Synthesizer and Vision agents need to change in the feedback field."
+    "If not, set it to False and write explicitly what the Synthesizer and Vision agents need to change in the feedback field. "
+    "Do not rubber-stamp approvals. You must enforce strict boundaries based on the accessibility_profile. For example, if the "
+    "profile requests 'low contrast', the volume_curve delta must not exceed 0.3 (a jump from 0.01 to 0.99 is an automatic "
+    "FAIL). If the Vision text intensity_level is 'low', the accompanying volume and pitch must be subdued. If you detect a "
+    "mismatch between the text's stated intensity and the audio's mathematical variance, set is_approved to False and command "
+    "the Synthesizer to compress its ranges."
 )
 
 
@@ -285,10 +312,13 @@ async def _fetch_frame(client: httpx.AsyncClient, uri: str) -> types.Part:
     address = urlsplit(uri) if isinstance(uri, str) else None
     if address is None or address.scheme != "https" or address.hostname not in FRAME_HOSTS:
         raise FrameFetchError("A frame address is not one the server may fetch.")
-    try:
-        response = await client.get(uri)
-    except httpx.HTTPError as error:
-        raise FrameFetchError("A frame could not be fetched.") from error
+    for attempt in range(FRAME_ATTEMPTS):
+        try:
+            response = await client.get(uri)
+            break
+        except httpx.HTTPError as error:  # A dropped connection or a timeout: worth one more try.
+            if attempt == FRAME_ATTEMPTS - 1:
+                raise FrameFetchError("A frame could not be fetched.") from error
     kind = response.headers.get("content-type", "").split(";")[0].strip().lower()
     if response.status_code != 200 or kind not in FRAME_TYPES or len(response.content) > MAX_FRAME_BYTES:
         raise FrameFetchError("A frame did not come back as a usable image.")
@@ -323,6 +353,21 @@ async def _run_structured(
         return schema.model_validate_json(final)
     except ValidationError as error:
         raise AgentOutputError(f"The {agent.name} agent's answer did not fit {schema.__name__}.") from error
+
+
+def audio_stats(audio: dict) -> list[dict]:
+    """The arithmetic the critic's rules need, worked out here so the model reads it instead of doing it over a long list."""
+    stats = []
+    for track in audio.get("tracks", []):
+        curve, pitches = track.get("volume_curve") or [0.0], track.get("pitch_range") or [0, 0]
+        stats.append({
+            "instrument": track.get("instrument", ""),
+            "volume_min": min(curve),
+            "volume_max": max(curve),
+            "volume_curve_delta": round(max(curve) - min(curve), 4),
+            "pitch_span_semitones": pitches[-1] - pitches[0],
+        })
+    return stats
 
 
 # --- The graph ----------------------------------------------------------------------------------------------------------
@@ -392,6 +437,7 @@ def build_graph(model: BaseLlm | None = None):
     async def critic(state: JukeboxState) -> dict:
         message = {
             "audio_payload": state.get("audio_json_payload", {}),
+            "audio_stats": audio_stats(state.get("audio_json_payload", {})),
             "vision_payload": state.get("vision_text_payload", {}),
             "accessibility_profile": state.get("accessibility_profile", {}),
         }

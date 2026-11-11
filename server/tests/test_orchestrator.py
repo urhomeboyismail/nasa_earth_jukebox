@@ -1,6 +1,7 @@
 """G08: the Jukebox orchestrator. No key, no network: the model is FakeLlm and the NASA tools are mocks."""
 import asyncio
 import json
+from datetime import date, timedelta
 from types import SimpleNamespace
 
 import httpx
@@ -14,7 +15,7 @@ from app.agent import orchestrator
 from app.agent.fake import FakeLlm, FunctionCallSpec, last_user_text
 from app.agent.orchestrator import (
     FRAME_HOSTS,
-    MOCK_FRAME_URLS,
+    FRAME_COUNT,
     MAX_POINTS,
     MAX_REVISIONS,
     RECURSION_LIMIT,
@@ -27,6 +28,7 @@ from app.agent.orchestrator import (
     build_graph,
     fetch_nasa_gibs_images,
     fetch_nasa_power_data,
+    frame_url,
     route_after_critic,
     route_after_supervisor,
 )
@@ -37,6 +39,7 @@ APPROVE = {"is_approved": True, "feedback": ""}
 REJECT = {"is_approved": False, "feedback": "Raise the volume where the text says high."}
 QUERY = {"user_query": "How did Port Louis change in early July 2024?", "accessibility_profile": {"detail_level": "verbose"}}
 RANGE = "2024-07-01/2024-07-05"
+FRAMES = [frame_url(date(2024, 7, day)) for day in (1, 3, 5)]  # The first, middle and last day of RANGE.
 
 
 def _agent(request) -> str:
@@ -112,7 +115,7 @@ def test_an_approved_run_returns_both_payloads_and_no_feedback():
     assert result["audio_json_payload"] == AudioPayload.model_validate(AUDIO).model_dump()
     assert result["vision_text_payload"] == VisionPayload.model_validate(VISION).model_dump()
     assert len(result["nasa_numeric_data"][0]["values"]) == 5
-    assert result["nasa_visual_data"] == list(MOCK_FRAME_URLS)
+    assert result["nasa_visual_data"] == FRAMES
     assert [len(_calls(model, name)) for name in ("supervisor", "synthesizer", "vision", "critic")] == [3, 1, 1, 1]
 
 
@@ -125,9 +128,11 @@ def test_the_makers_get_the_data_and_the_profile(_no_network):
     assert seen == {"nasa_visual_data": result["nasa_visual_data"], "accessibility_profile": {"detail_level": "verbose"}}
     images = [part.inline_data for part in _calls(model, "vision")[0].contents[-1].parts if part.inline_data]
     assert [image.mime_type for image in images] == ["image/jpeg"] * 3  # The describer gets the pixels, not only addresses.
-    assert _no_network == [list(MOCK_FRAME_URLS)]
+    assert _no_network == [FRAMES]
     audited = json.loads(last_user_text(_calls(model, "critic")[0]))
     assert audited["audio_payload"] == result["audio_json_payload"]
+    assert audited["audio_stats"] == [{"instrument": "marimba", "volume_min": 0.2, "volume_max": 0.8, "volume_curve_delta": 0.6,
+                                       "pitch_span_semitones": 24}]
     assert audited["vision_payload"] == result["vision_text_payload"]
 
 
@@ -231,17 +236,50 @@ def test_the_mock_tools_give_the_same_data_for_the_same_request():
     assert other.state["nasa_numeric_data"][0]["values"] != first.state["nasa_numeric_data"][0]["values"]
 
 
+def test_the_same_range_gives_numbers_and_frames_that_cover_the_same_period():
+    for date_range, first, last in (("2024-01-01/2024-07-31", "2024-01-01", "2024-07-31"), ("2020-01-01/2024-12-31", "2020-01-01", "2024-12-31"),
+                                    (RANGE, "2024-07-01", "2024-07-05"), ("2024-07-01/2024-07-01", "2024-07-01", "2024-07-01")):
+        context = _context()
+        numbers = fetch_nasa_power_data("Global", date_range, context)
+        frames = fetch_nasa_gibs_images("Global", date_range, context)
+        assert (numbers["first"], numbers["last"]) == (frames["first"], frames["last"]) == (first, last)
+        dates = context.state["nasa_numeric_data"][0]["dates"]
+        assert (dates[0], dates[-1]) == (first, last) and dates == sorted(set(dates))
+        assert context.state["nasa_visual_data"][0] == frame_url(date.fromisoformat(first))
+        assert context.state["nasa_visual_data"][-1] == frame_url(date.fromisoformat(last))
+
+
 def test_the_mock_tools_cap_what_they_return():
     context = _context()
     assert fetch_nasa_power_data("Port Louis", "2020-01-01/2024-12-31", context)["points"] == MAX_POINTS
+    assert fetch_nasa_gibs_images("Port Louis", "2020-01-01/2024-12-31", context)["frames"] == FRAME_COUNT
+    assert fetch_nasa_gibs_images("Port Louis", "2024-07-01/2024-07-02", context)["frames"] == 2
 
 
-def test_the_mock_frames_are_three_real_addresses_on_an_allowed_host():
+def test_the_mock_frames_are_real_addresses_on_an_allowed_host():
     context = _context()
-    assert fetch_nasa_gibs_images("Port Louis", RANGE, context) == {"ok": True, "frames": 3}
-    assert context.state["nasa_visual_data"] == list(MOCK_FRAME_URLS)
-    assert len(set(MOCK_FRAME_URLS)) == 3
-    assert all(httpx.URL(url).scheme == "https" and httpx.URL(url).host in FRAME_HOSTS for url in MOCK_FRAME_URLS)
+    assert fetch_nasa_gibs_images("Port Louis", RANGE, context) == {"ok": True, "frames": 3, "first": "2024-07-01", "last": "2024-07-05"}
+    assert context.state["nasa_visual_data"] == FRAMES
+    assert all(httpx.URL(url).scheme == "https" and httpx.URL(url).host in FRAME_HOSTS for url in FRAMES)
+    assert "TIME=2024-07-03" in FRAMES[1]
+
+
+@pytest.mark.parametrize("date_range", [
+    "1999-12-01/2000-03-01",
+    f"2024-01-01/{date.today().isoformat()}",
+    f"{(date.today() + timedelta(days=1)).isoformat()}/{(date.today() + timedelta(days=9)).isoformat()}",
+])
+def test_no_frames_for_days_the_satellite_has_no_image_of(date_range):
+    context = _context()
+    assert "error" in fetch_nasa_gibs_images("Global", date_range, context)
+    assert context.state == {}
+
+
+def test_the_prompts_carry_the_agreed_rules():
+    assert "default to a 'Global' context" in orchestrator.SUPERVISOR_INSTRUCTION
+    assert "cover the exact same time period" in orchestrator.SUPERVISOR_INSTRUCTION
+    assert "Do not rubber-stamp approvals" in orchestrator.CRITIC_INSTRUCTION
+    assert "volume_curve delta must not exceed 0.3" in orchestrator.CRITIC_INSTRUCTION
 
 
 def _fetch(uri, handler):
@@ -253,8 +291,29 @@ def _fetch(uri, handler):
 
 
 def test_a_frame_comes_back_as_image_bytes():
-    part = _fetch(MOCK_FRAME_URLS[0], lambda request: httpx.Response(200, content=b"jpeg", headers={"content-type": "image/jpeg"}))
+    part = _fetch(FRAMES[0], lambda request: httpx.Response(200, content=b"jpeg", headers={"content-type": "image/jpeg"}))
     assert part.inline_data.data == b"jpeg" and part.inline_data.mime_type == "image/jpeg"
+
+
+def test_a_dropped_connection_is_tried_once_more_and_no_more():
+    seen = []
+
+    def flaky(request):
+        seen.append(request.url)
+        if len(seen) == 1:
+            raise httpx.ConnectError("dropped")
+        return httpx.Response(200, content=b"jpeg", headers={"content-type": "image/jpeg"})
+
+    assert _fetch(FRAMES[0], flaky).inline_data.data == b"jpeg"
+    assert len(seen) == 2
+
+    def down(request):
+        seen.append(request.url)
+        raise httpx.ConnectError("dropped")
+
+    with pytest.raises(FrameFetchError):
+        _fetch(FRAMES[0], down)
+    assert len(seen) == 2 + orchestrator.FRAME_ATTEMPTS
 
 
 @pytest.mark.parametrize("uri", [
@@ -282,7 +341,7 @@ def test_an_address_off_the_list_is_refused_before_any_request(uri):
 ])
 def test_a_frame_that_is_not_a_usable_image_is_an_error(response):
     with pytest.raises(FrameFetchError):
-        _fetch(MOCK_FRAME_URLS[0], lambda request: response)
+        _fetch(FRAMES[0], lambda request: response)
 
 
 @pytest.mark.parametrize(("location", "date_range"), [

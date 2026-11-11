@@ -36,8 +36,9 @@ class Settings(BaseSettings):
     gemini_api_version: str = "v1beta"
     assistant_max_session_seconds: int = Field(default=600, gt=0)
     assistant_max_sessions: int = Field(default=4, gt=0)
-    # The Jukebox orchestrator's four agents (app/agent/orchestrator.py). Text in and JSON out, so not a Live model.
-    orchestrator_model: str = "gemini-flash-latest"
+    # The Jukebox orchestrator's four agents (app/agent/orchestrator.py). Text and images in, JSON out, so not a Live model.
+    # This one completed every live run on 11 Nov 2026, when gemini-flash-latest answered 503 or hung all evening.
+    orchestrator_model: str = "gemini-3.5-flash-lite"
     # Its route, POST /api/v1/jukebox/generate. Every run is billed (up to about 15 model calls) and there are no accounts, so
     # it is off unless switched on, limited to a few runs a minute for the whole server, and each run has a time limit.
     jukebox_enabled: bool = False
