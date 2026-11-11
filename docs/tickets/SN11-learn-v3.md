@@ -118,4 +118,19 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Built on branch `feature/SN11-learn-v3` (agent B, 2026-11-11).
+
+- `src/features/learn/voiceCards.ts`: the seven entries (`VOICE_TEACHING`, `VOICE_CARDS`).
+- `src/features/learn/VoiceCardsSection.tsx`: the section and the cards. **Name differs from the ticket** (`voiceCards.tsx`): on a case-insensitive file system `./voiceCards` cannot tell `voiceCards.ts` from a `.tsx` with the same stem, and the import resolved to the data file.
+- `src/features/learn/index.tsx`: one import and one line, after the existing content.
+- `src/features/learn/voiceCards.test.tsx` and `__golden__/voice-cards.json` (card texts and the first fixture frame's captions).
+
+Checks:
+- `npm run lint`: no warnings or errors.
+- `npm run build`: passes.
+- `npm test` (full run): 1664 passed, 1 failed. The failure is `src/data/sound-regression.test.ts > notices when one legend stop of the fixture changes`, a line-ending mismatch (`
+` against `
+`) on this Windows checkout. It fails the same way on `main` without these changes. `src/App.test.tsx` timed out once under load in the full run and passed when run on its own.
+- `npx vitest run src/features/learn`: `learn.test.tsx` (unchanged) and `voiceCards.test.tsx` pass.
+
+Manual check (each card playing only its voice by ear): **not done**. The agent cannot listen. A person needs to do it on a data set with `sonification`.
