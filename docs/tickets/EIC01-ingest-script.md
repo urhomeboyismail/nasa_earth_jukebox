@@ -137,4 +137,27 @@ npm run check-data                                                     # on a re
 
 ## Result
 
-Not started.
+Built `scripts/eic_ingest.py` and `scripts/tests/test_eic_ingest.py`, and added the section "Ingesting EIC material (EIC01)" to `docs/data-sources.md`. `convert_frames.py` is unchanged. Checked on Windows with ffmpeg 9.0.2 and ffprobe on the PATH, so the video tests ran and were not skipped.
+
+```
+$ python -I -m pytest scripts/tests/test_eic_ingest.py
+27 passed
+$ python -I -m pytest scripts/tests          (includes test_convert_frames.py, unchanged)
+89 passed, 1 skipped   (skipped: test_summarize_results.py needs matplotlib, not part of this ticket)
+$ npm run lint            -> no warnings or errors
+$ npm run build           -> built
+$ npm test                -> 1725 passed, 2 failed (see below)
+```
+
+`npm run check-data` with a rehearsal set made from a generated MP4 (`--every 2 --preset major`): the schema, the images, the date order, the video grid and the legend round trip all pass. The only failure is the 16 `TODO` fields (title, summary, description, `variable.*`, `source.*`, `regions.0.*`, one alt text per frame), as the ticket expects. The set was not committed (`public/data/rehearsal-*/` is ignored) and `index.json` was put back.
+
+Two failures in `npm test` are not from this ticket (no file under `src/` changed):
+
+- `src/data/sound-regression.test.ts` "notices when one legend stop of the fixture changes": the golden file is compared as text and this Windows checkout has `core.autocrlf=true`, so line endings differ.
+- `src/App.test.tsx` "loads the first visualization and shows it on each page" timed out at 4 s while the whole suite ran. Run alone, all 29 tests in the file pass.
+
+Notes for whoever uses it:
+
+- Detection looks for a colour bar only in the bottom 30% of the rows and the right-hand 30% of the columns, and needs saturated colours. A bar through white or grey, or at the top or left, needs `--legend-box`. The map-area rule does handle a bar at the top or left once the box is given.
+- A frame folder without `--start-date` takes dates from the file names, and stops with the regular-dates message if they are not a whole, equal number of days apart (monthly frames are not).
+- Choices the ticket left open: a frame folder's video runs at 5 frames a second unless `--fps` is given; `--every` is refused with `--frames`; `--dates` is refused with `--video`; `--detect-only` needs no `--legend-min`/`--legend-max` (it prints the stops by position along the bar when they are missing).
