@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     gemini_api_version: str = "v1beta"
     assistant_max_session_seconds: int = Field(default=600, gt=0)
     assistant_max_sessions: int = Field(default=4, gt=0)
+    # The Jukebox orchestrator's four agents (app/agent/orchestrator.py). Text in and JSON out, so not a Live model.
+    orchestrator_model: str = "gemini-flash-latest"
 
     # Listening-test results (src/features/test, docs/PLAN.md §5.5). On Render the file needs a persistent
     # disk to survive restarts; without one, download the CSV after every session.
