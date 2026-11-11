@@ -21,7 +21,7 @@
 
 **Two rules this ticket bends, on the team lead's instruction. Settle both before any route uses the graph.**
 
-- `.claude/rules/server.md` and `AGENTS.md` say the server does two jobs only. This is a third, with its own route (added on the team lead's instruction, 11 Nov 2026). Those two files still say two jobs; the team lead updates them or not.
+- `.claude/rules/server.md` and `AGENTS.md` said the server does two jobs only. This is a third, with its own route. Both files now record it (the team lead's instruction, 11 Nov 2026). `README.md:67` and `docs/PLAN.md:33` still describe two jobs.
 - **Exception to ADR-0005: The Vision Context Agent is permitted to generate raw user-facing sentences because dynamic alt-text generation is a core accessibility requirement for screen readers, unlike standard UI copy.** (Declared by the team lead, 11 Nov 2026. ADR-0005, `docs/planning/adr/0005-adk-selector-and-audited-drafting.md`, otherwise still holds: the Ask agent chooses fact IDs and writes no sentence.)
 
 ## Design
@@ -55,10 +55,11 @@ class JukeboxState(TypedDict):
 | Vision | none | `VisionPayload`: `descriptions` (`timestamp_sec`, `alt_text`, `intensity_level`) |
 | Critic | none | `CriticEvaluation`: `is_approved`, `feedback` |
 
-- The mock tools return the same data for the same arguments. The numbers are made up. The frames are three fixed, real NASA GIBS images (the whole Earth in true colour on 15 Jan, 15 Apr and 15 Jul 2024), whatever place and dates are asked for.
+- The mock tools return the same data for the same arguments. The numbers are made up. The frames are real NASA GIBS images of the whole Earth in true colour, whatever place is asked for. Given the same date range, both tools cover it from its first day to its last: at most 62 values spread evenly across it, and frames for its first, middle and last day. A range the satellite has no image for (before 24 Feb 2000, or today and later) is refused.
 - The vision node fetches each frame itself and sends the bytes to the model. It fetches only `https` addresses on `FRAME_HOSTS` (`gibs.earthdata.nasa.gov`), follows no redirect, and takes only a JPEG or PNG of at most 2 MB. A frame that fails fails the run.
 - Model output is untrusted: every payload is validated by its Pydantic schema before it enters the graph state, and the fetched data comes from the tools, not from text the model typed.
-- The model is `keyed_model(settings.orchestrator_model)`. `build_graph(model)` takes another model, so tests pass `FakeLlm`.
+- The critic's message carries `audio_stats`: each track's lowest and highest volume, their difference, and its pitch span, worked out in code so the model does not do arithmetic over a long list.
+- The model is `keyed_model(settings.orchestrator_model)`, default `gemini-3.5-flash-lite`. `build_graph(model)` takes another model, so tests pass `FakeLlm`.
 - A run makes at most 1 supervisor turn (a few model calls) plus 4 rounds of 3 calls.
 
 ### Route (`server/app/api/jukebox.py`)
@@ -86,6 +87,7 @@ The orchestrator is imported on the first request, so starting the server still 
 - `server/tests/test_orchestrator.py` (new)
 - `server/app/api/jukebox.py`, `server/tests/test_jukebox_api.py` (new)
 - `server/app/main.py` (one `include_router` line)
+- `.claude/rules/server.md`, `AGENTS.md` (the Jukebox as the server's third job)
 - `server/requirements.txt` (`langgraph`, `langchain-core`, `httpx`)
 - `server/app/config.py`, `server/.env.example` (`orchestrator_model`, `jukebox_enabled`, `jukebox_runs_per_minute`, `jukebox_timeout_seconds`)
 - `docs/tickets/G08-jukebox-orchestrator.md`, `docs/TICKETS.md` (own row)
@@ -130,7 +132,7 @@ npm run lint && npm test && npm run build
 Branch `feature/G08-jukebox-orchestrator`, built by agent C on 11 Nov 2026 with `google-adk` 2.13.0, `langgraph` 1.2.20 and `langchain-core` 1.8.0.
 
 ```
-(cd server && .venv/bin/python -m pytest)   206 passed, 14 warnings   (132 before this ticket)
+(cd server && .venv/bin/python -m pytest)   212 passed, 14 warnings   (132 before this ticket)
 npm run lint                                exit 0, nothing reported
 npm test                                    Test Files 103 passed (103), Tests 1741 passed (1741)
 npm run build                               ✓ built
@@ -140,7 +142,7 @@ The three `npm` checks ran on `main` before the route was added and were not run
 
 ### Live runs, 11 Nov 2026, with the real key
 
-Three complete runs, all on `gemini-3.5-flash-lite`, set through `ORCHESTRATOR_MODEL`. The default, `gemini-flash-latest`, never completed a run that evening: it answered 503 "high demand" or hung until stopped. `gemini-3.8-flash` and `gemini-3.7-flash` failed the same way, and `gemini-3.5-flash` got through the supervisor and then answered 503.
+Four complete runs, all on `gemini-3.5-flash-lite`, which is now the default. The first default, `gemini-flash-latest`, never completed a run that evening: it answered 503 "high demand" or hung until stopped. `gemini-3.8-flash` and `gemini-3.7-flash` failed the same way, and `gemini-3.5-flash` got through the supervisor and then answered 503.
 
 | Run | Asked | Result |
 |---|---|---|
@@ -148,13 +150,19 @@ Three complete runs, all on `gemini-3.5-flash-lite`, set through `ORCHESTRATOR_M
 | 2, route | The Earth through the first half of 2024 (no place named); contrast low, detail brief | 200 in 6 s, `approved: false`: the supervisor fetched nothing. |
 | 3, route | The Sahara, January to July 2024; contrast low, detail brief | 502 on the first try (Gemini busy), then 200 in 22 s. **Approved on the first pass.** |
 
-What the runs showed:
+| 4, graph, after the stricter prompts | The same as run 3 | **Rejected on the first pass, approved on the second**, 27 s, 1 revision. |
 
-- **The revision loop has never run live.** The critic approved both times it was asked. In run 3 it approved a volume curve running from 0.01 to 0.99 against text marked `low` throughout and a profile asking for low contrast, so it may be too easy to please. The loop is covered only by the fake-model tests.
+Run 4 in full: the supervisor fetched 62 values and 3 frames, both covering 1 January to 31 July 2024. The synthesizer's first volume curve ran from 0.0028 to 0.9965 (a difference of 0.99). The critic rejected it: "The accessibility profile mandates a 'low' contrast, meaning the volume_curve delta must not exceed 0.3. The current volume_curve_delta is 0.9937, which severely violates the threshold. The Synthesizer must compress its ranges to keep the volume variance strictly under 0.3." The second curve ran from 0.43 to 0.55 (a difference of 0.12), the descriptions went from medium, medium, high to low, low, medium, and the critic approved.
+
+Run 4 took five tries. Three stopped on a 503 from Gemini part-way (one of them just after the critic's rejection) and one on a dropped connection while fetching a frame; the frame fetch now tries once more.
+
+What runs 1 to 3 showed, before the prompts were changed:
+
+- The critic approved both times it was asked. In run 3 it approved a volume curve running from 0.01 to 0.99 against text marked `low` throughout and a profile asking for low contrast, so it was too easy to please. Its prompt now has the team lead's strict rules, and run 4 is the result.
 - The synthesizer followed the data: in run 1 its 62 volume values correlate 0.95 with the 62 mock values. It made one track each time, on a "synthesizer".
 - The vision agent saw the pixels: it described the black gaps between satellite passes, which no address tells it. With `verbose` it wrote long sentences and with `brief` short ones.
-- The supervisor asked for January to July; the mock numbers tool cut that to its first 62 days, so the sound covers 1 January to 2 March while the frames are from January, April and July.
-- The supervisor fetches nothing when no place is named. Its prompt does not say what to do then.
+- The supervisor asked for January to July; the mock numbers tool cut that to its first 62 days, so the sound covered 1 January to 2 March while the frames were from January, April and July. Both tools now cover the whole range asked for (run 4).
+- The supervisor fetched nothing when no place was named. Its prompt now says to default to a global context; that case has not been run live again.
 - ADK logs a failed model call itself, with the exception text. The route's own log line has the class name only.
 
 Choices made while building:
