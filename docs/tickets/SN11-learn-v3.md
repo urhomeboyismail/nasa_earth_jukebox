@@ -128,7 +128,7 @@ Built on branch `feature/SN11-learn-v3` (agent B, 2026-11-11).
 Checks:
 - `npm run lint`: no warnings or errors.
 - `npm run build`: passes.
-- `npm test` (full run): 1664 passed, 1 failed. The failure is `src/data/sound-regression.test.ts > notices when one legend stop of the fixture changes`, a line-ending mismatch (`
+- `npm test` (full run): 1664 passed, 1 failed. The failure is `src/data/sound-regression.test.ts > notices when one legend stop of the fixture changes`, a line-ending mismatch (`
 ` against `
 `) on this Windows checkout. It fails the same way on `main` without these changes. `src/App.test.tsx` timed out once under load in the full run and passed when run on its own.
 - `npx vitest run src/features/learn`: `learn.test.tsx` (unchanged) and `voiceCards.test.tsx` pass.
