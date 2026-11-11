@@ -241,6 +241,9 @@ def test_the_guide_speaks_as_the_mascot_and_keeps_its_rules():
     from app.assistant.tools import tools
     text = system_instruction("Earth Jukebox", "en", "home")
     assert f"Your name is {PERSONA_NAME}" in text
+    # Echo is a program, not a person (F58).
+    assert "robot" in text and "a program and not a person" in text
+    assert "astronaut" not in text
     assert "Rules you must never break" in text and "never play sound yourself" in text
     # The persona changes how the guide sounds, not what it can do: the same five tools.
     assert len(tools()[0].function_declarations) == 5
