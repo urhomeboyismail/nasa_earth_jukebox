@@ -143,4 +143,48 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+**Built** (agent B, 12 Nov 2026, Windows 11).
+
+**What was built** (`src/features/mascot/`)
+
+- `placeBubble.ts` and `expressionFor.ts`, pure, as designed, each with its tests.
+- `guideContext.ts`, `MascotGuideProvider.tsx`, `useMascotGuide.ts`: `offerTip`, `clearTip` and `pointAt` (stored only). Outside the provider they do nothing. The actions are stable, so a page can call `offerTip` from an effect without running it again when a tip arrives.
+- `useFaceState.ts`: `playing` from the context bus (`subscribeContext`, with a type guard instead of a cast), `hidden` from `visibilitychange`, and the idle time. The 15 s idle check is the only timer; `pointerdown`, `keydown` and `scroll` are passive and wake Echo at once.
+- `MascotDock.tsx` (default export, loaded lazily) and `mascot-dock.css`.
+- `src/App.tsx`: `MascotGuideProvider` inside `AnnouncerProvider` and the lazy dock after the voice panel. The page content is one indent deeper, so read the diff with `-w` (11 added lines).
+
+**Where it differs from the design, and why**
+
+- **A `page` prop.** The dock needs the current page to pick the page tip from `TIPS`, so `App.tsx` passes `page` (with `loading`, `voice`, `voiceOpen`, `onTalk`). The dock has `key={page}`, so a page change closes the bubble, as `HelpButton` does.
+- **`loading`** is `!visualization && !loadError`.
+- **The bubble's text is fixed when it opens.** A waiting tip is cleared at that moment, so the button stops saying it has a tip, and the text stays in the open bubble.
+- **Esc for the name label works anywhere.** The label can be shown by the mouse alone, when focus is elsewhere, so while it shows there is a document-level Esc listener (WCAG 1.4.13). Esc inside the dock closes an open bubble and stops there, so the player's own Esc does not also run.
+- **Turn Echo off** moves focus to the help button first (`.help > button`), because the dock is about to leave and that button is the way back; then it announces how to bring Echo back.
+- **The bubble is placed by writing to the element** (left, top, `data-side`, `--tail`), not by state, so a scroll or resize costs no render.
+- **The tip dot** is a ring with a dot, so it does not rely on colour.
+
+**Tests added**
+
+- `placeBubble.test.ts` (6), `expressionFor.test.ts` (6).
+- `MascotDock.test.tsx` (15): the button by role and name; opens by click and by Enter, announces the page tip once, Esc closes it and refocuses the button; `offerTip` changes the name to "…has a tip" and announces nothing until it is opened; Talk to Echo; Show me around only with `onTour`; Turn Echo off hides the dock, remembers it and announces how to bring it back; nothing renders while the voice panel is open (and an open bubble closes); the name label on hover and focus and Esc; no accessibility violations open and closed; the face for loading, voice connecting and speaking, playing (from the context bus), an alert tip, and resting after a minute then waking on input.
+- `src/App.test.tsx` passes (29).
+
+**Not checked.** Whether it looks right: that is the layout pass (`.claude/rules/platform.md`), and an agent cannot judge the art. Reviewer, to see it: `npm run dev`; the dock is bottom right on every page. One thing for a person to decide: it also shows during the listening test (Compare, test mode). It is quiet there (nothing is spoken unless the bubble is opened), but the team may want it off in that mode.
+
+**Checks** (12 Nov)
+
+```
+$ npm run lint
+> oxlint
+(no warnings, no errors)
+
+$ npm test
+ Test Files  1 failed | 105 passed (106)
+      Tests  1 failed | 1767 passed (1768)
+ FAIL  src/data/sound-regression.test.ts > sound regression baseline > notices when one legend stop of the fixture changes
+
+$ npm run build
+✓ built in 1.02s   (MascotDock is its own chunk: 4.5 kB, 2.0 kB gzip; index-*.js 388.8 kB, down from 392.2 kB)
+```
+
+The one failure is not from JB01: it fails the same way on `main` (Git writes that golden file with CRLF on this Windows checkout and the test compares it against LF text). An earlier full run, on a busy machine, also timed out four tests (`App.test.tsx`, `test-mode.test.tsx`, `features/golden.test.ts`, `change-regression.test.ts`); run alone they pass (56 tests), and the rerun above is clean.
