@@ -74,7 +74,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [SN10](tickets/SN10-text-equivalents.md) | Text equivalents: event sentences, announcements, hot-spot markers, sound recipe | M | agent | SN01, SN03 | player, about | open |
 | [SN11](tickets/SN11-learn-v3.md) | Learn v3: one card per voice, played alone on the synthetic sets | M | agent | SN01, SN02, SN03, SN04, SN06 | learn | done |
 | [SN12](tickets/SN12-offline-render-playlist.md) | Offline render: byte-identical WAV, captions file, playlist of every data set | M | agent | SN01, SN03, SN04 | about | done |
-| [SN13](tickets/SN13-one-voice-at-a-time.md) | One voice at a time: real gain ducking under the guide and speech on every page | M | agent | SN04 | voice, engine | ready: feature/SN13-one-voice-at-a-time |
+| [SN13](tickets/SN13-one-voice-at-a-time.md) | One voice at a time: real gain ducking under the guide and speech on every page | M | agent | SN04 | voice, engine | done |
 
 ### P1: interaction (the listener plays the map; `PLAN.md` §6.3)
 
