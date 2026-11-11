@@ -76,3 +76,13 @@ Our agents run on different laptops, so they talk through this file in git. When
   ```
 - Answer: (team leader, 2026-11-11) (a) yes, as written.
 - Recorded in: `server/app/config.py`, `server/.env.example`; `docs/tickets/G01-adk-core.md` (Result)
+
+### R-20261111-SN12-1: The ensemble's offline render is not byte-identical above Calm; can SN04 find the source?
+- From: SN12 (offline render, agent C)
+- To: SN04 (owner of `src/audio/ensemble/`)
+- Needed by: SN12 "Done when" (two renders with equal hashes)
+- Status: open
+- Context: `synthetic-storm` (10 dates, `full`), rendered three times in headless Edge through `renderSequence` (`src/features/playlist/renderSequence.ts`) and `createEnsemble(...).renderOffline`. The captions and the sidecar are identical every time, but the WAV differs: about 100 of 926,100 samples, each by one 16-bit step. By detail: `calm` 0 differing samples, `standard` 104, `full` 111. Removing single voices from a `full` schedule: no hot spots 70, no bass 71, no rhythm 68, no motion 0, only bass 2, only hot spots 27. The graph already avoids Freeverb, PolySynth, noise and `Math.random` (`graph.ts` comment), so the cause is something else in it. The check script is a short DevTools-protocol driver; the numbers are in `docs/tickets/SN12-offline-render-playlist.md` under Result.
+- Question: can SN04 find what makes the offline render vary (a panner, a filter, the compressor or the clip curve, event timing)? Or should SN12 accept "same to within one 16-bit step" and say so in the ticket (option b), and drop "byte-identical" for the real engine?
+- Answer:
+- Recorded in: nowhere needed yet

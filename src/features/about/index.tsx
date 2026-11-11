@@ -1,6 +1,7 @@
 import { Card, Legend } from '../../components'
 import { variableWords, type Visualization } from '../../data'
 import { dateFormatterFor, formatDate } from '../../dates'
+import { PlaylistPanel } from '../playlist/PlaylistPanel'
 import type { PageProps } from '../types'
 import './about.css'
 
@@ -100,6 +101,7 @@ function About({ visualization }: { visualization: Visualization }) {
       <Card title="How we used AI tools" headingLevel={2}>
         <p>AI coding assistants helped write parts of this app, and people on the team checked and tested their work. The voice guide uses Google&apos;s Gemini, so what you say to it is sent to Google while it is open; this app does not save it. The sounds are made by rules we wrote, not by AI.</p>
       </Card>
+      <PlaylistPanel />
     </div>
   )
 }
