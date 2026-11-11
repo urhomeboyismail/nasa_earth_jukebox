@@ -154,4 +154,29 @@ Manual: `npm run dev`, a data set playing on Listen; open the voice guide and as
 
 ## Result
 
-Not started.
+Built on `feature/SN13-one-voice-at-a-time` (agent C, 2026-11-11).
+
+**What changed**
+- New `src/audio/duck.ts` (reference-counted controller, `DUCK_DB` −18, attack 0.3 s, release 0.8 s, `speechMs`) with tests and the golden `src/audio/__golden__/duck.json`.
+- `engine.ts`: `duck()` and `unduck()` now begin and end the `'engine'` reason; the master ramps to `volume × target`. No pause, no silence. The engine subscribes when it unlocks (not at creation), so an engine that never sounds is never held by the controller, and the master starts ducked if a voice is already speaking. The `SoundEngine.duck` comment in `index.ts` is updated.
+- `ensemble/index.ts`: the master ramps to `volume × target`; pause still fades to 0, resume fades to the target (not 1 while ducked); `dispose` unsubscribes.
+- `assistant/ducking.ts`: ducks while the guide is `speaking` or `listening`, releases after `DUCK_RELEASE_S`, sends no `pause`.
+- `Announcer.tsx`: each spoken announcement ducks for `speechMs(text)` (messages the rate limiter drops do not duck).
+- `welcome/speak.ts`: `speak` returns a promise resolved on end, error, `hush()` or a 20 s fallback, and ducks while speaking. `Welcome.tsx`: the note plays after the spoken question; the Play buttons are disabled while a check runs; audio is unlocked in the click, before the wait.
+
+**Differences from the ticket text (please review)**
+- `duck.reset()` also drops listeners, so engines made by earlier tests are not told anything. For tests only.
+- `noteGuidePlaybackCommand` and `resetDucking` are kept, as an empty function and `duck.reset()`. The only caller is `src/App.tsx` (not in Touches), not `useVoiceAssistant.ts`. Board request R-20261111-SN13-1.
+- Files outside Touches that had to change: `src/App.voice.test.tsx` (its test expected `pause`; it now expects a duck and no pause), and the two `duck()` tests in `src/audio/engine.test.ts`, which asserted the old pause meaning (replaced by the new tests). `speak.test.ts` and `Announcer.test.tsx` are new.
+
+**Checks** (Windows, Node 24)
+
+```
+npm run lint     no warnings or errors
+npm run build    built in 1.24s
+npm test         Test Files 1 failed | 102 passed (103); Tests 1 failed | 1726 passed (1727)
+```
+
+The one failure is `src/data/sound-regression.test.ts > notices when one legend stop of the fixture changes`. It fails the same way on a clean `main` (checked with `git stash`): the golden is compared byte for byte and this Windows checkout has CRLF line endings. It is not caused by SN13.
+
+**Manual check: not done.** No audio device or browser session was available to this agent, so the −18 dB drop and the smooth return have not been heard. Still to do by a person: `npm run dev`, a data set playing on Listen, ask the voice guide a question (and use "I can see the map" on Welcome), and note that the music dropped and came back.

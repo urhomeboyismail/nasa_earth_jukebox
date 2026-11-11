@@ -47,7 +47,7 @@ export type SoundEngine = {
   resume(): void
   stop(): void
   isPlaying(): boolean
-  /** Pauses while the voice guide listens or speaks. Does not resume on its own. */
+  /** Lowers the sound by DUCK_DB; not a pause. unduck() brings it back. */
   duck(): void
   unduck(): void
   /** The steps as a 16-bit stereo WAV file, in the current style. Rejects with a readable message above 3 minutes. */

@@ -40,6 +40,10 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
   const [volume, setVolume] = useState(DEFAULT_VOLUME)
   const [missed, setMissed] = useState(false)
   const [heard, setHeard] = useState(false)
+  /** True while a sound check is running (its spoken line, then its note), so a second one cannot start over it. */
+  const [checking, setChecking] = useState(false)
+  /** Bumped when the check is left, so a note that was waiting for the speech to end is not played afterwards. */
+  const checkRun = useRef(0)
   const titleId = useId()
   const checkHeading = useRef<HTMLHeadingElement>(null)
 
@@ -51,7 +55,7 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
       return null
     }
   }, [visualization])
-  useEffect(() => () => { engine?.stop(); hush() }, [engine])
+  useEffect(() => () => { checkRun.current += 1; engine?.stop(); hush() }, [engine])
 
   // The sound check opens with focus on its heading, so a keyboard or screen reader user lands on it.
   useEffect(() => { if (path) checkHeading.current?.focus() }, [path])
@@ -71,6 +75,33 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
     engine.stop()
     const { categories } = visualization.mapping
     engine.playSequence([{ category: categories[Math.floor(categories.length / 2)].id, atMs: 0, pan }], () => {})
+  }
+
+  /**
+   * One sound-check question: the spoken line first (when speech is on), then the note, so the two never overlap. The audio is unlocked
+   * here, in the click, before the wait.
+   */
+  async function playQuestion(pan: number, question: string) {
+    const run = ++checkRun.current
+    setHeard(true)
+    setChecking(true)
+    try {
+      void engine?.unlock()
+      if (talking) await speak(question)
+      if (run === checkRun.current) await playNote(pan)
+    } finally {
+      if (run === checkRun.current) setChecking(false)
+    }
+  }
+
+  async function playVolumeNote() {
+    const run = ++checkRun.current
+    setChecking(true)
+    try {
+      await playNote(0)
+    } finally {
+      if (run === checkRun.current) setChecking(false)
+    }
   }
 
   function skipWelcome() {
@@ -93,6 +124,7 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
   /** Applies the path's defaults, remembers that the welcome is done and goes to the page the path leads to. */
   function finish(volumeToKeep?: number) {
     if (!path) return
+    checkRun.current += 1
     hush()
     engine?.stop()
     setDetail(path === 'screen-reader' ? 'concise' : 'rich')
@@ -153,7 +185,7 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
                 <>
                   <p>{current.text} Press Play, then answer.</p>
                   <div className="welcome__buttons">
-                    <Button disabled={!engine} onClick={() => { setHeard(true); void playNote(current.pan); if (talking) speak(current.question) }}>
+                    <Button disabled={!engine || checking} onClick={() => void playQuestion(current.pan, current.question)}>
                       {heard ? 'Replay' : 'Play'}
                     </Button>
                   </div>
@@ -169,7 +201,7 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
                   <p id={`${titleId}-q`} className="welcome__question">{VOLUME_QUESTION}</p>
                   <Slider label="Volume" min={0} max={100} step={5} value={volume} onChange={setVolume} describe={value => `${value} percent`} />
                   <div className="welcome__buttons" role="group" aria-labelledby={`${titleId}-q`}>
-                    <Button disabled={!engine} onClick={() => void playNote(0)}>Play</Button>
+                    <Button disabled={!engine || checking} onClick={() => void playVolumeNote()}>Play</Button>
                     <Button variant="filled" onClick={() => finish(volume)}>Yes, this is comfortable</Button>
                   </div>
                 </>

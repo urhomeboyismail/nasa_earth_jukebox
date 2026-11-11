@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { duck, speechMs } from '../audio/duck'
 import { dueMessage, offerMessage, START_RATE, type RateState } from './announceRate'
 import { AnnouncerContext, type Announce } from './announcerContext'
 
@@ -10,6 +11,8 @@ export function AnnouncerProvider({ children }: { children: ReactNode }) {
   const timer = useRef<number | undefined>(undefined)
 
   const show = useCallback((next: string) => {
+    // The screen reader speaks over the music, so the music steps aside for as long as the words take.
+    duck.for('announcement', speechMs(next))
     // Screen readers speak a live region only when its text changes, so alternate a trailing space to repeat a message.
     flip.current = !flip.current
     setText(next + (flip.current ? '' : ' '))

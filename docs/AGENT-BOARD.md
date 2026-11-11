@@ -87,3 +87,13 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Answer:
 - Recorded in: nowhere needed yet
 - Note (2026-11-11, SN12): option (b) was chosen for SN12 to ship: "same to within one 16-bit step". SN04 may still look for the source; no deadline.
+
+### R-20261111-SN13-1: `App.tsx` still calls `noteGuidePlaybackCommand`; may it be removed there?
+- From: SN13 (one voice at a time, agent C)
+- To: team leader (owner of `src/App.tsx`, hotspot `app`)
+- Needed by: nothing; SN13 ships without it
+- Status: open
+- Context: SN13 changes `useDucking` (`src/assistant/ducking.ts`) from pausing the player to ducking the music, so nothing needs "the listener just asked for sound" any more. The ticket says to remove `noteGuidePlaybackCommand` and its callers in `src/hooks/useVoiceAssistant.ts`, but the only caller is `src/App.tsx` line 138, which is outside SN13's Touches. To keep `App.tsx` compiling, `ducking.ts` keeps `noteGuidePlaybackCommand` as an empty function (and `resetDucking`, now `duck.reset()`).
+- Question: may the next ticket that edits `App.tsx` delete the `noteGuidePlaybackCommand(action.command)` line and then the empty function in `ducking.ts`? (Yes / no, leave it.)
+- Answer:
+- Recorded in: `docs/tickets/SN13-one-voice-at-a-time.md` (Result)

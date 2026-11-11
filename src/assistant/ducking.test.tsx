@@ -1,81 +1,82 @@
 import { renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { DUCK_ATTACK_S, DUCK_LINEAR, DUCK_RELEASE_S, duck } from '../audio/duck'
 import { onPlayerCommand, type PlayerCommand } from '../features/player/controls'
 import type { AssistantStatus } from '../hooks/useVoiceAssistant'
-import { noteGuidePlaybackCommand, resetDucking, useDucking } from './ducking'
+import { useDucking } from './ducking'
 
 let sent: PlayerCommand[]
+let heard: [number, number][]
 let unsubscribe: () => void
+let stopPlayerCommands: () => void
 
 beforeEach(() => {
-  resetDucking()
+  vi.useFakeTimers()
+  duck.reset()
   sent = []
-  unsubscribe = onPlayerCommand(command => sent.push(command))
+  heard = []
+  stopPlayerCommands = onPlayerCommand(command => sent.push(command))
+  unsubscribe = duck.subscribe((gain, rampS) => heard.push([gain, rampS]))
+  heard.length = 0
 })
-afterEach(() => unsubscribe())
+afterEach(() => {
+  unsubscribe()
+  stopPlayerCommands()
+  duck.reset()
+  vi.useRealTimers()
+})
 
-/** Runs the hook through a list of statuses, as the guide moves through a conversation. */
-function through(...statuses: AssistantStatus[]) {
-  const { rerender } = renderHook(({ status }) => useDucking(status), { initialProps: { status: statuses[0] } })
-  statuses.slice(1).forEach(status => rerender({ status }))
+function setup(first: AssistantStatus) {
+  return renderHook(({ status }) => useDucking(status), { initialProps: { status: first } })
 }
 
 describe('ducking the music for the voice guide', () => {
   it('does nothing while the guide is closed, connecting or has ended', () => {
-    through('idle', 'connecting', 'ended', 'error', 'idle')
-    expect(sent).toEqual([])
+    const { rerender } = setup('idle')
+    for (const status of ['connecting', 'ended', 'error', 'idle'] as AssistantStatus[]) rerender({ status })
+    expect(heard).toEqual([])
+    expect(duck.target()).toBe(1)
   })
 
-  it('pauses the music when the guide starts listening', () => {
-    through('idle', 'connecting', 'listening')
-    expect(sent).toEqual(['pause'])
-  })
-
-  it('pauses again each time the guide starts to speak', () => {
-    through('listening', 'speaking', 'listening', 'speaking')
-    expect(sent).toEqual(['pause', 'pause', 'pause'])
-  })
-
-  it('does not pause when the guide goes back to listening after speaking', () => {
-    through('speaking', 'listening')
-    expect(sent).toEqual(['pause'])
-  })
-
-  it('never resumes the music by itself', () => {
-    through('connecting', 'listening', 'speaking', 'listening', 'ended', 'idle')
-    expect(sent.every(command => command === 'pause')).toBe(true)
-  })
-
-  it('lets music the listener just asked for play while the guide confirms, then ducks it on the next turn', () => {
-    const { rerender } = renderHook(({ status }) => useDucking(status), { initialProps: { status: 'listening' as AssistantStatus } })
-    sent.length = 0
-    noteGuidePlaybackCommand('play')
-    rerender({ status: 'speaking' }) // "Playing now."
-    expect(sent).toEqual([])
-    rerender({ status: 'listening' }) // the turn is over
-    rerender({ status: 'speaking' }) // the next answer
-    expect(sent).toEqual(['pause'])
-  })
-
-  it('treats pause and stop as no wish for sound', () => {
-    const { rerender } = renderHook(({ status }) => useDucking(status), { initialProps: { status: 'listening' as AssistantStatus } })
-    sent.length = 0
-    noteGuidePlaybackCommand('next')
-    noteGuidePlaybackCommand('pause')
+  it('ducks when the guide speaks, and sends no pause', () => {
+    const { rerender } = setup('connecting')
     rerender({ status: 'speaking' })
-    expect(sent).toEqual(['pause'])
+    expect(heard).toEqual([[DUCK_LINEAR, DUCK_ATTACK_S]])
+    expect(sent).toEqual([])
   })
 
-  it('counts replay, next, previous and set-date as asking for sound', () => {
-    for (const command of ['replay', 'next', 'previous', { setDate: '2024-07-15' }] as PlayerCommand[]) {
-      resetDucking()
-      sent.length = 0
-      const { rerender, unmount } = renderHook(({ status }) => useDucking(status), { initialProps: { status: 'listening' as AssistantStatus } })
-      sent.length = 0
-      noteGuidePlaybackCommand(command)
-      rerender({ status: 'speaking' })
-      expect(sent, JSON.stringify(command)).toEqual([])
-      unmount()
-    }
+  it('ducks when the guide listens too', () => {
+    setup('listening')
+    expect(duck.target()).toBe(DUCK_LINEAR)
+    expect(sent).toEqual([])
+  })
+
+  it('stays ducked across a whole conversation, then waits DUCK_RELEASE_S before it lets go', () => {
+    const { rerender } = setup('listening')
+    rerender({ status: 'speaking' })
+    rerender({ status: 'listening' })
+    expect(heard).toHaveLength(1)
+    rerender({ status: 'ended' })
+    vi.advanceTimersByTime(DUCK_RELEASE_S * 1000 - 1)
+    expect(duck.target()).toBe(DUCK_LINEAR)
+    vi.advanceTimersByTime(1)
+    expect(duck.target()).toBe(1)
+    expect(heard.at(-1)).toEqual([1, DUCK_RELEASE_S])
+    expect(sent).toEqual([])
+  })
+
+  it('does not release if the guide speaks again before the wait is over', () => {
+    const { rerender } = setup('speaking')
+    rerender({ status: 'idle' })
+    vi.advanceTimersByTime(DUCK_RELEASE_S * 500)
+    rerender({ status: 'speaking' })
+    vi.advanceTimersByTime(DUCK_RELEASE_S * 1000)
+    expect(duck.target()).toBe(DUCK_LINEAR)
+  })
+
+  it('lets go when the guide panel closes', () => {
+    const { unmount } = setup('speaking')
+    unmount()
+    expect(duck.target()).toBe(1)
   })
 })

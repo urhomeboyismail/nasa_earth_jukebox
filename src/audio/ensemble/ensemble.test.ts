@@ -3,6 +3,7 @@ import { toMusicFrame } from '../../sonify/music'
 import { PRESETS } from '../../sonify/presets'
 import { features, line, spot } from '../../sonify/testFeatures'
 import type { MusicFrame } from '../../sonify/types'
+import { DUCK_ATTACK_S, DUCK_LINEAR, DUCK_RELEASE_S, duck } from '../duck'
 import { MAX_RENDER_S, PAUSE_FADE_S, RESUME_FADE_S, STOP_FADE_S, VOLUME_RAMP_S } from './constants'
 import { createEnsemble, type Ensemble } from '.'
 import { behaviour, calls, callsOn, nodes, offlineRuns, raw, resetTone, start, transport, type MockNode } from './toneMock'
@@ -464,5 +465,62 @@ describe('dispose()', () => {
     await starting
     expect(nodes.Limiter).toBeUndefined()
     expect(e.status()).toBe('off')
+  })
+})
+
+describe('ducking under a voice (SN13)', () => {
+  const ramps = () => callsOn(master(), 'gain.rampTo')
+  beforeEach(() => duck.reset())
+  afterEach(() => duck.reset())
+
+  it('a duck ramps the master to volume × DUCK_LINEAR, and the release ramps it back', async () => {
+    const e = ensemble({ volume: 0.5 })
+    await e.start()
+    duck.begin('guide')
+    expect(ramps().at(-1)!.args).toEqual([0.5 * DUCK_LINEAR, DUCK_ATTACK_S])
+    duck.end('guide')
+    expect(ramps().at(-1)!.args).toEqual([0.5, DUCK_RELEASE_S])
+  })
+
+  it('a pause still fades to 0, and a resume fades back to the target, not to 1, while ducked', async () => {
+    const e = ensemble({ volume: 0.8 })
+    await e.start()
+    duck.begin('speech')
+    e.pause()
+    expect(ramps().at(-1)!.args).toEqual([0, PAUSE_FADE_S])
+    e.resume()
+    expect(ramps().at(-1)!.args).toEqual([0.8 * DUCK_LINEAR, RESUME_FADE_S])
+    duck.end('speech')
+    expect(ramps().at(-1)!.args).toEqual([0.8, DUCK_RELEASE_S])
+  })
+
+  it('a duck while paused does not wake the master; the resume uses the current target', async () => {
+    const e = ensemble()
+    await e.start()
+    e.pause()
+    const before = ramps().length
+    duck.begin('guide')
+    expect(ramps()).toHaveLength(before)
+    e.resume()
+    expect(ramps().at(-1)!.args).toEqual([DUCK_LINEAR, RESUME_FADE_S])
+  })
+
+  it('setVolume while ducked stays ducked', async () => {
+    const e = ensemble()
+    await e.start()
+    duck.begin('guide')
+    e.setVolume(0.4)
+    expect(ramps().at(-1)!.args).toEqual([0.4 * DUCK_LINEAR, VOLUME_RAMP_S])
+  })
+
+  it('starts ducked when a voice is already speaking, and dispose stops listening', async () => {
+    duck.begin('speech')
+    const e = ensemble()
+    await e.start()
+    expect(ramps().at(-1)!.args).toEqual([DUCK_LINEAR, RESUME_FADE_S])
+    e.dispose()
+    const before = ramps().length
+    duck.end('speech')
+    expect(ramps()).toHaveLength(before)
   })
 })
