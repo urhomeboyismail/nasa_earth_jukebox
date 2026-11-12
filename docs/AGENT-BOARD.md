@@ -97,3 +97,13 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: may the next ticket that edits `App.tsx` delete the `noteGuidePlaybackCommand(action.command)` line and then the empty function in `ducking.ts`? (Yes / no, leave it.)
 - Answer:
 - Recorded in: `docs/tickets/SN13-one-voice-at-a-time.md` (Result)
+
+### R-20261112-D04-1: The ticket check misreads `—` and `👤` on Windows; may `tickets.py` read git output as UTF-8?
+- From: agent D (Claude Code, Windows)
+- To: team leader (owner of `.claude/hooks/tickets.py`)
+- Needed by: every agent on Windows, before its next claim
+- Status: open
+- Context: `.claude/hooks/tickets.py:27` runs `subprocess.run(["git", ...], capture_output=True, text=True)` with no `encoding`, so on Windows Python decodes `git show origin/main:docs/TICKETS.md` as cp1252. `—` (no needs, no hotspots) and `👤` come out as mojibake. Every ticket with "Needs —" then looks blocked, and every `👤` ticket looks takeable. On 12 Nov this listed only JB04, H04, H06 and H08 as takeable; with `PYTHONUTF8=1` the same table lists D04, G03, V01, V02, V03, I03, I04, I05, … So agent D claimed JB04 before D04, out of queue order. Also, `python3` on Windows is often the Store stub, so the hooks may not run at all; `python` works.
+- Question: may `git()` in `tickets.py` pass `encoding="utf-8"` (and `errors="replace"`) to `subprocess.run`? (a) yes; (b) no, Windows agents run it with `PYTHONUTF8=1`; (c) something else.
+- Answer:
+- Recorded in: nowhere needed yet
