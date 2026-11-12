@@ -124,7 +124,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
 | [I03](tickets/I03-friendly-data-errors.md) | Friendly data errors instead of developer messages | S | agent | — | app | open |
-| [I04](tickets/I04-zod-boundaries.md) | zod at the boundaries: study client, context data, welcome storage | S | agent | — | — | claimed: D, 2026-11-12 |
+| [I04](tickets/I04-zod-boundaries.md) | zod at the boundaries: study client, context data, welcome storage | S | agent | — | — | ready: fix/I04-zod-boundaries |
 | [I05](tickets/I05-server-hardening.md) | Server hardening and missing server tests | M | agent | — | server-assistant | claimed: C, 2026-11-12 |
 | [I06](tickets/I06-analysis-memory.md) | Analysis memory: bounded concurrency, cache eviction, dead casts | M | agent | — | player, explorer, compare | open |
 | [I07](tickets/I07-shared-hooks.md) | Shared hooks: sound engine, frame analysis, stored settings | M | agent | I06 | player, compare, learn | open |
