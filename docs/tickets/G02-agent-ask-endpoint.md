@@ -156,4 +156,19 @@ No front-end change, so the `npm` checks do not apply.
 
 ## Result
 
-Not started.
+Built on `feature/G02-agent-ask-endpoint` by agent F, 2026-11-12. New: `server/app/agent/ask.py`, `bucket.py`, `server/app/api/agent.py`, `server/tests/test_agent_ask.py`. Changed: `server/app/main.py` (router include and the health key only).
+
+- Tests: 15 cases from the ticket (22 test runs with the parametrised ones), plus one that the question is never logged. No key, no network.
+- The body cap is 8 000 bytes and the question 200 characters, as the ticket says. No disagreement.
+- `app/api/agent.py` imports the bucket, the service and the model lazily. `test_importing_the_server_loads_no_agent_module` and `test_starting_the_server_still_loads_no_agent_code` (G01, G08) fail if even `app.agent.bucket` is imported at start-up, so the route module reaches `app.agent` only on first use.
+- `TokenBucket` is also defined in `app/api/jukebox.py` (G08). The ticket asked for a new `bucket.py` and `jukebox.py` is not in Touches, so a small duplicate remains. A later clean-up can make jukebox import this one.
+- The model id (`gemini-2.5-flash`) is still [unverified]; G07 and H02 confirm it with a real key.
+
+```
+$ cd server && .venv/bin/python -m pytest
+253 passed in 7.65s
+$ env -u GEMINI_API_KEY -u GOOGLE_API_KEY bash -c 'cd server && .venv/bin/python -m pytest'
+253 passed in 7.58s
+```
+
+No front-end change, so the `npm` checks do not apply.

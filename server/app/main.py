@@ -3,6 +3,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.agent import agent_ready, router as agent_router
 from app.api.assistant import router as assistant_router
 from app.api.jukebox import router as jukebox_router
 from app.config import settings
@@ -22,9 +23,10 @@ app.add_middleware(
 
 @app.get("/api/v1/health")
 def health() -> dict:
-    return {"status": "ok", "voice_guide": bool(settings.gemini_api_key.get_secret_value())}
+    return {"status": "ok", "voice_guide": bool(settings.gemini_api_key.get_secret_value()), "agent": agent_ready()}
 
 
 app.include_router(assistant_router)
 app.include_router(study_router)
 app.include_router(jukebox_router)
+app.include_router(agent_router)
