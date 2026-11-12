@@ -149,7 +149,7 @@ Echo, the guide, redrawn as Juke-Bot (helmet visor, headphones, chest screen, ai
 | [JB01](tickets/JB01-mascot-dock.md) | Corner widget, glass speech bubble and `useMascotGuide()`; Echo's face follows the app | L | agent | F58 | app | ready: feature/JB01-mascot-dock |
 | [JB02](tickets/JB02-scroll-boosters.md) | Scroll-driven air boosters: tilt, thrust and retro-burn | S | agent | JB01 | — | open |
 | [JB03](tickets/JB03-audio-chest.md) | Audio-reactive chest: EQ bars and mini globe from the playing sound | M | agent | JB01 | — | open |
-| [JB04](tickets/JB04-dataset-mascot-theme.md) | Data-set colour themes and trails from the manifest | M | agent | F58 | schema, catalogue | open |
+| [JB04](tickets/JB04-dataset-mascot-theme.md) | Data-set colour themes and trails from the manifest | M | agent | F58 | schema, catalogue | claimed: D, 2026-11-12 |
 | [JB05](tickets/JB05-tour-flight-path.md) | Guided tour flight path with a glowing jet trail | L | agent | JB01, JB02 | player | open |
 | [JB06](tickets/JB06-alert-visor.md) | Alert visor on notable data events | S | agent | JB01, SN10 | player | open |
 | [JB07](tickets/JB07-explorer-mirror-legend.md) | Echo mirrors the explorer; the legend becomes playable | M | agent | JB01, SN09, IX02 | explorer | open |
