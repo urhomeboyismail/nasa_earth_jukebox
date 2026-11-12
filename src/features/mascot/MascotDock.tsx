@@ -17,6 +17,7 @@ import { mascotTheme } from './accent'
 import { expressionFor } from './expressionFor'
 import { placeBubble } from './placeBubble'
 import { useFaceState } from './useFaceState'
+import { useLevels } from './useLevels'
 import { useMascotGuide, useMascotGuideState } from './useMascotGuide'
 import { useScrollVelocity } from './useScrollVelocity'
 import './mascot-dock.css'
@@ -55,6 +56,7 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
   const { tip } = useMascotGuideState()
   const { clearTip } = useMascotGuide()
   const face = useFaceState()
+  const chest = useLevels(mascotOn && !voiceOpen && face.playing && !face.hidden)
   const boost = useScrollVelocity()
   const [open, setOpen] = useState(false)
   /** The text in the bubble, fixed when it opened (a tip that waited is cleared then, so the button stops saying it has one). */
@@ -177,7 +179,7 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
       )}
       {hint && !open && <span className="mascot-dock__label" aria-hidden="true">{MASCOT_NAME}, your guide</span>}
       <button ref={button} type="button" className="mascot-dock__button" aria-expanded={open} aria-controls={open ? panelId : undefined} aria-label={name} onClick={toggle}>
-        <Echo className="mascot-dock__echo" pose={poseFor(voice)} expression={expression} motion={boost.motion} thrust={boost.thrust} />
+        <Echo className="mascot-dock__echo" pose={poseFor(voice)} expression={expression} motion={boost.motion} thrust={boost.thrust} levels={chest.levels ?? undefined} globeSpin={chest.loudness} />
         {tip && <span className="mascot-dock__tip-dot" aria-hidden="true" />}
       </button>
     </div>
