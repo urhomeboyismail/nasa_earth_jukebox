@@ -90,7 +90,7 @@ Agent E, 2026-11-12. Four new test files: `src/useNavDrag.test.tsx`, `src/config
 `src/features/welcome/speak.test.ts` already exists on `main` (6 tests: ducking, error, hush, replacement, 20 s fallback, no speech) and covers `speak` and `hush`, so it was left unchanged. The ticket's "five untested modules" was stale for that one.
 
 ```
-npx vitest run <the four files>   -> Test Files 4 passed, Tests 19 passed
+npx vitest run <the four files>   -> Test Files 4 passed, Tests 21 passed
 npm run lint                      -> clean
 npm test                          -> Test Files 118 passed (118), Tests 1951 passed (1951)
 npm run build                     -> tsc -b && vite build, built in 528ms
