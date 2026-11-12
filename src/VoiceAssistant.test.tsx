@@ -1,23 +1,28 @@
 // The voice guide panel (T51): states, Escape, the mute toggle, suggestion chips and the disabled input.
 import { readFileSync } from 'node:fs'
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeAll, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { expectNoA11yViolations } from './test/a11y'
+import { installFakeAudioContext } from './test/fakes'
 import VoiceAssistant from './VoiceAssistant'
-import type { useVoiceAssistant } from './hooks/useVoiceAssistant'
+import { useVoiceAssistant } from './hooks/useVoiceAssistant'
 
 type Assistant = ReturnType<typeof useVoiceAssistant>
 
 // jsdom has no layout, so elements have no scrollTo; the panel calls it to follow the conversation.
 beforeAll(() => { Element.prototype.scrollTo ??= () => {} })
 
+// The defaults are a decided open mic, as the guide was before V02, so the older cases keep their meaning.
 function fakeAssistant(overrides: Partial<Assistant> = {}): Assistant {
   return {
-    status: 'idle', transcript: [], error: '', errorCode: '', endedMessage: '', actions: [], micMuted: false, level: 0, micSilent: false,
-    start: vi.fn(async () => {}), stop: vi.fn(), stopSpeaking: vi.fn(), undo: vi.fn(), toggleMute: vi.fn(), sendText: vi.fn(() => true),
+    status: 'idle', transcript: [], error: '', errorCode: '', endedMessage: '', actions: [], micMuted: false, micSilent: false,
+    micNote: '', micReady: true, levelRef: { current: 0 }, consent: 'mic', consentAsked: false, talkMode: 'open', talking: false,
+    answerLength: 'short', limitWarning: false, waking: false,
+    start: vi.fn(), stop: vi.fn(), stopSpeaking: vi.fn(), undo: vi.fn(), toggleMute: vi.fn(), toggleTalk: vi.fn(), sendText: vi.fn(() => true),
+    chooseConsent: vi.fn(), clearConsent: vi.fn(), continueSession: vi.fn(), setTalkMode: vi.fn(), setAnswerLength: vi.fn(),
     ...overrides,
-  } as Assistant
+  }
 }
 
 describe('VoiceAssistant panel', () => {
@@ -189,6 +194,207 @@ describe('errors and the end of a conversation (V01)', () => {
 
   it('passes accessibility checks in the error state', async () => {
     const { container } = render(<VoiceAssistant assistant={fakeAssistant({ status: 'error', errorCode: 'upstream', error: 'Echo stopped unexpectedly. The rest of the app still works.' })} onClose={() => {}} />)
+    await expectNoA11yViolations(container)
+  })
+})
+
+// ---- V02: the panel with the real hook, a fake socket and a stubbed getUserMedia --------------------------------
+
+class FakeSocket {
+  static OPEN = 1
+  static instances: FakeSocket[] = []
+  readyState = 1
+  binaryType = ''
+  onopen: (() => void) | null = null
+  onmessage: ((event: { data: unknown }) => void) | null = null
+  onclose: (() => void) | null = null
+  onerror: (() => void) | null = null
+  sent: unknown[] = []
+  constructor() { FakeSocket.instances.push(this) }
+  send(data: unknown) { this.sent.push(data) }
+  close() {}
+}
+
+function LivePanel() {
+  const assistant = useVoiceAssistant({ language: 'en', page: 'home', onAction: () => {} })
+  return <VoiceAssistant assistant={assistant} onClose={() => {}} />
+}
+
+const socket = () => FakeSocket.instances[FakeSocket.instances.length - 1]
+function serverReady() {
+  act(() => socket().onopen?.())
+  act(() => socket().onmessage?.({ data: JSON.stringify({ type: 'ready' }) }))
+}
+const sentTexts = () => socket().sent.filter((item): item is string => typeof item === 'string').map(item => JSON.parse(item) as Record<string, unknown>)
+
+describe('microphone consent (V02)', () => {
+  let getUserMedia: ReturnType<typeof vi.fn>
+  beforeEach(() => {
+    FakeSocket.instances = []
+    vi.stubGlobal('WebSocket', FakeSocket)
+    installFakeAudioContext()
+    getUserMedia = vi.fn(async () => { throw new DOMException('Permission denied', 'NotAllowedError') })
+    Object.defineProperty(navigator, 'mediaDevices', { value: { getUserMedia }, configurable: true })
+  })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.restoreAllMocks()
+    Reflect.deleteProperty(navigator, 'mediaDevices')
+    localStorage.clear()
+  })
+
+  it('shows the card on the first Start, before any microphone prompt, and passes accessibility checks', async () => {
+    const { container } = render(<LivePanel />)
+    await userEvent.click(screen.getByRole('button', { name: 'Start talking' }))
+    const card = screen.getByRole('region', { name: 'Use your microphone?' })
+    expect(card).toHaveTextContent("your voice and what you type are sent to Google's Gemini")
+    expect(screen.getByRole('heading', { name: 'Use your microphone?' })).toHaveFocus()
+    expect(getUserMedia).not.toHaveBeenCalled()
+    expect(FakeSocket.instances).toHaveLength(0)
+    expect(screen.queryByRole('button', { name: 'Start talking' })).toBeNull()
+    await expectNoA11yViolations(container)
+  })
+
+  it('"Allow microphone" stores "mic", then asks for the microphone once', async () => {
+    render(<LivePanel />)
+    await userEvent.click(screen.getByRole('button', { name: 'Start talking' }))
+    expect(getUserMedia).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: 'Allow microphone' }))
+    expect(localStorage.getItem('earth-jukebox:mic-consent')).toBe('mic')
+    expect(getUserMedia).toHaveBeenCalledTimes(1)
+    expect(screen.queryByRole('region', { name: 'Use your microphone?' })).toBeNull()
+  })
+
+  it('"Use text only" stores "text", starts a conversation without the microphone, and typing sends a text message', async () => {
+    render(<LivePanel />)
+    await userEvent.click(screen.getByRole('button', { name: 'Start talking' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Use text only' }))
+    expect(localStorage.getItem('earth-jukebox:mic-consent')).toBe('text')
+    expect(FakeSocket.instances).toHaveLength(1)
+    serverReady()
+    expect(getUserMedia).not.toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: 'Talk' })).toBeNull()
+    await userEvent.type(screen.getByRole('textbox', { name: 'Type a question instead' }), 'What is this?{Enter}')
+    expect(sentTexts()).toContainEqual({ type: 'text', text: 'What is this?' })
+  })
+
+  it('gives both choices the same class names, so neither looks like the default', async () => {
+    render(<LivePanel />)
+    await userEvent.click(screen.getByRole('button', { name: 'Start talking' }))
+    const allow = screen.getByRole('button', { name: 'Allow microphone' })
+    const text = screen.getByRole('button', { name: 'Use text only' })
+    expect(allow.className).toBe(text.className)
+    expect(allow.className).not.toMatch(/ui-button--(medium|large)/)
+  })
+
+  it('keeps the conversation open after a refused microphone, with the note, and typing works', async () => {
+    render(<LivePanel />)
+    await userEvent.click(screen.getByRole('button', { name: 'Start talking' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Allow microphone' }))
+    serverReady()
+    expect(await screen.findByText('Echo cannot use the microphone. You can type your questions.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'End conversation' })).toBeInTheDocument()
+    await userEvent.type(screen.getByRole('textbox', { name: 'Type a question instead' }), 'Hello{Enter}')
+    expect(sentTexts()).toContainEqual({ type: 'text', text: 'Hello' })
+  })
+
+  it('stores "Keep the microphone open" as open or push', async () => {
+    render(<LivePanel />)
+    await userEvent.click(screen.getByRole('button', { name: 'Start talking' }))
+    const open = screen.getByRole('checkbox', { name: 'Keep the microphone open' })
+    expect(open).not.toBeChecked()
+    await userEvent.click(open)
+    expect(localStorage.getItem('earth-jukebox:mic-talk')).toBe('open')
+    await userEvent.click(open)
+    expect(localStorage.getItem('earth-jukebox:mic-talk')).toBe('push')
+  })
+
+  it('"Change microphone choice" forgets the choice and shows the card again', async () => {
+    localStorage.setItem('earth-jukebox:mic-consent', 'text')
+    render(<LivePanel />)
+    expect(screen.getByRole('button', { name: 'Start typing' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Change microphone choice' }))
+    expect(localStorage.getItem('earth-jukebox:mic-consent')).toBeNull()
+    expect(screen.getByRole('region', { name: 'Use your microphone?' })).toBeInTheDocument()
+    expect(getUserMedia).not.toHaveBeenCalled()
+  })
+
+  it('works with blocked storage: the card shows and the choice holds for this visit only', async () => {
+    const blocked = () => { throw new DOMException('blocked', 'SecurityError') }
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(blocked)
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(blocked)
+    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(blocked)
+    render(<LivePanel />)
+    await userEvent.click(screen.getByRole('button', { name: 'Start talking' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Use text only' }))
+    expect(FakeSocket.instances).toHaveLength(1)
+    vi.restoreAllMocks()
+    expect(localStorage.getItem('earth-jukebox:mic-consent')).toBeNull()
+  })
+})
+
+describe('talking, answers, the time limit and waking (V02)', () => {
+  it('has Talk under push-to-talk, one fixed name, pressed while sending', async () => {
+    const assistant = fakeAssistant({ status: 'listening', talkMode: 'push' })
+    const { rerender, container } = render(<VoiceAssistant assistant={assistant} onClose={() => {}} />)
+    expect(screen.queryByRole('button', { name: 'Mute microphone' })).toBeNull()
+    const talk = screen.getByRole('button', { name: 'Talk' })
+    expect(talk).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('status')).toHaveTextContent('Press Talk to speak, or type a question below.')
+    await userEvent.click(talk)
+    expect(assistant.toggleTalk).toHaveBeenCalledTimes(1)
+    rerender(<VoiceAssistant assistant={{ ...assistant, talking: true }} onClose={() => {}} />)
+    expect(screen.getByRole('button', { name: 'Talk' })).toHaveAttribute('aria-pressed', 'true')
+    await expectNoA11yViolations(container)
+  })
+
+  it('shows no microphone button in a text-only conversation', () => {
+    render(<VoiceAssistant assistant={fakeAssistant({ status: 'listening', consent: 'text', micReady: false })} onClose={() => {}} />)
+    expect(screen.queryByRole('button', { name: 'Talk' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Mute microphone' })).toBeNull()
+    expect(screen.getByRole('status')).toHaveTextContent('Ready. Type a question below.')
+  })
+
+  it('offers Short and Detailed answers, Short by default, and says a change applies next time', async () => {
+    const assistant = fakeAssistant({ status: 'listening' })
+    render(<VoiceAssistant assistant={assistant} onClose={() => {}} />)
+    const group = screen.getByRole('group', { name: 'Answers' })
+    expect(within(group).getByRole('radio', { name: 'Short' })).toBeChecked()
+    await userEvent.click(within(group).getByRole('radio', { name: 'Detailed' }))
+    expect(assistant.setAnswerLength).toHaveBeenCalledWith('detailed')
+    expect(screen.getByText('A change to Answers applies to the next conversation.')).toBeInTheDocument()
+  })
+
+  it('warns a minute before the limit, and Continue calls continueSession; passes accessibility checks', async () => {
+    const assistant = fakeAssistant({ status: 'listening', limitWarning: true, transcript: [{ id: 1, role: 'assistant', text: 'Hello.' }] })
+    const { container } = render(<VoiceAssistant assistant={assistant} onClose={() => {}} />)
+    expect(screen.getByRole('alert')).toHaveTextContent('Warning: Echo will stop in 1 minute. Continue?')
+    await userEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    expect(assistant.continueSession).toHaveBeenCalledTimes(1)
+    await expectNoA11yViolations(container)
+  })
+
+  it('says Echo is waking up only once the hook says so', () => {
+    const { rerender } = render(<VoiceAssistant assistant={fakeAssistant({ status: 'connecting' })} onClose={() => {}} />)
+    expect(screen.queryByText('Waking Echo up, this can take a minute.')).toBeNull()
+    rerender(<VoiceAssistant assistant={fakeAssistant({ status: 'connecting', waking: true })} onClose={() => {}} />)
+    expect(screen.getByText('Waking Echo up, this can take a minute.')).toBeInTheDocument()
+  })
+
+  it('draws the meter from the level ref without a re-render, and hides it while muted', async () => {
+    const levelRef = { current: 0.1 }
+    const assistant = fakeAssistant({ status: 'listening', levelRef })
+    const { container, rerender } = render(<VoiceAssistant assistant={assistant} onClose={() => {}} />)
+    const meter = () => container.querySelector<HTMLElement>('.voice-assistant__meter')
+    await waitFor(() => expect(meter()?.style.getPropertyValue('--level')).toBe('0.4'))
+    levelRef.current = 0.2
+    await waitFor(() => expect(meter()?.style.getPropertyValue('--level')).toBe('0.8'))
+    rerender(<VoiceAssistant assistant={{ ...assistant, micMuted: true }} onClose={() => {}} />)
+    expect(meter()).toBeNull()
+  })
+
+  it('passes accessibility checks in a session', async () => {
+    const { container } = render(<VoiceAssistant assistant={fakeAssistant({ status: 'listening', micNote: 'Echo cannot use the microphone. You can type your questions.', micReady: false })} onClose={() => {}} />)
     await expectNoA11yViolations(container)
   })
 })

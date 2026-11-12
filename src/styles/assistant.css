@@ -119,6 +119,18 @@
 .voice-assistant__undo { min-width: 24px; min-height: 24px; }
 
 .voice-assistant__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* The microphone consent card (V02): asked before the browser's own prompt. Both choices look the same. */
+.voice-assistant__consent {
+  display: grid; gap: 8px; padding: 16px;
+  background: var(--ui-surface-container-highest);
+  border: 1px solid var(--ui-outline-variant);
+  border-radius: var(--ui-corner-large);
+}
+.voice-assistant__consent h3 { margin: 0; font-size: 1.125rem; font-weight: 600; outline: none; }
+.voice-assistant__consent p { margin: 0; font-size: 1rem; }
+.voice-assistant__consent-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.voice-assistant__consent .voice-assistant__why { padding-inline: 0; margin: 0; }
 .voice-assistant__note { margin: 0; color: var(--ui-on-surface-variant); font-size: 1rem; }
 .voice-assistant__note a { color: var(--ui-primary); }
 
