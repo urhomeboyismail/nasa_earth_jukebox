@@ -131,7 +131,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [I09](tickets/I09-compare-cleanup.md) | Compare clean-up | S | agent | — | compare | claimed: C, 2026-11-12 |
 | [I10](tickets/I10-first-load.md) | First load: lazy voice panel, demo and v3 pipeline; bundle budget in CI | M | agent | SN07 | app | open |
 | [I11](tickets/I11-lint-ci-rules.md) | Lint and CI rules that enforce `frontend.md`; ruff | S | agent | I04, I06 | — | open |
-| [I12](tickets/I12-missing-unit-tests.md) | Unit tests for five untested modules | S | agent | — | — | claimed: E, 2026-11-12 |
+| [I12](tickets/I12-missing-unit-tests.md) | Unit tests for five untested modules | S | agent | — | — | ready: chore/I12-missing-unit-tests |
 | [VIS1](tickets/VIS1-low-vision-map-tools.md) | Low-vision map tools: magnifier, big cursor, high-contrast outline, forced colours | M | agent | — | explorer | open |
 | [VIS2](tickets/VIS2-patterns-display-settings.md) | Colour-vision patterns and display settings | M | agent | — | app, explorer | open |
 | [VIS3](tickets/VIS3-design-system-housekeeping.md) | Design-system housekeeping | M | agent | — | app | open |
