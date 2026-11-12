@@ -50,6 +50,10 @@ class SessionFull(Exception):
     pass
 
 
+class TooManySessions(Exception):
+    pass
+
+
 @contextmanager
 def connect() -> Iterator[sqlite3.Connection]:
     """Opens the configured database, creating the file and tables the first time. Commits on success."""
@@ -69,6 +73,11 @@ def create_session(participant: str, screen_reader: bool, saw_images: bool) -> s
     session_id = uuid.uuid4().hex
     started_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     with connect() as db:
+        # Take the write lock first, so two new sessions arriving together cannot both pass the limit check.
+        db.execute("BEGIN IMMEDIATE")
+        (count,) = db.execute("SELECT COUNT(*) FROM test_sessions").fetchone()
+        if count >= settings.study_max_sessions:
+            raise TooManySessions()
         db.execute(
             "INSERT INTO test_sessions (id, started_at, participant, screen_reader, saw_images, consent) VALUES (?, ?, ?, ?, ?, 1)",
             (session_id, started_at, participant, int(screen_reader), int(saw_images)),

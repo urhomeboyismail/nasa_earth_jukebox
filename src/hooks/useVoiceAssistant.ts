@@ -7,6 +7,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { frameLevel, SpeechPlayer, startRecorder, type Recorder } from "../assistant/audio";
+import {
+  readAnswerLength, readMicConsent, readMicTalk, saveAnswerLength, saveMicConsent, saveMicTalk,
+  type AnswerLength, type MicConsent, type MicTalk,
+} from "../assistant/consent";
 import { currentContext, subscribeContext, type ContextUpdate } from "../assistant/context";
 import { socketUrl } from "../config";
 import type { PlayerCommand } from "../features/player/controls";
@@ -109,12 +113,19 @@ const CONTEXT_DEBOUNCE_MS = 400;
 
 const SOCKET_PATH = "/api/v1/assistant/live";
 
-export function micErrorMessage(cause: unknown): string {
-  const name = cause instanceof Error ? cause.name : "";
-  if (name === "NotAllowedError" || name === "SecurityError") return "Microphone access was blocked. Allow the microphone for this site, then try again.";
-  if (name === "NotFoundError") return "No microphone was found on this device.";
-  return "The microphone could not be started.";
-}
+/** Used when the server's `ready` does not say (`server/app/config.py`, `assistant_max_session_seconds`). */
+export const DEFAULT_LIMIT_SECONDS = 600;
+/** The warning comes this long before the limit. */
+const WARNING_SECONDS = 60;
+/** An open mic with no speech for this long turns itself off. */
+const OPEN_MIC_QUIET_MS = 60_000;
+/** A server that is still connecting after this long is probably waking up (Render's free tier sleeps). */
+const WAKING_AFTER_MS = 3_000;
+
+export const MIC_NOTES = {
+  refused: "Echo cannot use the microphone. You can type your questions.",
+  quiet: "The microphone was turned off after 60 seconds with no speech. Press Mute microphone again to speak.",
+} as const;
 
 export function useVoiceAssistant({ language, page, onAction }: Options) {
   const [status, setStatus] = useState<AssistantStatus>("idle");
@@ -124,8 +135,20 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
   const [endedMessage, setEndedMessage] = useState("");
   const [actions, setActions] = useState<ActionRecord[]>([]);
   const [micMuted, setMicMuted] = useState(false);
-  const [level, setLevel] = useState(0);
   const [micSilent, setMicSilent] = useState(false);
+  const [micNote, setMicNote] = useState("");
+  /** A recorder is running for this conversation. */
+  const [micReady, setMicReady] = useState(false);
+  const [consent, setConsent] = useState<MicConsent | null>(readMicConsent);
+  /** Start was pressed (or the choice was cleared) while nothing was decided, so the panel asks. */
+  const [consentAsked, setConsentAsked] = useState(false);
+  const [talkMode, setTalkModeState] = useState<MicTalk>(readMicTalk);
+  const [talking, setTalking] = useState(false);
+  const [answerLength, setAnswerLengthState] = useState<AnswerLength>(readAnswerLength);
+  const [limitWarning, setLimitWarning] = useState(false);
+  const [waking, setWaking] = useState(false);
+  /** The microphone's peak level, 0 to 1. A ref, so 20 updates a second re-render nothing; the meter reads it. */
+  const levelRef = useRef(0);
   const socket = useRef<WebSocket | null>(null);
   const recorder = useRef<Recorder | null>(null);
   const player = useRef<SpeechPlayer | null>(null);
@@ -133,6 +156,16 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
   const nextId = useRef(0);
   const actionRef = useRef(onAction);
   const pageRef = useRef(page);
+  // Read by the recorder's frame callback and the timers, which outlive a render.
+  const live = useRef(false);
+  const mutedRef = useRef(false);
+  const talkingRef = useRef(false);
+  const talkModeRef = useRef(talkMode);
+  const answerLengthRef = useRef(answerLength);
+  const lastSound = useRef(0);
+  const quietTimer = useRef<number | undefined>(undefined);
+  const limitTimer = useRef<number | undefined>(undefined);
+  const wakeTimer = useRef<number | undefined>(undefined);
   useEffect(() => {
     actionRef.current = onAction;
     pageRef.current = page;
@@ -176,9 +209,69 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
     stopContext.current = () => { unsubscribe(); pending.forEach(item => window.clearTimeout(item.timer)); };
   }, []);
 
+  const clearTimer = (timer: { current: number | undefined }) => {
+    window.clearTimeout(timer.current);
+    timer.current = undefined;
+  };
+
+  /** Frames go to the server only while the listener means to talk: Talk pressed, or an open mic that is not muted. */
+  const transmitting = useCallback(() => !!recorder.current && live.current
+    && (talkModeRef.current === "open" ? !mutedRef.current : talkingRef.current), []);
+
+  const sendMicOff = () => {
+    if (socket.current?.readyState === WebSocket.OPEN) socket.current.send(JSON.stringify({ type: "mic_off" }));
+  };
+
+  const muteNow = () => {
+    mutedRef.current = true;
+    setMicMuted(true);
+    recorder.current?.setMuted(true);
+    clearTimer(quietTimer);
+    levelRef.current = 0;
+    sendMicOff();
+  };
+
+  /** Starts the 60 seconds of an open mic. Speech moves `lastSound` on, so the timer checks again instead of firing. */
+  const armQuiet = useCallback(() => {
+    clearTimer(quietTimer);
+    if (talkModeRef.current !== "open" || mutedRef.current || !recorder.current || !live.current) return;
+    lastSound.current = Date.now();
+    const check = () => {
+      const left = lastSound.current + OPEN_MIC_QUIET_MS - Date.now();
+      if (left > 0) { quietTimer.current = window.setTimeout(check, left); return; }
+      quietTimer.current = undefined;
+      muteNow();
+      setMicNote(MIC_NOTES.quiet);
+    };
+    quietTimer.current = window.setTimeout(check, OPEN_MIC_QUIET_MS);
+  }, []);
+
+  /** Stops the recorder and keeps the conversation going without it. */
+  const stopMic = useCallback(() => {
+    const wasSending = transmitting();
+    recorder.current?.stop();
+    recorder.current = null;
+    setMicReady(false);
+    clearTimer(quietTimer);
+    talkingRef.current = false;
+    setTalking(false);
+    levelRef.current = 0;
+    if (wasSending) sendMicOff();
+  }, [transmitting]);
+
   const teardown = useCallback(() => {
     stopContext.current?.();
     stopContext.current = null;
+    live.current = false;
+    clearTimer(quietTimer);
+    clearTimer(limitTimer);
+    clearTimer(wakeTimer);
+    setLimitWarning(false);
+    setWaking(false);
+    setMicReady(false);
+    talkingRef.current = false;
+    setTalking(false);
+    levelRef.current = 0;
     recorder.current?.stop();
     recorder.current = null;
     player.current?.close();
@@ -200,18 +293,54 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
     setStatus("error");
   }, [teardown]);
 
+  /**
+   * Opens the microphone for the conversation on `ws`. Call from a click: the recorder's AudioContext is made inside the
+   * gesture. A refused or missing microphone leaves the conversation open for typing.
+   */
+  const startMic = useCallback((ws: WebSocket) => {
+    setMicNote("");
+    setMicSilent(false);
+    let quietFrames = 0;
+    let heard = false;
+    startRecorder(frame => {
+      if (socket.current !== ws || !live.current) return;
+      // Frames that are not sent are not counted for the meter or the silence warning either.
+      if (!transmitting()) { levelRef.current = 0; return; }
+      // Browser echo cancellation misses Web Audio playback, so the guide would hear itself and cut itself off.
+      // While the guide is audible the listener is not "quiet", so the open mic's 60 seconds wait.
+      if (player.current?.busy) { levelRef.current = 0; lastSound.current = Date.now(); return; }
+      if (ws.readyState === WebSocket.OPEN) ws.send(frame);
+      const peak = frameLevel(frame);
+      levelRef.current = peak;
+      if (peak > MIC_HEARD_LEVEL) {
+        lastSound.current = Date.now();
+        if (!heard) { heard = true; setMicSilent(false); }
+      } else if (!heard && ++quietFrames === SILENT_WARNING_FRAMES) setMicSilent(true);
+    }).then(
+      created => {
+        if (socket.current !== ws) { created.stop(); return; }
+        recorder.current = created;
+        created.setMuted(mutedRef.current);
+        setMicReady(true);
+        armQuiet();
+      },
+      () => { if (socket.current === ws) setMicNote(MIC_NOTES.refused); },
+    );
+  }, [transmitting, armQuiet]);
+
   // Must be called from a click: browsers only allow audio and microphone after a user gesture.
-  const start = useCallback(() => {
+  const open = useCallback((withMic: boolean) => {
     teardown();
     setError("");
     setErrorCode("");
     setEndedMessage("");
     records.current = [];
     setActions([]);
+    mutedRef.current = false;
     setMicMuted(false);
-    setStatus("connecting");
-    setLevel(0);
+    setMicNote("");
     setMicSilent(false);
+    setStatus("connecting");
     // Everything that needs the click's user activation happens before the first await.
     const speech = new SpeechPlayer();
     player.current = speech;
@@ -221,23 +350,9 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
     const ws = new WebSocket(socketUrl(SOCKET_PATH));
     ws.binaryType = "arraybuffer";
     socket.current = ws;
-    let ready = false;
-    let quietFrames = 0;
-    let heard = false;
-    const recorderReady = startRecorder(frame => {
-      if (!ready) return;
-      // Browser echo cancellation misses Web Audio playback, so the guide would hear itself and cut itself off.
-      if (player.current?.busy) { setLevel(0); return; }
-      if (ws.readyState === WebSocket.OPEN) ws.send(frame);
-      const peak = frameLevel(frame);
-      setLevel(peak);
-      if (peak > MIC_HEARD_LEVEL) { if (!heard) { heard = true; setMicSilent(false); } }
-      else if (!heard && ++quietFrames === SILENT_WARNING_FRAMES) setMicSilent(true);
-    }).then(
-      created => { if (socket.current === ws) { recorder.current = created; return true; } created.stop(); return false; },
-      cause => { if (socket.current === ws) fail(micErrorMessage(cause)); return false; },
-    );
-    ws.onopen = () => ws.send(JSON.stringify({ type: "start", language, page: pageRef.current }));
+    wakeTimer.current = window.setTimeout(() => { wakeTimer.current = undefined; setWaking(true); }, WAKING_AFTER_MS);
+    if (withMic) startMic(ws);
+    ws.onopen = () => ws.send(JSON.stringify({ type: "start", language, page: pageRef.current, detail: answerLengthRef.current }));
     ws.onerror = () => fail(MESSAGES.connect, "connect");
     ws.onclose = () => {
       if (socket.current !== ws) return;
@@ -245,7 +360,7 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
       setEndedMessage(MESSAGES.closed);
       setStatus(current => current === "error" ? current : "ended");
     };
-    ws.onmessage = async event => {
+    ws.onmessage = event => {
       if (event.data instanceof ArrayBuffer) {
         player.current?.play(event.data);
         setStatus(current => current === "listening" ? "speaking" : current);
@@ -255,10 +370,18 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
       try { message = JSON.parse(event.data as string); } catch { return; }
       switch (message.type) {
         case "ready":
-          if (await recorderReady && socket.current === ws) {
-            ready = true;
+          // Accepted at once: the recorder's result only sets the mic state, so text works while it starts or after it fails.
+          if (socket.current === ws) {
+            live.current = true;
+            clearTimer(wakeTimer);
+            setWaking(false);
             forwardContext(ws);
             setStatus("listening");
+            const limit = typeof message.limitSeconds === "number" && Number.isFinite(message.limitSeconds) && message.limitSeconds > 0
+              ? message.limitSeconds : DEFAULT_LIMIT_SECONDS;
+            limitTimer.current = window.setTimeout(() => { limitTimer.current = undefined; setLimitWarning(true); },
+              Math.max(0, limit - WARNING_SECONDS) * 1000);
+            armQuiet();
           }
           break;
         case "transcript":
@@ -294,7 +417,37 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
           break;
       }
     };
-  }, [language, teardown, fail, addTranscript, forwardContext, record]);
+  }, [language, teardown, fail, addTranscript, forwardContext, record, startMic, armQuiet]);
+
+  /** Starts a conversation with the stored choice. With nothing decided, nothing connects: the panel asks first. */
+  const start = useCallback(() => {
+    if (consent === null) { setConsentAsked(true); return; }
+    open(consent === "mic");
+  }, [consent, open]);
+
+  /**
+   * Stores the listener's choice. Call from the consent card's buttons (a click, for the microphone). With no
+   * conversation open it starts one; during a text conversation "mic" opens the microphone in it.
+   */
+  const chooseConsent = useCallback((choice: MicConsent) => {
+    saveMicConsent(choice);
+    setConsent(choice);
+    setConsentAsked(false);
+    const ws = socket.current;
+    if (!ws) { open(choice === "mic"); return; }
+    if (choice === "mic" && !recorder.current) startMic(ws);
+  }, [open, startMic]);
+
+  /** Forgets the choice and asks again. Any running microphone stops; a conversation keeps going by text. */
+  const clearConsent = useCallback(() => {
+    stopMic();
+    saveMicConsent(null);
+    setConsent(null);
+    setConsentAsked(true);
+  }, [stopMic]);
+
+  /** Ends this conversation and starts the next at once, from the warning's Continue (a click). The transcript stays. */
+  const continueSession = useCallback(() => { open(consent === "mic"); }, [consent, open]);
 
   const stop = useCallback(() => { teardown(); setStatus("idle"); }, [teardown]);
 
@@ -315,13 +468,45 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
     actionRef.current(latest.inverse);
   }, [record]);
 
+  /** The open mic's Mute microphone. Unmuting starts its 60 seconds again. */
   const toggleMute = useCallback(() => {
-    setMicMuted(current => {
-      const next = !current;
-      recorder.current?.setMuted(next);
-      if (next && socket.current?.readyState === WebSocket.OPEN) socket.current.send(JSON.stringify({ type: "mic_off" }));
-      return next;
-    });
+    if (mutedRef.current) {
+      mutedRef.current = false;
+      setMicMuted(false);
+      recorder.current?.setMuted(false);
+      setMicNote("");
+      armQuiet();
+    } else muteNow();
+  }, [armQuiet]);
+
+  /** Push-to-talk's Talk: frames are sent while it is pressed. Releasing it ends the audio stream. */
+  const toggleTalk = useCallback(() => {
+    const next = !talkingRef.current;
+    talkingRef.current = next;
+    setTalking(next);
+    if (!next) { levelRef.current = 0; sendMicOff(); }
+  }, []);
+
+  /** Push-to-talk or open mic. A switch mid-conversation starts the new mode with the mic not sending. */
+  const setTalkMode = useCallback((mode: MicTalk) => {
+    const wasSending = transmitting();
+    saveMicTalk(mode);
+    talkModeRef.current = mode;
+    setTalkModeState(mode);
+    talkingRef.current = false;
+    setTalking(false);
+    if (mode === "open") { mutedRef.current = false; setMicMuted(false); recorder.current?.setMuted(false); }
+    clearTimer(quietTimer);
+    levelRef.current = 0;
+    if (wasSending) sendMicOff();
+    armQuiet();
+  }, [transmitting, armQuiet]);
+
+  /** Short or detailed answers, sent in the next conversation's `start`. */
+  const setAnswerLength = useCallback((length: AnswerLength) => {
+    saveAnswerLength(length);
+    answerLengthRef.current = length;
+    setAnswerLengthState(length);
   }, []);
 
   const sendText = useCallback((text: string) => {
@@ -340,5 +525,9 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
 
   useEffect(() => teardown, [teardown]);
 
-  return { status, transcript, error, errorCode, endedMessage, actions, micMuted, level, micSilent, start, stop, stopSpeaking, undo, toggleMute, sendText };
+  return {
+    status, transcript, error, errorCode, endedMessage, actions, micMuted, micSilent, micNote, micReady, levelRef,
+    consent, consentAsked, talkMode, talking, answerLength, limitWarning, waking,
+    start, stop, stopSpeaking, undo, toggleMute, toggleTalk, sendText, chooseConsent, clearConsent, continueSession, setTalkMode, setAnswerLength,
+  };
 }

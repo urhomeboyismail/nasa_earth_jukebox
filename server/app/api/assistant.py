@@ -2,15 +2,21 @@
 
 Ported from the FinAssist voice assistant. The API key never leaves the server. Browser protocol:
 
-    client -> server  text   {"type":"start","language":"en","page":"home"}   (first message)
-                      binary 16 kHz mono PCM16 microphone audio
+    client -> server  text   {"type":"start","language":"en","page":"home"}   (first message, a JSON object)
+                      binary 16 kHz mono PCM16 microphone audio (frames over MAX_AUDIO_FRAME_BYTES are dropped)
                       text   {"type":"page","page":...} | {"type":"text","text":...} | {"type":"mic_off"}
-                             | {"type":"context","key":...,"data":...,"announce":...}
+                             | {"type":"context","key":"player"|"compare","data":...,"announce":...} | {"type":"stop"}
     server -> client  text   {"type":"ready"} | {"type":"transcript","role":"user"|"assistant","text":...}
                              {"type":"action","action":"navigate","page":...}
-                             {"type":"interrupted"} | {"type":"turn_complete"} | {"type":"ended","reason":...}
-                             {"type":"error","code":...,"message":...}
+                             {"type":"action","action":"player","command":...}   (only allow-listed commands)
+                             {"type":"interrupted"} | {"type":"turn_complete"}
+                             {"type":"ended","reason":"closed"|"service_ended"|"time_limit"}
+                             {"type":"error","code":"not_configured"|"busy"|"bad_start"|"upstream","message":...}
                       binary 24 kHz mono PCM16 speech
+
+Origin rule: a browser always sends `Origin` on a WebSocket. When CORS_ORIGINS lists any non-local origin
+(production), a connection with no `Origin`, or a foreign one, is refused with code 1008. When every allowed
+origin is local (development and tests), a missing `Origin` is allowed so tools such as curl still work.
 """
 from __future__ import annotations
 
@@ -28,12 +34,22 @@ from app.config import settings
 router = APIRouter(prefix="/api/v1/assistant", tags=["assistant"])
 logger = logging.getLogger(__name__)
 
-MAX_AUDIO_FRAME_BYTES = 64 * 1024
-MAX_TEXT_CHARS = 2000
-MAX_CONTEXT_BYTES = 24 * 1024
-CONTEXT_KEYS = {"player", "compare"}
-ANNOUNCE_GAP_SECONDS = 4.0
 _active = 0
+
+
+def __getattr__(name: str):
+    """The shared limits stay readable here (`assistant.MAX_TEXT_CHARS` and so on), loaded from app/agent/limits.py on first use."""
+    if name in {"MAX_AUDIO_FRAME_BYTES", "MAX_TEXT_CHARS", "MAX_CONTEXT_BYTES", "CONTEXT_KEYS", "ANNOUNCE_GAP_SECONDS"}:
+        from app.agent import limits
+        return getattr(limits, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def connect_adk(language: str, page: str):
+    """Async context manager yielding an ADK live session. Replaced in tests. Imported on first use, so a server on the default
+    engine never loads ADK (tests/test_jukebox_api.py and test_agent_core.py check this)."""
+    from app.agent.voice import connect_adk as real
+    return real(language, page)
 
 
 def live_config(language: str, page: str):
@@ -64,6 +80,7 @@ class _Bridge:
         self.last_announce = 0.0
 
     async def update_context(self, event: dict) -> None:
+        from app.agent.limits import ANNOUNCE_GAP_SECONDS, CONTEXT_KEYS, MAX_CONTEXT_BYTES  # one copy, shared with the ADK path
         key = event.get("key")
         if key not in CONTEXT_KEYS:
             return
@@ -80,6 +97,7 @@ class _Bridge:
 
     async def browser_to_gemini(self) -> None:
         from google.genai import types
+        from app.agent.limits import MAX_AUDIO_FRAME_BYTES, MAX_TEXT_CHARS
         while True:
             message = await self.ws.receive()
             if message["type"] == "websocket.disconnect":
@@ -149,11 +167,54 @@ async def _close(ws: WebSocket, payload: dict) -> None:
         await ws.close()
 
 
+async def _wait(tasks: set[asyncio.Task]) -> str:
+    """Run the two pumps until one ends or the time limit passes. Returns the `ended` reason; raises what a pump raised."""
+    reason = "closed"
+    done, pending = await asyncio.wait(tasks, timeout=settings.assistant_max_session_seconds,
+                                       return_when=asyncio.FIRST_COMPLETED)
+    for task in pending:
+        task.cancel()
+    for task in pending:
+        with contextlib.suppress(asyncio.CancelledError, Exception):
+            await task
+    if not done:
+        reason = "time_limit"
+    for task in done:
+        if task.exception() and not isinstance(task.exception(), WebSocketDisconnect):
+            raise task.exception()
+        if task.get_name() == "gemini":
+            reason = "service_ended"
+    return reason
+
+
+async def _run_bridge(ws: WebSocket, language: str, page: str) -> str:
+    """The Gemini Live bridge (ASSISTANT_ENGINE=bridge, the default)."""
+    async with connect_live(language, page) as session:
+        bridge = _Bridge(ws, session, SessionState(page=page, language=language))
+        await ws.send_json({"type": "ready"})
+        return await _wait({
+            asyncio.create_task(bridge.browser_to_gemini(), name="browser"),
+            asyncio.create_task(bridge.gemini_to_browser(), name="gemini"),
+        })
+
+
+async def _run_adk(ws: WebSocket, language: str, page: str) -> str:
+    """The same browser protocol through ADK's `run_live` (ASSISTANT_ENGINE=adk). The messages are built in app/agent/voice.py."""
+    from app.agent.voice import AdkBridge
+    async with connect_adk(language, page) as live:
+        bridge = AdkBridge(ws, live)
+        await ws.send_json({"type": "ready"})
+        return await _wait({
+            asyncio.create_task(bridge.browser_to_adk(), name="browser"),
+            asyncio.create_task(bridge.adk_to_browser(), name="gemini"),
+        })
+
+
 @router.websocket("/live")
 async def assistant_live(ws: WebSocket) -> None:
     global _active
     origin = ws.headers.get("origin")
-    if origin and origin not in settings.cors_origin_list:
+    if (origin or settings.origin_required) and origin not in settings.cors_origin_list:
         await ws.close(code=1008)
         return
     await ws.accept()
@@ -170,33 +231,18 @@ async def assistant_live(ws: WebSocket) -> None:
     except (asyncio.TimeoutError, ValueError, WebSocketDisconnect):
         await _close(ws, {"type": "error", "code": "bad_start", "message": "The voice guide could not start."})
         return
-    language = start.get("language") if start.get("language") in LANGUAGE_NAMES else "en"
-    page = start.get("page") if start.get("page") in PAGES else "home"
+    if not isinstance(start, dict):
+        await _close(ws, {"type": "error", "code": "bad_start", "message": "The voice guide could not start."})
+        return
+    # A list or dict is unhashable, so check the type before the `in` test.
+    language, page = start.get("language"), start.get("page")
+    language = language if isinstance(language, str) and language in LANGUAGE_NAMES else "en"
+    page = page if isinstance(page, str) and page in PAGES else "home"
 
     _active += 1
-    reason = "closed"
     try:
-        async with connect_live(language, page) as session:
-            bridge = _Bridge(ws, session, SessionState(page=page, language=language))
-            await ws.send_json({"type": "ready"})
-            tasks = {
-                asyncio.create_task(bridge.browser_to_gemini(), name="browser"),
-                asyncio.create_task(bridge.gemini_to_browser(), name="gemini"),
-            }
-            done, pending = await asyncio.wait(tasks, timeout=settings.assistant_max_session_seconds,
-                                               return_when=asyncio.FIRST_COMPLETED)
-            for task in pending:
-                task.cancel()
-            for task in pending:
-                with contextlib.suppress(asyncio.CancelledError, Exception):
-                    await task
-            if not done:
-                reason = "time_limit"
-            for task in done:
-                if task.exception() and not isinstance(task.exception(), WebSocketDisconnect):
-                    raise task.exception()
-                if task.get_name() == "gemini":
-                    reason = "service_ended"
+        run = _run_adk if settings.assistant_engine == "adk" else _run_bridge
+        reason = await run(ws, language, page)
     except WebSocketDisconnect:
         return
     except Exception as exc:

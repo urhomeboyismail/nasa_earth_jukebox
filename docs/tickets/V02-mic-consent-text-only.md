@@ -142,4 +142,48 @@ No server change, so the server checks do not apply.
 
 ## Result
 
-Not started.
+Built by agent D on `feature/V02-mic-consent-text-only` (12 Nov 2026).
+
+**What changed**
+
+- `src/assistant/consent.ts` (new): the three stored choices (`earth-jukebox:mic-consent` `"mic"`/`"text"`, `earth-jukebox:mic-talk` `"push"`/`"open"`, `earth-jukebox:answer-length` `"short"`/`"detailed"`), read through an allow-list; blocked storage reads as "not decided" or the default and writes nothing.
+- `src/hooks/useVoiceAssistant.ts`: `start()` with nothing decided connects nothing and sets `consentAsked`; `chooseConsent()` stores the choice and starts (or, in a running text conversation, opens the mic in it); `clearConsent()` stops the recorder and asks again while the conversation goes on. The recorder is started by `startMic` only after "mic" was chosen; `ready` no longer waits for it. A refused or missing mic sets `micNote` ("Echo cannot use the microphone. You can type your questions.") and keeps status `listening`. Frames are sent only while Talk is pressed (push, the default) or the open mic is unmuted; frames not sent are not counted for the level or the silence warning. The open mic mutes itself, sends `mic_off` and sets the note after 60 s with no frame above `MIC_HEARD_LEVEL` (speech, and the guide being audible, push the 60 s on). `detail` goes in `start`. `limitSeconds` from `ready` (else `DEFAULT_LIMIT_SECONDS` 600) sets `limitWarning` 60 s before; `continueSession()` opens a new socket and keeps the transcript. `waking` after 3 s of connecting. The level is `levelRef`; `level` is no longer returned. `micErrorMessage` had no other caller and is removed.
+- `src/VoiceAssistant.tsx`: the consent card (region "Use your microphone?", two `tonal` buttons, the "Keep the microphone open" checkbox with its explanation), Talk (`aria-pressed`, fixed name) under push-to-talk and Mute microphone under the open mic, shown only while a recorder runs; "Change microphone choice"; "Start typing" when text only was chosen; the **Answers** radio group (`ButtonGroup type="connected"`) with "A change to Answers applies to the next conversation." during a conversation; the warning `Notice` with Continue; the waking note; the mic note; the meter drawn from `levelRef` in a `requestAnimationFrame` loop that runs only while the meter shows. Focus moves to the card's heading when it opens and to the panel title after a choice or Continue. The status line says "Press Talk to speak…" / "Ready. Type a question below." where "Speak any time" would now be wrong; the rest of the status line is V03's.
+- `src/styles/assistant.css`: the card, existing tokens only.
+- Board: R-20261112-V02-1 (`detail`) and R-20261112-V02-2 (`limitSeconds`) to G04/G05.
+
+**Outside Touches (for the reviewer)**
+
+- `src/App.test.tsx`: four V01 tests drive the real hook and clicked "Start talking", expecting a socket; they now press "Allow microphone" on the card first, and the describe block clears `localStorage` before each case. Test-only; `App.tsx` is unchanged.
+- `src/App.voice.test.tsx` still returns `level: 0` from its mocked hook; harmless (the panel is never opened there), left alone.
+
+**Tests** (numbers from the ticket's list)
+
+- `src/assistant/consent.test.ts`: stored values, unknown values, defaults, blocked storage (15).
+- `src/hooks/useVoiceAssistant.test.ts`: no socket or recorder before a choice (1); "mic" stores and starts the recorder once (2); "text" with no recorder, typing sends `text` (3); refused mic keeps the session with the note (5); `ready` while the recorder is still starting (6) and after it failed (5); push-to-talk (7); open mic 60 s, reset by speech, Mute again clears the note (8); `detail` sent and remembered across a remount, `short` by default (9); warning at 540 s with `limitSeconds` 600, at 540 s with none, at 240 s with 300; Continue opens a second socket and keeps the transcript (10, 11); waking at 3 s and not at 2.999 s (12); no `level` in the return and writing the level does not re-render (13); `clearConsent` (14).
+- `src/VoiceAssistant.test.tsx`, with the real hook, a fake socket and a stubbed `getUserMedia`: card on first Start with focus on its heading and `getUserMedia` not called (1); Allow then exactly one `getUserMedia` (2); text only, no `getUserMedia`, typing sends `text` (3); same class names for both buttons (4); refused mic note and typing (5); the checkbox stores `open`/`push`; "Change microphone choice" (14); blocked storage (15). With a fake assistant: Talk (7), no mic buttons in text only, Answers (9), the warning and Continue (10), the waking note (12), the meter's `--level` following the ref and hiding when muted (13), accessibility checks in the consent, session and warning states (16).
+
+**Checks** (`npm test` run as `npx vitest run --maxWorkers=1`: the default workers run out of memory on this laptop)
+
+```
+> moon-heist@0.0.0 lint
+> oxlint
+
+ RUN  v5.1.0 C:/Users/anilr/Desktop/NASA Hackathon/nasa-d
+
+ Test Files  115 passed (115)
+      Tests  1965 passed (1965)
+   Start at  11:41:23
+   Duration  136.25s (tests 73%, import 20%, setup 3%, environment 2%, worker 2%)
+
+> moon-heist@0.0.0 build
+> tsc -b && vite build
+
+vite v8.3.5 building client environment for production...
+✓ 1229 modules transformed.
+✓ built in 779ms
+```
+
+The first full run, before the `App.test.tsx` change, failed 4 of 1965 (the V01 cases above, `TypeError: Cannot read properties of undefined (reading 'onopen')` at `src/App.test.tsx:341` and `:400`). No server change, so the server checks do not apply.
+
+Not checked in a real browser with a real microphone: the browser's own permission prompt, the meter's look, and the open mic's 60 s on real speech.

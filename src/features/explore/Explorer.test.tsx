@@ -813,3 +813,105 @@ describe('Explorer: opened by a link (F40)', () => {
     expect(window.location.hash).not.toContain('cell=')
   })
 })
+
+describe('Explorer: low-vision map tools (VIS1)', () => {
+  const magnifier = () => screen.getByRole('button', { name: 'Magnifier' })
+  const outline = () => screen.getByRole('button', { name: 'High-contrast outline' })
+
+  it('draws a crosshair that is hidden from screen readers and moves with the cursor', async () => {
+    const { user } = await exploring()
+    const across = screen.getByTestId('crosshair-row'), down = screen.getByTestId('crosshair-column')
+    expect(across).toHaveAttribute('aria-hidden', 'true')
+    expect(down).toHaveAttribute('aria-hidden', 'true')
+    const before = { top: across.style.top, left: down.style.left }
+    await user.keyboard('{ArrowRight}{ArrowDown}')
+    await tick(300)
+    expect(screen.getByTestId('crosshair-row').style.top).not.toBe(before.top)
+    expect(screen.getByTestId('crosshair-column').style.left).not.toBe(before.left)
+  })
+
+  it('turns the magnifier on and off, and the lens is hidden from screen readers', async () => {
+    const { user } = await exploring()
+    expect(magnifier()).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.queryByTestId('magnifier')).toBeNull()
+    await user.click(magnifier())
+    expect(magnifier()).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByTestId('magnifier')).toHaveAttribute('aria-hidden', 'true')
+    expect(screen.getByTestId('magnifier').style.backgroundImage).toContain(visualization.frames[0].image.split('/').pop())
+    await user.click(magnifier())
+    expect(screen.queryByTestId('magnifier')).toBeNull()
+  })
+
+  it('moves the lens with the cursor cell', async () => {
+    const { user } = await exploring()
+    await user.click(magnifier())
+    const at = () => screen.getByTestId('magnifier').style.getPropertyValue('--lens-at-x')
+    const before = at()
+    surface().focus()
+    await user.keyboard('{ArrowRight}')
+    await tick(300)
+    expect(at()).not.toBe(before)
+  })
+
+  it('toggles the high-contrast outline class on the surface', async () => {
+    const { user } = await exploring()
+    expect(surface()).not.toHaveClass('explorer__surface--outline')
+    await user.click(outline())
+    expect(outline()).toHaveAttribute('aria-pressed', 'true')
+    expect(surface()).toHaveClass('explorer__surface--outline')
+    await user.click(outline())
+    expect(surface()).not.toHaveClass('explorer__surface--outline')
+  })
+
+  it('remembers both choices after the page is opened again', async () => {
+    const first = await exploring()
+    await first.user.click(magnifier())
+    await first.user.click(outline())
+    expect(localStorage.getItem('earth-jukebox:magnifier')).toBe('on')
+    expect(localStorage.getItem('earth-jukebox:map-outline')).toBe('on')
+    first.unmount()
+    await exploring()
+    expect(magnifier()).toHaveAttribute('aria-pressed', 'true')
+    expect(outline()).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('still works for the visit when storage is blocked', async () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked') })
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('blocked') })
+    const { user } = await exploring()
+    await user.click(magnifier())
+    expect(magnifier()).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByTestId('magnifier')).toBeInTheDocument()
+    await user.click(magnifier())
+    expect(screen.queryByTestId('magnifier')).toBeNull()
+    vi.restoreAllMocks()
+  })
+
+  it('reads the map and sounds the place the same with the tools on as off', async () => {
+    async function run(toolsOn: boolean) {
+      analyzeGrid.mockClear()
+      engine.playCategory.mockClear()
+      const { user, unmount } = await exploring()
+      if (toolsOn) { await user.click(magnifier()); await user.click(outline()) }
+      surface().focus()
+      await user.keyboard('{ArrowRight}')
+      await tick(300)
+      const seen = { reads: analyzeGrid.mock.calls.map(call => call.slice(0, 4)), sounds: engine.playCategory.mock.calls.map(call => call[0]) }
+      unmount()
+      localStorage.clear()
+      return seen
+    }
+    const off = await run(false)
+    const on = await run(true)
+    expect(off.sounds.length).toBeGreaterThan(0)
+    expect(on).toEqual(off)
+  })
+
+  it('has no accessibility violations with both settings on', async () => {
+    const { user, container } = await exploring()
+    await user.click(magnifier())
+    await user.click(outline())
+    vi.useRealTimers()
+    await expectNoA11yViolations(container)
+  })
+})

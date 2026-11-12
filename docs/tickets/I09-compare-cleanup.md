@@ -81,4 +81,22 @@ npx vitest run src/features/compare src/App.test.tsx
 
 ## Result
 
-Not started.
+Done on `fix/I09-compare-cleanup`.
+
+- `src/features/types.ts`: `PageProps` has an optional `testMode?: boolean`. `src/App.tsx` passes the value it already computed. Other pages ignore it.
+- `compare/index.tsx`: `useTestMode` and its `hashchange` listener are gone; the page reads the prop. A comparison that names a missing date shows a `Notice` and still lists the comparisons, so the listener can pick another. `frameA`/`frameB` and `results` no longer use `!`.
+- `compare/TestMode.tsx`: the effect no longer calls `update()`; the status starts from `client.status` and the subscription callback sets it. `participant!`, the two `frames.find(...)!` and `results!` are gone. A missing picture is said in words; the sounds still work.
+- The `(visualization as ChangeVisualization)` casts are left to I06, as the ticket says.
+- Tests: `compare.test.tsx` (missing date notice and no a11y violations; flag true or false), `test-mode.test.tsx` (flag instead of the hash; missing picture). The existing network-failure test covers the status line updating through the subscription.
+
+Checks (Windows, 12 Nov):
+
+```
+grep -rn "useTestMode|hashchange" src/features/compare   (no matches outside tests)
+npm run lint     -> clean
+npm run build    -> built
+npm test         -> 1932 passed, 1 failed (App.test.tsx, load-related)
+```
+
+The one failure is `src/App.test.tsx > loads the first visualization and shows it on each page`, in the full parallel run only, while other agents were running tests on the same machine. Run alone, `src/App.test.tsx` passed 34 of 34 on 3 of 3 runs. `src/data/sound-regression.test.ts` failed on `main` before it was brought up to date and passes now.
+

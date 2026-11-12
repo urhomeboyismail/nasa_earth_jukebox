@@ -166,4 +166,25 @@ No front-end change, so the `npm` checks do not apply.
 
 ## Result
 
-Not started.
+Agent E, 2026-11-12. `ASSISTANT_ENGINE=adk` now runs the voice guide through ADK's `Runner.run_live`; the default `bridge` is unchanged. Written against a fake live session only: **the real live path has not been run** (that is H02, with a billed key).
+
+Files: `server/app/agent/limits.py` and `voice.py` (new), `server/app/api/assistant.py` (route split into `_wait`, `_run_bridge`, `_run_adk`), `server/app/assistant/knowledge.py` (`page_label` argument), `server/tests/test_assistant_adk.py` (new, 21 tests). `test_assistant.py` is unchanged.
+
+**Answers to the ADK questions in Step 1** (google-adk 2.13.0 as installed):
+- Events from `run_live` carry `content.parts[].inline_data` (audio), `input_transcription`, `output_transcription` (each with `.text` and `.finished`), `interrupted` and `turn_complete`. Function-call and function-response events are both yielded (`live/_live_llm_flow.py:458-465`), so the sink is drained after every event.
+- `StreamingMode` has `NONE`, `SSE` and `BIDI`; `BIDI` is used.
+- Transcripts: Gemini sends chunks (`finished=False`, `partial=True`) and then the whole text again (`finished=True`). Gemini 3.x Live sends the user's words once, as a finished event only (`models/gemini_llm_connection.py:433-470`). `AdkBridge` forwards chunks and drops the repeated whole text, but forwards a finished text when no chunk came before it.
+- `go_away` is not seen by the caller. ADK turns it into an internal reconnect (`_live_llm_flow.py:256-260`), so a stream that ends is reported as `service_ended`.
+- `session_service.delete_session(app_name=, user_id=, session_id=)` exists and is called when the connection closes.
+- Placeholders: ADK fills `{page_title}` from session state before the live connection opens (`_preprocess_async`, `_live_llm_flow.py:172, 481`). Checked with `inject_session_state`: "The user started on: Learn the sounds.", and "Home." after the state changed. I did not test whether a running session re-reads it, so the instruction is **not** claimed to stay current. The page is still correct because `get_screen_context` reads the live `state["page"]`.
+
+**Choices to review:**
+- `run_live` is given `session=` (deprecated; the warning is silenced) instead of `user_id` and `session_id`. With ids, ADK re-reads a copy of the session, and the route's updates to `page`, `page_title` and `screens` would never reach the tools. `LiveSession` therefore also has a `state` attribute, which the ticket's sketch did not list.
+- Two existing tests (`test_agent_core.py::test_importing_the_server_loads_no_agent_module` and `test_jukebox_api.py::test_starting_the_server_still_loads_no_agent_code`) require that importing the server loads no `app.agent` or `google.adk` module. So `assistant.py` imports `app.agent.limits` and `voice` lazily: `connect_adk` is a thin wrapper that imports on first use, and the limit constants are still readable as `assistant.MAX_TEXT_CHARS` through a module `__getattr__` (`test_assistant.py` reads one). G05 can make these plain imports once ADK is the default.
+- Not done: board requests R-20261112-V02-1 (`detail`) and R-20261112-V02-2 (`limitSeconds` in `ready`). Both change the browser protocol, which this ticket must not, and they are unanswered.
+
+```
+.venv/bin/python -m pytest                              -> 253 passed (232 before + 21 new)
+env -u GEMINI_API_KEY -u GOOGLE_API_KEY ... pytest      -> 253 passed
+```
+
