@@ -70,7 +70,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [SN06](tickets/SN06-live-video-source.md) | Live video source: read each displayed EIC frame as it plays | M | agent | SN01, SN05 | — | done |
 | [SN07](tickets/SN07-symphony-mode.md) | Listen: Symphony mode wired end to end; Detail, mixer, layer captions; Simple mode kept | L | agent | SN01, SN03, SN04, SN06 | player | claimed: A, 2026-11-11 |
 | [SN08](tickets/SN08-scan-mode.md) | Scan mode: sweep a frame so shapes become audible | M | agent | SN01, SN03, SN04, SN07 | player | open |
-| [SN09](tickets/SN09-explore-v2.md) | Explore v2: continuous tone and slope cue under the cursor or finger | M | agent | SN03, SN04 | explorer | ready: feature/SN09-explore-v2 |
+| [SN09](tickets/SN09-explore-v2.md) | Explore v2: continuous tone and slope cue under the cursor or finger | M | agent | SN03, SN04 | explorer | done |
 | [SN10](tickets/SN10-text-equivalents.md) | Text equivalents: event sentences, announcements, hot-spot markers, sound recipe | M | agent | SN01, SN03 | player, about | open |
 | [SN11](tickets/SN11-learn-v3.md) | Learn v3: one card per voice, played alone on the synthetic sets | M | agent | SN01, SN02, SN03, SN04, SN06 | learn | done |
 | [SN12](tickets/SN12-offline-render-playlist.md) | Offline render: byte-identical WAV, captions file, playlist of every data set | M | agent | SN01, SN03, SN04 | about | done |
@@ -100,21 +100,21 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [EIC01](tickets/EIC01-ingest-script.md) | `scripts/eic_ingest.py`: MP4 or PNG sequence in, frames, colour scale, web video and manifest out | L | agent | SN05 | catalogue | done |
 | [EIC02](tickets/EIC02-pick-visualisations.md) | Pick 3–5 EIC visualisations; check source, credit and licence | S | 👤 | — | — | open |
 | [EIC03](tickets/EIC03-ingest-datasets.md) | Ingest and tune each picked visualisation (manifest and data only) | M each | agent+👤 | EIC01, EIC02 | catalogue | open |
-| [D04](tickets/D04-known-answer-check.md) | Known-answer check: decoded values against NASA's numbers | S | agent+👤 | — | catalogue | ready: feature/D04-known-answer-check |
+| [D04](tickets/D04-known-answer-check.md) | Known-answer check: decoded values against NASA's numbers | S | agent+👤 | — | catalogue | done |
 
 ### P1: Gemini on ADK and the voice panel
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [G01](tickets/G01-adk-core.md) | ADK core package: tools, callbacks, action sink, keyless tests | M | agent | — | server-assistant | ready: feature/G01-adk-core |
+| [G01](tickets/G01-adk-core.md) | ADK core package: tools, callbacks, action sink, keyless tests | M | agent | — | server-assistant | done |
 | [G02](tickets/G02-agent-ask-endpoint.md) | Grounded Ask endpoint on ADK | M | agent | G01 | — | open |
-| [G03](tickets/G03-ask-frontend-agent.md) | Ask front end on the agent, with the offline matcher as fallback | M | agent | — | ask | ready: feature/G03-ask-frontend-agent |
+| [G03](tickets/G03-ask-frontend-agent.md) | Ask front end on the agent, with the offline matcher as fallback | M | agent | — | ask | done |
 | [G04](tickets/G04-voice-on-adk.md) | Voice guide on ADK `run_live`, same browser protocol, behind a switch | L | agent | G01 | server-assistant | open |
 | [H02](tickets/H02-live-parity-check.md) | Live parity check with a billed key | S | 👤 | G04 | — | open |
 | [G05](tickets/G05-adk-default.md) | ADK by default; retire the old bridge | S | agent | G04, H02 | server-assistant | open |
 | [G06](tickets/G06-agent-sees-more.md) | The agent sees facts, the explorer and the music; context schemas and drift test | M | agent | G04, SN03 | server-assistant, player, compare, ask | open |
 | [G07](tickets/G07-agent-eval-drafter.md) | Agent evaluation (scoring bug fixed) and the offline drafter | M | agent+👤 | G02 | — | open |
-| [G08](tickets/G08-jukebox-orchestrator.md) | Jukebox orchestrator: a LangGraph of four ADK agents (supervisor, synthesizer, vision, critic), and its route `POST /api/v1/jukebox/generate` | M | agent | — | — | ready: feature/G08-jukebox-orchestrator |
+| [G08](tickets/G08-jukebox-orchestrator.md) | Jukebox orchestrator: a LangGraph of four ADK agents (supervisor, synthesizer, vision, critic), and its route `POST /api/v1/jukebox/generate` | M | agent | — | — | done |
 | [V01](tickets/V01-agent-panel-focus-undo.md) | Agent panel: focus not stolen, "Echo did" with Undo, Alt+E, Stop | M | agent | — | app, voice | done |
 | [V02](tickets/V02-mic-consent-text-only.md) | Mic consent first, text-only mode, push-to-talk, session warning | M | agent | — | app, voice | ready: feature/V02-mic-consent-text-only |
 | [V03](tickets/V03-voice-client-hygiene.md) | Voice client: parsed messages, quieter status, shared icons | S | agent | — | voice | open |
@@ -124,7 +124,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
 | [I03](tickets/I03-friendly-data-errors.md) | Friendly data errors instead of developer messages | S | agent | — | app | open |
-| [I04](tickets/I04-zod-boundaries.md) | zod at the boundaries: study client, context data, welcome storage | S | agent | — | — | claimed: D, 2026-11-12 |
+| [I04](tickets/I04-zod-boundaries.md) | zod at the boundaries: study client, context data, welcome storage | S | agent | — | — | done |
 | [I05](tickets/I05-server-hardening.md) | Server hardening and missing server tests | M | agent | — | server-assistant | done |
 | [I06](tickets/I06-analysis-memory.md) | Analysis memory: bounded concurrency, cache eviction, dead casts | M | agent | — | player, explorer, compare | open |
 | [I07](tickets/I07-shared-hooks.md) | Shared hooks: sound engine, frame analysis, stored settings | M | agent | I06 | player, compare, learn | open |
@@ -146,10 +146,10 @@ Echo, the guide, redrawn as Juke-Bot (helmet visor, headphones, chest screen, ai
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
 | [F58](tickets/F58-robot-echo.md) | Echo as Juke-Bot: art, five visor expressions, motion states | M | agent | H05 | — | done |
-| [JB01](tickets/JB01-mascot-dock.md) | Corner widget, glass speech bubble and `useMascotGuide()`; Echo's face follows the app | L | agent | F58 | app | ready: feature/JB01-mascot-dock |
+| [JB01](tickets/JB01-mascot-dock.md) | Corner widget, glass speech bubble and `useMascotGuide()`; Echo's face follows the app | L | agent | F58 | app | done |
 | [JB02](tickets/JB02-scroll-boosters.md) | Scroll-driven air boosters: tilt, thrust and retro-burn | S | agent | JB01 | — | open |
 | [JB03](tickets/JB03-audio-chest.md) | Audio-reactive chest: EQ bars and mini globe from the playing sound | M | agent | JB01 | — | open |
-| [JB04](tickets/JB04-dataset-mascot-theme.md) | Data-set colour themes and trails from the manifest | M | agent | F58 | schema, catalogue | ready: feature/JB04-dataset-mascot-theme |
+| [JB04](tickets/JB04-dataset-mascot-theme.md) | Data-set colour themes and trails from the manifest | M | agent | F58 | schema, catalogue | done |
 | [JB05](tickets/JB05-tour-flight-path.md) | Guided tour flight path with a glowing jet trail | L | agent | JB01, JB02 | player | open |
 | [JB06](tickets/JB06-alert-visor.md) | Alert visor on notable data events | S | agent | JB01, SN10 | player | open |
 | [JB07](tickets/JB07-explorer-mirror-legend.md) | Echo mirrors the explorer; the legend becomes playable | M | agent | JB01, SN09, IX02 | explorer | open |
