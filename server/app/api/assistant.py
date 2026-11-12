@@ -2,15 +2,21 @@
 
 Ported from the FinAssist voice assistant. The API key never leaves the server. Browser protocol:
 
-    client -> server  text   {"type":"start","language":"en","page":"home"}   (first message)
-                      binary 16 kHz mono PCM16 microphone audio
+    client -> server  text   {"type":"start","language":"en","page":"home"}   (first message, a JSON object)
+                      binary 16 kHz mono PCM16 microphone audio (frames over MAX_AUDIO_FRAME_BYTES are dropped)
                       text   {"type":"page","page":...} | {"type":"text","text":...} | {"type":"mic_off"}
-                             | {"type":"context","key":...,"data":...,"announce":...}
+                             | {"type":"context","key":"player"|"compare","data":...,"announce":...} | {"type":"stop"}
     server -> client  text   {"type":"ready"} | {"type":"transcript","role":"user"|"assistant","text":...}
                              {"type":"action","action":"navigate","page":...}
-                             {"type":"interrupted"} | {"type":"turn_complete"} | {"type":"ended","reason":...}
-                             {"type":"error","code":...,"message":...}
+                             {"type":"action","action":"player","command":...}   (only allow-listed commands)
+                             {"type":"interrupted"} | {"type":"turn_complete"}
+                             {"type":"ended","reason":"closed"|"service_ended"|"time_limit"}
+                             {"type":"error","code":"not_configured"|"busy"|"bad_start"|"upstream","message":...}
                       binary 24 kHz mono PCM16 speech
+
+Origin rule: a browser always sends `Origin` on a WebSocket. When CORS_ORIGINS lists any non-local origin
+(production), a connection with no `Origin`, or a foreign one, is refused with code 1008. When every allowed
+origin is local (development and tests), a missing `Origin` is allowed so tools such as curl still work.
 """
 from __future__ import annotations
 
@@ -153,7 +159,7 @@ async def _close(ws: WebSocket, payload: dict) -> None:
 async def assistant_live(ws: WebSocket) -> None:
     global _active
     origin = ws.headers.get("origin")
-    if origin and origin not in settings.cors_origin_list:
+    if (origin or settings.origin_required) and origin not in settings.cors_origin_list:
         await ws.close(code=1008)
         return
     await ws.accept()
@@ -170,8 +176,13 @@ async def assistant_live(ws: WebSocket) -> None:
     except (asyncio.TimeoutError, ValueError, WebSocketDisconnect):
         await _close(ws, {"type": "error", "code": "bad_start", "message": "The voice guide could not start."})
         return
-    language = start.get("language") if start.get("language") in LANGUAGE_NAMES else "en"
-    page = start.get("page") if start.get("page") in PAGES else "home"
+    if not isinstance(start, dict):
+        await _close(ws, {"type": "error", "code": "bad_start", "message": "The voice guide could not start."})
+        return
+    # A list or dict is unhashable, so check the type before the `in` test.
+    language, page = start.get("language"), start.get("page")
+    language = language if isinstance(language, str) and language in LANGUAGE_NAMES else "en"
+    page = page if isinstance(page, str) and page in PAGES else "home"
 
     _active += 1
     reason = "closed"

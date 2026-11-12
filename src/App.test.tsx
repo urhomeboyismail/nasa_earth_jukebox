@@ -7,6 +7,20 @@ import synthetic from '../public/data/synthetic-ocean/manifest.json'
 import App from './App'
 import { expectNoA11yViolations } from './test/a11y'
 
+// No sound or microphone in jsdom: the speech player and the recorder are stand-ins (V01).
+vi.mock('./assistant/audio', async importOriginal => ({
+  ...(await importOriginal<typeof import('./assistant/audio')>()),
+  SpeechPlayer: class { onIdle = null; busy = false; resume = async () => {}; play = () => {}; flush = () => {}; close = () => {} },
+  startRecorder: async () => ({ stop: () => {}, setMuted: () => {} }),
+}))
+
+// The voice guide's microphone and speech player need browser audio, which jsdom has not.
+vi.mock('./assistant/audio', () => ({
+  frameLevel: () => 0,
+  startRecorder: async () => ({ stop: () => {}, setMuted: () => {} }),
+  SpeechPlayer: class { busy = false; onIdle = null; resume = async () => {}; play = () => {}; flush = () => {}; close = () => {} },
+}))
+
 // The real analysis decodes images, which jsdom cannot do; the Player's own tests cover that path with the same mock.
 vi.mock('./analysis', () => ({
   analyzeAll: async (frames: { id: string }[]) => frames.map(frame => ({ frameId: frame.id, regionId: 'centre', sampled: 9, valid: 9, category: 'cold' })),
@@ -293,5 +307,100 @@ describe('Announcements reach the live region on every page (I01)', () => {
     const { container } = render(<App />)
     await screen.findByRole('button', { name: 'Skip the welcome' })
     await expectNoA11yViolations(container)
+  })
+})
+
+describe('The voice guide moves the app without moving focus (V01)', () => {
+  class FakeSocket {
+    static OPEN = 1
+    static instances: FakeSocket[] = []
+    readyState = 1
+    binaryType = ''
+    onopen: (() => void) | null = null
+    onmessage: ((event: { data: unknown }) => unknown) | null = null
+    onerror: (() => void) | null = null
+    onclose: (() => void) | null = null
+    constructor() { FakeSocket.instances.push(this) }
+    send() {}
+    close() {}
+  }
+  beforeEach(() => {
+    Element.prototype.scrollTo ??= () => {}
+    FakeSocket.instances = []
+    vi.stubGlobal('WebSocket', FakeSocket)
+  })
+
+  const toggle = () => screen.getByRole('button', { name: 'Voice guide' })
+  const server = (message: Record<string, unknown>) =>
+    act(async () => { await FakeSocket.instances[FakeSocket.instances.length - 1].onmessage?.({ data: JSON.stringify(message) }) })
+  async function talk() {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(toggle())
+    await user.click(screen.getByRole('button', { name: 'Start talking' }))
+    act(() => FakeSocket.instances[0].onopen?.())
+    await server({ type: 'ready' })
+    return user
+  }
+
+  it('keeps focus where it was when the guide opens a page, says so, and lets the listener undo it', async () => {
+    const user = await talk()
+    const input = screen.getByRole('textbox', { name: 'Type a question instead' })
+    await user.click(input)
+    await server({ type: 'action', action: 'navigate', page: 'listen' })
+    expect(await screen.findByRole('heading', { level: 1, name: 'Listen' })).not.toHaveFocus()
+    expect(input).toHaveFocus()
+    // The panel's own live region (the app's announcer is another one).
+    expect(screen.getByRole('region', { name: 'Voice guide' }).querySelector('[aria-live="polite"]')).toHaveTextContent('Opened Listen')
+
+    await user.click(screen.getByRole('button', { name: 'Undo: Opened Listen' }))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Home' })).not.toHaveFocus()
+    // The Undo button is gone, so focus goes to the panel title, not to the page and not lost.
+    expect(screen.getByRole('heading', { name: 'Voice guide' })).toHaveFocus()
+    expect(within(screen.getByRole('list', { name: 'Echo did' })).getByText('Undid: Opened Listen')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Undo/ })).toBeNull()
+  })
+
+  it("still moves focus to the heading for the listener's own navigation afterwards", async () => {
+    const user = await talk()
+    await server({ type: 'action', action: 'navigate', page: 'listen' })
+    await screen.findByRole('heading', { level: 1, name: 'Listen' })
+    await user.click(navLink('About the data'))
+    expect(await screen.findByRole('heading', { level: 1, name: 'About the data' })).toHaveFocus()
+  })
+
+  it('does not leave a stale flag when the guide "opens" the page already showing', async () => {
+    const user = await talk()
+    await server({ type: 'action', action: 'navigate', page: 'home' })
+    await user.click(navLink('Listen'))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Listen' })).toHaveFocus()
+  })
+
+  it('opens and closes the guide with Alt+E, and names the shortcut on the button', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    expect(toggle()).toHaveAttribute('aria-keyshortcuts', 'Alt+E')
+    await user.keyboard('{Alt>}e{/Alt}')
+    expect(toggle()).toHaveAttribute('aria-pressed', 'true')
+    await user.keyboard('{Escape}') // focus is in the panel
+    expect(toggle()).toHaveAttribute('aria-pressed', 'false')
+    await user.keyboard('{Alt>}e{/Alt}')
+    expect(toggle()).toHaveAttribute('aria-pressed', 'true')
+    screen.getByRole('heading', { name: 'Voice guide' }).blur()
+    await user.keyboard('{Alt>}e{/Alt}')
+    expect(toggle()).toHaveAttribute('aria-pressed', 'false')
+    expect(toggle()).toHaveFocus()
+  })
+
+  it('ignores Alt+E typed into a text field', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(toggle())
+    await user.click(screen.getByRole('button', { name: 'Start talking' }))
+    act(() => FakeSocket.instances[0].onopen?.())
+    await server({ type: 'ready' })
+    await user.click(screen.getByRole('textbox', { name: 'Type a question instead' }))
+    await user.keyboard('{Alt>}e{/Alt}')
+    expect(toggle()).toHaveAttribute('aria-pressed', 'true')
   })
 })

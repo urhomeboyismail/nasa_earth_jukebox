@@ -3,6 +3,7 @@
 // the choice is also kept in memory for this visit.
 
 import { useSyncExternalStore } from 'react'
+import { storedWelcome } from '../../data'
 
 export type WelcomePath = 'screen-reader' | 'map' | 'play'
 
@@ -18,7 +19,6 @@ export type WelcomeChoice = {
 export const WELCOME_KEY = 'earth-jukebox:welcome'
 
 const NOT_DONE: WelcomeChoice = { done: false, speech: false }
-const PATHS: readonly string[] = ['screen-reader', 'map', 'play']
 
 let remembered: WelcomeChoice = NOT_DONE
 const listeners = new Set<() => void>()
@@ -26,19 +26,17 @@ const listeners = new Set<() => void>()
 /** Reads the stored text into a choice, trusting nothing in it. */
 function parse(text: string | null): WelcomeChoice | null {
   if (!text) return null
+  let value: unknown
   try {
-    const value: unknown = JSON.parse(text)
-    if (!value || typeof value !== 'object') return null
-    const { done, path, speech, volume } = value as Record<string, unknown>
-    return {
-      done: done === true,
-      speech: speech === true,
-      ...(typeof path === 'string' && PATHS.includes(path) && { path: path as WelcomePath }),
-      ...(typeof volume === 'number' && volume >= 0 && volume <= 1 && { volume }),
-    }
+    value = JSON.parse(text)
   } catch {
     return null
   }
+  const parsed = storedWelcome.safeParse(value)
+  if (!parsed.success) return null
+  const { done, speech, path, volume } = parsed.data
+  // Fields that fell back are left out rather than stored as `undefined`.
+  return { done, speech, ...(path && { path }), ...(volume !== undefined && { volume }) }
 }
 
 /** The remembered choice, or "not done". Returns the same object until something changes, so it can feed a store. */

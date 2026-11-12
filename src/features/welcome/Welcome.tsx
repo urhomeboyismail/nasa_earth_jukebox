@@ -7,7 +7,7 @@ import { subscribeContext } from '../../assistant/context'
 import { createSoundEngine, type SoundEngine } from '../../audio'
 import { Button, Slider, useAnnounce } from '../../components'
 import { Echo } from '../../components/Mascot'
-import type { Visualization } from '../../data'
+import { playerUpdate, type Visualization } from '../../data'
 import { useDescriptionDetail } from '../../describe/detail'
 import { currentDataParam, hashFor } from '../../route'
 import { sendPlayerCommand } from '../player/controls'
@@ -23,7 +23,9 @@ const DEFAULT_VOLUME = 80
 function playWhenReady() {
   const finish = () => { unsubscribe(); window.clearInterval(retry); window.clearTimeout(limit) }
   const unsubscribe = subscribeContext(update => {
-    if (update.key === 'player' && (update.data as { playing?: boolean } | null)?.playing) finish()
+    if (update.key !== 'player') return
+    const player = playerUpdate.safeParse(update.data)
+    if (player.success && player.data.playing) finish()
   })
   const retry = window.setInterval(() => sendPlayerCommand('play'), 600)
   const limit = window.setTimeout(finish, 10_000)
