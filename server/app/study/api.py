@@ -52,7 +52,10 @@ class ResponseIn(_Strict):
 
 @router.post("", response_model=SessionOut, status_code=201)
 def create_test(body: SessionIn) -> SessionOut:
-    return SessionOut(id=db.create_session(body.participant, body.screen_reader, body.saw_images))
+    try:
+        return SessionOut(id=db.create_session(body.participant, body.screen_reader, body.saw_images))
+    except db.TooManySessions:
+        raise HTTPException(503, "The listening test is full for now. Please try again later.") from None
 
 
 @router.post("/{session_id}/responses", status_code=204)
