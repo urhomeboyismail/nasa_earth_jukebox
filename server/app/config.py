@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -44,6 +45,15 @@ class Settings(BaseSettings):
     jukebox_enabled: bool = False
     jukebox_runs_per_minute: int = Field(default=4, gt=0)
     jukebox_timeout_seconds: float = Field(default=120, gt=0)
+
+    # Google ADK agent (G01 to G05). Nothing calls the model while agent_enabled is false.
+    agent_enabled: bool = False
+    agent_model: str = "gemini-2.5-flash"  # [unverified] confirm the id with a real key (G07)
+    # Seconds one agent request may take before it gives up.
+    agent_timeout_seconds: float = Field(default=2.5, gt=0)
+    agent_max_requests_per_minute: int = Field(default=5, gt=0)  # one token bucket for the whole server
+    # Which engine runs the voice guide: the old Gemini Live bridge or the ADK agent.
+    assistant_engine: Literal["bridge", "adk"] = "bridge"  # G05 changes the default to "adk"
 
     # Listening-test results (src/features/test, docs/PLAN.md §5.5). On Render the file needs a persistent
     # disk to survive restarts; without one, download the CSV after every session.

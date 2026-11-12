@@ -179,7 +179,7 @@ No front-end file changes, so the `npm` checks do not apply.
 
 ## Result
 
-**In progress** (agent B, 10 Nov 2026, Windows 11, Python 3.13.7). Steps 1, 2, 4 and 5 are done. Step 3 (the settings in `config.py` and `.env.example`) and test 6 wait for the team leader's answer to `R-20261110-G01-1` on `docs/AGENT-BOARD.md`, because `config.py` is the team leader's file.
+**Done** (agent B, Windows 11, Python 3.13.7). Steps 1, 2, 4 and 5 were done on 10 Nov and merged in PR #4. Step 3 and test 6 were done on 11 Nov, after the team leader approved `R-20261110-G01-1` as written ("yes, as written"). The five settings are in `server/app/config.py` with the defaults above, and each is in `server/.env.example`, commented out. Test 6 checks the defaults (with `_env_file=None`, so a local `.env` cannot change them), checks that `ASSISTANT_ENGINE` accepts only `bridge` or `adk`, and checks that every variable name is in `.env.example`.
 
 **Dependencies**
 
@@ -196,17 +196,17 @@ No front-end file changes, so the `npm` checks do not apply.
 
 **Model id.** A model list with a real key (no billed call) shows `gemini-2.5-flash` and `gemini-3.8-live` as available, 10 Nov 2026. The `[unverified]` note on `agent_model` can go once G07 makes a real call.
 
-**Checks** (pytest is run with `--basetemp` in a writable folder, because this machine denies pytest its default temp folder; that is not a code problem)
+**Checks, 11 Nov** (pytest is run with `--basetemp` in a writable folder, because this machine denies pytest its default temp folder; that is not a code problem). `google-genai` 2.34.0, FastAPI 0.162.2.
 
 ```
 $ .venv/Scripts/python -m pip check
 No broken requirements found.
 
 $ .venv/Scripts/python -m pytest -q
-132 passed in 16.61s
+135 passed in 10.23s
 
 $ env -u GEMINI_API_KEY -u GOOGLE_API_KEY .venv/Scripts/python -m pytest -q
-132 passed in 14.34s
+135 passed in 10.24s
 ```
 
-`tests/test_agent_core.py` alone: 50 passed. There is no `.env` in this worktree, so no key was present in either run.
+`tests/test_agent_core.py` alone: 53 passed. There is no `.env` in this worktree, so no key was present in either run.
