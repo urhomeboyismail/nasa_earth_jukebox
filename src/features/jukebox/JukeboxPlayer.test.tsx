@@ -1,10 +1,11 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import * as speech from '../welcome/speak'
 import { AnnouncerContext } from '../../components/announcerContext'
 import { expectNoA11yViolations } from '../../test/a11y'
 import { JukeboxPlayer } from './JukeboxPlayer'
-import { midiToFrequency, type AudioPayload, type Step } from './payload'
+import { midiToFrequency, type AudioPayload, type Step, type VisionPayload } from './payload'
 
 // A stand-in for Tone that records what was built and played. Nothing fires until a test fires it.
 const tone = vi.hoisted(() => {
@@ -12,7 +13,7 @@ const tone = vi.hoisted(() => {
   const state = {
     startError: null as Error | null,
     started: 0,
-    synths: [] as { volume: { setValueAtTime: ReturnType<typeof vi.fn> }; triggerAttackRelease: ReturnType<typeof vi.fn>; dispose: ReturnType<typeof vi.fn>; connectedTo: unknown }[],
+    synths: [] as { kind: string; options: unknown; volume: { setValueAtTime: ReturnType<typeof vi.fn> }; triggerAttackRelease: ReturnType<typeof vi.fn>; dispose: ReturnType<typeof vi.fn>; connectedTo: unknown }[],
     sequences: [] as { callback: Callback; events: unknown[]; subdivision: unknown; loop: boolean; startedAt: unknown; dispose: ReturnType<typeof vi.fn> }[],
     limiters: [] as { threshold: number; toDestinationCalled: boolean; dispose: ReturnType<typeof vi.fn> }[],
     transport: {
@@ -39,8 +40,13 @@ const tone = vi.hoisted(() => {
     triggerAttackRelease = vi.fn()
     dispose = vi.fn()
     connectedTo: unknown = null
-    constructor() { state.synths.push(this) }
+    kind = 'Synth'
+    options: unknown
+    constructor(options?: unknown) { this.options = options; state.synths.push(this) }
     connect(target: unknown) { this.connectedTo = target; return this }
+  }
+  class AMSynth extends Synth {
+    kind = 'AMSynth'
   }
   class Sequence {
     loop = true
@@ -64,6 +70,7 @@ const tone = vi.hoisted(() => {
     gainToDb: (gain: number) => 20 * Math.log10(gain),
     Limiter,
     Synth,
+    AMSynth,
     Sequence,
   }
   return { state, module }
@@ -81,11 +88,12 @@ const two: AudioPayload = {
 }
 
 let announced: string[]
+let spoke: string[]
 
-function show(payload: AudioPayload) {
+function show(payload: AudioPayload, vision?: VisionPayload) {
   const wrap = (p: AudioPayload) => (
     <AnnouncerContext.Provider value={text => announced.push(text)}>
-      <JukeboxPlayer payload={p} />
+      <JukeboxPlayer payload={p} vision={vision} />
     </AnnouncerContext.Provider>
   )
   const view = render(wrap(payload))
@@ -100,6 +108,11 @@ const pressPlay = async () => {
 
 beforeEach(() => {
   announced = []
+  spoke = []
+  vi.spyOn(speech, 'speak').mockImplementation(async text => { spoke.push(text) })
+  vi.spyOn(speech, 'hush').mockImplementation(() => { spoke.push('<hush>') })
+  vi.stubGlobal('speechSynthesis', {})
+  vi.stubGlobal('SpeechSynthesisUtterance', class {})
   const { state } = tone
   state.startError = null
   state.started = 0
@@ -108,6 +121,11 @@ beforeEach(() => {
   state.limiters = []
   Object.assign(state.transport, { state: 'stopped', position: -1, once: [], cleared: [] })
   state.transport.bpm.value = 0
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
 })
 
 describe('JukeboxPlayer', () => {
@@ -228,5 +246,92 @@ describe('the end of playback', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Stop' }))
     await new Promise(resolve => setTimeout(resolve, 120))
     expect(announced).toEqual(['Playing', 'Stopped'])
+  })
+})
+
+const vision: VisionPayload = {
+  descriptions: [
+    { timestamp_sec: 1, alt_text: 'Pale water.', intensity_level: 'low' },
+    { timestamp_sec: 0, alt_text: 'Open sea.', intensity_level: 'medium' },
+  ],
+}
+
+describe('captions', () => {
+  it('shows nothing about captions, and schedules only the end, without vision', async () => {
+    show(two)
+    expect(screen.queryByText(/Descriptions appear here/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+    await pressPlay()
+    expect(tone.state.transport.once).toHaveLength(1)
+  })
+
+  it('schedules each description at its time, and at that time shows, announces and (only if on) speaks it', async () => {
+    const { container } = show(two, vision)
+    expect(screen.getByText('Descriptions appear here while it plays.')).toBeInTheDocument()
+    await pressPlay()
+    const [, first, second] = tone.state.transport.once
+    expect([first.time, second.time]).toEqual([0, 0.75]) // 1 s is later than the last step (0.75 s), so it is moved there
+
+    first.callback(1)
+    expect(await screen.findByText('Open sea.')).toBeInTheDocument()
+    expect(screen.getByText('medium intensity')).toBeInTheDocument()
+    expect(announced).toContain('Open sea.')
+    expect(spoke).toEqual([])
+    await expectNoA11yViolations(container)
+
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Spoken narration (Web Speech API)' }))
+    second.callback(1)
+    expect(await screen.findByText('Pale water.')).toBeInTheDocument()
+    expect(spoke).toEqual(['Pale water.'])
+  })
+
+  it('has no speech toggle where the browser has no speech', () => {
+    vi.unstubAllGlobals()
+    show(two, vision)
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+  })
+
+  it('Stop clears the pending captions and the speech', async () => {
+    show(two, vision)
+    await pressPlay()
+    const { transport } = tone.state
+    transport.once[1].callback(10) // Due in 9 s, so Stop comes first.
+    await userEvent.click(screen.getByRole('button', { name: 'Stop' }))
+    expect(transport.cleared).toEqual(expect.arrayContaining(transport.once.map(event => event.id)))
+    expect(spoke).toContain('<hush>')
+    expect(screen.getByText('Descriptions appear here while it plays.')).toBeInTheDocument()
+    await new Promise(resolve => setTimeout(resolve, 60))
+    expect(announced).not.toContain('Open sea.')
+  })
+})
+
+describe('timbres', () => {
+  const payload: AudioPayload = {
+    base_bpm: 120,
+    tracks: [
+      { instrument: 'Sub Bass', pitch_range: [36, 48], volume_curve: [1] },
+      { instrument: 'Ambient Pad', pitch_range: [60, 72], volume_curve: [1] },
+      { instrument: 'marimba', pitch_range: [60, 72], volume_curve: [1] },
+    ],
+  }
+
+  it('builds a triangle bass, an AM pad with a slow attack, and a sawtooth lead', async () => {
+    show(payload)
+    await pressPlay()
+    const [bass, pad, lead] = tone.state.synths
+    expect([bass.kind, bass.options]).toEqual(['Synth', { oscillator: { type: 'triangle' } }])
+    expect([pad.kind, pad.options]).toEqual(['AMSynth', { envelope: { attack: 0.1 } }])
+    expect([lead.kind, lead.options]).toEqual(['Synth', { oscillator: { type: 'sawtooth' } }])
+  })
+
+  it('plays the bass an octave lower', async () => {
+    show(payload)
+    await pressPlay()
+    const [bass, , lead] = tone.state.synths
+    const [bassSequence, , leadSequence] = tone.state.sequences
+    bassSequence.callback(0, bassSequence.events[0] as Step)
+    leadSequence.callback(0, leadSequence.events[0] as Step)
+    expect(bass.triggerAttackRelease.mock.calls[0][0]).toBeCloseTo(midiToFrequency(42) / 2)
+    expect(lead.triggerAttackRelease.mock.calls[0][0]).toBeCloseTo(midiToFrequency(66))
   })
 })
