@@ -1,0 +1,60 @@
+{
+  "dates": [
+    "2024-01-15",
+    "2024-07-15",
+    "2024-12-15",
+    "2025-03-15"
+  ],
+  "facts": [
+    {
+      "id": "F-dates",
+      "kind": "data",
+      "text": "There are 4 dates, from January 2024 to March 2025."
+    },
+    {
+      "id": "F-first",
+      "kind": "data",
+      "text": "On January 2024 the sea surface temperature was about 10.0 °C."
+    },
+    {
+      "id": "F-last",
+      "kind": "data",
+      "text": "On December 2024 the sea surface temperature was about 30.0 °C."
+    },
+    {
+      "id": "F-lowest",
+      "kind": "data",
+      "text": "The lowest reading was about 10.0 °C, on January 2024."
+    },
+    {
+      "id": "F-highest",
+      "kind": "data",
+      "text": "The highest reading was about 30.0 °C, on December 2024."
+    },
+    {
+      "id": "F-change",
+      "kind": "data",
+      "text": "From January 2024 to December 2024 the sea surface temperature changed by about +20.0 °C."
+    },
+    {
+      "id": "F-missing",
+      "kind": "data",
+      "text": "There is not enough data for March 2025. That is a gap in the source, not a zero."
+    },
+    {
+      "id": "F-region",
+      "kind": "text",
+      "text": "The sound is made from Central ocean. A grid of nine points in the middle of the image."
+    },
+    {
+      "id": "F-source",
+      "kind": "text",
+      "text": "The images come from Synthetic test data. Earth Jukebox team."
+    },
+    {
+      "id": "F-method",
+      "kind": "text",
+      "text": "Each value is read from the colours of the image using its legend, so it is approximate. It is the middle value of many points, not an exact measurement."
+    }
+  ]
+}

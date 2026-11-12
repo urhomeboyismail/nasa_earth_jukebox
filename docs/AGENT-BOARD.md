@@ -138,3 +138,13 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: may G04 or G05 send `{"type":"ready","limitSeconds":settings.assistant_max_session_seconds}`? The browser already reads it (a positive number) and falls back to 600 otherwise. (a) yes; (b) no, keep 600 in the browser.
 - Answer:
 - Recorded in: nowhere needed yet
+
+### R-20261112-G07-1: Who writes the held-out Ask questions?
+- From: G07 (agent E, 12 Nov)
+- To: team
+- Needed by: G07 (the ticket is `blocked: held-out questions` until then)
+- Status: open
+- Context: `server/agent_eval/README.md`, `docs/tickets/G07-agent-eval-drafter.md`. The eval needs `server/agent_eval/questions/heldout.json`: at least 15 real questions about the fixture data set (`server/agent_eval/facts.json` lists the facts), each with `"author"` set, written before any agent result is seen and not copied from the aliases in `src/features/ask/facts.ts`. Same shape as `questions/dev.json` (`id`, `text`, `type`, `open_wording`, `expected_fact_ids`); adversarial questions are optional.
+- Question: Who writes them (a person, not an agent), and when?
+- Answer:
+- Recorded in: nowhere needed

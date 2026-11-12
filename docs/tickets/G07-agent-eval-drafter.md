@@ -142,4 +142,22 @@ Run the real eval with a key only if a person has the key and the held-out set (
 
 ## Result
 
-Not started.
+Built by agent E, 2026-11-12. **Status: blocked: held-out questions.** Everything else is done.
+
+- `tsx` is not installed in the repo (`npx --no-install tsx` fails, no `node_modules/.bin/tsx`), and no dependency was added. To check the static script, tsx was installed in a scratch folder outside the repo and used through `TSX_BIN`. With it: `static-ask.ts --list-aliases` and the questions run work, and `test_facts_json_matches_a_fresh_run` passes (without it, that test is skipped). `facts.json` was first written by running the real `buildFacts` through vitest.
+- Dev set: 37 real and 17 adversarial questions. Offline matcher on it: 36 of 54 passed (real 19 of 37, adversarial 17 of 17, open wording 7 of 23). The agent was NOT RUN (no API key). No verdict is written.
+- Held-out set: NOT RUN. `questions/heldout.json` must be written by a person (request posted on `docs/AGENT-BOARD.md`).
+- Not run: the drafter with a key; the real eval with a key.
+
+Checks:
+
+```
+(cd server && python -m pytest)                     -> 295 passed, 2 skipped
+env -u GEMINI_API_KEY ... pytest tests/test_agent_eval.py -> 21 passed, 2 skipped (no tsx: facts check and held-out file skipped)
+python -I agent_eval/run_eval.py  -> report.md written: matcher 36 passed / 18 failed; Agent NOT RUN: no API key; Held-out NOT RUN: no held-out file; no verdict
+python -I agent_eval/drafter.py   -> NOT RUN: no API key (log unchanged)
+npm run lint   -> no errors
+npm run build  -> built, OK
+npm test       -> run 1: 67 failed of 2003 (timeouts under load); run 2: 1 failed, src/data/change-regression.test.ts timed out at 90 s. No file under src/ was changed by this ticket.
+```
+

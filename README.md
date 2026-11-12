@@ -69,6 +69,7 @@ Stack: React, TypeScript and Vite; Tone.js for sound; a small FastAPI server for
 ## AI tools
 
 - **Google Gemini Live** runs the optional voice guide. It can reword and use a short list of allow-listed actions (go to a page, play, pause, step a date, read the screen). It never touches the analysis, the sound or the descriptions, and the app works with it switched off.
+- **The Ask agent** (optional, off by default) only chooses which stored fact answers a question; it writes no text. Whether it beats the offline matcher has **not been measured yet**: the verdict will be copied from `server/agent_eval/report.md` after a real run with a key and the held-out questions (see `server/agent_eval/README.md`).
 - **Claude Code and Codex** (coding assistants) helped write code, tests and documents. The sound itself is computed by rules in the code: no AI model sits between a picture and what you hear. The team reviews what the assistants write.
 - **The art:** the mascot, Echo, is our own SVG drawing (`src/components/Mascot.tsx`). If an AI image tool is ever used for any art, it will be named here.
 
