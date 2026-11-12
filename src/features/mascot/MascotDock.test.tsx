@@ -167,6 +167,32 @@ describe('the dock', () => {
   })
 })
 
+describe("Echo's boots (JB02)", () => {
+  afterEach(() => { vi.unstubAllGlobals(); Reflect.deleteProperty(window, 'scrollY') })
+
+  it('fire when the page scrolls fast and settle when it stops, without a sound or an announcement', () => {
+    let y = 0
+    let frame: FrameRequestCallback | undefined
+    vi.useFakeTimers()
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => { frame = callback; return 1 })
+    vi.stubGlobal('cancelAnimationFrame', () => { frame = undefined })
+    Object.defineProperty(window, 'scrollY', { configurable: true, get: () => y })
+    const { container } = render(<Dock />)
+    const motion = () => container.querySelector('svg[data-motion]')?.getAttribute('data-motion')
+    expect(motion()).toBe('idle')
+    const before = liveText()
+    y = 80
+    act(() => { window.dispatchEvent(new Event('scroll')) })
+    act(() => { frame?.(performance.now()) })
+    expect(motion()).toBe('boosting')
+    act(() => { vi.advanceTimersByTime(120) })
+    expect(motion()).toBe('retro')
+    act(() => { vi.advanceTimersByTime(400) })
+    expect(motion()).toBe('idle')
+    expect(liveText()).toBe(before)
+  })
+})
+
 describe("Echo's face", () => {
   it('is happy at rest and searches while a data set loads', () => {
     const { container, rerender } = render(<Dock />)
