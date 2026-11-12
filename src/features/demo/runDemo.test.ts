@@ -48,4 +48,26 @@ describe('runDemo', () => {
     for (const step of DEMO_STEPS) expect(['home', 'learn', 'listen', 'compare', 'about']).toContain(step.page)
     expect(DEMO_STEPS.map(step => step.say).join(' ')).not.toMatch(/mauritius|ocean|sea ice|°C/i)
   })
+
+  it('speaks each caption once, in order, before it waits or plays, when speakCaption is given', async () => {
+    const { log, all } = deps({ speakCaption: async text => { log.push(`speak:${text.slice(0, 12)}`) } })
+    expect(await runDemo(DEMO_STEPS, all, new AbortController().signal)).toBe(true)
+    const spoken = log.filter(entry => entry.startsWith('speak:'))
+    expect(spoken).toHaveLength(DEMO_STEPS.length)
+    expect(log.slice(0, 4)).toEqual(['go:home', 'say:Welcome to t', 'speak:Welcome to t', 'sleep:7000'])
+  })
+
+  it('starts the dates only after the caption has been spoken', async () => {
+    const { log, all } = deps({ speakCaption: async () => { log.push('spoken') } })
+    await runDemo(DEMO_STEPS.filter(step => step.play), all, new AbortController().signal)
+    expect(log.indexOf('spoken')).toBeLessThan(log.indexOf('play'))
+  })
+
+  it('stops after a caption if the demo was stopped while it spoke', async () => {
+    const controller = new AbortController()
+    const { log, all } = deps({ speakCaption: async () => { controller.abort() } })
+    expect(await runDemo(DEMO_STEPS, all, controller.signal)).toBe(false)
+    expect(log).not.toContain('play')
+    expect(log.some(entry => entry.startsWith('sleep'))).toBe(false)
+  })
 })

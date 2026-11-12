@@ -10,6 +10,8 @@ export type DemoDeps = {
   playAndWait: (signal: AbortSignal) => Promise<void>
   /** Resolves after `ms`, or at once if the demo is stopped. */
   sleep: (ms: number, signal: AbortSignal) => Promise<void>
+  /** Speaks the caption and resolves when the speech has ended. Left out when the listener has not asked for the demo to be read aloud. */
+  speakCaption?: (text: string) => Promise<void>
 }
 
 /** Resolves true when the tour reached its end, false when it was stopped. */
@@ -18,6 +20,10 @@ export async function runDemo(steps: DemoStep[], deps: DemoDeps, signal: AbortSi
     if (signal.aborted) return false
     deps.goTo(step.page)
     deps.say(step.say)
+    if (deps.speakCaption) {
+      await deps.speakCaption(step.say)
+      if (signal.aborted) return false
+    }
     if (step.play) await deps.playAndWait(signal)
     else await deps.sleep(step.holdMs ?? 5000, signal)
   }

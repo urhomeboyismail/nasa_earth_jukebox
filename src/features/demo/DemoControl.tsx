@@ -4,6 +4,8 @@ import { Button } from '../../components'
 import { Sonny } from '../../components/Mascot'
 import { playerUpdate } from '../../data'
 import { currentDataParam, hashFor } from '../../route'
+import { hush, speak } from '../welcome/speak'
+import { readWelcome } from '../welcome/storage'
 import { useMascotOn } from '../help/mascotSetting'
 import { sendPlayerCommand } from '../player/controls'
 import { runDemo, type DemoDeps } from './runDemo'
@@ -14,6 +16,17 @@ import './demo.css'
 const PLAY_TIMEOUT_MS = 60_000
 /** The page loads on first visit and the sounds are prepared after it opens, so "play" is sent again until it takes. */
 const RETRY_MS = 600
+/** Longest the demo waits for one caption to be spoken, so a voice that never ends cannot hold the tour. */
+const SPEAK_TIMEOUT_MS = 15_000
+
+/** Pauses the music, then speaks the caption. Resolves when the speech ends, after 15 seconds, or at once where there is no speech. */
+const speakCaption = (text: string): Promise<void> => {
+  sendPlayerCommand('pause')
+  return new Promise(resolve => {
+    const timer = window.setTimeout(resolve, SPEAK_TIMEOUT_MS)
+    void speak(text).then(() => { window.clearTimeout(timer); resolve() })
+  })
+}
 
 const sleep: DemoDeps['sleep'] = (ms, signal) =>
   new Promise(resolve => {
@@ -44,11 +57,15 @@ const playAndWait: DemoDeps['playAndWait'] = (signal) =>
 export function DemoControl() {
   const [running, setRunning] = useState(false)
   const [caption, setCaption] = useState('')
+  // For this visit only; not saved. Off by default, and not offered on the screen reader path (a screen reader is that listener's voice).
+  const [aloud, setAloud] = useState(false)
+  const [screenReader] = useState(() => readWelcome().path === 'screen-reader')
   const abort = useRef<AbortController | null>(null)
   const mascotOn = useMascotOn()
 
   function stop() {
     abort.current?.abort()
+    hush()
     sendPlayerCommand('stop')
   }
 
@@ -61,6 +78,7 @@ export function DemoControl() {
       say: setCaption,
       playAndWait,
       sleep,
+      speakCaption: aloud && !screenReader ? speakCaption : undefined,
     }, controller.signal)
     if (abort.current === controller) abort.current = null
     setRunning(false)
@@ -69,7 +87,7 @@ export function DemoControl() {
 
   useEffect(() => {
     if (!running) return
-    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') stop() }
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape' && !event.defaultPrevented) stop() }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [running])
@@ -79,6 +97,12 @@ export function DemoControl() {
   return (
     <div className="demo">
       <Button pressed={running} onClick={running ? stop : () => void start()}>{running ? 'Stop the demo' : 'Play the demo'}</Button>
+      {!screenReader && (
+        <label className="demo__aloud">
+          <input type="checkbox" checked={aloud} disabled={running} onChange={event => setAloud(event.target.checked)} />
+          Read the demo aloud
+        </label>
+      )}
       {/* The mascot's face sits beside what it says. It is decoration: the caption is the text. */}
       <div className="demo__say">
         {mascotOn && caption && <Sonny size={32} className="demo__mascot" />}
