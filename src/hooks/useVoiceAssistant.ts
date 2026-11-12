@@ -15,6 +15,7 @@ import { currentContext, subscribeContext, type ContextUpdate } from '../assista
 import { socketUrl } from '../config'
 import type { PlayerCommand } from '../features/player/controls'
 import { isPage, pages, type Page } from '../pages'
+import { isIsoDate, parseServerMessage, playerCommandSchema } from './voiceMessages'
 
 export type AssistantStatus = 'idle' | 'connecting' | 'listening' | 'speaking' | 'ended' | 'error'
 export type TranscriptEntry = { id: number; role: 'user' | 'assistant'; text: string }
@@ -22,22 +23,10 @@ export type AssistantAction = { action: 'navigate'; page: Page } | { action: 'pl
 
 const PLAYER_WORDS = ['play', 'pause', 'stop', 'replay', 'next', 'previous'] as const
 
-/** A real calendar date written YYYY-MM-DD. */
-function isIsoDate(value: unknown): value is string {
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
-  const date = new Date(`${value}T00:00:00Z`)
-  return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value)
-}
-
 /** The player command in a message, or null. Only the known words, and an object with nothing but a real date. */
 function toPlayerCommand(value: unknown): PlayerCommand | null {
-  if (typeof value === 'string') return (PLAYER_WORDS as readonly string[]).includes(value) ? (value as PlayerCommand) : null
-  if (value && typeof value === 'object') {
-    const keys = Object.keys(value)
-    const { setDate } = value as { setDate?: unknown }
-    if (keys.length === 1 && keys[0] === 'setDate' && isIsoDate(setDate)) return { setDate }
-  }
-  return null
+  const parsed = playerCommandSchema.safeParse(value)
+  return parsed.success ? parsed.data : null
 }
 
 /** The action in a server message, or null when it is unknown or unusable. Never guesses. */
@@ -90,9 +79,9 @@ const MESSAGES = {
 } as const
 
 /** The words for a server error code. Codes with no entry (not_configured, bad_start) keep the server's own sentence. */
-function errorMessage(code: string, serverText: unknown): string {
+function errorMessage(code: string, serverText: string): string {
   if (code === 'busy' || code === 'upstream') return MESSAGES[code]
-  return typeof serverText === 'string' && serverText ? serverText : MESSAGES.upstream
+  return serverText || MESSAGES.upstream
 }
 
 /** A retry cannot help when the server is not set up or refused the start. */
@@ -366,8 +355,9 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
         setStatus(current => current === 'listening' ? 'speaking' : current)
         return
       }
-      let message: Record<string, unknown>
-      try { message = JSON.parse(event.data as string) } catch { return }
+      if (typeof event.data !== 'string') return
+      const message = parseServerMessage(event.data)
+      if (!message) return
       switch (message.type) {
         case 'ready':
           // Accepted at once: the recorder's result only sets the mic state, so text works while it starts or after it fails.
@@ -377,15 +367,14 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
             setWaking(false)
             forwardContext(ws)
             setStatus('listening')
-            const limit = typeof message.limitSeconds === 'number' && Number.isFinite(message.limitSeconds) && message.limitSeconds > 0
-              ? message.limitSeconds : DEFAULT_LIMIT_SECONDS
+            const limit = message.limitSeconds ?? DEFAULT_LIMIT_SECONDS
             limitTimer.current = window.setTimeout(() => { limitTimer.current = undefined; setLimitWarning(true) },
               Math.max(0, limit - WARNING_SECONDS) * 1000)
             armQuiet()
           }
           break
         case 'transcript':
-          if ((message.role === 'user' || message.role === 'assistant') && typeof message.text === 'string') addTranscript(message.role, message.text)
+          addTranscript(message.role, message.text)
           break
         case 'interrupted':
           player.current?.flush()
@@ -406,8 +395,7 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
           break
         case 'error':
           {
-            const code = typeof message.code === 'string' ? message.code : 'upstream'
-            fail(errorMessage(code, message.message), code)
+            fail(errorMessage(message.code, message.message), message.code)
           }
           break
         case 'ended':

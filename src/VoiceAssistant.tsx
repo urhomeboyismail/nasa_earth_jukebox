@@ -1,26 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { Button, ButtonGroup, IconButton, Notice } from './components'
 import type { AnswerLength } from './assistant/consent'
+import { Icon } from './components/Icon'
 import { Echo, type MascotPose } from './components/Mascot'
 import { NO_RETRY_CODES, type useVoiceAssistant } from './hooks/useVoiceAssistant'
 import './styles/assistant.css'
 
 type Assistant = ReturnType<typeof useVoiceAssistant>
-
-// Material Symbols paths (Apache 2.0), drawn on a 24 x 24 grid.
-// Switch to the shared src/components/Icon.tsx once T50 has merged.
-const icons = {
-  mic: 'M9.875 13.125Q9 12.25 9 11V5q0-1.25.875-2.125T12 2t2.125.875T15 5v6q0 1.25-.875 2.125T12 14t-2.125-.875M11 21v-3.075q-2.6-.35-4.3-2.325T5 11h2q0 2.075 1.463 3.538T12 16t3.538-1.463T17 11h2q0 2.625-1.7 4.6T13 17.925V21z',
-  micOff: 'M17.75 14.95L16.3 13.5q.35-.575.525-1.2T17 11h2q0 1.1-.325 2.088t-.925 1.862m-2.95-3L9 6.15V5q0-1.25.875-2.125T12 2t2.125.875T15 5v6q0 .275-.062.5t-.138.45M11 21v-3.1q-2.6-.35-4.3-2.312T5 11h2q0 2.075 1.463 3.538T12 16q.85 0 1.613-.262T15 15l1.425 1.425q-.725.575-1.588.963T13 17.9V21zm8.8 1.6L1.4 4.2l1.4-1.4l18.4 18.4z',
-  volume: 'M14 20.725v-2.05q2.25-.65 3.625-2.5t1.375-4.2t-1.375-4.2T14 5.275v-2.05q3.1.7 5.05 3.138T21 11.975t-1.95 5.613T14 20.725M3 15V9h4l5-5v16l-5-5zm11 1V7.95q1.175.55 1.838 1.65T16.5 12q0 1.275-.663 2.363T14 16',
-  close: 'M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6z',
-  send: 'M3 20v-6l8-2l-8-2V4l19 8z',
-  stop: 'M6 18V6h12v12z',
-}
-
-function Icon({ name, size = 24 }: { name: keyof typeof icons; size?: number }) {
-  return <svg className="voice-assistant__icon" width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d={icons[name]} /></svg>
-}
 
 /** Sample questions shown as chips before the first message. Each one is sent as if typed. */
 const SUGGESTIONS = ['What do the sounds mean?', 'How do I use the Listen page?', 'Where does the data come from?']
@@ -125,15 +111,18 @@ export default function VoiceAssistant({ assistant, onClose }: { assistant: Assi
     <span className="voice-assistant__handle" aria-hidden="true" />
     <header className="voice-assistant__header">
       <span className={orbClass} aria-hidden="true">
-        <Icon name={status === 'speaking' ? 'volume' : micOff ? 'micOff' : 'mic'} size={28} />
+        <Icon className="voice-assistant__icon" name={status === 'speaking' ? 'volume' : micOff ? 'mic-off' : 'mic'} size={28} />
       </span>
       <div className="voice-assistant__heading">
         <h2 id="voice-assistant-title" ref={title} tabIndex={-1}>Voice guide</h2>
-        <p className={status === 'error' ? 'voice-assistant__status is-error' : 'voice-assistant__status'} role="status">{statusText}</p>
+        <p className={status === 'error' ? 'voice-assistant__status is-error' : 'voice-assistant__status'} >{statusText}</p>
         {showMeter && <span ref={meter} className="voice-assistant__meter" aria-hidden="true"><span className="voice-assistant__meter-fill" /></span>}
       </div>
-      <IconButton aria-label="Close voice guide" onClick={onClose}><Icon name="close" /></IconButton>
+      <IconButton aria-label="Close voice guide" onClick={onClose}><Icon className="voice-assistant__icon" name="close" /></IconButton>
     </header>
+
+    {/* Only these three changes are announced: Listening and Speaking come back after every reply and would talk over the guide. */}
+    <p className="ui-visually-hidden" role="status">{status === 'connecting' || status === 'error' || status === 'ended' ? statusText : ''}</p>
 
     {status === 'connecting' && waking && <p className="voice-assistant__why">Waking Echo up, this can take a minute.</p>}
 
@@ -145,8 +134,8 @@ export default function VoiceAssistant({ assistant, onClose }: { assistant: Assi
       </p>
       {/* Neither choice is the default: the same variant and size, side by side. */}
       <div className="voice-assistant__consent-actions">
-        <Button variant="tonal" onClick={() => choose('mic')}><Icon name="mic" size={20} />Allow microphone</Button>
-        <Button variant="tonal" onClick={() => choose('text')}><Icon name="send" size={20} />Use text only</Button>
+        <Button variant="tonal" onClick={() => choose('mic')}><Icon className="voice-assistant__icon" name="mic" size={20} />Allow microphone</Button>
+        <Button variant="tonal" onClick={() => choose('text')}><Icon className="voice-assistant__icon" name="send" size={20} />Use text only</Button>
       </div>
       <label className="ui-choice">
         <input type="checkbox" checked={talkMode === 'open'} aria-describedby="voice-consent-open-why"
@@ -195,7 +184,7 @@ export default function VoiceAssistant({ assistant, onClose }: { assistant: Assi
       <input id="voice-assistant-input" className="voice-assistant__input" value={draft} maxLength={500} autoComplete="off"
         placeholder="Type a question instead" disabled={!canType} aria-describedby={canType ? undefined : 'voice-assistant-input-why'}
         onChange={event => setDraft(event.target.value)} />
-      <IconButton aria-label="Send" type="submit" variant="filled" disabled={!active || !draft.trim()}><Icon name="send" /></IconButton>
+      <IconButton aria-label="Send" type="submit" variant="filled" disabled={!active || !draft.trim()}><Icon className="voice-assistant__icon" name="send" /></IconButton>
     </form>
     {!canType && <p id="voice-assistant-input-why" className="voice-assistant__why">
       {status === 'connecting' ? 'You can type once the guide has connected.' : consent === 'text' ? 'Press Start typing to ask a question.' : 'Start talking to type a question too.'}
@@ -206,17 +195,17 @@ export default function VoiceAssistant({ assistant, onClose }: { assistant: Assi
         ? <>
           {/* Fixed labels with aria-pressed: 'Talk, pressed' means the mic is sending; 'Mute microphone, pressed' means it is muted. */}
           {micReady && talkMode === 'push' && <Button variant="tonal" pressed={talking} disabled={status === 'connecting'} onClick={assistant.toggleTalk}>
-            <Icon name={talking ? 'mic' : 'micOff'} size={20} />Talk
+            <Icon className="voice-assistant__icon" name={talking ? 'mic' : 'mic-off'} size={20} />Talk
           </Button>}
           {micReady && talkMode === 'open' && <Button variant="tonal" pressed={micMuted} disabled={status === 'connecting'} onClick={assistant.toggleMute}>
-            <Icon name={micMuted ? 'micOff' : 'mic'} size={20} />Mute microphone
+            <Icon className="voice-assistant__icon" name={micMuted ? 'mic-off' : 'mic'} size={20} />Mute microphone
           </Button>}
-          {status === 'speaking' && <Button variant="tonal" onClick={assistant.stopSpeaking}><Icon name="volume" size={20} />Stop talking</Button>}
-          <Button variant="text" onClick={assistant.stop}><Icon name="stop" size={20} />End conversation</Button>
+          {status === 'speaking' && <Button variant="tonal" onClick={assistant.stopSpeaking}><Icon className="voice-assistant__icon" name="volume" size={20} />Stop talking</Button>}
+          <Button variant="text" onClick={assistant.stop}><Icon className="voice-assistant__icon" name="stop" size={20} />End conversation</Button>
         </>
         : (status === 'error' && NO_RETRY_CODES.includes(errorCode)) || showConsent ? null
         : <Button variant="filled" onClick={() => void assistant.start()}>
-          <Icon name={consent === 'text' ? 'send' : 'mic'} size={20} />{status === 'error' ? 'Try again' : consent === 'text' ? 'Start typing' : 'Start talking'}
+          <Icon className="voice-assistant__icon" name={consent === 'text' ? 'send' : 'mic'} size={20} />{status === 'error' ? 'Try again' : consent === 'text' ? 'Start typing' : 'Start talking'}
         </Button>}
       {consent !== null && <Button variant="text" onClick={assistant.clearConsent}>Change microphone choice</Button>}
     </div>

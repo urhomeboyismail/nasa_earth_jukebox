@@ -340,7 +340,7 @@ describe('talking, answers, the time limit and waking (V02)', () => {
     expect(screen.queryByRole('button', { name: 'Mute microphone' })).toBeNull()
     const talk = screen.getByRole('button', { name: 'Talk' })
     expect(talk).toHaveAttribute('aria-pressed', 'false')
-    expect(screen.getByRole('status')).toHaveTextContent('Press Talk to speak, or type a question below.')
+    expect(screen.getByText('Press Talk to speak, or type a question below.')).toHaveClass('voice-assistant__status')
     await userEvent.click(talk)
     expect(assistant.toggleTalk).toHaveBeenCalledTimes(1)
     rerender(<VoiceAssistant assistant={{ ...assistant, talking: true }} onClose={() => {}} />)
@@ -352,7 +352,7 @@ describe('talking, answers, the time limit and waking (V02)', () => {
     render(<VoiceAssistant assistant={fakeAssistant({ status: 'listening', consent: 'text', micReady: false })} onClose={() => {}} />)
     expect(screen.queryByRole('button', { name: 'Talk' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Mute microphone' })).toBeNull()
-    expect(screen.getByRole('status')).toHaveTextContent('Ready. Type a question below.')
+    expect(screen.getByText('Ready. Type a question below.')).toHaveClass('voice-assistant__status')
   })
 
   it('offers Short and Detailed answers, Short by default, and says a change applies next time', async () => {
@@ -396,5 +396,86 @@ describe('talking, answers, the time limit and waking (V02)', () => {
   it('passes accessibility checks in a session', async () => {
     const { container } = render(<VoiceAssistant assistant={fakeAssistant({ status: 'listening', micNote: 'Echo cannot use the microphone. You can type your questions.', micReady: false })} onClose={() => {}} />)
     await expectNoA11yViolations(container)
+  })
+})
+
+// ---- V03: a quieter status, shared icons, checked messages --------------------------------------------------------
+
+describe('the status line and its announcement (V03)', () => {
+  const visible = (container: HTMLElement) => container.querySelector('.voice-assistant__status')!
+  const announced = () => screen.getByRole('status')
+
+  it.each([
+    ['listening', { micReady: true, talkMode: 'open' as const }, 'Listening. Speak any time.'],
+    ['listening', { micReady: true, talkMode: 'open' as const, micMuted: true }, 'Microphone off. Type a question below.'],
+    ['listening', { micReady: false }, 'Ready. Type a question below.'],
+    ['speaking', { micReady: true, talkMode: 'open' as const }, 'Speaking. Talk to interrupt.'],
+    ['connecting', {}, 'Connecting...'],
+    ['error', { error: 'Echo could not connect.' }, 'Echo could not connect.'],
+    ['ended', { endedMessage: 'The conversation has ended.' }, 'The conversation has ended.'],
+  ] as const)('keeps the visible text for %s (%s)', (status, extra, text) => {
+    const { container } = render(<VoiceAssistant assistant={fakeAssistant({ status, ...extra })} onClose={() => {}} />)
+    expect(visible(container)).toHaveTextContent(text)
+  })
+
+  it('gives the visible status line no role', () => {
+    const { container } = render(<VoiceAssistant assistant={fakeAssistant({ status: 'listening' })} onClose={() => {}} />)
+    expect(visible(container)).not.toHaveAttribute('role')
+  })
+
+  it('announces connecting, error and ended, and nothing for listening and speaking', () => {
+    const cases: [Assistant['status'], Partial<Assistant>, string][] = [
+      ['connecting', {}, 'Connecting...'],
+      ['error', { error: 'Echo stopped unexpectedly.' }, 'Echo stopped unexpectedly.'],
+      ['ended', { endedMessage: 'The conversation has ended.' }, 'The conversation has ended.'],
+      ['listening', {}, ''],
+      ['speaking', {}, ''],
+    ]
+    for (const [status, extra, text] of cases) {
+      const { unmount } = render(<VoiceAssistant assistant={fakeAssistant({ status, ...extra })} onClose={() => {}} />)
+      expect(announced()).toHaveTextContent(text, { normalizeWhitespace: true })
+      if (!text) expect(announced()).toBeEmptyDOMElement()
+      unmount()
+    }
+  })
+
+  it('draws its icons through the shared component, and the close button keeps its name', () => {
+    const { container } = render(<VoiceAssistant assistant={fakeAssistant({ status: 'listening' })} onClose={() => {}} />)
+    const icons = container.querySelectorAll('svg.voice-assistant__icon')
+    expect(icons.length).toBeGreaterThan(0)
+    icons.forEach(icon => expect(icon).toHaveAttribute('aria-hidden', 'true'))
+    expect(screen.getByRole('button', { name: 'Close voice guide' })).toBeInTheDocument()
+  })
+
+  it('passes accessibility checks while listening', async () => {
+    const { container } = render(<VoiceAssistant assistant={fakeAssistant({ status: 'listening' })} onClose={() => {}} />)
+    await expectNoA11yViolations(container)
+  })
+
+  it('leaves no inline icon table or stale comment in the source', () => {
+    const source = readFileSync('src/VoiceAssistant.tsx', 'utf8')
+    expect(source).not.toContain('const icons')
+    expect(source).not.toContain('T50')
+  })
+})
+
+describe('server messages are checked before use (V03)', () => {
+  beforeEach(() => {
+    FakeSocket.instances = []
+    vi.stubGlobal('WebSocket', FakeSocket)
+    installFakeAudioContext()
+  })
+  afterEach(() => { vi.unstubAllGlobals() })
+
+  it('ignores a transcript with an unknown role', async () => {
+    render(<LivePanel />)
+    await userEvent.click(screen.getByRole('button', { name: /Start (talking|typing)/ }))
+    const text = screen.queryByRole('button', { name: 'Use text only' })
+    if (text) await userEvent.click(text)
+    serverReady()
+    act(() => socket().onmessage?.({ data: JSON.stringify({ type: 'transcript', role: 'system', text: 'Hidden line' }) }))
+    act(() => socket().onmessage?.({ data: JSON.stringify({ type: 'transcript', role: 'assistant', text: 'Shown line' }) }))
+    expect(screen.queryByText(/Hidden line/)).toBeNull()
+    expect(screen.getByText(/Shown line/)).toBeInTheDocument()
   })
 })

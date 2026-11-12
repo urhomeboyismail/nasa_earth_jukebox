@@ -118,4 +118,20 @@ No server change, so the server checks do not apply.
 
 ## Result
 
-Not started.
+Built by agent E, 2026-11-12, on `feature/V03-voice-client-hygiene` (two commits).
+
+- **Commit 1 (`style:`) is only a reformat** of `src/VoiceAssistant.tsx` and `src/hooks/useVoiceAssistant.ts`: double to single quotes in code (JSX attributes and JSX text keep theirs), trailing semicolons removed. No other change; `tsc` and the existing 101 voice tests passed on it alone. There is no formatter in the repo, so a small script did it and the diff was read.
+- **Commit 2 is the behaviour change:** `src/hooks/voiceMessages.ts` (zod schemas, `parseServerMessage`, `playerCommandSchema`, `isIsoDate` moved here); the hook parses each text frame once and no longer casts; `toAssistantAction` keeps its allow-list; the visible status line has no `role`, and a hidden `role="status"` paragraph holds text only for connecting, error and ended; the panel uses the shared `Icon` (every name already existed, so `Icon.tsx` and Roni's folder are untouched); the inline icons and the stale T50 comment are gone.
+- Choices: an `error` message must carry `code` and `message` (the server always sends both); a `ready` with a bad `limitSeconds` is kept and the default limit used.
+- Two V02 tests that read the status through `getByRole('status')` now read the visible line by its text and class.
+- V02 shows as `ready` in the queue, but its code is already in `main`'s files; nothing here touches the consent, push-to-talk, Echo did or error wording.
+
+```
+npx tsc -p tsconfig.app.json --noEmit  -> no output
+npm run lint   -> no errors
+npm run build  -> built
+npx vitest run VoiceAssistant.test.tsx src/hooks src/App -> 5 files, 173 tests passed
+npm test       -> 2035 passed, 3 failed (change-regression, ask AskPanel a11y, player change Escape): all three are timeouts under load; run alone they pass (3 files, 47 tests)
+grep -n "const icons" src/VoiceAssistant.tsx ; grep -n "T50" src/VoiceAssistant.tsx  -> both print nothing
+```
+
