@@ -123,7 +123,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [I03](tickets/I03-friendly-data-errors.md) | Friendly data errors instead of developer messages | S | agent | — | app | open |
+| [I03](tickets/I03-friendly-data-errors.md) | Friendly data errors instead of developer messages | S | agent | — | app | claimed: D, 2026-11-12 |
 | [I04](tickets/I04-zod-boundaries.md) | zod at the boundaries: study client, context data, welcome storage | S | agent | — | — | done |
 | [I05](tickets/I05-server-hardening.md) | Server hardening and missing server tests | M | agent | — | server-assistant | done |
 | [I06](tickets/I06-analysis-memory.md) | Analysis memory: bounded concurrency, cache eviction, dead casts | M | agent | — | player, explorer, compare | open |
