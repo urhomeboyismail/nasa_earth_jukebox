@@ -22,7 +22,7 @@ const refused = (status: number) => new Response('{}', { status })
 const offline = () => new TypeError('Failed to fetch')
 
 beforeEach(() => { vi.useFakeTimers() })
-afterEach(() => { vi.useRealTimers() })
+afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals() })
 
 describe('StudyClient', () => {
   it('creates the session, then posts each answer in order', async () => {
@@ -161,6 +161,30 @@ describe('StudyClient', () => {
     client.dispose()
     await vi.advanceTimersByTimeAsync(10_000)
     expect(calls).toHaveLength(before)
+  })
+
+  it.each([
+    ['without an id', {}],
+    ['with an empty id', { id: '' }],
+  ])('does not start a session from an answer %s', async (_, body) => {
+    const { fn, calls } = scripted([new Response(JSON.stringify(body), { status: 201 })], () => refused(503))
+    const client = new StudyClient({ fetch: fn, retryDelaysMs: [60_000] })
+    client.start(SESSION)
+    client.submit(answer(1))
+    await vi.advanceTimersByTimeAsync(0)
+    expect(client.status).toMatchObject({ sent: 0, pending: 1, problem: 'The server sent an answer we could not read.' })
+    expect(calls.map(c => c.url)).toEqual(['/api/v1/tests'])
+  })
+
+  it('starts the session from a valid answer, using the page\'s fetch', async () => {
+    const { fn, calls } = scripted([created()], stored)
+    vi.stubGlobal('fetch', fn)
+    const client = new StudyClient()
+    client.start(SESSION)
+    client.submit(answer(1))
+    await client.flush()
+    expect(calls.map(c => c.url)).toEqual(['/api/v1/tests', '/api/v1/tests/abc/responses'])
+    expect(client.status).toMatchObject({ sent: 1, pending: 0, problem: '' })
   })
 
   it('sends nothing until a session has been started with consent', async () => {

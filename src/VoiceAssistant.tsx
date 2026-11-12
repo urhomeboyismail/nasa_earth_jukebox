@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent } from "react";
 import { Button, IconButton, Notice } from "./components";
 import { Echo, type MascotPose } from "./components/Mascot";
-import type { useVoiceAssistant } from "./hooks/useVoiceAssistant";
+import { NO_RETRY_CODES, type useVoiceAssistant } from "./hooks/useVoiceAssistant";
 import "./styles/assistant.css";
 
 type Assistant = ReturnType<typeof useVoiceAssistant>;
@@ -25,7 +25,7 @@ function Icon({ name, size = 24 }: { name: keyof typeof icons; size?: number }) 
 const SUGGESTIONS = ["What do the sounds mean?", "How do I use the Listen page?", "Where does the data come from?"];
 
 export default function VoiceAssistant({ assistant, onClose }: { assistant: Assistant; onClose: () => void }) {
-  const { status, transcript, error, micMuted, level, micSilent } = assistant;
+  const { status, transcript, error, errorCode, endedMessage, actions, micMuted, level, micSilent } = assistant;
   const [draft, setDraft] = useState("");
   const log = useRef<HTMLOListElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
@@ -33,6 +33,7 @@ export default function VoiceAssistant({ assistant, onClose }: { assistant: Assi
   const active = status === "connecting" || status === "listening" || status === "speaking";
   const connected = status === "listening" || status === "speaking";
   const canType = active && status !== "connecting";
+  const latestAction = actions[actions.length - 1];
 
   useEffect(() => { title.current?.focus(); }, []);
   // The panel floats over the page, so the page keeps a focused control clear of it (App.css reads --voice-panel-space on a phone: its height and 16 px of room).
@@ -51,9 +52,15 @@ export default function VoiceAssistant({ assistant, onClose }: { assistant: Assi
     connecting: "Connecting...",
     listening: micMuted ? "Microphone off. Type a question below." : "Listening. Speak any time.",
     speaking: "Speaking. Talk to interrupt.",
-    ended: "The conversation has ended.",
+    ended: endedMessage || "The conversation has ended.",
     error: error || "The voice guide stopped unexpectedly.",
   }[status];
+
+  // The Undo button goes away once pressed (nothing undoes an undo), so focus moves to the panel title instead of being lost.
+  function undo() {
+    assistant.undo();
+    title.current?.focus();
+  }
 
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -101,6 +108,15 @@ export default function VoiceAssistant({ assistant, onClose }: { assistant: Assi
       </li>)}
     </ol>
 
+    {/* Says what the guide just did, once, without moving focus. */}
+    <p className="ui-visually-hidden" aria-live="polite">{latestAction?.label}</p>
+    {actions.length > 0 && <ul className="voice-assistant__did" aria-label="Echo did">
+      {actions.map(item => <li key={item.id}>
+        <span>{item.label}</span>
+        {item === latestAction && item.inverse && <Button variant="text" className="voice-assistant__undo" aria-label={`Undo: ${item.label}`} onClick={undo}>Undo</Button>}
+      </li>)}
+    </ul>}
+
     {connected && transcript.length === 0 && <ul className="voice-assistant__chips" aria-label="Suggested questions">
       {SUGGESTIONS.map(question => <li key={question}>
         <button type="button" className="voice-assistant__chip" onClick={() => assistant.sendText(question)}>{question}</button>
@@ -125,8 +141,10 @@ export default function VoiceAssistant({ assistant, onClose }: { assistant: Assi
           <Button variant="tonal" pressed={micMuted} disabled={status === "connecting"} onClick={assistant.toggleMute}>
             <Icon name={micMuted ? "micOff" : "mic"} size={20} />Mute microphone
           </Button>
+          {status === "speaking" && <Button variant="tonal" onClick={assistant.stopSpeaking}><Icon name="volume" size={20} />Stop talking</Button>}
           <Button variant="text" onClick={assistant.stop}><Icon name="stop" size={20} />End conversation</Button>
         </>
+        : status === "error" && NO_RETRY_CODES.includes(errorCode) ? null
         : <Button variant="filled" onClick={() => void assistant.start()}>
           <Icon name="mic" size={20} />{status === "error" ? "Try again" : "Start talking"}
         </Button>}

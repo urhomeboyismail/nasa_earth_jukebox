@@ -1,5 +1,6 @@
 from pathlib import Path
 from urllib.parse import urlparse
+from typing import Literal
 
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict

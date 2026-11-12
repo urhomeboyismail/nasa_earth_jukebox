@@ -1,5 +1,6 @@
 // The voice guide panel (T51): states, Escape, the mute toggle, suggestion chips and the disabled input.
-import { render, screen } from '@testing-library/react'
+import { readFileSync } from 'node:fs'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { expectNoA11yViolations } from './test/a11y'
@@ -13,8 +14,8 @@ beforeAll(() => { Element.prototype.scrollTo ??= () => {} })
 
 function fakeAssistant(overrides: Partial<Assistant> = {}): Assistant {
   return {
-    status: 'idle', transcript: [], error: '', micMuted: false, level: 0, micSilent: false,
-    start: vi.fn(async () => {}), stop: vi.fn(), toggleMute: vi.fn(), sendText: vi.fn(() => true),
+    status: 'idle', transcript: [], error: '', errorCode: '', endedMessage: '', actions: [], micMuted: false, level: 0, micSilent: false,
+    start: vi.fn(async () => {}), stop: vi.fn(), stopSpeaking: vi.fn(), undo: vi.fn(), toggleMute: vi.fn(), sendText: vi.fn(() => true),
     ...overrides,
   } as Assistant
 }
@@ -102,5 +103,92 @@ describe('the mascot beside the panel', () => {
   ] as const)('takes its pose from the guide: %s (muted %s) is %s', (status, micMuted, pose) => {
     const { container } = render(<VoiceAssistant assistant={fakeAssistant({ status, micMuted })} onClose={() => {}} />)
     expect(mascot(container)).toHaveClass(`voice-mascot--${pose}`)
+  })
+})
+
+describe('what Echo did (V01)', () => {
+  const opened = { id: 1, label: 'Opened Listen', inverse: { action: 'navigate', page: 'home' } } as const
+
+  it('lists the actions, with Undo on the newest one only, named after it', async () => {
+    const assistant = fakeAssistant({
+      status: 'listening',
+      actions: [{ id: 0, label: 'Paused', inverse: { action: 'player', command: 'play' } }, opened],
+    })
+    const { container } = render(<VoiceAssistant assistant={assistant} onClose={() => {}} />)
+    const list = screen.getByRole('list', { name: 'Echo did' })
+    expect(list.querySelectorAll('li')).toHaveLength(2)
+    expect(screen.getAllByRole('button', { name: /^Undo/ })).toHaveLength(1)
+    await userEvent.click(screen.getByRole('button', { name: 'Undo: Opened Listen' }))
+    expect(assistant.undo).toHaveBeenCalledTimes(1)
+    await expectNoA11yViolations(container)
+  })
+
+  it('says the newest action once in a polite live region', () => {
+    render(<VoiceAssistant assistant={fakeAssistant({ status: 'listening', actions: [opened] })} onClose={() => {}} />)
+    const live = document.querySelector('[aria-live="polite"]')
+    expect(live).toHaveTextContent('Opened Listen')
+    expect(live).toHaveClass('ui-visually-hidden')
+  })
+
+  it('has no Undo for an entry with no inverse, such as "Stopped" or "Undid: ..."', () => {
+    const { rerender } = render(<VoiceAssistant assistant={fakeAssistant({ status: 'listening', actions: [{ id: 0, label: 'Stopped', inverse: null }] })} onClose={() => {}} />)
+    expect(screen.queryByRole('button', { name: /^Undo/ })).toBeNull()
+    rerender(<VoiceAssistant assistant={fakeAssistant({ status: 'listening', actions: [opened, { id: 2, label: 'Undid: Opened Listen', inverse: null }] })} onClose={() => {}} />)
+    expect(screen.queryByRole('button', { name: /^Undo/ })).toBeNull()
+    expect(within(screen.getByRole('list', { name: 'Echo did' })).getByText('Undid: Opened Listen')).toBeInTheDocument()
+  })
+
+  it('is not shown before the guide has done anything', () => {
+    render(<VoiceAssistant assistant={fakeAssistant({ status: 'listening' })} onClose={() => {}} />)
+    expect(screen.queryByRole('list', { name: 'Echo did' })).toBeNull()
+  })
+
+  it('declares a target of at least 24 by 24 pixels for Undo', () => {
+    const css = readFileSync('src/styles/assistant.css', 'utf8')
+    const rule = /\.voice-assistant__undo\s*\{([^}]*)\}/.exec(css)?.[1] ?? ''
+    expect(Number(/min-width:\s*(\d+)px/.exec(rule)?.[1])).toBeGreaterThanOrEqual(24)
+    expect(Number(/min-height:\s*(\d+)px/.exec(rule)?.[1])).toBeGreaterThanOrEqual(24)
+  })
+})
+
+describe('Stop talking (V01)', () => {
+  it('shows only while the guide is speaking, and calls stopSpeaking', async () => {
+    const assistant = fakeAssistant({ status: 'speaking' })
+    const { rerender } = render(<VoiceAssistant assistant={assistant} onClose={() => {}} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Stop talking' }))
+    expect(assistant.stopSpeaking).toHaveBeenCalledTimes(1)
+    rerender(<VoiceAssistant assistant={{ ...assistant, status: 'listening' }} onClose={() => {}} />)
+    expect(screen.queryByRole('button', { name: 'Stop talking' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'End conversation' })).toBeInTheDocument()
+  })
+
+  it('leaves Escape as the way to close, not a way to stop talking', async () => {
+    const onClose = vi.fn()
+    const assistant = fakeAssistant({ status: 'speaking' })
+    render(<VoiceAssistant assistant={assistant} onClose={onClose} />)
+    await userEvent.keyboard('{Escape}')
+    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(assistant.stopSpeaking).not.toHaveBeenCalled()
+  })
+})
+
+describe('errors and the end of a conversation (V01)', () => {
+  it('hides "Try again" when a retry cannot help', () => {
+    const { rerender } = render(<VoiceAssistant assistant={fakeAssistant({ status: 'error', errorCode: 'not_configured', error: 'The voice guide is not set up.' })} onClose={() => {}} />)
+    expect(screen.queryByRole('button', { name: 'Try again' })).toBeNull()
+    rerender(<VoiceAssistant assistant={fakeAssistant({ status: 'error', errorCode: 'bad_start', error: 'x' })} onClose={() => {}} />)
+    expect(screen.queryByRole('button', { name: 'Try again' })).toBeNull()
+    rerender(<VoiceAssistant assistant={fakeAssistant({ status: 'error', errorCode: 'upstream', error: 'Echo stopped unexpectedly. The rest of the app still works.' })} onClose={() => {}} />)
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
+  })
+
+  it('shows the reason a conversation ended', () => {
+    render(<VoiceAssistant assistant={fakeAssistant({ status: 'ended', endedMessage: 'This conversation reached its time limit. Start again to keep talking.' })} onClose={() => {}} />)
+    expect(screen.getByRole('status')).toHaveTextContent('This conversation reached its time limit. Start again to keep talking.')
+  })
+
+  it('passes accessibility checks in the error state', async () => {
+    const { container } = render(<VoiceAssistant assistant={fakeAssistant({ status: 'error', errorCode: 'upstream', error: 'Echo stopped unexpectedly. The rest of the app still works.' })} onClose={() => {}} />)
+    await expectNoA11yViolations(container)
   })
 })
