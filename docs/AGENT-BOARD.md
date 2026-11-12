@@ -97,3 +97,14 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: may the next ticket that edits `App.tsx` delete the `noteGuidePlaybackCommand(action.command)` line and then the empty function in `ducking.ts`? (Yes / no, leave it.)
 - Answer:
 - Recorded in: `docs/tickets/SN13-one-voice-at-a-time.md` (Result)
+
+### R-20261112-JB04-1: May the next `App.tsx` ticket pass the open data set to `MascotDock`?
+- From: JB04 (data-set colour themes, agent D)
+- To: team leader (owner of `src/App.tsx`, hotspot `app`)
+- Needed by: JB04 "Done when" (switching data sets changes Echo in the running app); JB04 itself ships without it
+- Status: open
+- Context: JB04 gives `MascotDock` (`src/features/mascot/MascotDock.tsx`) an optional `visualization` prop. With it, the dock sets `--mascot-accent`, `--mascot-accent-soft`, `--mascot-trail` and `data-trail` from the manifest (`mascotTheme`, `src/features/mascot/accent.ts`); without it, Echo keeps its own colours. `src/App.tsx` line 237 renders `<MascotDock …>` without it, and `App.tsx` is outside JB04's Touches. The context bus only carries `player` and `compare`, so the dock cannot read the data set any other way.
+- Question: may the next ticket that edits `App.tsx` add `visualization={visualization}` to the `<MascotDock>` element (one prop, the same value `CurrentPage` gets)? (a) yes; (b) no, give the dock the data set another way (say how).
+- Answer:
+- Recorded in: `docs/tickets/JB04-dataset-mascot-theme.md` (Result)
+
