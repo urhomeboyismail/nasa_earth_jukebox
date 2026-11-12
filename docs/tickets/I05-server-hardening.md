@@ -98,4 +98,21 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Done on `fix/I05-server-hardening` (agent C, 12 Nov 2026).
+
+- `server/app/api/assistant.py`: a first message that is not a JSON object closes with `bad_start`; `language` and `page` are type-checked before the `in` test; a missing `Origin` is refused (code 1008) when `CORS_ORIGINS` lists any non-local origin (`settings.origin_required`), and still allowed when every origin is local; the module docstring now matches the protocol.
+- `server/app/config.py`: `study_max_sessions` (default 500), `origin_required`, and the comment now names `src/features/compare/TestMode.tsx`. `server/.env.example` has `STUDY_MAX_SESSIONS`.
+- `server/app/study/db.py` and `api.py`: `create_session` counts rows in the database under `BEGIN IMMEDIATE`; past the cap `POST /api/v1/tests` returns 503 and stores nothing.
+- `server/requirements.txt`: `google-genai` was already pinned (`==2.34.0`) on `main`; no change needed.
+- 17 new tests (busy, time limit, upstream, oversized frame, non-object start, wrong-type language and page, Origin rule, health, study cap). Run against the old `app/` code, 9 of them fail; with the change they pass.
+
+```
+(cd server && .venv/Scripts/python -m pytest -q)
+229 passed in 14.52s        (was 212 passed before this ticket)
+
+npm run lint    -> no errors
+npm run build   -> built OK
+npm test        -> 1875 passed, 3 failed (none touch server code; no src/ file changed):
+  - src/data/sound-regression.test.ts: expects LF line endings, this Windows checkout has CRLF (autocrlf).
+  - src/App.test.tsx (2 tests): fail only in the full parallel run; the file passes when run alone.
+```
