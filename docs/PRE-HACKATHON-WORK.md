@@ -82,6 +82,7 @@ Add one line per piece of work, newest last.
 | 12 Nov | JB02 Scroll-driven air boosters: Echo leans and fires its boots in proportion to scroll speed, with a retro-burn after a fast stop; nothing moves under reduced motion | `feature/JB02-scroll-boosters` |
 | 12 Nov | Voice client: checked server messages, quieter status line, shared icons (V03) | `feature/V03-voice-client-hygiene` (#34) |
 | 12 Nov | Agent eval with the scoring bug fixed, and the offline alias drafter (G07; held-out questions still needed) | `feature/G07-agent-eval-drafter` (#33) |
+| 12 Nov | G09 Jukebox player: a React component that plays the orchestrator's `AudioPayload` with Tone.js, on a dev-server page (`jukebox.html`) | `feature/G09-jukebox-player` (#38) |
 
 ## Outside resources used
 
