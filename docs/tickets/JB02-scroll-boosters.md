@@ -92,4 +92,15 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Done on `feature/JB02-scroll-boosters`.
+
+- `useScrollVelocity.ts` (new): `thrustFor`, the constants, and the hook. A passive `scroll` listener and one `requestAnimationFrame` per frame; `boosting` in the same frame the speed passes 0.4 px/ms; after 120 ms with no scroll event, `retro` for 400 ms if the top speed was at least 1.5 px/ms, otherwise straight to `idle`. Under `prefers-reduced-motion: reduce` (kept current with the query's `change` event) it returns idle and adds no listener. Unmount removes the listener and cancels the frame and timers.
+- `MascotDock.tsx`: passes `motion` and `thrust` to `Echo`. JB05's tour does not exist yet, so there is no tour motion to give way to; JB05 will need to override these two props while pointing.
+- Tests: `thrustFor`; the hook (fast scroll, retro then idle, slow scroll without retro, reduced motion, unmount, no `preventDefault`); and one dock test that the boots follow a scroll with no change to the live region.
+
+```
+npx vitest run src/features/mascot  -> 5 files, 51 tests passed
+npm run lint   -> no errors
+npm test       -> 121 files, 2012 tests passed
+npm run build  -> built in 899ms
+```
