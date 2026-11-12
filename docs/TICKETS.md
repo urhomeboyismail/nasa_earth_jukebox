@@ -116,7 +116,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [G07](tickets/G07-agent-eval-drafter.md) | Agent evaluation (scoring bug fixed) and the offline drafter | M | agent+👤 | G02 | — | blocked: held-out questions |
 | [G08](tickets/G08-jukebox-orchestrator.md) | Jukebox orchestrator: a LangGraph of four ADK agents (supervisor, synthesizer, vision, critic), and its route `POST /api/v1/jukebox/generate` | M | agent | — | — | done |
 | [G09](tickets/G09-jukebox-player.md) | Jukebox player: a React component that plays the orchestrator's `AudioPayload` with Tone.js (Play/Stop) | S | agent | G08 | — | done |
-| [G10](tickets/G10-jukebox-studio.md) | Jukebox studio on `jukebox.html`: narration in time with the sound, instrument timbres, the live route with a demo fallback | M | agent | G08, G09 | — | ready: feature/G10-jukebox-studio |
+| [G10](tickets/G10-jukebox-studio.md) | Jukebox studio on `jukebox.html`: narration in time with the sound, instrument timbres, the live route with a demo fallback | M | agent | G08, G09 | — | done |
 | [V01](tickets/V01-agent-panel-focus-undo.md) | Agent panel: focus not stolen, "Echo did" with Undo, Alt+E, Stop | M | agent | — | app, voice | done |
 | [V02](tickets/V02-mic-consent-text-only.md) | Mic consent first, text-only mode, push-to-talk, session warning | M | agent | — | app, voice | done |
 | [V03](tickets/V03-voice-client-hygiene.md) | Voice client: parsed messages, quieter status, shared icons | S | agent | — | voice | done |

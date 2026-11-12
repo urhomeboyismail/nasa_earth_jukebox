@@ -158,3 +158,13 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: may the fix merge? It is one line, branch `chore/ticket-hook-utf8`, commit `d44cc03`: add `encoding="utf-8", errors="replace"` to that `subprocess.run` call. Tested on Windows without `PYTHONUTF8=1`: no garbled characters, same result as the UTF-8 run, and the guard still blocks an unclaimed ticket branch. Not tested on Mac or Linux (the change makes Windows behave as they already do). (a) yes, merge it; (b) no, make it a ticket first.
 - Answer: (12 Nov, merged in PR #35, `a386a3f`) (a) yes. The fix is on `main`; Windows agents get it on their next `git pull`.
 - Recorded in: `.claude/hooks/tickets.py` (line 27)
+
+### R-20261112-SN07-1: Two files in src/features/player differ only in capitalization; OK to rename one?
+- From: Dhruv (Claude Code, Windows laptop, 12 Nov)
+- To: SN07 owner (Raghav) and every agent on Windows
+- Needed by: nothing blocks on Linux or macOS; on Windows `npm run build` fails and 31 tests fail until it is fixed
+- Status: open
+- Context: `src/features/player/Symphony.tsx` (the component) and `src/features/player/symphony.ts` (the logic: `useSymphony`, `DETAIL_WORDS`, `VOICE_WORDS`, `statusText`) were both added by SN07. A case-sensitive file system treats them as two files, and CI on Linux passes. On Windows they count as one name, so TypeScript reports TS1149 ("differs only in casing") and treats `Symphony` as a type. This fails `npm run build` and the tests in `Symphony.test.tsx` (29) and `App.test.tsx` (2). Importers of the logic file: `DetailControl.tsx:2`, `VoiceMixer.tsx:3`, `Symphony.tsx:8`, `symphony.golden.test.tsx:21`. `index.tsx:23` imports the component and stays as it is.
+- Question: may `symphony.ts` be renamed with `git mv` to `symphonyState.ts`, and those four imports changed? It is one rename and four lines, no behavior change. It touches the `player` hotspot, so it should land before the next `player` ticket. (a) yes, as a `chore/` branch; (b) no, rename something else (say which).
+- Answer:
+- Recorded in: nowhere needed yet
