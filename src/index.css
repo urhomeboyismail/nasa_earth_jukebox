@@ -137,3 +137,20 @@ code {
     scroll-behavior: auto !important;
   }
 }
+
+/* VIS1, forced colours (Windows High Contrast): the browser drops box-shadow and our colours, so the map's controls are drawn with
+   outlines and borders in system colours. forced-color-adjust is never turned off, so the system keeps control of the colours. */
+@media (forced-colors: active) {
+  :root .explorer__surface:focus-visible { outline: 3px solid CanvasText; outline-offset: -3px; }
+  :root .explorer__cursor { outline: 3px solid CanvasText; outline-offset: 0; background: transparent; }
+  :root .explorer__line { background: CanvasText; }
+  :root .explorer__lens { border-color: CanvasText; }
+  :root .ui-slider input[type='range'] { accent-color: CanvasText; }
+  :root .ui-slider input[type='range']::-webkit-slider-runnable-track { border: 1px solid CanvasText; }
+  :root .ui-slider input[type='range']::-moz-range-track { border: 1px solid CanvasText; }
+  :root .ui-slider input[type='range']::-webkit-slider-thumb { background: CanvasText; }
+  :root .ui-slider input[type='range']::-moz-range-thumb { background: CanvasText; }
+  :root .ui-legend__bar, :root .ui-legend__swatch { border: 1px solid CanvasText; }
+  :root .player__frame svg rect { stroke: CanvasText; }
+  :root .player__frame svg circle { fill: CanvasText; stroke: CanvasText; }
+}

@@ -462,7 +462,7 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   }, [probe])
 
   return {
-    on, grid, error, cursor, sweeping, locked, area, loading: on && !grid && !error,
+    on, grid, error, cursor, sweeping, locked, area, image: frame.image, loading: on && !grid && !error,
     turnOn, turnOff, openAt, moveTo, sweep, stopSound, lock, unlock, playLockedAt, playAcrossDates, onKeyDown, onPointerDown, onPointerMove, onPointerUp,
     onPointerLeave, cellAt,
     /** SN09: the "Continuous tone" and "Slope cue" choices. */
