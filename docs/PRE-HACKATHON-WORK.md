@@ -75,6 +75,7 @@ Add one line per piece of work, newest last.
 | 12 Nov | G03 Ask front end on the agent, with the offline matcher as fallback | `feature/G03-ask-frontend-agent` |
 | 12 Nov | G08 Jukebox orchestrator: a LangGraph of four ADK agents, and its route `POST /api/v1/jukebox/generate` | `feature/G08-jukebox-orchestrator` |
 | 12 Nov | I04 zod at the boundaries: study client, context data, welcome storage | `fix/I04-zod-boundaries` |
+| 12 Nov | I09 Compare clean-up: the App passes the test-mode flag to the page (no second hash listener), no crashing `!` left in Compare, and a comparison that names a missing date shows a notice | `fix/I09-compare-cleanup` |
 
 ## Outside resources used
 

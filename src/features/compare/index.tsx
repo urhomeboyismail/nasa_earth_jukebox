@@ -19,20 +19,8 @@ import TestMode from './TestMode'
 
 const CUSTOM = 'custom'
 
-/** Listening-test mode is open only when the address is #compare?test=1. */
-function useTestMode(): boolean {
-  const read = () => new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('test') === '1'
-  const [on, setOn] = useState(read)
-  useEffect(() => {
-    const update = () => setOn(read())
-    window.addEventListener('hashchange', update)
-    return () => window.removeEventListener('hashchange', update)
-  }, [])
-  return on
-}
-
-export default function ComparePage({ visualization }: PageProps) {
-  const testMode = useTestMode()
+/** Listening-test mode is open only when the address is #compare?test=1. The App reads that once and passes it down. */
+export default function ComparePage({ visualization, testMode = false }: PageProps) {
   if (!visualization) return <p>Loading the data…</p>
   if (testMode) return <TestMode key={visualization.id} visualization={visualization} />
   return (
@@ -92,8 +80,9 @@ function Compare({ visualization }: { visualization: Visualization }) {
   const preset = comparisons.find(c => c.id === choice)
   const frameAId = preset ? preset.frameA : customA
   const frameBId = preset ? preset.frameB : customB
-  const frameA = frames.find(f => f.id === frameAId)!
-  const frameB = frames.find(f => f.id === frameBId)!
+  // A ready-made comparison can name a date the data set does not have; the page then says so instead of crashing.
+  const frameA = frames.find(f => f.id === frameAId)
+  const frameB = frames.find(f => f.id === frameBId)
   const resultA = results?.find(r => r.frameId === frameAId)
   const resultB = results?.find(r => r.frameId === frameBId)
 
@@ -127,7 +116,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
   /** Plays one date's sound, on the same scale as the other. The first press unlocks the audio. */
   async function playDate(which: 'A' | 'B') {
     const result = which === 'A' ? resultA : resultB
-    if (!engine || !result) return
+    if (!engine || !results || !result) return
     try {
       await engine.unlock()
       engine.stop()
@@ -142,7 +131,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
       } else if (result.category === 'insufficient') engine.playMissing()
       else {
         // The chord, without the slide or bell: the two dates are not neighbours in a run.
-        const pad = voicingFor(results!, results!.indexOf(result), mapping).pad
+        const pad = voicingFor(results, results.indexOf(result), mapping).pad
         if (pad) engine.playCategory(result.category, { pad })
         else engine.playCategory(result.category)
       }
@@ -155,7 +144,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
 
   const right = answer !== null && answer === correct
   const baseline = (visualization as ChangeVisualization).baseline
-  const explanation = changeOn
+  const explanation = !frameA || !frameB ? '' : changeOn
     ? (correct ? `${formatDate(frameA.date)} was ${changeStepLabel(resultA)} and ${formatDate(frameB.date)} was ${changeStepLabel(resultB)}, measured against ${baselineName(baseline)}.` : '')
     : preset?.explanation ??
       (correct ? `${formatDate(frameA.date)} sounded ${categoryLabel(resultA, mapping)} and ${formatDate(frameB.date)} sounded ${categoryLabel(resultB, mapping)}.` : '')
@@ -212,6 +201,10 @@ function Compare({ visualization }: { visualization: Visualization }) {
         </div>
       )}
 
+      {!frameA || !frameB ? (
+        <Notice>This comparison names a date that is not in the data set. Choose another comparison.</Notice>
+      ) : (
+      <>
       <p className="compare__question">
         {changeOn ? 'Which date is further above its normal?' : (preset?.question ?? `Which date shows ${higherPhrase(words)}?`)}
       </p>
@@ -256,6 +249,8 @@ function Compare({ visualization }: { visualization: Visualization }) {
           </ul>
           <Button onClick={tryAgain}>Try this comparison again</Button>
         </div>
+      )}
+      </>
       )}
     </div>
   )
