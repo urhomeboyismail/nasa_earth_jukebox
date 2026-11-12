@@ -10,7 +10,7 @@ import { frameLevel, SpeechPlayer, startRecorder, type Recorder } from "../assis
 import { currentContext, subscribeContext, type ContextUpdate } from "../assistant/context";
 import { socketUrl } from "../config";
 import type { PlayerCommand } from "../features/player/controls";
-import { isPage, type Page } from "../pages";
+import { isPage, pages, type Page } from "../pages";
 
 export type AssistantStatus = "idle" | "connecting" | "listening" | "speaking" | "ended" | "error";
 export type TranscriptEntry = { id: number; role: "user" | "assistant"; text: string };
@@ -46,6 +46,54 @@ export function toAssistantAction(message: Record<string, unknown>): AssistantAc
   return null;
 }
 
+/** One thing the guide did, in plain words, and the action that takes it back (null when nothing can). */
+export type ActionRecord = { id: number; label: string; inverse: AssistantAction | null };
+
+const PLAYER_LABELS: Record<(typeof PLAYER_WORDS)[number], string> = {
+  play: "Played", pause: "Paused", stop: "Stopped", replay: "Replayed from the start", next: "Moved to the next frame", previous: "Moved to the previous frame",
+};
+
+/** "15 July 2024" from YYYY-MM-DD. */
+function longDate(iso: string): string {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+}
+
+/** The words and the undo for an action. `before` is the page that was showing. */
+function describeAction(action: AssistantAction, before: string): { label: string; inverse: AssistantAction | null } {
+  if (action.action === "navigate") {
+    const title = pages.find(item => item.id === action.page)?.title ?? action.page;
+    return { label: `Opened ${title}`, inverse: before !== action.page && isPage(before) ? { action: "navigate", page: before } : null };
+  }
+  const { command } = action;
+  if (typeof command === "object") {
+    const previous = currentContext().find(item => item.key === "player")?.data;
+    const date = previous && typeof previous === "object" ? (previous as { date?: unknown }).date : undefined;
+    return { label: `Went to ${longDate(command.setDate)}`, inverse: isIsoDate(date) ? { action: "player", command: { setDate: date } } : null };
+  }
+  const inverse = command === "play" ? "pause" : command === "pause" ? "play" : null;
+  return { label: PLAYER_LABELS[command], inverse: inverse ? { action: "player", command: inverse } : null };
+}
+
+const MAX_ACTION_RECORDS = 10;
+
+const MESSAGES = {
+  connect: "Echo could not connect. The rest of the app still works.",
+  upstream: "Echo stopped unexpectedly. The rest of the app still works.",
+  busy: "Echo is busy with other conversations. Try again in a minute.",
+  time_limit: "This conversation reached its time limit. Start again to keep talking.",
+  service_ended: "Echo finished the conversation.",
+  closed: "The conversation has ended.",
+} as const;
+
+/** The words for a server error code. Codes with no entry (not_configured, bad_start) keep the server's own sentence. */
+function errorMessage(code: string, serverText: unknown): string {
+  if (code === "busy" || code === "upstream") return MESSAGES[code];
+  return typeof serverText === "string" && serverText ? serverText : MESSAGES.upstream;
+}
+
+/** A retry cannot help when the server is not set up or refused the start. */
+export const NO_RETRY_CODES = ["not_configured", "bad_start"];
+
 type Options = {
   language: string;
   page: string;
@@ -72,6 +120,9 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
   const [status, setStatus] = useState<AssistantStatus>("idle");
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
   const [error, setError] = useState("");
+  const [errorCode, setErrorCode] = useState("");
+  const [endedMessage, setEndedMessage] = useState("");
+  const [actions, setActions] = useState<ActionRecord[]>([]);
   const [micMuted, setMicMuted] = useState(false);
   const [level, setLevel] = useState(0);
   const [micSilent, setMicSilent] = useState(false);
@@ -88,6 +139,14 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
   });
 
   const entries = useRef<TranscriptEntry[]>([]);
+  const records = useRef<ActionRecord[]>([]);
+  const nextRecordId = useRef(0);
+
+  // Built outside the state updater, which StrictMode runs twice.
+  const record = useCallback((label: string, inverse: AssistantAction | null) => {
+    records.current = [...records.current, { id: nextRecordId.current++, label, inverse }].slice(-MAX_ACTION_RECORDS);
+    setActions(records.current);
+  }, []);
 
   // Built outside the state updater, which StrictMode runs twice.
   const addTranscript = useCallback((role: TranscriptEntry["role"], text: string) => {
@@ -134,9 +193,10 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
     openEntry.current = null;
   }, []);
 
-  const fail = useCallback((message: string) => {
+  const fail = useCallback((message: string, code = "") => {
     teardown();
     setError(message);
+    setErrorCode(code);
     setStatus("error");
   }, [teardown]);
 
@@ -144,6 +204,10 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
   const start = useCallback(() => {
     teardown();
     setError("");
+    setErrorCode("");
+    setEndedMessage("");
+    records.current = [];
+    setActions([]);
     setMicMuted(false);
     setStatus("connecting");
     setLevel(0);
@@ -174,10 +238,11 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
       cause => { if (socket.current === ws) fail(micErrorMessage(cause)); return false; },
     );
     ws.onopen = () => ws.send(JSON.stringify({ type: "start", language, page: pageRef.current }));
-    ws.onerror = () => fail("The voice guide could not connect. Check that the service is running.");
+    ws.onerror = () => fail(MESSAGES.connect, "connect");
     ws.onclose = () => {
       if (socket.current !== ws) return;
       teardown();
+      setEndedMessage(MESSAGES.closed);
       setStatus(current => current === "error" ? current : "ended");
     };
     ws.onmessage = async event => {
@@ -209,21 +274,46 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
         case "action":
           {
             const action = toAssistantAction(message);
-            if (action) actionRef.current(action);
+            if (action) {
+              const { label, inverse } = describeAction(action, pageRef.current);
+              record(label, inverse);
+              actionRef.current(action);
+            }
           }
           break;
         case "error":
-          fail(typeof message.message === "string" ? message.message : "The voice guide stopped unexpectedly.");
+          {
+            const code = typeof message.code === "string" ? message.code : "upstream";
+            fail(errorMessage(code, message.message), code);
+          }
           break;
         case "ended":
           teardown();
+          setEndedMessage(message.reason === "time_limit" || message.reason === "service_ended" ? MESSAGES[message.reason] : MESSAGES.closed);
           setStatus("ended");
           break;
       }
     };
-  }, [language, teardown, fail, addTranscript, forwardContext]);
+  }, [language, teardown, fail, addTranscript, forwardContext, record]);
 
   const stop = useCallback(() => { teardown(); setStatus("idle"); }, [teardown]);
+
+  /**
+   * Cuts the guide's sound here and keeps the conversation open. The server may still finish its turn;
+   * only what is playing in this page stops.
+   */
+  const stopSpeaking = useCallback(() => {
+    player.current?.flush();
+    setStatus(current => current === "speaking" ? "listening" : current);
+  }, []);
+
+  /** Takes back the newest action by sending its inverse the way a server action is sent. Undoing is not itself undoable. */
+  const undo = useCallback(() => {
+    const latest = records.current[records.current.length - 1];
+    if (!latest?.inverse) return;
+    record(`Undid: ${latest.label}`, null);
+    actionRef.current(latest.inverse);
+  }, [record]);
 
   const toggleMute = useCallback(() => {
     setMicMuted(current => {
@@ -250,5 +340,5 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
 
   useEffect(() => teardown, [teardown]);
 
-  return { status, transcript, error, micMuted, level, micSilent, start, stop, toggleMute, sendText };
+  return { status, transcript, error, errorCode, endedMessage, actions, micMuted, level, micSilent, start, stop, stopSpeaking, undo, toggleMute, sendText };
 }
