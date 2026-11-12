@@ -84,7 +84,8 @@ describe('sound regression baseline', () => {
 
   it('notices when one legend stop of the fixture changes', () => {
     const fixture = load('fixture')
-    const golden = readFileSync(`${goldenDir}/fixture.json`, 'utf8')
+    // Git may check the golden file out with CRLF (core.autocrlf on Windows); toMatchFileSnapshot ignores that, so this does too.
+    const golden = readFileSync(`${goldenDir}/fixture.json`, 'utf8').replace(/\r\n/g, '\n')
     expect(toText(baselineFor(fixture))).toBe(golden)
 
     // The yellow middle stop now means 25 instead of 15, so every read value moves.
