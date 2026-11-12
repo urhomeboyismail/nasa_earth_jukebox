@@ -252,7 +252,10 @@ CRITIC_INSTRUCTION = (
     "profile requests 'low contrast', the volume_curve delta must not exceed 0.3 (a jump from 0.01 to 0.99 is an automatic "
     "FAIL). If the Vision text intensity_level is 'low', the accompanying volume and pitch must be subdued. If you detect a "
     "mismatch between the text's stated intensity and the audio's mathematical variance, set is_approved to False and command "
-    "the Synthesizer to compress its ranges."
+    "the Synthesizer to compress its ranges. "
+    "If the profile requests 'low contrast', you must enforce strict bounds on BOTH volume and pitch. The pitch_range delta "
+    "must not exceed 12 semitones (one octave). If it exceeds this, reject the payload and explicitly command the Synthesizer "
+    "to compress the pitch range."
 )
 
 

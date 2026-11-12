@@ -280,6 +280,7 @@ def test_the_prompts_carry_the_agreed_rules():
     assert "cover the exact same time period" in orchestrator.SUPERVISOR_INSTRUCTION
     assert "Do not rubber-stamp approvals" in orchestrator.CRITIC_INSTRUCTION
     assert "volume_curve delta must not exceed 0.3" in orchestrator.CRITIC_INSTRUCTION
+    assert "The pitch_range delta must not exceed 12 semitones (one octave)" in orchestrator.CRITIC_INSTRUCTION
 
 
 def _fetch(uri, handler):
