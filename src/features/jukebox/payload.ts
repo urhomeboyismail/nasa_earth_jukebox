@@ -67,3 +67,56 @@ export function stepSeconds(payload: AudioPayload): number {
 export function totalSeconds(payload: AudioPayload): number {
   return Math.max(...payload.tracks.map(track => track.volume_curve.length)) * stepSeconds(payload)
 }
+
+// ---- The vision half: time-coded descriptions (G10) ----
+
+/** More than the server ever sends. */
+export const MAX_DESCRIPTIONS = 64
+
+const descriptionSchema = z.object({
+  timestamp_sec: z.number().min(0).max(3600),
+  alt_text: z.string().min(1).max(1000),
+  intensity_level: z.enum(['low', 'medium', 'high']),
+})
+
+export const visionPayloadSchema = z.object({
+  descriptions: z.array(descriptionSchema).max(MAX_DESCRIPTIONS),
+})
+
+export type VisionDescription = z.infer<typeof descriptionSchema>
+export type VisionPayload = z.infer<typeof visionPayloadSchema>
+
+/** The vision payload, or null when it is not one. Also takes the route's whole answer and reads its `vision` field. */
+export function parseVisionPayload(value: unknown): VisionPayload | null {
+  const inner = typeof value === 'object' && value !== null && 'vision' in value ? value.vision : value
+  const result = visionPayloadSchema.safeParse(inner)
+  return result.success ? result.data : null
+}
+
+/** A description and the time it is shown on the track, in seconds from the start. */
+export type Caption = VisionDescription & { at: number }
+
+/**
+ * Each description with its time on the track, in time order. If the latest `timestamp_sec` is later than the track's last step, every
+ * time is scaled by the same factor so the latest lands on the last step; otherwise the times are used as they are.
+ */
+export function captionTimes(vision: VisionPayload, payload: AudioPayload): Caption[] {
+  const sorted = [...vision.descriptions].sort((a, b) => a.timestamp_sec - b.timestamp_sec)
+  if (!sorted.length) return []
+  const lastStepAt = totalSeconds(payload) - stepSeconds(payload)
+  const latest = sorted[sorted.length - 1].timestamp_sec
+  const factor = latest > lastStepAt && latest > 0 ? lastStepAt / latest : 1
+  return sorted.map(description => ({ ...description, at: description.timestamp_sec * factor }))
+}
+
+// ---- Timbres ----
+
+export type Timbre = 'bass' | 'pad' | 'lead'
+
+/** The voice for an instrument name, by the words in it. */
+export function timbreOf(instrument: string): Timbre {
+  const name = instrument.toLowerCase()
+  if (name.includes('bass') || name.includes('drone')) return 'bass'
+  if (name.includes('pad') || name.includes('ambient')) return 'pad'
+  return 'lead'
+}

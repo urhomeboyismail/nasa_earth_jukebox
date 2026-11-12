@@ -114,4 +114,14 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent: the branch, the commits, and the real output of the checks, failures included.
+Branch: `feature/G10-jukebox-studio`.
+
+Run on Windows (case-insensitive file system):
+
+- `npx vitest run src/features/jukebox`: 4 files passed, 85 tests passed (payload, JukeboxPlayer, generate, JukeboxStudio).
+- `npx tsc -b`: no errors in `src/features/jukebox/`.
+- `npm run lint`: no output besides the header (no warnings).
+- `npm test` (all): 129 files passed, 2 failed, 31 tests failed: `src/features/player/Symphony.test.tsx` (29) and `src/App.test.tsx` (2).
+- `npm run build`: fails on `src/features/player/index.tsx` with TS1149/TS6133/TS2693.
+
+The last two failures are not from this ticket. `origin/main` has both `src/features/player/Symphony.tsx` and `src/features/player/symphony.ts`, and a case-insensitive checkout cannot tell `./Symphony` from `./symphony`. No file of this ticket is in them. They should pass on Linux or macOS, but I did not run it there.
