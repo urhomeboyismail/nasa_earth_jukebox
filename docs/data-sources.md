@@ -216,6 +216,39 @@ What it does, in order: it checks every argument (nothing is written before they
 
 Not covered here: choosing the visualisations (EIC02), turning the set into a finished data set (EIC03) and making the video small enough for a phone (H06).
 
+## Known answers (D04)
+
+`npm run check-data` checks that the legend reads back its own stops, but not that the picture means the same numbers as NASA's. A data set can add `public/data/<id>/known-answers.json`: points where NASA's own number is known. `src/data/known-answers.test.ts` reads each point from the frame's picture through the legend, using the app's own `valueAtPixel`, and fails when the result differs from NASA's number by more than the legend's rounding (`legendRounding` in `src/data/check.ts`). A data set without the file is not checked. The schema and the check are in `src/data/knownAnswers.ts`.
+
+```json
+{
+  "id": "<the data set's id>",
+  "map": { "projection": "equirectangular", "west": 55.0, "east": 65.0, "north": -10.0, "south": -22.0 },
+  "checks": [
+    {
+      "frameId": "<a frame id of this data set>",
+      "lat": -19.5, "lon": 57.5,
+      "value": 27.4, "unit": "°C", "decimals": 1,
+      "source": { "dataset": "<NASA short name>", "variable": "<variable in the file>", "time": "2023-04-03T00:00:00Z", "url": "<page or file>", "retrievedOn": "YYYY-MM-DD" }
+    }
+  ]
+}
+```
+
+| Field | What it is |
+|---|---|
+| `id` | The data set's id; it must match the folder |
+| `map` | Where the map sits on the globe. `"equirectangular"` with `west`, `east`, `north`, `south` in degrees, which covers `mapArea` (or the whole image). Or `"other"` with `control`: at least 4 points `{ lat, lon, x, y }` whose place in the whole image (fractions 0 to 1) is known, fitted bilinearly; they must spread over the map, not lie on one line. One form only |
+| `checks` | At least 5. Spread them across the map, put at least one near each end of the legend, and keep them off land and at least one cell from a coast |
+| `checks[].frameId`, `lat`, `lon` | The frame and the place, in degrees |
+| `checks[].value`, `unit`, `decimals` | NASA's number as the source gives it, its unit, and how many decimals it has |
+| `checks[].tolerance` (optional) | Extra allowed difference in the same unit. The limit is the larger of this and the legend's rounding. Only set it with a reason |
+| `checks[].source` | Required for every check: the NASA data set's short name, the variable, the time of the value, the page or file address, and the day it was read |
+
+**How to get a NASA number.** Open the NASA source for the data set: the data file (for example, through the provider's subsetting or OPeNDAP tool) or a value the source publishes for a stated place and time. Read the value at each chosen point and time, and write it down with its source. Never take a number from memory, estimate it, or read it off the picture: that would check the picture against itself.
+
+**When a check fails**, the message names the frame, the place, NASA's number, the value read and the limit. A person decides whether the point moves (it was on land or a coast), whether NASA's number is read again, or whether the legend is wrong. A legend that disagrees with NASA's numbers stops the data set's sign-off: the legend is fixed, never the tolerance.
+
 ## Real data set: `mur-sst-mauritius` (T85)
 
 Sea surface temperature around Mauritius, twenty 10-day maps from 23 January to 1 August 2023, from NASA's MUR analysis as drawn by NASA GIBS. Each frame is a 160 × 160 pixel crop (about 1.6 degrees across) with no legend, title or logo, so it has no `mapArea`. The island is flat grey, which the manifest declares as no data, and 2 February is entirely grey (no data at all).
