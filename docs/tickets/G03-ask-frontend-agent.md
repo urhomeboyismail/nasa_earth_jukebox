@@ -160,4 +160,111 @@ No server change, so the server checks do not apply. Do not report widths.
 
 ## Result
 
-Not started.
+Agent D, 2026-11-12, branch `feature/G03-ask-frontend-agent`.
+
+**What changed**
+
+- `ask.ts`: `guardsAllow(question, knownDates)` is the first check of `ask()` moved out unchanged (empty or too long, `STEERING`, `OUT_OF_SCOPE`, `mentionsUnknownTime`), and `ask()` calls it. `confidenceFor` is exported. Nothing else changed; the existing cases in `ask.test.tsx` pass unchanged.
+- `remote.ts` (new): `askAgent`, `WORKING_AFTER_MS = 1000`, `AGENT_TIMEOUT_MS = 2500`, as designed. `POST ${apiBase()}/api/v1/agent/ask`; zod schema; any status other than 200, a network error, an abort, a timeout or a bad body gives `null`; only the IDs that were sent are kept (and repeated ones once); with none left, `{ factIds: [], confidence: 'none', action: null }`. Actions go through `toAssistantAction`.
+- `AskPanel.tsx`: the flow in the ticket, with a request counter, and the earlier request aborted when a new question is asked or the panel unmounts. The agent's answer is the `text` of the chosen facts in the browser's order, joined by a space, with `confidenceFor` and `Source: <IDs>`. A mode line ("Answered offline" / "Answered with AI, from checked facts"), included in the one announcement. "Working…" sits in the panel's own `role="status"` line, not the page announcer. Actions are buttons: `Go to <page title>` sets the hash with `hashFor(page, { data: currentDataParam() })`, and `Play <date>` calls `sendPlayerCommand({ setDate })`. The privacy line sits under the question box and is linked to the input with `aria-describedby`.
+- `ask.css`: `.ask__mode` and `.ask__privacy`, tokens only. The Working line reuses `.ask__meta`.
+- `src/hooks/useVoiceAssistant.ts` was **not** changed: `toAssistantAction` is already exported (line 40).
+
+**Choices to review**
+
+- A `set_date` action is also dropped when the date is not one of the data set's own dates (`knownDates`), not only when it is not a real date. Otherwise the panel could offer "Play 1999-01-01", which the player cannot play. Test: "drops a date the data set does not have".
+- The answer region is cleared while a question waits for the agent, so an old answer never sits under a new question.
+- The Working line is `role="status"` without an explicit `aria-live`. The first version had `aria-live="polite"`, which broke 39 tests in `player.test.tsx`, `Explorer.test.tsx` and `change.test.tsx`: their `liveText()` helper reads the **first** `[aria-live="polite"]` element on the page, and the panel's line came before the announcer's. `role="status"` is still a polite live region, and those tests now pass. That helper is fragile: any new polite region in Listen will trip it again (player hotspot, not changed here).
+- The privacy line says "The app saves nothing". G02 must keep that true on the server.
+- "what will it be next year" passes `guardsAllow` (`OUT_OF_SCOPE` matches "will be", not "will it be"). `ask()` refuses it today only because it scores low, so it now goes to the agent like any other unmatched question. The guards are unchanged, as the ticket asks.
+- The ticket asks for the owner of `src/features/ask/` to be confirmed on the board before the claim. It was posted after the claim, on this branch: R-20261112-G03-1.
+
+**Checks** (Windows laptop; `npm test` runs out of memory with 8 workers here, so the tests ran as `npx vitest run --maxWorkers=2`)
+
+`npm run lint`:
+
+```
+> moon-heist@0.0.0 lint
+> oxlint
+```
+
+(exit 0)
+
+`npx vitest run --maxWorkers=2`:
+
+```
+ FAIL  src/data/sound-regression.test.ts > sound regression baseline > notices when one legend stop of the fixture changes
+AssertionError: expected '{\n  "notes": {\n    "categories": {\…' to be '{\r\n  "notes": {\r\n    "categories"…' // Object.is equality
+
+ Test Files  1 failed | 110 passed (111)
+      Tests  1 failed | 1862 passed (1863)
+   Duration  86.45s (tests 70%, import 22%, setup 3%, environment 3%, worker 2%)
+```
+
+The one failure is environmental and also fails on clean `main` on this laptop: `core.autocrlf=true` checks `src/data/__golden__/fixture.json` out with CRLF, and the test compares against LF. G03 does not touch it.
+
+`npx vitest run --reporter=verbose src/features/ask` (timings removed):
+
+```
+ ✓ src/features/ask/remote.test.ts > askAgent > sends the question, the facts and the dates, and returns the chosen IDs and the mapped action
+ ✓ src/features/ask/remote.test.ts > askAgent > maps a date action to a player command
+ ✓ src/features/ask/remote.test.ts > askAgent > keeps only the IDs that were sent, and answers nothing when none are left
+ ✓ src/features/ask/remote.test.ts > askAgent > gives null for a 404
+ ✓ src/features/ask/remote.test.ts > askAgent > gives null for a 503
+ ✓ src/features/ask/remote.test.ts > askAgent > gives null for a 429
+ ✓ src/features/ask/remote.test.ts > askAgent > gives null for a network error
+ ✓ src/features/ask/remote.test.ts > askAgent > gives null for a body with not JSON
+ ✓ src/features/ask/remote.test.ts > askAgent > gives null for a body with no IDs
+ ✓ src/features/ask/remote.test.ts > askAgent > gives null for a body with an unknown confidence
+ ✓ src/features/ask/remote.test.ts > askAgent > gives null for a body with IDs that are not text
+ ✓ src/features/ask/remote.test.ts > askAgent > gives null for a body with an unknown action
+ ✓ src/features/ask/remote.test.ts > askAgent > says it is slow at 1 s and gives up with null at 2.5 s
+ ✓ src/features/ask/remote.test.ts > askAgent > gives null when the caller aborts, and does not call onSlow afterwards
+ ✓ src/features/ask/remote.test.ts > askAgent > drops an unknown page but keeps the answer
+ ✓ src/features/ask/remote.test.ts > askAgent > drops a navigate with no page but keeps the answer
+ ✓ src/features/ask/remote.test.ts > askAgent > drops a date that is not a real date but keeps the answer
+ ✓ src/features/ask/remote.test.ts > askAgent > drops a date in another format but keeps the answer
+ ✓ src/features/ask/remote.test.ts > askAgent > drops a date the data set does not have but keeps the answer
+ ✓ src/features/ask/ask.test.tsx > buildFacts > makes the same facts from the same data
+ ✓ src/features/ask/ask.test.tsx > buildFacts > never counts a date without enough data as a low value
+ ✓ src/features/ask/ask.test.tsx > buildFacts > computes the change from the readable dates only
+ ✓ src/features/ask/ask.test.tsx > buildFacts > leaves out the value facts when no date can be read
+ ✓ src/features/ask/ask.test.tsx > ask > answers a stored question and a close alias with the same cited fact
+ ✓ src/features/ask/ask.test.tsx > ask > says "Not in this record." for anything the data cannot answer
+ ✓ src/features/ask/ask.test.tsx > ask > tags a description as not measured
+ ✓ src/features/ask/ask.test.tsx > guardsAllow and confidenceFor > refuses what the guards in ask() refuse, and lets an ordinary question through
+ ✓ src/features/ask/ask.test.tsx > guardsAllow and confidenceFor > says "From data" only when every fact is measured
+ ✓ src/features/ask/ask.test.tsx > AskPanel > answers a question the matcher knows without any request
+ ✓ src/features/ask/ask.test.tsx > AskPanel > refuses a steering question without any request
+ ✓ src/features/ask/ask.test.tsx > AskPanel > shows the browser's own text for the fact the agent chose, never the server's words
+ ✓ src/features/ask/ask.test.tsx > AskPanel > joins several chosen facts in the order of the browser facts
+ ✓ src/features/ask/ask.test.tsx > AskPanel > falls back to the offline answer on a 404
+ ✓ src/features/ask/ask.test.tsx > AskPanel > falls back to the offline answer when the agent is unsure
+ ✓ src/features/ask/ask.test.tsx > AskPanel > says "Working…" at 1 s for a server that never answers, then refuses at 2.5 s
+ ✓ src/features/ask/ask.test.tsx > AskPanel > never lets a late answer replace a newer question's answer
+ ✓ src/features/ask/ask.test.tsx > AskPanel > offers a page from the agent as a button, and goes there only when it is pressed
+ ✓ src/features/ask/ask.test.tsx > AskPanel > offers a date from the agent as a button that sends it to the player
+ ✓ src/features/ask/ask.test.tsx > AskPanel > announces each answer once, with its mode
+ ✓ src/features/ask/ask.test.tsx > AskPanel > says what may be sent, and to whom
+ ✓ src/features/ask/ask.test.tsx > AskPanel > has no accessibility violations while working, answered by the agent, or refused
+ ✓ src/features/ask/ask.test.tsx > AskPanel > answers a typed question with its source, and refuses an unknown one
+ ✓ src/features/ask/ask.test.tsx > AskPanel > answers a listed question with one press
+ ✓ src/features/ask/ask.test.tsx > AskPanel > has no accessibility violations
+ Test Files  2 passed (2)
+      Tests  44 passed (44)
+```
+
+Tests 1–15 in the ticket map to these cases. Each new test was run and seen to fail before the code was written. As a mutation check, removing the request-counter check from `AskPanel.tsx` makes "never lets a late answer replace a newer question's answer" fail.
+
+`npm run build`:
+
+```
+✓ 1227 modules transformed.
+dist/assets/player-BzOdZFMk.js              52.03 kB │ gzip:  17.66 kB
+dist/assets/index-CY4lxh8M.js             389.14 kB │ gzip: 121.97 kB
+✓ built in 1.00s
+```
+
+(exit 0; no type errors)
+
+Not run: the server checks (no server change), and nothing in a real browser against a running agent (G02 does not exist yet; every request gets a 404 and falls back).
