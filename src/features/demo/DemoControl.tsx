@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { subscribeContext } from '../../assistant/context'
 import { Button } from '../../components'
 import { Sonny } from '../../components/Mascot'
+import { playerUpdate } from '../../data'
 import { currentDataParam, hashFor } from '../../route'
 import { useMascotOn } from '../help/mascotSetting'
 import { sendPlayerCommand } from '../player/controls'
@@ -29,7 +30,8 @@ const playAndWait: DemoDeps['playAndWait'] = (signal) =>
     const finish = () => { unsubscribe(); window.clearInterval(retry); window.clearTimeout(limit); signal.removeEventListener('abort', finish); resolve() }
     const unsubscribe = subscribeContext(update => {
       if (update.key !== 'player') return
-      if ((update.data as { playing?: boolean } | null)?.playing) playing = true
+      const player = playerUpdate.safeParse(update.data)
+      if (player.success && player.data.playing) playing = true
       if (update.announce?.startsWith('playback_finished')) finish()
     })
     const retry = window.setInterval(() => { if (!playing) sendPlayerCommand('play') }, RETRY_MS)
