@@ -328,6 +328,7 @@ describe('The voice guide moves the app without moving focus (V01)', () => {
     Element.prototype.scrollTo ??= () => {}
     FakeSocket.instances = []
     vi.stubGlobal('WebSocket', FakeSocket)
+    window.localStorage.clear() // each case answers the microphone question afresh (V02)
   })
 
   const toggle = () => screen.getByRole('button', { name: 'Voice guide' })
@@ -338,6 +339,7 @@ describe('The voice guide moves the app without moving focus (V01)', () => {
     render(<App />)
     await user.click(toggle())
     await user.click(screen.getByRole('button', { name: 'Start talking' }))
+    await user.click(screen.getByRole('button', { name: 'Allow microphone' })) // V02: the consent card comes first
     act(() => FakeSocket.instances[0].onopen?.())
     await server({ type: 'ready' })
     return user
@@ -397,6 +399,7 @@ describe('The voice guide moves the app without moving focus (V01)', () => {
     render(<App />)
     await user.click(toggle())
     await user.click(screen.getByRole('button', { name: 'Start talking' }))
+    await user.click(screen.getByRole('button', { name: 'Allow microphone' }))
     act(() => FakeSocket.instances[0].onopen?.())
     await server({ type: 'ready' })
     await user.click(screen.getByRole('textbox', { name: 'Type a question instead' }))
