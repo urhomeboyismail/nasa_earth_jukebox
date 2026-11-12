@@ -1,4 +1,5 @@
 from pathlib import Path
+from urllib.parse import urlparse
 from typing import Literal
 
 from pydantic import Field, SecretStr, field_validator
@@ -46,21 +47,14 @@ class Settings(BaseSettings):
     jukebox_runs_per_minute: int = Field(default=4, gt=0)
     jukebox_timeout_seconds: float = Field(default=120, gt=0)
 
-    # Google ADK agent (G01 to G05). Nothing calls the model while agent_enabled is false.
-    agent_enabled: bool = False
-    agent_model: str = "gemini-2.5-flash"  # [unverified] confirm the id with a real key (G07)
-    # Seconds one agent request may take before it gives up.
-    agent_timeout_seconds: float = Field(default=2.5, gt=0)
-    agent_max_requests_per_minute: int = Field(default=5, gt=0)  # one token bucket for the whole server
-    # Which engine runs the voice guide: the old Gemini Live bridge or the ADK agent.
-    assistant_engine: Literal["bridge", "adk"] = "bridge"  # G05 changes the default to "adk"
-
-    # Listening-test results (src/features/test, docs/PLAN.md §5.5). On Render the file needs a persistent
+    # Listening-test results (src/features/compare/TestMode.tsx, docs/PLAN.md §5.5). On Render the file needs a persistent
     # disk to survive restarts; without one, download the CSV after every session.
     study_db_path: Path = SERVER_DIR / "study.db"
     # Sent as the X-Team-Token header to download the CSV. Left unset, the export is switched off.
     study_export_token: SecretStr = SecretStr("")
     study_max_responses: int = Field(default=50, gt=0)
+    # Most test sessions the database will hold. Sessions have no accounts behind them, so this stops anyone filling the disk.
+    study_max_sessions: int = Field(default=500, gt=0)
 
     @field_validator("cors_origins")
     @classmethod
@@ -72,6 +66,11 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
+    @property
+    def origin_required(self) -> bool:
+        """True in production: when any allowed origin is not local, the voice guide refuses a connection with no Origin."""
+        return any(urlparse(origin).hostname not in ("localhost", "127.0.0.1") for origin in self.cors_origin_list)
 
 
 settings = Settings()

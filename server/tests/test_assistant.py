@@ -258,3 +258,113 @@ def test_the_persona_name_matches_the_frontend():
 def test_pages_match_frontend():
     source = (REPO_ROOT / "src" / "pages.ts").read_text(encoding="utf-8")
     assert re.findall(r'id: "([a-z]+)"', source) == PAGE_IDS
+
+
+# ---- I05: bad input, limits and the health route -------------------------------------------------------------
+
+LIVE = "/api/v1/assistant/live"
+
+
+def _first_message(payload):
+    with TestClient(app).websocket_connect(LIVE, headers=ORIGIN) as ws:
+        ws.send_json(payload)
+        return ws.receive_json()
+
+
+@pytest.mark.parametrize("payload", [[], [1, 2], 5, "start", None])
+def test_a_start_message_that_is_not_an_object_gives_bad_start(fake_session, payload):
+    assert _first_message(payload)["code"] == "bad_start"
+
+
+@pytest.mark.parametrize("value", [["en"], {"a": 1}, 5, None, "xx"])
+def test_a_language_or_page_of_the_wrong_kind_falls_back_to_the_defaults(monkeypatch, fake_session, value):
+    seen = []
+
+    @contextlib.asynccontextmanager
+    async def connect(language, page):
+        seen.append((language, page))
+        yield fake_session
+
+    monkeypatch.setattr(assistant_api, "connect_live", connect)
+    with TestClient(app).websocket_connect(LIVE, headers=ORIGIN) as ws:
+        ws.send_json({"type": "start", "language": value, "page": value})
+        assert ws.receive_json() == {"type": "ready"}
+        ws.send_json({"type": "stop"})
+        assert ws.receive_json()["type"] == "ended"
+    assert seen == [("en", "home")]
+
+
+def test_a_second_session_gets_busy_while_the_cap_is_full(fake_session, monkeypatch):
+    monkeypatch.setattr(settings, "assistant_max_sessions", 1)
+    client = TestClient(app)
+    with client.websocket_connect(LIVE, headers=ORIGIN) as first:
+        first.send_json({"type": "start", "language": "en", "page": "home"})
+        assert first.receive_json() == {"type": "ready"}
+        with client.websocket_connect(LIVE, headers=ORIGIN) as second:
+            assert second.receive_json()["code"] == "busy"
+            with pytest.raises(Exception):
+                second.receive_json()  # the socket is closed
+        first.send_json({"type": "stop"})
+        assert first.receive_json()["type"] == "ended"
+    assert assistant_api._active == 0
+
+
+def test_a_session_ends_with_time_limit_when_it_runs_too_long(fake_session, monkeypatch):
+    monkeypatch.setattr(settings, "assistant_max_session_seconds", 0.2)
+    with TestClient(app).websocket_connect(LIVE, headers=ORIGIN) as ws:
+        ws.send_json({"type": "start", "language": "en", "page": "home"})
+        assert ws.receive_json() == {"type": "ready"}
+        assert ws.receive_json() == {"type": "ended", "reason": "time_limit"}
+    assert assistant_api._active == 0
+
+
+def test_an_upstream_failure_gives_a_plain_error_with_no_traceback(monkeypatch, caplog):
+    @contextlib.asynccontextmanager
+    async def connect(language, page):
+        raise RuntimeError("boom with secret-key inside")
+        yield
+
+    monkeypatch.setattr(settings, "gemini_api_key", SecretStr("secret-key"))
+    monkeypatch.setattr(assistant_api, "connect_live", connect)
+    with caplog.at_level(logging.WARNING):
+        with TestClient(app).websocket_connect(LIVE, headers=ORIGIN) as ws:
+            ws.send_json({"type": "start", "language": "en", "page": "home"})
+            message = ws.receive_json()
+    assert message == {"type": "error", "code": "upstream", "message": "The voice guide stopped unexpectedly."}
+    assert "secret-key" not in caplog.text
+    assert "Traceback" not in message["message"]
+    assert assistant_api._active == 0
+
+
+def test_an_audio_frame_over_the_limit_is_dropped_and_the_session_goes_on(fake_session):
+    with TestClient(app).websocket_connect(LIVE, headers=ORIGIN) as ws:
+        ws.send_json({"type": "start", "language": "en", "page": "home"})
+        assert ws.receive_json() == {"type": "ready"}
+        ws.send_bytes(b"\x00" * (assistant_api.MAX_AUDIO_FRAME_BYTES + 2))
+        ws.send_bytes(b"\x00\x00" * 800)
+        ws.send_json({"type": "text", "text": "Take me to the player"})
+        assert ws.receive_json() == {"type": "action", "action": "navigate", "page": "listen"}
+    assert fake_session.audio_frames == 1
+
+
+def test_a_missing_origin_is_refused_in_production_and_allowed_in_development(fake_session, monkeypatch):
+    from starlette.websockets import WebSocketDisconnect
+    monkeypatch.setattr(settings, "cors_origins", "https://earth-jukebox.vercel.app")
+    with pytest.raises(WebSocketDisconnect) as refused:
+        with TestClient(app).websocket_connect(LIVE) as ws:
+            ws.receive_json()
+    assert refused.value.code == 1008
+    with TestClient(app).websocket_connect(LIVE, headers={"origin": "https://earth-jukebox.vercel.app"}) as ws:
+        ws.send_json({"type": "start", "language": "en", "page": "home"})
+        assert ws.receive_json() == {"type": "ready"}
+
+    monkeypatch.setattr(settings, "cors_origins", "http://localhost:5173,http://127.0.0.1:5173")
+    with TestClient(app).websocket_connect(LIVE) as ws:
+        ws.send_json({"type": "start", "language": "en", "page": "home"})
+        assert ws.receive_json() == {"type": "ready"}
+
+
+def test_the_health_route_says_ok_and_whether_the_voice_guide_is_set_up():
+    body = TestClient(app).get("/api/v1/health").json()
+    assert body["status"] == "ok"
+    assert isinstance(body["voice_guide"], bool)

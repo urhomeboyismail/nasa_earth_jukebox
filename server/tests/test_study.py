@@ -186,3 +186,13 @@ def test_the_server_allows_the_browser_to_post_from_the_site(client):
     response = client.options("/api/v1/tests", headers={"origin": "http://localhost:5173", "access-control-request-method": "POST", "access-control-request-headers": "content-type"})
     assert response.status_code == 200
     assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
+
+
+def test_a_new_session_beyond_the_cap_gets_503_and_stores_nothing(client, monkeypatch):
+    monkeypatch.setattr(settings, "study_max_sessions", 2)
+    new_session(client)
+    new_session(client)
+    response = client.post("/api/v1/tests", json=SESSION)
+    assert response.status_code == 503
+    assert "full" in response.json()["detail"]
+    assert len(rows(export(client))) == 2
