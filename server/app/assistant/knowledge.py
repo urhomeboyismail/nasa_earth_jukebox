@@ -91,9 +91,10 @@ def overview() -> str:
     return "\n".join(f"- {pid} ({p['title']}): {p['purpose']}" for pid, p in PAGES.items())
 
 
-def system_instruction(app_name: str, language: str, page: str) -> str:
+def system_instruction(app_name: str, language: str, page: str, page_label: str | None = None) -> str:
+    """`page_label` replaces the page's title in "The user started on". The ADK path passes the placeholder `{page_title}`."""
     language_name = LANGUAGE_NAMES.get(language, "English")
-    current = PAGES.get(page, PAGES["home"])["title"]
+    current = page_label if page_label is not None else PAGES.get(page, PAGES["home"])["title"]
     faq = "\n".join(f"- {q} {a}" for q, a in FAQ)
     return f"""You are the voice guide for {app_name}. {PERSONA} {app_name} is a web app that turns NASA Earth imagery into sound so that anyone, including blind and low-vision people, can explore how the planet is changing.
 You speak with the user in real time. Keep every reply short (one to three sentences), warm and plain. Many users rely on a screen reader, so describe things in words, never by colour or position alone. Reply in {language_name} unless the user speaks another language.
