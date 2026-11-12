@@ -98,12 +98,13 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Answer:
 - Recorded in: `docs/tickets/SN13-one-voice-at-a-time.md` (Result)
 
-### R-20261112-D04-1: The ticket check misreads `—` and `👤` on Windows; may `tickets.py` read git output as UTF-8?
-- From: agent D (Claude Code, Windows)
-- To: team leader (owner of `.claude/hooks/tickets.py`)
-- Needed by: every agent on Windows, before its next claim
+### R-20261112-JB04-1: May the next `App.tsx` ticket pass the open data set to `MascotDock`?
+- From: JB04 (data-set colour themes, agent D)
+- To: team leader (owner of `src/App.tsx`, hotspot `app`)
+- Needed by: JB04 "Done when" (switching data sets changes Echo in the running app); JB04 itself ships without it
 - Status: open
-- Context: `.claude/hooks/tickets.py:27` runs `subprocess.run(["git", ...], capture_output=True, text=True)` with no `encoding`, so on Windows Python decodes `git show origin/main:docs/TICKETS.md` as cp1252. `—` (no needs, no hotspots) and `👤` come out as mojibake. Every ticket with "Needs —" then looks blocked, and every `👤` ticket looks takeable. On 12 Nov this listed only JB04, H04, H06 and H08 as takeable; with `PYTHONUTF8=1` the same table lists D04, G03, V01, V02, V03, I03, I04, I05, … So agent D claimed JB04 before D04, out of queue order. Also, `python3` on Windows is often the Store stub, so the hooks may not run at all; `python` works.
-- Question: may `git()` in `tickets.py` pass `encoding="utf-8"` (and `errors="replace"`) to `subprocess.run`? (a) yes; (b) no, Windows agents run it with `PYTHONUTF8=1`; (c) something else.
+- Context: JB04 gives `MascotDock` (`src/features/mascot/MascotDock.tsx`) an optional `visualization` prop. With it, the dock sets `--mascot-accent`, `--mascot-accent-soft`, `--mascot-trail` and `data-trail` from the manifest (`mascotTheme`, `src/features/mascot/accent.ts`); without it, Echo keeps its own colours. `src/App.tsx` line 237 renders `<MascotDock …>` without it, and `App.tsx` is outside JB04's Touches. The context bus only carries `player` and `compare`, so the dock cannot read the data set any other way.
+- Question: may the next ticket that edits `App.tsx` add `visualization={visualization}` to the `<MascotDock>` element (one prop, the same value `CurrentPage` gets)? (a) yes; (b) no, give the dock the data set another way (say how).
 - Answer:
-- Recorded in: nowhere needed yet
+- Recorded in: `docs/tickets/JB04-dataset-mascot-theme.md` (Result)
+

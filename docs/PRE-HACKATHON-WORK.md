@@ -65,6 +65,7 @@ Add one line per piece of work, newest last.
 | 11 Nov | EIC01 `scripts/eic_ingest.py`: an EIC MP4 or frame folder in, a data set folder out (dated frames, colour scale read from the colour bar, map area, same-origin H.264 web video, manifest with `video`, `legend` and `sonification`), with `--detect-only` to preview the bar first; calls `convert_frames.py` as a library | `feature/EIC01-ingest-script` |
 | 11 Nov | F58: Echo redrawn as Juke-Bot; five visor expressions and four motion states as props; persona says Echo is a program | `feature/F58-juke-bot` |
 | 12 Nov | JB01 Echo's corner dock on every page: a button that opens a glass speech bubble (page tip or a tip a page offers through `useMascotGuide()`), Talk to Echo, Turn Echo off; the visor follows loading, playing, speaking and idle; tips are announced only when the bubble is opened | `feature/JB01-mascot-dock` |
+| 12 Nov | JB04 Echo's look per data set: an optional `mascot { accent, trail }` manifest field; without it the accent comes from the legend's most saturated colour (3:1 against the visor, else the theme colour) and the trail is sparks; four trail shapes (sparks, bubbles, ions, pulse), still under reduced motion; set for the SST, ocean and storm sets | `feature/JB04-dataset-mascot-theme` |
 
 ## Outside resources used
 

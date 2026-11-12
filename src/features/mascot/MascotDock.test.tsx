@@ -1,8 +1,12 @@
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import fixtureManifest from '../../../public/data/fixture/manifest.json'
+import oceanManifest from '../../../public/data/synthetic-ocean/manifest.json'
 import { publishContext } from '../../assistant/context'
 import { AnnouncerProvider } from '../../components'
+import type { Visualization } from '../../data'
+import { visualizationSchema } from '../../data/schema'
 import type { AssistantStatus } from '../../hooks/useVoiceAssistant'
 import { expectNoA11yViolations } from '../../test/a11y'
 import { setMascotOn } from '../help/mascotSetting'
@@ -19,14 +23,14 @@ function OfferButton({ tip }: { tip: Tip }) {
   return <button type="button" onClick={() => guide.offerTip(tip)}>Offer a tip</button>
 }
 
-type Props = Partial<{ page: 'home' | 'listen'; loading: boolean; voice: AssistantStatus; voiceOpen: boolean; onTour: () => void; onTalk: () => void; tip: Tip }>
+type Props = Partial<{ page: 'home' | 'listen'; loading: boolean; voice: AssistantStatus; voiceOpen: boolean; onTour: () => void; onTalk: () => void; tip: Tip; visualization: Visualization | null }>
 
-function Dock({ page = 'listen', loading = false, voice = 'idle', voiceOpen = false, onTour, onTalk = () => {}, tip = { text: 'Try the date slider.' } }: Props) {
+function Dock({ page = 'listen', loading = false, voice = 'idle', voiceOpen = false, onTour, onTalk = () => {}, tip = { text: 'Try the date slider.' }, visualization }: Props) {
   return (
     <AnnouncerProvider>
       <MascotGuideProvider>
         <OfferButton tip={tip} />
-        <MascotDock page={page} loading={loading} voice={voice} voiceOpen={voiceOpen} onTalk={onTalk} onTour={onTour} />
+        <MascotDock page={page} loading={loading} voice={voice} voiceOpen={voiceOpen} onTalk={onTalk} onTour={onTour} visualization={visualization} />
       </MascotGuideProvider>
     </AnnouncerProvider>
   )
@@ -200,5 +204,37 @@ describe("Echo's face", () => {
     expect(face(container)).toBe('resting')
     act(() => { window.dispatchEvent(new Event('pointerdown')) })
     expect(face(container)).toBe('happy')
+  })
+})
+
+describe("Echo's look follows the open data set (JB04)", () => {
+  const dock = (container: HTMLElement) => container.querySelector<HTMLElement>('.mascot-dock')!
+  const ocean = visualizationSchema.parse(oceanManifest)
+  const fixture = visualizationSchema.parse(fixtureManifest)
+
+  it("takes the manifest's accent and trail", async () => {
+    const { container } = render(<Dock visualization={ocean} />)
+    expect(dock(container).style.getPropertyValue('--mascot-accent')).toBe('#00ffcc')
+    expect(dock(container).style.getPropertyValue('--mascot-trail')).toBe('#00ffcc')
+    expect(dock(container)).toHaveAttribute('data-trail', 'bubbles')
+    await expectNoA11yViolations(container)
+  })
+
+  it('without a mascot field, takes a colour from the legend and the default trail', () => {
+    const { container } = render(<Dock visualization={fixture} />)
+    expect(dock(container).style.getPropertyValue('--mascot-accent')).toBe('#ff0000')
+    expect(dock(container)).toHaveAttribute('data-trail', 'sparks')
+  })
+
+  it("changes when the data set changes, and keeps Echo's own colours while nothing is open", () => {
+    const { container, rerender } = render(<Dock />)
+    expect(dock(container).style.getPropertyValue('--mascot-accent')).toBe('')
+    expect(dock(container)).not.toHaveAttribute('data-trail')
+    rerender(<Dock visualization={ocean} />)
+    expect(dock(container)).toHaveAttribute('data-trail', 'bubbles')
+    rerender(<Dock visualization={fixture} />)
+    expect(dock(container)).toHaveAttribute('data-trail', 'sparks')
+    rerender(<Dock visualization={null} />)
+    expect(dock(container).style.getPropertyValue('--mascot-accent')).toBe('')
   })
 })

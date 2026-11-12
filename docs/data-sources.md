@@ -80,6 +80,16 @@ Three optional fields for the v3 sonification (`docs/PLAN.md` §6.3). Their defa
 
 `video` and `sonification` are strict: a field inside them that the schema does not know (a typo such as `frameStep`) is reported, not dropped. `npm run check-data` also checks that the video file exists and is an MP4 (it has an `ftyp` box). The video is not decoded, so its frame count is not checked.
 
+### Echo's look (JB04)
+
+One optional field chooses how Echo, the guide, looks while this data set is open: the colour of its boots, headphones and jet trail, and the trail's style. It changes nothing else: a manifest without it validates and plays exactly as before.
+
+| Field | Default when left out | What it does |
+|---|---|---|
+| `mascot` | accent from `colorScale`, trail `"sparks"` | `{ accent?, trail? }`. `accent` is a colour written `"#rrggbb"`, for example `"#00ffcc"`. `trail` is one of `sparks`, `bubbles`, `ions`, `pulse`: a style, never the name of a data set |
+
+**The accent and its contrast.** Echo uses the first of these with a contrast of at least 3:1 against its visor (`#0f2233`, WCAG 1.4.11): the manifest's `accent`, then the most saturated stop of `colorScale` (ties go to the stop with the higher value), then the theme's primary colour. A manifest `accent` below 3:1 is not an error, but `npm run check-data` prints a warning that names it and its ratio, and Echo will not use it. `mascot` is strict like `sonification`: a misspelt field is reported. The colour is never the only signal: each trail has its own shape (dashes, small rings, long streaks, a wide ring), and every state of Echo is also in text. Which accent and trail suit which kind of data is in `docs/DATASET-PLAYBOOK.md`, step 4.
+
 ## Converting frames (T91)
 
 `scripts/convert_frames.py` turns a folder of dated frames into `public/data/<id>/`: the frames as plain PNGs and a `manifest.json` from the template above, with `TODO` left in every field a person fills in. It is step 3 of the 30-minute checklist at the top of `docs/archive/PRE-HACKATHON-TICKETS.md`.

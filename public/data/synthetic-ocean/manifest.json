@@ -420,5 +420,9 @@
     "y0": 0,
     "x1": 1,
     "y1": 0.88
+  },
+  "mascot": {
+    "accent": "#00ffcc",
+    "trail": "bubbles"
   }
 }

@@ -28,6 +28,7 @@ All the flags are in [Converting frames](data-sources.md#converting-frames-t91).
 - With a baseline: set `changeSteps` and `contourLevels` that fit the size of this data set's changes.
 - Add comparisons, each checked against the NASA source. With a baseline, include one where "by value" and "by change" give different answers.
 - Optional: story chapters, running forward in time.
+- Optional: choose Echo's accent and trail (`mascot`, see [Echo's look](data-sources.md#echos-look-jb04)). Water (ocean, sea surface, rivers): `{ "accent": "#00ffcc", "trail": "bubbles" }`. Air (atmosphere, storms, clouds, aerosols): `{ "accent": "#00f0ff", "trail": "ions" }`. Plants and land cover: `{ "accent": "#39ff14", "trail": "pulse" }`. Anything else can leave it out. If `npm run check-data` warns that the accent has too little contrast, pick a lighter or brighter colour.
 - Add the entry to `public/data/index.json`.
 
 ## 5. Check

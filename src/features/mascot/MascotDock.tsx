@@ -1,16 +1,19 @@
 // Echo, docked bottom right on every page (docs/tickets/JB01-mascot-dock.md). A button opens a small panel: a speech bubble with the tip, then Talk to
 // Echo, Show me around and Turn Echo off. No sound and no speech of its own: a tip waits until the listener opens the bubble, and is then announced once.
 // Hidden while the voice guide is open, and when the listener turned Echo off. Echo's visor follows the app (expressionFor.ts).
+// The open data set colours Echo and picks its jet trail (accent.ts, JB04): set on the dock as --mascot-* variables and data-trail.
 
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
 import { Button, useAnnounce } from '../../components'
 import { Echo } from '../../components/Mascot'
 import type { MascotPose } from '../../components/mascotTypes'
+import type { Visualization } from '../../data'
 import type { AssistantStatus } from '../../hooks/useVoiceAssistant'
 import type { Page } from '../../pages'
 import { setMascotOn, useMascotOn } from '../help/mascotSetting'
 import { TIPS } from '../help/tips'
 import { MASCOT_NAME } from '../welcome/lines'
+import { mascotTheme } from './accent'
 import { expressionFor } from './expressionFor'
 import { placeBubble } from './placeBubble'
 import { useFaceState } from './useFaceState'
@@ -28,6 +31,8 @@ type Props = {
   onTalk: () => void
   /** Starts the tour (JB05). Without it, "Show me around" is not shown. */
   onTour?: () => void
+  /** The open data set: its manifest colours Echo and picks the trail (JB04). Null or left out while loading: Echo keeps its own colours. */
+  visualization?: Pick<Visualization, 'colorScale' | 'mascot'> | null
 }
 
 const poseFor = (voice: AssistantStatus): MascotPose =>
@@ -36,7 +41,14 @@ const poseFor = (voice: AssistantStatus): MascotPose =>
 /** How far the tail stays from the bubble's corners. */
 const TAIL_INSET = 24
 
-export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, onTour }: Props) {
+type CssVars = CSSProperties & Record<`--${string}`, string>
+
+/** The accent on the boots, headphones and trail, and a lighter mix of it for the nozzles and the unlit LEDs. */
+function themeStyle(accent: string): CssVars {
+  return { '--mascot-accent': accent, '--mascot-accent-soft': `color-mix(in srgb, ${accent} 55%, #ffffff)`, '--mascot-trail': accent }
+}
+
+export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, onTour, visualization }: Props) {
   const mascotOn = useMascotOn()
   const announce = useAnnounce()
   const { tip } = useMascotGuideState()
@@ -101,6 +113,8 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
 
   if (!mascotOn || voiceOpen) return null
 
+  const theme = visualization ? mascotTheme(visualization) : null
+
   function close() {
     setOpen(false)
     button.current?.focus()
@@ -141,6 +155,8 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
   return (
     <div
       className="mascot-dock"
+      style={theme ? themeStyle(theme.accent) : undefined}
+      data-trail={theme?.trail}
       onKeyDown={onKeyDown}
       onPointerEnter={() => setHint(true)}
       onPointerLeave={() => setHint(false)}

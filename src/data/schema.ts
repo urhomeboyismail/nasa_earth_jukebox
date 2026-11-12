@@ -107,6 +107,15 @@ const sonification = z
   })
   .strict()
 
+// JB04: Echo's look for this data set. Strict like `sonification`, so a misspelt field is reported.
+const MASCOT_TRAILS = ['sparks', 'bubbles', 'ions', 'pulse'] as const
+const mascot = z
+  .object({
+    accent: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'must be a colour written #rrggbb, for example "#00ffcc"').optional(),
+    trail: z.enum(MASCOT_TRAILS, { error: `must be one of ${MASCOT_TRAILS.join(', ')}` }).optional(),
+  })
+  .strict()
+
 export const visualizationSchema = z
   .object({
     id: nonEmpty,
@@ -137,6 +146,7 @@ export const visualizationSchema = z
     legend: legend.optional(),
     video: video.optional(),
     sonification: sonification.optional(),
+    mascot: mascot.optional(),
   })
   .superRefine((data, ctx) => {
     const problem = (path: (string | number)[], message: string) => ctx.addIssue({ code: 'custom', path, message })

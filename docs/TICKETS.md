@@ -100,7 +100,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [EIC01](tickets/EIC01-ingest-script.md) | `scripts/eic_ingest.py`: MP4 or PNG sequence in, frames, colour scale, web video and manifest out | L | agent | SN05 | catalogue | done |
 | [EIC02](tickets/EIC02-pick-visualisations.md) | Pick 3–5 EIC visualisations; check source, credit and licence | S | 👤 | — | — | open |
 | [EIC03](tickets/EIC03-ingest-datasets.md) | Ingest and tune each picked visualisation (manifest and data only) | M each | agent+👤 | EIC01, EIC02 | catalogue | open |
-| [D04](tickets/D04-known-answer-check.md) | Known-answer check: decoded values against NASA's numbers | S | agent+👤 | — | catalogue | claimed: D, 2026-11-12 |
+| [D04](tickets/D04-known-answer-check.md) | Known-answer check: decoded values against NASA's numbers | S | agent+👤 | — | catalogue | ready: feature/D04-known-answer-check |
 
 ### P1: Gemini on ADK and the voice panel
 
@@ -108,7 +108,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 |---|---|---|---|---|---|---|
 | [G01](tickets/G01-adk-core.md) | ADK core package: tools, callbacks, action sink, keyless tests | M | agent | — | server-assistant | ready: feature/G01-adk-core |
 | [G02](tickets/G02-agent-ask-endpoint.md) | Grounded Ask endpoint on ADK | M | agent | G01 | — | open |
-| [G03](tickets/G03-ask-frontend-agent.md) | Ask front end on the agent, with the offline matcher as fallback | M | agent | — | ask | open |
+| [G03](tickets/G03-ask-frontend-agent.md) | Ask front end on the agent, with the offline matcher as fallback | M | agent | — | ask | claimed: D, 2026-11-12 |
 | [G04](tickets/G04-voice-on-adk.md) | Voice guide on ADK `run_live`, same browser protocol, behind a switch | L | agent | G01 | server-assistant | open |
 | [H02](tickets/H02-live-parity-check.md) | Live parity check with a billed key | S | 👤 | G04 | — | open |
 | [G05](tickets/G05-adk-default.md) | ADK by default; retire the old bridge | S | agent | G04, H02 | server-assistant | open |
