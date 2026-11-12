@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
@@ -35,7 +35,6 @@ let failNext: number
 
 beforeEach(() => {
   vi.clearAllMocks()
-  window.location.hash = '#compare?test=1'
   calls = []
   failNext = 0
   analyzeAll.mockImplementation(async () => visualization.frames.map((f, i) => ({ frameId: f.id, regionId: 'centre', sampled: 9, valid: 9, category: CATEGORIES[i] })))
@@ -45,7 +44,7 @@ beforeEach(() => {
     return url.endsWith('/responses') ? new Response(null, { status: 204 }) : new Response(JSON.stringify({ id: 'sess1' }), { status: 201 })
   }))
 })
-afterEach(() => { vi.unstubAllGlobals(); window.location.hash = '' })
+afterEach(() => { vi.unstubAllGlobals() })
 
 const responsesPosted = () => calls.filter(c => c.url.endsWith('/responses'))
 
@@ -66,7 +65,7 @@ describe('Test mode: missing data', () => {
       frameId: f.id, regionId: 'centre', sampled: 9, valid: i === 0 ? 0 : 9, category: i === 0 ? 'insufficient' : CATEGORIES[i],
     })))
     const user = userEvent.setup()
-    render(<ComparePage visualization={visualization} />)
+    render(<ComparePage visualization={visualization} testMode />)
     await toQuestions(user)
     await user.click(screen.getByRole('button', { name: 'Play date A' }))
     expect(engine.playMissing).toHaveBeenCalledTimes(1)
@@ -77,7 +76,7 @@ describe('Test mode: missing data', () => {
 describe('Test mode: sound style', () => {
   it('plays full or simple only, even if the change style was chosen on this device (until the 13 Nov decision)', async () => {
     localStorage.setItem('earth-jukebox:sound-style', 'change')
-    render(<ComparePage visualization={visualization} />)
+    render(<ComparePage visualization={visualization} testMode />)
     await screen.findByRole('checkbox', { name: /I agree to take part/ })
     expect(engine.setStyle).toHaveBeenCalledWith('full')
     expect(engine.setStyle).not.toHaveBeenCalledWith('change')
@@ -86,20 +85,19 @@ describe('Test mode: sound style', () => {
 })
 
 describe('Test mode: opening', () => {
-  it('opens only from #compare?test=1', async () => {
-    window.location.hash = '#compare'
-    render(<ComparePage visualization={visualization} />)
+  it('opens only when the page is given the test-mode flag', async () => {
+    const { rerender } = render(<ComparePage visualization={visualization} testMode={false} />)
     expect(screen.queryByText('Listening test')).toBeNull()
     expect(screen.getByRole('button', { name: 'Play date A' })).toBeInTheDocument()
-    act(() => { window.location.hash = '#compare?test=1' })
+    rerender(<ComparePage visualization={visualization} testMode />)
     expect(await screen.findByText('Listening test')).toBeInTheDocument()
-    act(() => { window.location.hash = '#compare' })
+    rerender(<ComparePage visualization={visualization} testMode={false} />)
     expect(await screen.findByRole('button', { name: 'Reveal the answer' })).toBeInTheDocument()
   })
 
   it('starts with the consent step in plain words, and cannot continue without agreeing', async () => {
     const user = userEvent.setup()
-    render(<ComparePage visualization={visualization} />)
+    render(<ComparePage visualization={visualization} testMode />)
     expect(screen.getByRole('heading', { name: 'Before you start' })).toBeInTheDocument()
     expect(screen.getByText(/do not store your IP address/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled()
@@ -109,7 +107,7 @@ describe('Test mode: opening', () => {
 
   it('needs the participant group before going on', async () => {
     const user = userEvent.setup()
-    render(<ComparePage visualization={visualization} />)
+    render(<ComparePage visualization={visualization} testMode />)
     await user.click(screen.getByRole('checkbox', { name: /I agree to take part/ }))
     await user.click(screen.getByRole('button', { name: 'Continue' }))
     expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled()
@@ -119,7 +117,7 @@ describe('Test mode: opening', () => {
 
   it('defaults to audio only', async () => {
     const user = userEvent.setup()
-    render(<ComparePage visualization={visualization} />)
+    render(<ComparePage visualization={visualization} testMode />)
     await user.click(screen.getByRole('checkbox', { name: /I agree to take part/ }))
     await user.click(screen.getByRole('button', { name: 'Continue' }))
     await user.click(screen.getByRole('radio', { name: 'I can see the screen' }))
@@ -129,7 +127,7 @@ describe('Test mode: opening', () => {
 
   it('has no accessibility violations on any step', async () => {
     const user = userEvent.setup()
-    const { container } = render(<ComparePage visualization={visualization} />)
+    const { container } = render(<ComparePage visualization={visualization} testMode />)
     await expectNoA11yViolations(container)
     await user.click(screen.getByRole('checkbox', { name: /I agree to take part/ }))
     await user.click(screen.getByRole('button', { name: 'Continue' }))
@@ -146,7 +144,7 @@ describe('Test mode: opening', () => {
 describe('Test mode: a full session', () => {
   it('sends the session, then each answer in the fixed order, with timing, confidence and comment', async () => {
     const user = userEvent.setup()
-    render(<ComparePage visualization={visualization} />)
+    render(<ComparePage visualization={visualization} testMode />)
     await toQuestions(user)
 
     expect(calls[0]).toEqual({ url: '/api/v1/tests', body: { participant: 'blind_low_vision', screenReader: true, sawImages: false, consent: true } })
@@ -177,7 +175,7 @@ describe('Test mode: a full session', () => {
 
   it('never shows the right answer or the explanation during the test', async () => {
     const user = userEvent.setup()
-    render(<ComparePage visualization={visualization} />)
+    render(<ComparePage visualization={visualization} testMode />)
     await toQuestions(user)
     await user.click(screen.getByRole('radio', { name: 'B is warmer' }))
     await user.click(screen.getByRole('button', { name: 'Submit and go to the next question' }))
@@ -187,12 +185,12 @@ describe('Test mode: a full session', () => {
 
   it('keeps pictures hidden for audio only, and shows them when asked', async () => {
     const user = userEvent.setup()
-    const { unmount } = render(<ComparePage visualization={visualization} />)
+    const { unmount } = render(<ComparePage visualization={visualization} testMode />)
     await toQuestions(user)
     expect(screen.queryByRole('img')).toBeNull()
     unmount()
 
-    render(<ComparePage visualization={visualization} />)
+    render(<ComparePage visualization={visualization} testMode />)
     await toQuestions(user, { images: true })
     expect(screen.getAllByRole('img')).toHaveLength(2)
     expect(calls.at(-1)!.body).toBeDefined()
@@ -201,7 +199,7 @@ describe('Test mode: a full session', () => {
 
   it('needs an answer to go on, and the confidence and comment are optional', async () => {
     const user = userEvent.setup()
-    render(<ComparePage visualization={visualization} />)
+    render(<ComparePage visualization={visualization} testMode />)
     await toQuestions(user)
     expect(screen.getByRole('button', { name: 'Submit and go to the next question' })).toBeDisabled()
     await user.click(screen.getByRole('radio', { name: 'About the same' }))
@@ -210,7 +208,7 @@ describe('Test mode: a full session', () => {
 
   it('limits comments to 500 characters and shows the count', async () => {
     const user = userEvent.setup()
-    render(<ComparePage visualization={visualization} />)
+    render(<ComparePage visualization={visualization} testMode />)
     await toQuestions(user)
     const box = screen.getByRole('textbox', { name: /Anything you want to tell us/ })
     expect(box).toHaveAttribute('maxlength', '500')
@@ -220,7 +218,7 @@ describe('Test mode: a full session', () => {
 
   it('works by keyboard alone', async () => {
     const user = userEvent.setup()
-    render(<ComparePage visualization={visualization} />)
+    render(<ComparePage visualization={visualization} testMode />)
     await user.tab()
     expect(screen.getByRole('checkbox', { name: /I agree to take part/ })).toHaveFocus()
     await user.keyboard(' ')
@@ -233,7 +231,7 @@ describe('Test mode: a full session', () => {
 describe('Test mode: when the network fails', () => {
   it('keeps the answer, says so, and sends it when the connection comes back', async () => {
     const user = userEvent.setup()
-    render(<ComparePage visualization={visualization} />)
+    render(<ComparePage visualization={visualization} testMode />)
     await toQuestions(user)
     failNext = 2 // the first attempt and the first automatic retry both fail, so the answer is still waiting at the end
     await user.click(screen.getByRole('radio', { name: 'B is warmer' }))
@@ -250,5 +248,16 @@ describe('Test mode: when the network fails', () => {
     expect(ids.at(-1)).toBe('july-vs-december')
     expect(ids.filter(id => id === 'july-vs-december')).toHaveLength(1)
     expect(ids.lastIndexOf('january-vs-december')).toBeLessThan(ids.indexOf('july-vs-december'))
+  })
+})
+
+describe('Test mode: a comparison that names a date the data set does not have', () => {
+  it('still lets the listener hear and answer, and says that a picture is missing', async () => {
+    const broken: Visualization = { ...visualization, comparisons: [{ ...visualization.comparisons[0], frameB: 'no-such-date' }, visualization.comparisons[1]] }
+    const user = userEvent.setup()
+    const { container } = render(<ComparePage visualization={broken} testMode />)
+    await toQuestions(user, { images: true })
+    expect(screen.getByText(/picture for this question is missing/)).toBeInTheDocument()
+    await expectNoA11yViolations(container)
   })
 })

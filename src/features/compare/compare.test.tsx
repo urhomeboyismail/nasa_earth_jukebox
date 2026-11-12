@@ -272,3 +272,28 @@ describe('Compare: the voice guide and cleanup', () => {
     expect(screen.getByText(/Loading the data/)).toBeInTheDocument()
   })
 })
+
+describe('Compare: a comparison that names a date the data set does not have', () => {
+  const broken: Visualization = { ...visualization, comparisons: [{ ...visualization.comparisons[0], frameB: 'no-such-date' }, ...visualization.comparisons.slice(1)] }
+
+  it('says so in a notice, keeps the comparison list, and does not throw', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<ComparePage visualization={broken} />, { wrapper: AnnouncerProvider })
+    expect(screen.getByText(/names a date that is not in the data set/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Play date A' })).toBeNull()
+    await expectNoA11yViolations(container)
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Comparison' }), 'custom')
+    expect(await screen.findByRole('button', { name: 'Play date A' })).toBeInTheDocument()
+    expect(screen.queryByText(/names a date that is not in the data set/)).toBeNull()
+  })
+})
+
+describe('Compare: the test-mode flag', () => {
+  it('opens the listening test when the page is given true, and the normal page when it is false', () => {
+    const { rerender } = render(<ComparePage visualization={visualization} testMode />, { wrapper: AnnouncerProvider })
+    expect(screen.getByText('Listening test')).toBeInTheDocument()
+    rerender(<ComparePage visualization={visualization} testMode={false} />)
+    expect(screen.queryByText('Listening test')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Play date A' })).toBeInTheDocument()
+  })
+})

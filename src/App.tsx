@@ -226,7 +226,7 @@ function App() {
           {dataMissing && <Notice>The data set “{requestedData}” was not found, so this shows “{catalog?.[0].title}” instead.</Notice>}
           {loadError && <Notice variant="error">The data could not be loaded. {loadError}</Notice>}
           <Suspense fallback={<p role="status" className="app-loading">Loading…</p>}>
-            <CurrentPage visualization={visualization} />
+            <CurrentPage visualization={visualization} testMode={testMode} />
           </Suspense>
         </main>
 

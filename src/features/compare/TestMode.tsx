@@ -35,11 +35,9 @@ export default function TestMode({ visualization, client: given }: { visualizati
   const { comparisons, frames, regions, colorScale, mapping } = visualization
   const words = variableWords(visualization.variable)
   const client = useMemo(() => given ?? new StudyClient(), [given])
-  const [status, setStatus] = useState<StudyStatus>(client.status)
+  const [status, setStatus] = useState<StudyStatus>(() => client.status)
   useEffect(() => {
-    const update = () => setStatus(client.status)
-    update()
-    const unsubscribe = client.subscribe(update)
+    const unsubscribe = client.subscribe(() => setStatus(client.status))
     return () => { unsubscribe(); if (!given) client.dispose() }
   }, [client, given])
 
@@ -81,7 +79,8 @@ export default function TestMode({ visualization, client: given }: { visualizati
   }, [step, index])
 
   function begin() {
-    client.start({ participant: participant!, screenReader, sawImages: showImages })
+    if (participant === null) return
+    client.start({ participant, screenReader, sawImages: showImages })
     setStep('question')
   }
 
@@ -189,19 +188,20 @@ function Question({ comparison, number, of, visualization, engine, results, show
   useEffect(() => { shownAt.current = performance.now() }, [])
   const formatDate = dateFormatterFor(visualization.frames.map(frame => frame.date))
   const words = variableWords(visualization.variable)
-  const frameA = visualization.frames.find(f => f.id === comparison.frameA)!
-  const frameB = visualization.frames.find(f => f.id === comparison.frameB)!
+  // Only the pictures need these, and they are optional, so a missing date is said in words and the sounds still work.
+  const frameA = visualization.frames.find(f => f.id === comparison.frameA)
+  const frameB = visualization.frames.find(f => f.id === comparison.frameB)
   const ready = !!engine && !!results
 
   async function play(frameId: string) {
     const result = results?.find(r => r.frameId === frameId)
-    if (!engine || !result) return
+    if (!engine || !results || !result) return
     await engine.unlock()
     engine.stop()
     if (result.category === 'insufficient') engine.playMissing()
     else {
       // The chord, without the slide or bell: the two dates are not neighbours in a run.
-      const pad = voicingFor(results!, results!.indexOf(result), visualization.mapping).pad
+      const pad = voicingFor(results, results.indexOf(result), visualization.mapping).pad
       if (pad) engine.playCategory(result.category, { pad })
       else engine.playCategory(result.category)
     }
@@ -231,7 +231,8 @@ function Question({ comparison, number, of, visualization, engine, results, show
         <Button variant="primary" disabled={!ready} onClick={() => void play(comparison.frameB)}>Play date B</Button>
       </div>
 
-      {showImages && (
+      {showImages && (!frameA || !frameB) && <Notice>A picture for this question is missing, but you can still listen and answer.</Notice>}
+      {showImages && frameA && frameB && (
         <ul className="test__images">
           {([['Date A', frameA], ['Date B', frameB]] as const).map(([label, frame]) => (
             <li key={label}>
