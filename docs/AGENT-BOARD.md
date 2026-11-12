@@ -124,7 +124,7 @@ Our agents run on different laptops, so they talk through this file in git. When
 - To: G04 or G05 (owner of `server/app/api/assistant.py`, hotspot `server-assistant`)
 - Needed by: nothing; V02 ships without it (until then the server ignores the field, as it does today)
 - Status: open
-- Context: After V02 the browser's `start` message is `{"type":"start","language":…,"page":…,"detail":"short"|"detailed"}` (`src/hooks/useVoiceAssistant.ts`, `ws.onopen`). The listener picks it in the panel's **Answers** group, Short by default, stored under `earth-jukebox:answer-length`. `assistant_live` reads only `language` and `page` (`server/app/api/assistant.py:173`). V02 does not change the server.
+- Context: After V02 the browser's `start` message is `{"type":"start","language":…,"page":…,"detail":"short"|"detailed"}` (`src/hooks/useVoiceAssistant.ts`, `ws.onopen`). The listener picks it in the panel's **Answers** group, Short by default, stored under `earth-jukebox:answer-length`. `assistant_live` reads only `language` and `page` (`server/app/api/assistant.py:183`). V02 does not change the server.
 - Question: may the ticket that next edits `assistant.py` (G04 or G05) read `detail` (anything other than `"detailed"` counts as `"short"`) and add one system-instruction line for each value, for example "Answer in one or two short sentences." and "Answer fully, in up to six sentences, and offer to say more."? (a) yes, with those lines; (b) yes, with other lines (say which); (c) no.
 - Answer:
 - Recorded in: nowhere needed yet
@@ -134,7 +134,7 @@ Our agents run on different laptops, so they talk through this file in git. When
 - To: G04 or G05 (owner of `server/app/api/assistant.py`, hotspot `server-assistant`)
 - Needed by: nothing; V02 ships without it (the browser assumes 600 seconds)
 - Status: open
-- Context: V02 warns the listener one minute before the session limit ("Echo will stop in 1 minute. Continue?"), timed from the `ready` message. The limit is `assistant_max_session_seconds` (`server/app/config.py:38`, 600), but `ready` is sent as `{"type":"ready"}` (`server/app/api/assistant.py:181`), so the browser has to assume 600 (`DEFAULT_LIMIT_SECONDS` in `src/hooks/useVoiceAssistant.ts`). If the setting changes, the warning is wrong.
+- Context: V02 warns the listener one minute before the session limit ("Echo will stop in 1 minute. Continue?"), timed from the `ready` message. The limit is `assistant_max_session_seconds` (`server/app/config.py:39`, 600), but `ready` is sent as `{"type":"ready"}` (`server/app/api/assistant.py:192`), so the browser has to assume 600 (`DEFAULT_LIMIT_SECONDS` in `src/hooks/useVoiceAssistant.ts`). If the setting changes, the warning is wrong.
 - Question: may G04 or G05 send `{"type":"ready","limitSeconds":settings.assistant_max_session_seconds}`? The browser already reads it (a positive number) and falls back to 600 otherwise. (a) yes; (b) no, keep 600 in the browser.
 - Answer:
 - Recorded in: nowhere needed yet
