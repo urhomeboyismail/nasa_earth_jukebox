@@ -68,6 +68,12 @@ Add one line per piece of work, newest last.
 | 12 Nov | JB04 Echo's look per data set: an optional `mascot { accent, trail }` manifest field; without it the accent comes from the legend's most saturated colour (3:1 against the visor, else the theme colour) and the trail is sparks; four trail shapes (sparks, bubbles, ions, pulse), still under reduced motion; set for the SST, ocean and storm sets | `feature/JB04-dataset-mascot-theme` |
 | 12 Nov | V01 Voice guide keeps the listener's place: a page the guide opens no longer moves focus, "Echo did" lists the last 10 steps with Undo on the newest, Alt+E opens and closes the guide, Stop talking cuts the sound, errors and ended reasons in plain words | `feature/V01-agent-panel-focus-undo` (#16) |
 | 12 Nov | I05 Server hardening: a start message that is not an object, or a language or page of the wrong type, gets `bad_start` or the defaults; a missing `Origin` is refused when the allowed origins are not local; `POST /api/v1/tests` returns 503 past `STUDY_MAX_SESSIONS`; 17 new server tests | `fix/I05-server-hardening` (#17) |
+| 12 Nov | SN09 Explore v2: continuous tone and slope cue under the cursor or finger | `feature/SN09-explore-v2` |
+| 12 Nov | D04 Known-answer check: decoded values against NASA's numbers | `feature/D04-known-answer-check` |
+| 12 Nov | G01 ADK core package: tools, callbacks, action sink, keyless tests | `feature/G01-adk-core` |
+| 12 Nov | G03 Ask front end on the agent, with the offline matcher as fallback | `feature/G03-ask-frontend-agent` |
+| 12 Nov | G08 Jukebox orchestrator: a LangGraph of four ADK agents, and its route `POST /api/v1/jukebox/generate` | `feature/G08-jukebox-orchestrator` |
+| 12 Nov | I04 zod at the boundaries: study client, context data, welcome storage | `fix/I04-zod-boundaries` |
 | 12 Nov | I09 Compare clean-up: the App passes the test-mode flag to the page (no second hash listener), no crashing `!` left in Compare, and a comparison that names a missing date shows a notice | `fix/I09-compare-cleanup` |
 
 ## Outside resources used
