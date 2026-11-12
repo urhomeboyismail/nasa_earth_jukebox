@@ -24,7 +24,7 @@ SHOWN = 8  # claimable tickets listed
 
 def git(*args: str, timeout: int = 15) -> tuple[int, str]:
     try:
-        done = subprocess.run(["git", *args], capture_output=True, text=True, timeout=timeout)
+        done = subprocess.run(["git", *args], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout)
     except (OSError, subprocess.TimeoutExpired) as error:
         return 1, str(error)
     return done.returncode, done.stdout if done.returncode == 0 else done.stderr
