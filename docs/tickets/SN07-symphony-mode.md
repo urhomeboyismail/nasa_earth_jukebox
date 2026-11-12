@@ -165,7 +165,7 @@ Built on `feature/SN07-symphony-mode`. Only files under Touches changed, plus `s
 
 **Checks (real output):**
 - `npm run lint`: 0 warnings, 0 errors.
-- `npm test`: 95 files, 1693 tests passed (the 111 existing player tests pass unchanged; 38 new: `listenMode.test.ts` 6, `Symphony.test.tsx` 31, `symphony.golden.test.tsx` 1).
+- `npm test` (after rebasing onto main, 12 Nov): 127 files, 2107 tests passed (the existing player tests pass unchanged; 38 new: `listenMode.test.ts` 6, `Symphony.test.tsx` 31, `symphony.golden.test.tsx` 1).
 - `npm run build`: built, no errors.
 
 **Manual check (Chromium, `npm run dev`, a temporary git-ignored copy of `synthetic-storm` with a `video` (H.264 made from its frames) and `sonification` (dorian); removed afterwards):**
