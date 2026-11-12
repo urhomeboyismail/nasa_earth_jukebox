@@ -108,3 +108,13 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Answer:
 - Recorded in: `docs/tickets/JB04-dataset-mascot-theme.md` (Result)
 
+
+### R-20261112-G03-1: Who owns `src/features/ask/`?
+- From: G03 (Ask front end on the agent, agent D)
+- To: team leader
+- Needed by: nothing; G03 ships without it (its ticket asks for the owner to be confirmed here in one line)
+- Status: open
+- Context: `docs/PLAN.md` §4 lists no owner for `src/features/ask/`. The panel is mounted on Listen (`src/features/player/index.tsx`) and, after G03, reuses the voice guide's action allow-list (`toAssistantAction`, `src/hooks/useVoiceAssistant.ts`), both Mohammad's.
+- Question: (a) Mohammad, as owner of Listen and the voice guide; (b) the team leader; (c) someone else (say who). The answer goes in the §4 table.
+- Answer:
+- Recorded in: nowhere needed yet

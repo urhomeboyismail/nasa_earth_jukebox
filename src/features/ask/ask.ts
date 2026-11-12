@@ -82,7 +82,7 @@ function score(query: string, entry: Entry, weight: (word: string) => number): n
   return best
 }
 
-const confidenceFor = (facts: Fact[]) => (facts.every(fact => fact.kind === 'data') ? 'From data' : 'Description, not measured')
+export const confidenceFor = (facts: Fact[]) => (facts.every(fact => fact.kind === 'data') ? 'From data' : 'Description, not measured')
 
 const notFound = (): Answer => ({ matched: false, answer: NOT_FOUND, factIds: [], confidence: 'No answer', source: '' })
 
@@ -92,9 +92,15 @@ export function availableQuestions(facts: Fact[]) {
   return QUESTIONS.filter(question => ids.has(question.factId))
 }
 
+/** False for a question nothing may answer: empty or too long, steering, out of scope, or about a date the data does not have. */
+export function guardsAllow(question: string, knownDates: string[]): boolean {
+  const text = question.trim()
+  return !(!text || text.length > MAX_QUESTION_CHARS || STEERING.test(text) || OUT_OF_SCOPE.test(text) || mentionsUnknownTime(text, knownDates))
+}
+
 export function ask(question: string, facts: Fact[], knownDates: string[]): Answer {
   const text = question.trim()
-  if (!text || text.length > MAX_QUESTION_CHARS || STEERING.test(text) || OUT_OF_SCOPE.test(text) || mentionsUnknownTime(text, knownDates)) return notFound()
+  if (!guardsAllow(text, knownDates)) return notFound()
   const entries = availableQuestions(facts)
   const weight = weightsFor(entries)
   let best: (typeof entries)[number] | null = null
