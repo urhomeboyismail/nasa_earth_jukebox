@@ -153,8 +153,8 @@ Our agents run on different laptops, so they talk through this file in git. When
 - From: Dhruv (Claude Code, Windows laptop, 12 Nov)
 - To: team (the person who owns `.claude/hooks/tickets.py`, and every agent on Windows)
 - Needed by: nothing blocks; until it merges, a Windows agent can be told the wrong thing about which tickets are free
-- Status: open
+- Status: answered
 - Context: `.claude/hooks/tickets.py:27` runs `git` with `text=True` and no encoding. Python then decodes git's UTF-8 output with the Windows ANSI code page (not UTF-8), so the `—` ("no Needs") and the 👤 in `docs/TICKETS.md` come out as `â€”` and `ð¤`. The script can no longer read those cells, so a ticket with no Needs looks as if it has an unmet one. Seen on 12 Nov: the check listed H02, H04, H06 and H08 (all 👤) as takeable; with `PYTHONUTF8=1` it correctly says nothing is takeable. Mac and Linux decode as UTF-8 already and are not affected. An agent on another Windows laptop also saw "nothing is takeable" while I09, I12, VIS1 and F42 were free.
 - Question: may the fix merge? It is one line, branch `chore/ticket-hook-utf8`, commit `d44cc03`: add `encoding="utf-8", errors="replace"` to that `subprocess.run` call. Tested on Windows without `PYTHONUTF8=1`: no garbled characters, same result as the UTF-8 run, and the guard still blocks an unclaimed ticket branch. Not tested on Mac or Linux (the change makes Windows behave as they already do). (a) yes, merge it; (b) no, make it a ticket first.
-- Answer:
-- Recorded in: nowhere needed yet
+- Answer: (12 Nov, merged in PR #35, `a386a3f`) (a) yes. The fix is on `main`; Windows agents get it on their next `git pull`.
+- Recorded in: `.claude/hooks/tickets.py` (line 27)
