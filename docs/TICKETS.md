@@ -69,7 +69,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [SN05](tickets/SN05-manifest-v3-fields.md) | Manifest fields `video`, `sonification`, `legend`, with defaults | M | agent | — | schema, catalogue | done |
 | [SN06](tickets/SN06-live-video-source.md) | Live video source: read each displayed EIC frame as it plays | M | agent | SN01, SN05 | — | done |
 | [SN07](tickets/SN07-symphony-mode.md) | Listen: Symphony mode wired end to end; Detail, mixer, layer captions; Simple mode kept | L | agent | SN01, SN03, SN04, SN06 | player | done |
-| [SN08](tickets/SN08-scan-mode.md) | Scan mode: sweep a frame so shapes become audible | M | agent | SN01, SN03, SN04, SN07 | player | open |
+| [SN08](tickets/SN08-scan-mode.md) | Scan mode: sweep a frame so shapes become audible | M | agent | SN01, SN03, SN04, SN07 | player | claimed: E, 2026-11-12 |
 | [SN09](tickets/SN09-explore-v2.md) | Explore v2: continuous tone and slope cue under the cursor or finger | M | agent | SN03, SN04 | explorer | done |
 | [SN10](tickets/SN10-text-equivalents.md) | Text equivalents: event sentences, announcements, hot-spot markers, sound recipe | M | agent | SN01, SN03 | player, about | open |
 | [SN11](tickets/SN11-learn-v3.md) | Learn v3: one card per voice, played alone on the synthetic sets | M | agent | SN01, SN02, SN03, SN04, SN06 | learn | done |
