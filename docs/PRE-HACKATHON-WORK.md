@@ -78,6 +78,7 @@ Add one line per piece of work, newest last.
 | 12 Nov | I09 Compare clean-up: the App passes the test-mode flag to the page (no second hash listener), no crashing `!` left in Compare, and a comparison that names a missing date shows a notice | `fix/I09-compare-cleanup` |
 | 12 Nov | G02 Grounded Ask endpoint on ADK: `POST /api/v1/agent/ask` returns fact IDs only, off unless `AGENT_ENABLED` | `feature/G02-agent-ask-endpoint` (PR #28) |
 | 12 Nov | JB03 Audio-reactive chest: Echo's EQ bars and mini globe follow the real sound through an analyser on Tone's output (listen only, nothing loads or plays); once a second under reduced motion | `feature/JB03-audio-chest` |
+| 12 Nov | JB02 Scroll-driven air boosters: Echo leans and fires its boots in proportion to scroll speed, with a retro-burn after a fast stop; nothing moves under reduced motion | `feature/JB02-scroll-boosters` |
 
 ## Outside resources used
 

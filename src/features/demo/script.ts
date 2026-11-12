@@ -5,7 +5,7 @@ import type { Page } from '../../pages'
 
 export type DemoStep = {
   page: Page
-  /** Shown as a caption and read out, so the tour makes sense without seeing the screen. */
+  /** Shown as a caption, and spoken too when the listener has switched on "Read the demo aloud" (F42). */
   say: string
   /** Play the dates on this page and wait for them to finish. */
   play?: true

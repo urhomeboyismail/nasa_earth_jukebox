@@ -5,7 +5,11 @@ import { publishContext } from '../../assistant/context'
 import { expectNoA11yViolations } from '../../test/a11y'
 import { onPlayerCommand, type PlayerCommand } from '../player/controls'
 import { DemoControl } from './DemoControl'
+import * as speech from '../welcome/speak'
+import * as welcome from '../welcome/storage'
 import { DEMO_STEPS } from './script'
+
+vi.mock('../welcome/speak', () => ({ speak: vi.fn(() => Promise.resolve()), hush: vi.fn() }))
 
 const tick = (ms: number) => act(async () => { await vi.advanceTimersByTimeAsync(ms) })
 const caption = () => document.querySelector('.demo__caption')?.textContent
@@ -19,7 +23,7 @@ beforeEach(() => {
   commands = []
   off = onPlayerCommand(command => commands.push(command))
 })
-afterEach(() => { off(); vi.useRealTimers(); vi.unstubAllGlobals() })
+afterEach(() => { off(); vi.useRealTimers(); vi.unstubAllGlobals(); vi.mocked(speech.speak).mockClear(); vi.mocked(speech.hush).mockClear(); vi.restoreAllMocks() })
 
 describe('DemoControl', () => {
   it('walks the pages with a caption, plays the dates and says it has finished', async () => {
@@ -75,5 +79,73 @@ describe('DemoControl', () => {
     const { container } = render(<DemoControl />)
     vi.useRealTimers()
     await expectNoA11yViolations(container)
+  })
+
+  describe('Read the demo aloud', () => {
+    it('is a labelled switch, off by default, and nothing is spoken while it is off', async () => {
+      const user = userEvent.setup({ delay: null })
+      const { container } = render(<DemoControl />)
+      const toggle = screen.getByRole('checkbox', { name: 'Read the demo aloud' })
+      expect(toggle).not.toBeChecked()
+      await user.click(screen.getByRole('button', { name: 'Play the demo' }))
+      await tick(7000)
+      expect(speech.speak).not.toHaveBeenCalled()
+      expect(caption()).toBe(DEMO_STEPS[1].say)
+      vi.useRealTimers()
+      await expectNoA11yViolations(container)
+    })
+
+    it('speaks each caption in order, pausing the music first, and only the play step sends play', async () => {
+      const user = userEvent.setup({ delay: null })
+      render(<DemoControl />)
+      await user.click(screen.getByRole('checkbox', { name: 'Read the demo aloud' }))
+      await user.click(screen.getByRole('button', { name: 'Play the demo' }))
+      await tick(0)
+      expect(speech.speak).toHaveBeenNthCalledWith(1, DEMO_STEPS[0].say)
+      expect(commands[0]).toBe('pause')
+      await tick(7000)
+      expect(speech.speak).toHaveBeenNthCalledWith(2, DEMO_STEPS[1].say)
+      await tick(7000)
+      expect(window.location.hash).toBe('#listen')
+      await tick(1300)
+      expect(commands.filter(command => command === 'pause').length).toBe(3)
+      expect(commands.indexOf('play')).toBeGreaterThan(commands.lastIndexOf('pause'))
+      expect(commands.filter(command => command === 'play').length).toBeGreaterThanOrEqual(1)
+      expect(commands.slice(0, commands.indexOf('play')).every(command => command === 'pause')).toBe(true)
+    })
+
+    it('has no accessibility violations with the switch on', async () => {
+      const user = userEvent.setup({ delay: null })
+      const { container } = render(<DemoControl />)
+      await user.click(screen.getByRole('checkbox', { name: 'Read the demo aloud' }))
+      vi.useRealTimers()
+      await expectNoA11yViolations(container)
+    })
+
+    it('is not shown on the screen reader path', () => {
+      vi.spyOn(welcome, 'readWelcome').mockReturnValue({ done: true, speech: false, path: 'screen-reader' })
+      render(<DemoControl />)
+      expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+    })
+
+    it('hushes the voice when the demo is stopped', async () => {
+      const user = userEvent.setup({ delay: null })
+      render(<DemoControl />)
+      await user.click(screen.getByRole('button', { name: 'Play the demo' }))
+      await user.click(screen.getByRole('button', { name: 'Stop the demo' }))
+      expect(speech.hush).toHaveBeenCalled()
+    })
+  })
+
+  it('ignores Escape when another control has already handled it', async () => {
+    const user = userEvent.setup({ delay: null })
+    render(<DemoControl />)
+    await user.click(screen.getByRole('button', { name: 'Play the demo' }))
+    const event = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true })
+    event.preventDefault()
+    act(() => { window.dispatchEvent(event) })
+    await tick(0)
+    expect(screen.getByRole('button', { name: 'Stop the demo' })).toBeInTheDocument()
+    expect(caption()).not.toBe('The demo was stopped.')
   })
 })
