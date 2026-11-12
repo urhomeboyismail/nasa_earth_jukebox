@@ -167,6 +167,20 @@ describe('the dock', () => {
   })
 })
 
+describe("Echo's chest (JB03)", () => {
+  it('rests while nothing plays, and the dock never creates an audio context', () => {
+    const contexts = vi.fn()
+    vi.stubGlobal('AudioContext', contexts)
+    const { container } = render(<Dock />)
+    const heights = () => [...container.querySelectorAll('[data-part="eq-bar"]')].map(bar => bar.getAttribute('height'))
+    const resting = heights()
+    expect(resting).toHaveLength(4)
+    expect(container.querySelector('svg[data-globe]')?.getAttribute('data-globe')).toBe('still')
+    expect(contexts).not.toHaveBeenCalled()
+    vi.unstubAllGlobals()
+  })
+})
+
 describe("Echo's face", () => {
   it('is happy at rest and searches while a data set loads', () => {
     const { container, rerender } = render(<Dock />)

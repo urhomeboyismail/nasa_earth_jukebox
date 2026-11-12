@@ -34,6 +34,18 @@ export class FakeOscillatorNode extends FakeNode {
   stop(when = 0) { this.stopped.push(when) }
 }
 
+/** Records what is connected to it and answers with the bytes a test sets in `frequency` and `waveform`. Makes no sound. */
+export class FakeAnalyserNode extends FakeNode {
+  fftSize = 2048
+  get frequencyBinCount() { return this.fftSize / 2 }
+  /** What getByteFrequencyData copies out (missing bytes are 0). */
+  frequency: number[] = []
+  /** What getByteTimeDomainData copies out (missing bytes are 128, silence). */
+  waveform: number[] = []
+  getByteFrequencyData(into: Uint8Array) { into.fill(0); into.set(this.frequency.slice(0, into.length)) }
+  getByteTimeDomainData(into: Uint8Array) { into.fill(128); into.set(this.waveform.slice(0, into.length)) }
+}
+
 export class FakeAudioContext {
   static instances: FakeAudioContext[] = []
   state: 'suspended' | 'running' | 'closed' = 'suspended'
@@ -41,11 +53,13 @@ export class FakeAudioContext {
   sampleRate = 44100
   destination = new FakeNode()
   oscillators: FakeOscillatorNode[] = []
+  analysers: FakeAnalyserNode[] = []
   constructor() { FakeAudioContext.instances.push(this) }
   async resume() { this.state = 'running' }
   async suspend() { this.state = 'suspended' }
   async close() { this.state = 'closed' }
   createGain() { return new FakeGainNode() }
+  createAnalyser() { const node = new FakeAnalyserNode(); this.analysers.push(node); return node }
   createOscillator() { const node = new FakeOscillatorNode(); this.oscillators.push(node); return node }
 }
 

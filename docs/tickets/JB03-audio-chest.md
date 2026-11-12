@@ -99,4 +99,20 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Done on `feature/JB03-audio-chest`.
+
+- `src/audio/levels.ts` (new): `bandsFrom`, `attachLevels`, `getLevels`, `getLoudness`, `detachLevels`. One `AnalyserNode` (fftSize 256) fed from Tone's destination and connected to nothing. It never creates, resumes or loads a context. `attachLevels` is generic over the analyser type so the real Tone module and a test fake both fit without a cast.
+- `src/features/mascot/useLevels.ts` (new): while `active`, one `requestAnimationFrame` loop throttled to 30 updates a second; under reduced motion one read a second and no frame loop. Not active: no loop, no `import('tone')`, no analyser. Cleanup cancels the loop and detaches the analyser.
+- `MascotDock.tsx`: `active` is "Echo is shown, the voice panel is closed, the player is playing and the tab is visible"; passes `levels` and `globeSpin` (the loudness) to `Echo`.
+- `src/test/fakes.ts`: `FakeAnalyserNode` and `createAnalyser` on `FakeAudioContext`.
+- **Differs from the ticket:** `LEVEL_BANDS` is 4, not 5, because Echo's chest draws four bars (`RESTING_LEVELS` in `src/components/mascotTypes.ts`).
+- `engine.ts` is untouched; the analyser is attached from the mascot after the player reports `playing`.
+- **Not done:** step 5, watching the chest follow a real data set in a browser. This session has no audio output; a person should check it once.
+
+```
+npx vitest run src/features/mascot src/audio/levels -> 6 files, 55 tests passed
+npx tsc -b      -> no errors
+npm run lint    -> no errors
+npm test        -> 122 files, 2016 tests passed
+npm run build   -> built in 852ms
+```
