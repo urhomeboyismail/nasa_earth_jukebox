@@ -67,6 +67,7 @@ Add one line per piece of work, newest last.
 | 12 Nov | JB01 Echo's corner dock on every page: a button that opens a glass speech bubble (page tip or a tip a page offers through `useMascotGuide()`), Talk to Echo, Turn Echo off; the visor follows loading, playing, speaking and idle; tips are announced only when the bubble is opened | `feature/JB01-mascot-dock` |
 | 12 Nov | JB04 Echo's look per data set: an optional `mascot { accent, trail }` manifest field; without it the accent comes from the legend's most saturated colour (3:1 against the visor, else the theme colour) and the trail is sparks; four trail shapes (sparks, bubbles, ions, pulse), still under reduced motion; set for the SST, ocean and storm sets | `feature/JB04-dataset-mascot-theme` |
 | 12 Nov | V01 Voice guide keeps the listener's place: a page the guide opens no longer moves focus, "Echo did" lists the last 10 steps with Undo on the newest, Alt+E opens and closes the guide, Stop talking cuts the sound, errors and ended reasons in plain words | `feature/V01-agent-panel-focus-undo` (#16) |
+| 12 Nov | I05 Server hardening: a start message that is not an object, or a language or page of the wrong type, gets `bad_start` or the defaults; a missing `Origin` is refused when the allowed origins are not local; `POST /api/v1/tests` returns 503 past `STUDY_MAX_SESSIONS`; 17 new server tests | `fix/I05-server-hardening` (#17) |
 
 ## Outside resources used
 
