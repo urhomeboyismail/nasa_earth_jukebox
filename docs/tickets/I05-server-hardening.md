@@ -116,3 +116,5 @@ npm test        -> 1875 passed, 3 failed (none touch server code; no src/ file c
   - src/data/sound-regression.test.ts: expects LF line endings, this Windows checkout has CRLF (autocrlf).
   - src/App.test.tsx (2 tests): fail only in the full parallel run; the file passes when run alone.
 ```
+
+**After the merge:** CI on `16e4894` (`chore: I05 done`) failed in two G01 tests (`tests/test_agent_core.py`). The merge of `main` into this branch (`9f75d99`) had dropped G01's `agent_enabled` and `assistant_engine` settings from `server/app/config.py`. Fixed in `a9c70fc`; CI on later commits on `main` is green, and the I05 changes (`study_max_sessions`, `origin_required`) are still in `config.py`. The red mark on `16e4894` stays in the history.
