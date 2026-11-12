@@ -109,15 +109,15 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [G01](tickets/G01-adk-core.md) | ADK core package: tools, callbacks, action sink, keyless tests | M | agent | — | server-assistant | done |
 | [G02](tickets/G02-agent-ask-endpoint.md) | Grounded Ask endpoint on ADK | M | agent | G01 | — | done |
 | [G03](tickets/G03-ask-frontend-agent.md) | Ask front end on the agent, with the offline matcher as fallback | M | agent | — | ask | done |
-| [G04](tickets/G04-voice-on-adk.md) | Voice guide on ADK `run_live`, same browser protocol, behind a switch | L | agent | G01 | server-assistant | ready: feature/G04-voice-on-adk |
+| [G04](tickets/G04-voice-on-adk.md) | Voice guide on ADK `run_live`, same browser protocol, behind a switch | L | agent | G01 | server-assistant | done |
 | [H02](tickets/H02-live-parity-check.md) | Live parity check with a billed key | S | 👤 | G04 | — | open |
 | [G05](tickets/G05-adk-default.md) | ADK by default; retire the old bridge | S | agent | G04, H02 | server-assistant | open |
 | [G06](tickets/G06-agent-sees-more.md) | The agent sees facts, the explorer and the music; context schemas and drift test | M | agent | G04, SN03 | server-assistant, player, compare, ask | open |
 | [G07](tickets/G07-agent-eval-drafter.md) | Agent evaluation (scoring bug fixed) and the offline drafter | M | agent+👤 | G02 | — | blocked: held-out questions |
 | [G08](tickets/G08-jukebox-orchestrator.md) | Jukebox orchestrator: a LangGraph of four ADK agents (supervisor, synthesizer, vision, critic), and its route `POST /api/v1/jukebox/generate` | M | agent | — | — | done |
 | [V01](tickets/V01-agent-panel-focus-undo.md) | Agent panel: focus not stolen, "Echo did" with Undo, Alt+E, Stop | M | agent | — | app, voice | done |
-| [V02](tickets/V02-mic-consent-text-only.md) | Mic consent first, text-only mode, push-to-talk, session warning | M | agent | — | app, voice | ready: feature/V02-mic-consent-text-only |
-| [V03](tickets/V03-voice-client-hygiene.md) | Voice client: parsed messages, quieter status, shared icons | S | agent | — | voice | ready: feature/V03-voice-client-hygiene |
+| [V02](tickets/V02-mic-consent-text-only.md) | Mic consent first, text-only mode, push-to-talk, session warning | M | agent | — | app, voice | done |
+| [V03](tickets/V03-voice-client-hygiene.md) | Voice client: parsed messages, quieter status, shared icons | S | agent | — | voice | done |
 
 ### P2: quality and smaller features
 
@@ -131,11 +131,11 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [I09](tickets/I09-compare-cleanup.md) | Compare clean-up | S | agent | — | compare | done |
 | [I10](tickets/I10-first-load.md) | First load: lazy voice panel, demo and v3 pipeline; bundle budget in CI | M | agent | SN07 | app | open |
 | [I11](tickets/I11-lint-ci-rules.md) | Lint and CI rules that enforce `frontend.md`; ruff | S | agent | I04, I06 | — | open |
-| [I12](tickets/I12-missing-unit-tests.md) | Unit tests for five untested modules | S | agent | — | — | ready: chore/I12-missing-unit-tests |
-| [VIS1](tickets/VIS1-low-vision-map-tools.md) | Low-vision map tools: magnifier, big cursor, high-contrast outline, forced colours | M | agent | — | explorer | ready: feature/VIS1-low-vision-map-tools |
+| [I12](tickets/I12-missing-unit-tests.md) | Unit tests for five untested modules | S | agent | — | — | done |
+| [VIS1](tickets/VIS1-low-vision-map-tools.md) | Low-vision map tools: magnifier, big cursor, high-contrast outline, forced colours | M | agent | — | explorer | done |
 | [VIS2](tickets/VIS2-patterns-display-settings.md) | Colour-vision patterns and display settings | M | agent | — | app, explorer | open |
 | [VIS3](tickets/VIS3-design-system-housekeeping.md) | Design-system housekeeping | M | agent | — | app | open |
-| [F42](tickets/F42-spoken-demo-caption.md) | Spoken demo caption; demo fixes | S | agent | — | — | ready: feature/F42-spoken-demo-caption |
+| [F42](tickets/F42-spoken-demo-caption.md) | Spoken demo caption; demo fixes | S | agent | — | — | done |
 | [F48](tickets/F48-region-picker.md) | Region picker | M | agent | I06 | player, compare, schema | open |
 | [AU-UI](tickets/AU-UI-interface-sounds.md) | Interface sounds, quiet and behind a switch | M | agent | SN04, H03 | player, compare, voice | open |
 
