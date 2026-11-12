@@ -1,6 +1,6 @@
 import { Button } from '../../components'
 import type { VoiceId } from '../../data'
-import { VOICE_WORDS } from './symphony'
+import { VOICE_WORDS } from './symphonyState'
 
 type Props = {
   /** The voices that have a row. */

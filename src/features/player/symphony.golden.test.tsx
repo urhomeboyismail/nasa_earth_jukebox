@@ -18,7 +18,7 @@ import type { Pixels } from '../../analysis/analyze'
 import { decodePng } from '../../analysis/png'
 import { visualizationSchema } from '../../data/schema'
 import { createFakeEnsemble, createFakeSource, withV3, type FakeEnsemble, type FakeSource } from './symphonyTestSupport'
-import { useSymphony } from './symphony'
+import { useSymphony } from './symphonyState'
 
 const fakes = vi.hoisted(() => ({ ensemble: null as FakeEnsemble | null, source: null as FakeSource | null }))
 vi.mock('../../audio/ensemble/useEnsemble', async () => {
