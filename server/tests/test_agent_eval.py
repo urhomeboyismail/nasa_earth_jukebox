@@ -89,6 +89,18 @@ def test_report_without_heldout_writes_no_verdict(tmp_path, monkeypatch):
     assert not re.search(r"KEEP|KILL|Verdict:", report)
 
 
+def test_heldout_without_adversarial_questions_is_scored(tmp_path, monkeypatch):
+    held = {"real": [{"id": f"h{i}", "text": "q", "author": "A person", "expected_fact_ids": ["F-highest"], "open_wording": True} for i in range(15)]}
+    path = tmp_path / "heldout.json"
+    path.write_text(json.dumps(held), encoding="utf-8")
+    monkeypatch.setattr(run_eval, "find_tsx", lambda: ["tsx"])
+    monkeypatch.setattr(run_eval, "static_results", lambda p, t: {q["id"]: static() for q in json.loads(p.read_text())["real"] + json.loads(p.read_text()).get("adversarial", [])})
+    monkeypatch.setattr(run_eval, "agent_results", lambda *a: None)
+    report, verdict = run_eval.evaluate(2.5, 0, EVAL / "questions" / "dev.json", path)
+    assert verdict.startswith("NOT DECIDED")  # the agent was not run
+    assert "adversarial: 0 of 0 passed" in report
+
+
 # 6. The dev file.
 def test_dev_questions_meet_the_counts_and_use_real_fact_ids():
     dev = json.loads((EVAL / "questions" / "dev.json").read_text(encoding="utf-8"))

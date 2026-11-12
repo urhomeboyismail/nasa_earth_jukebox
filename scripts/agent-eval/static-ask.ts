@@ -28,9 +28,9 @@ if (args.includes('--write-facts')) {
 } else if (args.includes('--list-aliases')) {
   console.log(JSON.stringify(QUESTIONS.map(({ id, factId, question, aliases }) => ({ id, factId, question, aliases }))))
 } else if (args[0]) {
-  const file = JSON.parse(readFileSync(args[0], 'utf8')) as { real: { id: string; text: string }[]; adversarial: { id: string; text: string }[] }
+  const file = JSON.parse(readFileSync(args[0], 'utf8')) as { real: { id: string; text: string }[]; adversarial?: { id: string; text: string }[] }
   const out: Record<string, unknown> = {}
-  for (const q of [...file.real, ...file.adversarial]) {
+  for (const q of [...file.real, ...(file.adversarial ?? [])]) {
     const { matched, answer, factIds } = ask(q.text, facts, dates)
     out[q.id] = { matched, answer, factIds, guardsAllow: guardsAllow(q.text, dates) }
   }

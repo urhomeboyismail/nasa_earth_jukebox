@@ -70,7 +70,7 @@ def agent_results(questions: dict, facts: dict, timeout: float, pace: float) -> 
     out: dict[str, dict] = {}
 
     async def run():
-        for n, q in enumerate(questions["real"] + questions["adversarial"]):
+        for n, q in enumerate(questions["real"] + questions.get("adversarial", [])):
             if n and pace:
                 await asyncio.sleep(pace)  # stay under a per-minute quota
             try:
