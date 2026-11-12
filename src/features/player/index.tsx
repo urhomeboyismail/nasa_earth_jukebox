@@ -19,6 +19,8 @@ import { momentHash, readMoment, useMomentLink } from './momentLink'
 import { shortcutFor } from './shortcuts'
 import { ShortcutsDialog } from './ShortcutsDialog'
 import { Viewer } from './Viewer'
+import { useListenMode, type ListenMode } from './listenMode'
+import { Symphony } from './Symphony'
 
 const SPEEDS: { id: Speed; label: string }[] = [
   { id: 'slow', label: 'Slow' },
@@ -42,7 +44,32 @@ const spaceActivates = (target: EventTarget) =>
 export default function PlayerPage({ visualization }: PageProps) {
   if (!visualization) return <p>Loading the data…</p>
   return (
-    <Player key={visualization.id} visualization={visualization} />
+    <ListenPage key={visualization.id} visualization={visualization} />
+  )
+}
+
+const MODES: { id: ListenMode; label: string; says: string }[] = [
+  { id: 'symphony', label: 'Symphony mode', says: 'Symphony mode. Press Play to start.' },
+  { id: 'simple', label: 'Simple mode', says: 'Simple mode. Press Play to start.' },
+]
+
+/** Symphony reads each frame as it is shown and plays the ensemble; Simple is the player that plays one note a date. Only the one chosen is on the page. */
+function ListenPage({ visualization }: { visualization: Visualization }) {
+  const [mode, setMode] = useListenMode(visualization)
+  const announce = useAnnounce()
+  return (
+    <>
+      <fieldset className="symphony__mode">
+        <legend>Listen as</legend>
+        {MODES.map(({ id, label, says }) => (
+          <label key={id} className="player__style-option">
+            <input type="radio" name="listen-mode" value={id} checked={mode === id} onChange={() => { setMode(id); announce(says) }} />
+            <span>{label}</span>
+          </label>
+        ))}
+      </fieldset>
+      {mode === 'symphony' ? <Symphony visualization={visualization} /> : <Player visualization={visualization} />}
+    </>
   )
 }
 
