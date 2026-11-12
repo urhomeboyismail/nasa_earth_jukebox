@@ -98,4 +98,21 @@ npx vitest run src/features/demo src/features/welcome
 
 ## Result
 
-Not started.
+Done on `feature/F42-spoken-demo-caption`.
+
+- `script.ts`: the comment now says the caption is shown, and spoken only when the switch is on.
+- `runDemo.ts`: optional `DemoDeps.speakCaption`; awaited after `say` and before the hold or the play, and a stop during speech ends the tour.
+- `DemoControl.tsx`: checkbox "Read the demo aloud" (off, visit-only, not stored, disabled while the tour runs, not rendered when `readWelcome().path === 'screen-reader'`). With it on, `pause` is sent and `speak` is called (15 s cap) for each caption. Stop and Escape call `hush()`. Escape is ignored when `defaultPrevented`.
+- `speak.ts` already returned a promise that resolves at the end, so it is unchanged.
+- Pause is sent before every caption, whether or not the music is playing. It is harmless when stopped.
+
+Checks:
+
+```
+npx vitest run src/features/demo src/features/welcome
+ Test Files  5 passed (5)   Tests  46 passed (46)
+npm run lint     -> no errors
+npm test         -> 119 files passed, 1 failed: src/data/change-regression.test.ts timed out (90 s) under full-suite load;
+                    run alone it passes (7 passed, 120 s). Not touched by this ticket.
+npm run build    -> built in 875ms
+```

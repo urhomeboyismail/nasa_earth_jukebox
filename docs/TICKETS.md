@@ -135,7 +135,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [VIS1](tickets/VIS1-low-vision-map-tools.md) | Low-vision map tools: magnifier, big cursor, high-contrast outline, forced colours | M | agent | — | explorer | ready: feature/VIS1-low-vision-map-tools |
 | [VIS2](tickets/VIS2-patterns-display-settings.md) | Colour-vision patterns and display settings | M | agent | — | app, explorer | open |
 | [VIS3](tickets/VIS3-design-system-housekeeping.md) | Design-system housekeeping | M | agent | — | app | open |
-| [F42](tickets/F42-spoken-demo-caption.md) | Spoken demo caption; demo fixes | S | agent | — | — | claimed: E, 2026-11-12 |
+| [F42](tickets/F42-spoken-demo-caption.md) | Spoken demo caption; demo fixes | S | agent | — | — | ready: feature/F42-spoken-demo-caption |
 | [F48](tickets/F48-region-picker.md) | Region picker | M | agent | I06 | player, compare, schema | open |
 | [AU-UI](tickets/AU-UI-interface-sounds.md) | Interface sounds, quiet and behind a switch | M | agent | SN04, H03 | player, compare, voice | open |
 
