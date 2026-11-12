@@ -95,8 +95,8 @@ Checks (Windows, 12 Nov):
 grep -rn "useTestMode|hashchange" src/features/compare   (no matches outside tests)
 npm run lint     -> clean
 npm run build    -> built
-npm test         -> 1880 passed, 1 failed
+npm test         -> 1932 passed, 1 failed (App.test.tsx, load-related)
 ```
 
-The one failure is `src/data/sound-regression.test.ts > notices when one legend stop of the fixture changes`. It fails the same way on unchanged `main` on this Windows machine (a line-ending difference against the golden file), so it is not from this ticket. `src/App.test.tsx` failed once or twice while three agents were running tests at the same time and passed on every re-run alone (5 of 5).
+The one failure is `src/App.test.tsx > loads the first visualization and shows it on each page`, in the full parallel run only, while other agents were running tests on the same machine. Run alone, `src/App.test.tsx` passed 34 of 34 on 3 of 3 runs. `src/data/sound-regression.test.ts` failed on `main` before it was brought up to date and passes now.
 
