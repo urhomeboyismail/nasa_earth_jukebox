@@ -64,6 +64,7 @@ Add one line per piece of work, newest last.
 | 11 Nov | SN13 One voice at a time: a shared duck controller lowers the music by 18 dB (0.3 s attack, 0.8 s release) under the voice guide, browser speech and announcements instead of pausing it, in both engines and on every page; `speak()` resolves when the speech ends and the Welcome sound check plays its note after the spoken question | `feature/SN13-one-voice-at-a-time` |
 | 11 Nov | EIC01 `scripts/eic_ingest.py`: an EIC MP4 or frame folder in, a data set folder out (dated frames, colour scale read from the colour bar, map area, same-origin H.264 web video, manifest with `video`, `legend` and `sonification`), with `--detect-only` to preview the bar first; calls `convert_frames.py` as a library | `feature/EIC01-ingest-script` |
 | 11 Nov | F58: Echo redrawn as Juke-Bot; five visor expressions and four motion states as props; persona says Echo is a program | `feature/F58-juke-bot` |
+| 12 Nov | JB01 Echo's corner dock on every page: a button that opens a glass speech bubble (page tip or a tip a page offers through `useMascotGuide()`), Talk to Echo, Turn Echo off; the visor follows loading, playing, speaking and idle; tips are announced only when the bubble is opened | `feature/JB01-mascot-dock` |
 
 ## Outside resources used
 

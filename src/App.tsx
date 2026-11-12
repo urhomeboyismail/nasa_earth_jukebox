@@ -11,6 +11,7 @@ import type { PageProps } from './features/types'
 import { noteGuidePlaybackCommand, useDucking } from './assistant/ducking'
 import { sendPlayerCommand } from './features/player/controls'
 import { useVoiceAssistant, type AssistantAction } from './hooks/useVoiceAssistant'
+import { MascotGuideProvider } from './features/mascot/MascotGuideProvider'
 import { pages, type Page } from './pages'
 import { currentDataParam, hashFor, parseHash } from './route'
 import { useNavDrag } from './useNavDrag'
@@ -21,6 +22,8 @@ const AboutPage = lazy(() => import('./features/about'))
 const ComparePage = lazy(() => import('./features/compare'))
 const LearnPage = lazy(() => import('./features/learn'))
 const PlayerPage = lazy(() => import('./features/player'))
+// Echo's corner widget is not needed to read the page, so it loads after it.
+const MascotDock = lazy(() => import('./features/mascot/MascotDock'))
 
 const pageComponents: Record<Page, ComponentType<PageProps>> = {
   home: HomePage,
@@ -165,68 +168,76 @@ function App() {
 
   return (
     <AnnouncerProvider>
-      {/* The hash holds the page, so the skip link moves focus itself instead of jumping to an anchor. */}
-      <a className="app-skip" href={hashFor(page, { data: linkData })} onClick={event => { event.preventDefault(); heading.current?.focus() }}>
-        Skip to content
-      </a>
-      <header className="app-header">
-        <a className="app-brand" href={hashFor('home', { data: linkData })} onClick={event => backToTop(event, 'home')}>
-          <svg className="app-brand__mark" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
-            <circle cx="20" cy="20" r="20" />
-            <path d="M11 23v-6h2.5v6zm5 5V12h2.5v16zm5-3V15h2.5v10zm5-3v-4h2.5v4z" />
-          </svg>
-          <span className="app-brand__name">Earth Jukebox</span>
+      <MascotGuideProvider>
+        {/* The hash holds the page, so the skip link moves focus itself instead of jumping to an anchor. */}
+        <a className="app-skip" href={hashFor(page, { data: linkData })} onClick={event => { event.preventDefault(); heading.current?.focus() }}>
+          Skip to content
         </a>
-        <nav aria-label="Main" className={navDrag.dragging ? 'is-dragging' : undefined}
-          style={{ '--nav-index': pageIndex, '--nav-count': pages.length } as CSSProperties} {...navDrag.handlers}>
-          {/* The phone bar's glass highlight, which slides to the current tab (and follows the thumb while dragging). */}
-          <span className="app-nav__glass" aria-hidden="true" />
-          <ul className="app-nav">
-            {pages.map((item, index) => {
-              const current = item.id === page
-              return (
-                <li key={item.id}>
-                  {/* The label is the full title; the mobile bar shows the short title, which is its first word(s). */}
-                  <a className={`app-nav__item${index === shownIndex ? ' is-shown' : ''}`} href={hashFor(item.id, { data: linkData })}
-                    aria-label={item.title} aria-current={current ? 'page' : undefined} draggable={false}
-                    onClick={event => backToTop(event, item.id)}>
-                    <span className="app-nav__indicator">
-                      <Icon name={pageIcons[item.id][current ? 'current' : 'other']} />
-                    </span>
-                    <span className="app-nav__label app-nav__label--full">{item.title}</span>
-                    <span className="app-nav__label app-nav__label--short">{item.shortTitle}</span>
-                  </a>
-                </li>
-              )
-            })}
-          </ul>
-        </nav>
-        <button ref={guideToggle} type="button" className="app-guide-toggle" aria-pressed={assistantOpen}
-          onClick={() => (assistantOpen ? closeAssistant() : setAssistantOpen(true))}>
-          <Sonny size={32} className="app-guide-toggle__mascot" />
-          <span className="app-guide-toggle__label">Voice guide</span>
-          {/* Shown instead of the full label in a narrow header. Hidden from screen readers, so the button's name is always
-              "Voice guide", which contains the visible word (WCAG 2.5.3). */}
-          <span className="app-guide-toggle__short" aria-hidden="true">Guide</span>
-        </button>
-      </header>
+        <header className="app-header">
+          <a className="app-brand" href={hashFor('home', { data: linkData })} onClick={event => backToTop(event, 'home')}>
+            <svg className="app-brand__mark" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+              <circle cx="20" cy="20" r="20" />
+              <path d="M11 23v-6h2.5v6zm5 5V12h2.5v16zm5-3V15h2.5v10zm5-3v-4h2.5v4z" />
+            </svg>
+            <span className="app-brand__name">Earth Jukebox</span>
+          </a>
+          <nav aria-label="Main" className={navDrag.dragging ? 'is-dragging' : undefined}
+            style={{ '--nav-index': pageIndex, '--nav-count': pages.length } as CSSProperties} {...navDrag.handlers}>
+            {/* The phone bar's glass highlight, which slides to the current tab (and follows the thumb while dragging). */}
+            <span className="app-nav__glass" aria-hidden="true" />
+            <ul className="app-nav">
+              {pages.map((item, index) => {
+                const current = item.id === page
+                return (
+                  <li key={item.id}>
+                    {/* The label is the full title; the mobile bar shows the short title, which is its first word(s). */}
+                    <a className={`app-nav__item${index === shownIndex ? ' is-shown' : ''}`} href={hashFor(item.id, { data: linkData })}
+                      aria-label={item.title} aria-current={current ? 'page' : undefined} draggable={false}
+                      onClick={event => backToTop(event, item.id)}>
+                      <span className="app-nav__indicator">
+                        <Icon name={pageIcons[item.id][current ? 'current' : 'other']} />
+                      </span>
+                      <span className="app-nav__label app-nav__label--full">{item.title}</span>
+                      <span className="app-nav__label app-nav__label--short">{item.shortTitle}</span>
+                    </a>
+                  </li>
+                )
+              })}
+            </ul>
+          </nav>
+          <button ref={guideToggle} type="button" className="app-guide-toggle" aria-pressed={assistantOpen}
+            onClick={() => (assistantOpen ? closeAssistant() : setAssistantOpen(true))}>
+            <Sonny size={32} className="app-guide-toggle__mascot" />
+            <span className="app-guide-toggle__label">Voice guide</span>
+            {/* Shown instead of the full label in a narrow header. Hidden from screen readers, so the button's name is always
+                "Voice guide", which contains the visible word (WCAG 2.5.3). */}
+            <span className="app-guide-toggle__short" aria-hidden="true">Guide</span>
+          </button>
+        </header>
 
-      <main className={`app-main app-main--${wideTools.has(page) ? 'wide' : 'prose'}`}>
-        <h1 ref={heading} tabIndex={-1}>{title}</h1>
-        {/* The same place on every page (WCAG 3.2.6); a new page closes the panel. */}
-        <HelpButton key={page} page={page} />
-        <DemoControl />
-        {catalog && catalog.length > 1 && dataId && !testMode && (
-          <DatasetPicker catalog={catalog} value={dataId} onChange={id => { window.location.hash = hashFor(page, { data: id }) }} />
-        )}
-        {dataMissing && <Notice>The data set “{requestedData}” was not found, so this shows “{catalog?.[0].title}” instead.</Notice>}
-        {loadError && <Notice variant="error">The data could not be loaded. {loadError}</Notice>}
-        <Suspense fallback={<p role="status" className="app-loading">Loading…</p>}>
-          <CurrentPage visualization={visualization} />
+        <main className={`app-main app-main--${wideTools.has(page) ? 'wide' : 'prose'}`}>
+          <h1 ref={heading} tabIndex={-1}>{title}</h1>
+          {/* The same place on every page (WCAG 3.2.6); a new page closes the panel. */}
+          <HelpButton key={page} page={page} />
+          <DemoControl />
+          {catalog && catalog.length > 1 && dataId && !testMode && (
+            <DatasetPicker catalog={catalog} value={dataId} onChange={id => { window.location.hash = hashFor(page, { data: id }) }} />
+          )}
+          {dataMissing && <Notice>The data set “{requestedData}” was not found, so this shows “{catalog?.[0].title}” instead.</Notice>}
+          {loadError && <Notice variant="error">The data could not be loaded. {loadError}</Notice>}
+          <Suspense fallback={<p role="status" className="app-loading">Loading…</p>}>
+            <CurrentPage visualization={visualization} />
+          </Suspense>
+        </main>
+
+        {assistantOpen && <VoiceAssistant assistant={assistant} onClose={closeAssistant} />}
+
+        {/* Echo, bottom right on every page. The key closes its bubble when the page changes. */}
+        <Suspense fallback={null}>
+          <MascotDock key={page} page={page} loading={!visualization && !loadError} voice={assistant.status} voiceOpen={assistantOpen}
+            onTalk={() => setAssistantOpen(true)} />
         </Suspense>
-      </main>
-
-      {assistantOpen && <VoiceAssistant assistant={assistant} onClose={closeAssistant} />}
+      </MascotGuideProvider>
     </AnnouncerProvider>
   )
 }
