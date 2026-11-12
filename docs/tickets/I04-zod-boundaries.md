@@ -86,4 +86,54 @@ npx vitest run src/data src/features/compare src/features/welcome src/features/d
 
 ## Result
 
-Not started.
+Built by agent D on `fix/I04-zod-boundaries` (2026-11-12).
+
+- `src/data/boundaries.ts` (new) holds `studyCreated`, `playerUpdate` (`z.looseObject`, zod 4's name for `.passthrough()`) and `storedWelcome`, exported from `src/data/index.ts`. They sit beside `schema.ts`, not in it: `schema.ts` is the `schema` hotspot and is for data files, and these are not data files.
+- `studyClient.ts`: the created-session answer goes through `studyCreated.safeParse`. A missing or empty `id` now fails with "The server sent an answer we could not read." and stores no session ID, so nothing is posted to `/tests/undefined/responses`; the client retries as for any other failure.
+- `storage.ts`: the hand check is now `storedWelcome.safeParse`. Each wrong field falls back to its default (`done`/`speech` false, `path`/`volume` left out), and text that is not JSON or not an object gives `null`, as before. Results are unchanged for valid data (the new `storage.test.ts` uses `toStrictEqual`, so no `undefined` keys appear).
+- `Welcome.tsx`, `DemoControl.tsx`: `playerUpdate.safeParse(update.data)` replaces the cast; `success && data.playing`.
+- `src/data` was already in the first load (`App.tsx` imports `loadCatalog`), so the new imports add no chunk.
+
+Step 5, `grep -rn " as " src/features/compare/studyClient.ts src/features/welcome src/features/demo src/data/boundaries.ts`, with `as const` and test files left out: only the English word "as" in comments remains.
+
+```
+src/features/welcome/storage.ts:38:  // Fields that fell back are left out rather than stored as `undefined`.
+src/features/welcome/Welcome.tsx:71:  /** One plain note from a side (the middle category, as "Test sound" plays). ...
+src/features/demo/script.ts:8:  /** Shown as a caption and read out, so the tour makes sense without seeing the screen. */
+src/data/boundaries.ts:9:/** The player's context summary, read only for whether it is playing. The rest of the summary is kept as it is. */
+```
+
+Red first: before `boundaries.ts` existed, `boundaries.test.ts` failed to import and the two new `studyClient` cases failed (the client went on past the missing `id` and reported "could not start the test (error 503)").
+
+Checks (Windows laptop; the default 8 Vitest workers, and on this run 2, run out of memory here, so the full suite ran with `--maxWorkers=1`):
+
+```
+$ npm run lint
+> moon-heist@0.0.0 lint
+> oxlint
+(exit 0, no findings)
+
+$ npx vitest run --maxWorkers=1
+ FAIL  src/data/sound-regression.test.ts > sound regression baseline > notices when one legend stop of the fixture changes
+AssertionError: expected '{\n  "notes": {\n    "categories": {\…' to be '{\r\n  "notes": {\r\n    "categories"…' // Object.is equality
+ Test Files  1 failed | 112 passed (113)
+      Tests  1 failed | 1870 passed (1871)
+   Duration  161.76s
+
+$ npm run build
+> tsc -b && vite build
+✓ built in 914ms
+
+$ npx vitest run --maxWorkers=2 src/data src/features/compare src/features/welcome src/features/demo
+ FAIL  src/data/sound-regression.test.ts > sound regression baseline > notices when one legend stop of the fixture changes
+ Test Files  1 failed | 22 passed (23)
+      Tests  1 failed | 351 passed (352)
+```
+
+The one failure is environmental and not from this ticket: with `core.autocrlf=true`, `src/data/__golden__/fixture.json` is checked out with CRLF (191 lines end in `\r`), and the test compares it with LF text. Neither file is changed here. With this ticket's changes stashed (a clean `main` tree), it fails the same way:
+
+```
+$ git stash -u && npx vitest run --maxWorkers=1 src/data/sound-regression.test.ts
+     × notices when one legend stop of the fixture changes 31ms
+      Tests  1 failed | 4 passed (5)
+``` `DemoControl.test.tsx` and `welcome.test.tsx` pass unchanged.

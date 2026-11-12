@@ -5,6 +5,7 @@
 // to the participant. Answers are sent one at a time, in the order they were given.
 
 import { apiBase } from '../../config'
+import { studyCreated } from '../../data'
 
 export type Participant = 'sighted' | 'blind_low_vision' | 'not_said'
 
@@ -162,11 +163,15 @@ export class StudyClient {
     const result = await this.post(this.url(), { ...this.session, consent: true })
     if (typeof result === 'string') return this.fail(result)
     if (!result.ok) return this.fail(`The server could not start the test (error ${result.status}).`)
+    let body: unknown
     try {
-      this.sessionId = ((await result.json()) as { id: string }).id
+      body = await result.json()
     } catch {
-      return this.fail('The server sent an answer we could not read.')
+      body = null
     }
+    const parsed = studyCreated.safeParse(body)
+    if (!parsed.success) return this.fail('The server sent an answer we could not read.')
+    this.sessionId = parsed.data.id
     return true
   }
 
