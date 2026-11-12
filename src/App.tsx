@@ -64,6 +64,8 @@ function App() {
   const shownPage = useRef(page)
   const guideToggle = useRef<HTMLButtonElement>(null)
   const guideWasOpen = useRef(false)
+  /** Set when the voice guide changes the page, so the listener keeps their place instead of being moved to the heading. */
+  const guideNavigated = useRef(false)
 
   // Follow the address bar: links, back and forward, and edits to the hash. An unknown hash becomes #home.
   useEffect(() => {
@@ -119,7 +121,9 @@ function App() {
   useEffect(() => {
     if (shownPage.current !== page) {
       window.scrollTo({ top: 0 })
-      heading.current?.focus({ preventScroll: true })
+      // The guide's own navigation is announced by its panel, so focus stays where it was.
+      if (!guideNavigated.current) heading.current?.focus({ preventScroll: true })
+      guideNavigated.current = false
     }
     shownPage.current = page
   }, [page])
@@ -136,8 +140,11 @@ function App() {
   }, [assistantOpen])
 
   const handleAssistantAction = useCallback((action: AssistantAction) => {
-    if (action.action === 'navigate') goTo(action.page)
-    else {
+    if (action.action === 'navigate') {
+      // Only when the page will change; otherwise no page effect would clear the flag.
+      guideNavigated.current = action.page !== parseHash(window.location.hash).page
+      goTo(action.page)
+    } else {
       noteGuidePlaybackCommand(action.command)
       sendPlayerCommand(action.command)
     }
@@ -150,6 +157,22 @@ function App() {
     assistant.stop()
     setAssistantOpen(false)
   }
+
+  // Alt+E opens and closes the voice guide, except while typing in a field.
+  const toggleGuide = () => (assistantOpen ? closeAssistant() : setAssistantOpen(true))
+  const toggleGuideRef = useRef(toggleGuide)
+  useEffect(() => { toggleGuideRef.current = toggleGuide })
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.code !== 'KeyE') return
+      const target = event.target
+      if (target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))) return
+      event.preventDefault()
+      toggleGuideRef.current()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   /** Tapping the tab (or the wordmark) of the page you are on goes back to its top, as phone apps do. */
   function backToTop(event: MouseEvent, target: Page) {
@@ -206,7 +229,7 @@ function App() {
             </ul>
           </nav>
           <button ref={guideToggle} type="button" className="app-guide-toggle" aria-pressed={assistantOpen}
-            onClick={() => (assistantOpen ? closeAssistant() : setAssistantOpen(true))}>
+            aria-keyshortcuts="Alt+E" onClick={toggleGuide}>
             <Sonny size={32} className="app-guide-toggle__mascot" />
             <span className="app-guide-toggle__label">Voice guide</span>
             {/* Shown instead of the full label in a narrow header. Hidden from screen readers, so the button's name is always

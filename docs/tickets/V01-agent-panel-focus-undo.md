@@ -144,4 +144,24 @@ No server change, so the server checks do not apply. Do not report widths or pho
 
 ## Result
 
-Not started.
+Built on `feature/V01-agent-panel-focus-undo`.
+
+- `src/App.tsx`: `guideNavigated` ref (set only when the guide changes to a different page) so the page effect skips the heading focus; Alt+E window listener (ignores input, textarea, select, contenteditable, and any other modifier); `aria-keyshortcuts="Alt+E"` on the header button.
+- `src/hooks/useVoiceAssistant.ts`: `actions` (last 10, `{ id, label, inverse }`), `undo()`, `stopSpeaking()`, `errorCode`, `endedMessage`, and the exact plain-words strings from the table.
+- `src/VoiceAssistant.tsx`: `<ul aria-label="Echo did">`, Undo on the newest entry only (named "Undo: <label>"), a polite live region, Stop talking while speaking, "Try again" hidden for `not_configured` and `bad_start`. After Undo the button disappears, so focus moves to the panel title instead of being lost (found by the test, not in the ticket text).
+- `src/styles/assistant.css`: `.voice-assistant__undo { min-width: 24px; min-height: 24px }`.
+
+Checks (run in `../nasa-c`):
+
+```
+npm run lint   -> oxlint, no errors
+npm run build  -> built, no errors
+npm test       -> 1867 passed, 2 failed in the first full run:
+  - src/data/sound-regression.test.ts "notices when one legend stop of the fixture changes": also fails on clean main
+    (checked with my changes stashed). Not caused by V01.
+  - src/App.test.tsx "loads the first visualization and shows it on each page": passes alone (34/34) and passed in the
+    next full run; it timed out once under full-suite load.
+npx vitest run src/App.test.tsx src/VoiceAssistant.test.tsx src/hooks -> 105 passed
+```
+
+Not done: no server change, no change to `src/features/player/`. A spoken "undo that" needs a new server tool (out of scope).

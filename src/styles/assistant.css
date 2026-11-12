@@ -113,6 +113,11 @@
 
 .voice-assistant :focus-visible { outline: var(--ui-focus-ring); outline-offset: 2px; }
 
+/* What Echo did, newest last. Static: nothing animates. The Undo target is at least 24 x 24 px (WCAG 2.5.8); the Button's own 48 px is kept. */
+.voice-assistant__did { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 1rem; color: var(--ui-on-surface-variant); }
+.voice-assistant__did li { display: flex; align-items: center; gap: 8px; }
+.voice-assistant__undo { min-width: 24px; min-height: 24px; }
+
 .voice-assistant__actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .voice-assistant__note { margin: 0; color: var(--ui-on-surface-variant); font-size: 1rem; }
 .voice-assistant__note a { color: var(--ui-primary); }
