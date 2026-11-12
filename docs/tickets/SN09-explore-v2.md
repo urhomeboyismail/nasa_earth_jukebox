@@ -127,4 +127,49 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+**Built** (agent B, 11–12 Nov 2026, Windows 11, Node and Vitest from the repo).
+
+**What was built**
+
+- `src/sonify/probe.ts`: `probeTone` and `slopeAt` as designed, pure (the purity and boundary tests still pass). Constants `PROBE_LOW_MIDI` 48, `PROBE_SPAN` 36, `PROBE_LEVEL` 0.6, `SLOPE_SCALE` 0.25.
+- `src/features/explore/probeAudio.ts`: `createProbeAudio(ensemble, preset)` with `point`, `key`, `leave`, `start`, `dispose`, plus `setMap`. Also `useProbeSettings`, which stores the two choices under `earth-jukebox:explore-tone` and `earth-jukebox:explore-slope`.
+- `src/features/explore/ProbeSwitch.tsx`: the "Continuous tone" and "Slope cue" checkboxes. Slope cue is disabled while the tone is off. Shown in `ExplorerPanel`.
+- `useExplorer.ts`: the `probe` option, the calls in `moveTo` (with the pointer or key path), pointer down, up and leave, Escape (`stopSound`), and `turnOn`. `Explorer.tsx`: `onPointerLeave` on the surface, and the switch.
+
+**Where it differs from the design, and why**
+
+- **The explorer owns its ensemble.** The only caller of `useExplorer` is `src/features/player/index.tsx`, which is in the `player` hotspot that agent A holds for SN07. So `useExplorer` calls `useEnsemble(presetFor(sonification.preset ?? 'major'), 'full')` itself. The `probe` option stays: left out, the explorer uses its own probe while the tone is on; `null` forces one note per cell; a value replaces the probe. No file outside Touches changed.
+- **`setMap`.** `createProbeAudio` takes no map getter. The explorer hands the probe the map on screen (grid, colour scale, slope-cue choice) from an effect, so no ref is read during render (oxlint `react(refs)`).
+- **Dropout cue.** A pointer plays it once on entering an empty area and not again while it moves through it, so a drag over land is not a burst of cues. Each key press on an empty cell plays it, because a key is a deliberate step.
+- **Mouse hover.** With the tone on, a mouse moving over the map (no button) moves the cursor and holds the tone, so "the value under the cursor" works with a mouse. Before a press has started the sound, hover is silent (`hold` does nothing before `start()`). Touch still needs a press, as before.
+- **The first press** starts the ensemble (`probe.start()` from pointer down, a handled key, or the "Explore the map" button). A tone held while the sound is starting is sent again once it has started. A link-opened map (F40) does not also play the old note when the tone is on.
+- **Golden.** `src/sonify/__golden__/probe.json` records the fixture's first frame as the ticket asks. Every fixture frame is a single value over the whole map, so every slope there is 0. The file therefore also records `synthetic-ocean`'s first frame, which has slopes in both directions. A test checks both properties.
+- **Vibration** still runs for each cell with the tone on, as it did with the note.
+
+**Tests added**
+
+- `src/sonify/probe.test.ts` (12): pitch order, no value gives null, in scale and in range for all three presets, brightness either side of 0.5, place, the slope rules, and the golden.
+- `src/features/explore/probeAudio.test.ts` (17): the throttle (first at once, latest at the gap's end, no 21 tones within a second over 3 s of moves 10 ms apart), `atTime` 20 ms after `now()`, the slope cue off, no map, dropout once per entry and per key press, release (also with a tone waiting), the 300 ms key hold and its extension, starting once and re-sending, the stored choices and blocked storage.
+- `src/features/explore/ProbeSwitch.test.tsx` (6), the explorer with a fake ensemble: off means old (`playCategory`, no `hold`, no `start`); on with `sonification`; dropout on an empty cell; release on Escape, pointer up and pointer leave; a stored choice wins; the switch is labelled and keyboard operable; `expectNoA11yViolations`.
+- `Explorer.test.tsx`: 70 passed before the change and 70 after, unchanged.
+
+**Manual check: not done.** An agent cannot listen. For the reviewer: run `npm run dev`, open Listen, choose Explore the map, and tick "Continuous tone". No manifest has a `sonification` block yet, so it starts off. Click the map, then drag or arrow across a warm edge on `synthetic-ocean`. The tone should glide up towards the warm side and sound brighter just before it.
+
+**Checks** (12 Nov)
+
+```
+$ npm run lint
+> oxlint
+(no warnings, no errors)
+
+$ npm test
+ Test Files  1 failed | 94 passed (95)
+      Tests  1 failed | 1689 passed (1690)
+ FAIL  src/data/sound-regression.test.ts > sound regression baseline > notices when one legend stop of the fixture changes
+AssertionError: expected '{\n  "notes": …' to be '{\r\n  "notes": …'
+
+$ npm run build
+✓ built in 1.57s
+```
+
+The one failure is not from SN09. It fails the same way on `main` (checked in the main checkout at 47ac4e7). Git converts that golden file to CRLF on this Windows checkout, and the test compares it exactly against LF text. Tone stays in its own chunk, loaded on demand.

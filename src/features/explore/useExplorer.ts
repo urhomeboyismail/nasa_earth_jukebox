@@ -1,16 +1,19 @@
 // The sound map's state (docs/PLAN.md §5.6, ticket T81): the cursor, the keys, touch and mouse, and the sweep. Kept apart from the components in
 // Explorer.tsx so that file only exports components (fast refresh).
 
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { analyzeGrid, type FrameGrid } from '../../analysis'
 import type { SequenceStep, SoundEngine } from '../../audio'
+import { useEnsemble } from '../../audio/ensemble/useEnsemble'
 import { elevationForPoint, panForPoint } from '../../audio/pan'
+import { presetFor } from '../../sonify/presets'
 import { useAnnounce } from '../../components'
 import type { Frame, MapArea, Visualization } from '../../data'
 import { describeCell, describeCellOverTime, describePlace, describeSweep, edgeMessage, explorerMessage, sweepEndMessage, type Edge } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
 import { shortcutFor } from '../player/shortcuts'
 import { vibrateForDate } from '../player/vibration'
+import { createProbeAudio, useProbeSettings, type ProbeAudio } from './probeAudio'
 
 /** A moved cursor plays at most this often; the latest cell wins. */
 const PLAY_EVERY_MS = 120
@@ -43,15 +46,28 @@ type Options = {
   onDate?: (index: number) => void
   /** F40: open on this cell, as a link asks. It makes no sound until the first key press or touch, which is also what unlocks the audio. */
   start?: Cursor | null
+  /**
+   * SN09: the continuous tone. Left out, the explorer makes its own on the data set's preset while "Continuous tone" is on; `null` keeps one note
+   * per cell. While a probe is in use, a cell is heard through it instead of the engine's note.
+   */
+  probe?: ProbeAudio | null
 }
 
 export type ExplorerState = ReturnType<typeof useExplorer>
 
-export function useExplorer({ visualization, frame, engine, vibrate, frames, formatDate = date => date, onDate, start = null }: Options) {
+export function useExplorer({ visualization, frame, engine, vibrate, frames, formatDate = date => date, onDate, start = null, probe: given }: Options) {
   const { colorScale, mapping } = visualization
   const area = visualization.mapArea ?? WHOLE_MAP
   const announce = useAnnounce()
   const [detail] = useDescriptionDetail()
+
+  // SN09: the explorer's own ensemble and probe. Nothing loads or sounds until the first press starts it.
+  const probeSettings = useProbeSettings(visualization.sonification !== undefined)
+  const preset = presetFor(visualization.sonification?.preset ?? 'major')
+  const { ensemble } = useEnsemble(preset, 'full')
+  const ownProbe = useMemo(() => createProbeAudio(ensemble, preset), [ensemble, preset])
+  useEffect(() => () => ownProbe.dispose(), [ownProbe])
+  const probe = given !== undefined ? given : probeSettings.tone ? ownProbe : null
 
   const [on, setOn] = useState(start !== null)
   // The map read for one date. It counts only while it matches the date and settings on screen, so a new date shows "loading" at once.
@@ -59,6 +75,10 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   const current = on && read && read.frame === frame && read.colorScale === colorScale && read.mapping === mapping && read.mapArea === visualization.mapArea ? read : null
   const grid = current?.grid ?? null
   const error = current?.error ?? ''
+  // The probe reads the map on screen, with the slope-cue choice.
+  useEffect(() => {
+    probe?.setMap(grid ? { grid, colorScale, slopeCue: probeSettings.slopeCue } : null)
+  }, [probe, grid, colorScale, probeSettings.slopeCue])
   const [cursor, setCursor] = useState<Cursor>(start ?? { col: 0, row: 0 })
   const [sweeping, setSweeping] = useState(false)
   /** F23: the cursor is locked on one place, and the dates move under it. */
@@ -171,18 +191,29 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   const wake = useCallback(() => {
     if (!needsUnlock.current || !engine) return
     needsUnlock.current = false
-    void engine.unlock().then(() => soundCell(cursorRef.current))
-  }, [engine, soundCell])
+    // With the continuous tone on, the probe sounds the cell once its own sound has started.
+    void engine.unlock().then(() => { if (!probe) soundCell(cursorRef.current) })
+  }, [engine, soundCell, probe])
 
-  /** Moves the cursor and plays the cell. `speak` is false for the sliders, which are announced by the screen reader itself. */
-  const moveTo = useCallback((col: number, row: number, speak = true) => {
+  /**
+   * Moves the cursor and plays the cell. `speak` is false for the sliders, which are announced by the screen reader itself. With the continuous
+   * tone on, a pointer holds the tone while it stays and anything else (keys, sliders) holds it briefly; the engine's note is not played.
+   */
+  const moveTo = useCallback((col: number, row: number, speak = true, by: 'key' | 'pointer' = 'key') => {
     if (!grid || locked) return
     const next = { col: Math.min(grid.cols - 1, Math.max(0, col)), row: Math.min(grid.rows - 1, Math.max(0, row)) }
     stopSweep()
     place(next)
-    soundCell(next)
+    if (probe) {
+      if (by === 'pointer') probe.point(next.col, next.row)
+      else probe.key(next.col, next.row)
+      const cell = grid.cells[next.row * grid.cols + next.col]
+      if (vibrate && cell) vibrateForDate(cell.category, mapping)
+    } else {
+      soundCell(next)
+    }
     if (speak) announceCell(next, ANNOUNCE_AFTER_MS)
-  }, [grid, locked, stopSweep, place, soundCell, announceCell])
+  }, [grid, locked, stopSweep, place, probe, vibrate, mapping, soundCell, announceCell])
 
   /** A key that pushes against the edge of the map: no sound, and the edge is named once the keys rest, so a held key is not heard as a stall. */
   const hitEdge = useCallback((edge: Edge) => {
@@ -239,7 +270,8 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     stopSweep()
     clearTimers()
     engine?.stop()
-  }, [stopSweep, clearTimers, engine])
+    probe?.leave()
+  }, [stopSweep, clearTimers, engine, probe])
 
   /** The map of any date, from the cache or read now. */
   const gridFor = useCallback(async (of: Frame) => {
@@ -328,9 +360,10 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   const turnOn = useCallback(() => {
     // The first press has to start the audio, so it is asked for here, in the click.
     void engine?.unlock()
+    probe?.start()
     needsUnlock.current = false
     setOn(true)
-  }, [engine])
+  }, [engine, probe])
 
   /** F40: a link pasted into the open page. Opens the map on that cell, silently. A cell off the map is ignored, and a locked place is released. */
   const openAt = useCallback((at: Cursor) => {
@@ -381,9 +414,12 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     }
     if (handled) {
       event.preventDefault()
-      if (key !== 'stop') wake()
+      if (key !== 'stop') {
+        wake()
+        probe?.start()
+      }
     }
-  }, [grid, locked, lock, unlock, moveByKey, moveTo, sweep, stopSound, wake])
+  }, [grid, locked, lock, unlock, moveByKey, moveTo, sweep, stopSound, wake, probe])
 
   /** The cell under a pointer, from its place on the surface (which covers just the map area). */
   const cellFromPointer = useCallback((event: PointerEvent<HTMLElement>): Cursor | null => {
@@ -402,25 +438,34 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     dragging.current = true
     event.currentTarget.setPointerCapture?.(event.pointerId)
     event.currentTarget.focus()
-    moveTo(at.col, at.row, false)
+    probe?.start()
+    moveTo(at.col, at.row, false, 'pointer')
     wake()
-  }, [cellFromPointer, moveTo, wake])
+  }, [cellFromPointer, moveTo, wake, probe])
   const onPointerMove = useCallback((event: PointerEvent<HTMLElement>) => {
-    if (!dragging.current) return
+    // A drag moves the cursor. With the continuous tone on, so does a mouse moving over the map: the tone follows it (once a press has started the sound).
+    if (!dragging.current && !(probe && event.pointerType === 'mouse')) return
     const at = cellFromPointer(event)
     const now = cursorRef.current
-    if (at && (at.col !== now.col || at.row !== now.row)) moveTo(at.col, at.row, false)
-  }, [cellFromPointer, moveTo])
+    if (at && (at.col !== now.col || at.row !== now.row)) moveTo(at.col, at.row, false, 'pointer')
+  }, [cellFromPointer, moveTo, probe])
   const onPointerUp = useCallback((event: PointerEvent<HTMLElement>) => {
     if (!dragging.current) return
     dragging.current = false
     event.currentTarget.releasePointerCapture?.(event.pointerId)
+    probe?.leave()
     announceCell(cursorRef.current, 0)
-  }, [announceCell])
+  }, [announceCell, probe])
+  /** The pointer left the map: the continuous tone stops. */
+  const onPointerLeave = useCallback(() => {
+    if (!dragging.current) probe?.leave()
+  }, [probe])
 
   return {
     on, grid, error, cursor, sweeping, locked, area, loading: on && !grid && !error,
     turnOn, turnOff, openAt, moveTo, sweep, stopSound, lock, unlock, playLockedAt, playAcrossDates, onKeyDown, onPointerDown, onPointerMove, onPointerUp,
-    cellAt,
+    onPointerLeave, cellAt,
+    /** SN09: the "Continuous tone" and "Slope cue" choices. */
+    probeSettings,
   }
 }

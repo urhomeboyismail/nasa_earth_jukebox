@@ -80,6 +80,16 @@ Three optional fields for the v3 sonification (`docs/PLAN.md` §6.3). Their defa
 
 `video` and `sonification` are strict: a field inside them that the schema does not know (a typo such as `frameStep`) is reported, not dropped. `npm run check-data` also checks that the video file exists and is an MP4 (it has an `ftyp` box). The video is not decoded, so its frame count is not checked.
 
+### Echo's look (JB04)
+
+One optional field chooses how Echo, the guide, looks while this data set is open: the colour of its boots, headphones and jet trail, and the trail's style. It changes nothing else: a manifest without it validates and plays exactly as before.
+
+| Field | Default when left out | What it does |
+|---|---|---|
+| `mascot` | accent from `colorScale`, trail `"sparks"` | `{ accent?, trail? }`. `accent` is a colour written `"#rrggbb"`, for example `"#00ffcc"`. `trail` is one of `sparks`, `bubbles`, `ions`, `pulse`: a style, never the name of a data set |
+
+**The accent and its contrast.** Echo uses the first of these with a contrast of at least 3:1 against its visor (`#0f2233`, WCAG 1.4.11): the manifest's `accent`, then the most saturated stop of `colorScale` (ties go to the stop with the higher value), then the theme's primary colour. A manifest `accent` below 3:1 is not an error, but `npm run check-data` prints a warning that names it and its ratio, and Echo will not use it. `mascot` is strict like `sonification`: a misspelt field is reported. The colour is never the only signal: each trail has its own shape (dashes, small rings, long streaks, a wide ring), and every state of Echo is also in text. Which accent and trail suit which kind of data is in `docs/DATASET-PLAYBOOK.md`, step 4.
+
 ## Converting frames (T91)
 
 `scripts/convert_frames.py` turns a folder of dated frames into `public/data/<id>/`: the frames as plain PNGs and a `manifest.json` from the template above, with `TODO` left in every field a person fills in. It is step 3 of the 30-minute checklist at the top of `docs/archive/PRE-HACKATHON-TICKETS.md`.
@@ -173,6 +183,81 @@ A **baseline** is what a frame's change is measured against. With one, the data 
 
 It writes `baselines/<date>.png` and `frames[].baselineImage`, and with any baseline it also writes default `changeSteps` and `contourLevels` for a change in degrees C (the schema needs all three together). **Check those numbers** if the variable or the size of its changes is different. `baselineImage` is resolved like `image` when the data set loads, so the manifest holds the relative path.
 
+
+## Ingesting EIC material (EIC01)
+
+`scripts/eic_ingest.py` turns an EIC (NASA Earth Information Center) MP4 animation, or a folder of frames, into a data set folder that `npm run check-data` can read. It calls `convert_frames.py` as a library, so the frames, the legend and the checks are the ones in "Converting frames (T91)", and it adds the frame rate, the dates, the colour bar search, the web video and the manifest's v3 fields (`video`, `legend`, `sonification`).
+
+It needs ffmpeg and ffprobe on the PATH (system tools, not in `requirements.txt`) and Pillow and NumPy. The input is a file you downloaded; the script never uses the network.
+
+**Run `--detect-only` first.** It prints the colour bar it found, which way it runs, the map area and the stops it would sample, and writes nothing.
+
+```
+python3 -I scripts/eic_ingest.py --id <id> --video animation.mp4 --out public/data/<id>     --start-date 2024-01-01 --step-days 1 --legend-min 0 --legend-max 30 --detect-only
+```
+
+Then run it again without `--detect-only` (add `--force` to overwrite an existing manifest).
+
+| Flag | What it does |
+|---|---|
+| `--id`, `--out` | The data set's id (same rule as `convert_frames.py`) and the folder to write, `public/data/<id>`. |
+| `--video` or `--frames` | Exactly one: an MP4, or a folder of PNG or JPEG frames in order. |
+| `--start-date`, `--step-days` | Frame `k` gets the date `start + k x step` days. A video needs both. A folder may instead use `--dates` or the dates in its file names (`--date-pattern`). |
+| `--dates` | A CSV with the columns `file,date` for a folder. The dates must be a whole, equal number of days apart, or the video cannot be written. |
+| `--legend-min`, `--legend-max` | The values at the two ends of the colour bar, from NASA's legend. Required (the script cannot read them from the picture). Not needed with `--detect-only`. |
+| `--legend-ticks N` | Stops sampled along the bar (default 9). |
+| `--legend-box x0,y0,x1,y1`, `--map-area x0,y0,x1,y1` | Give the bar or the map by hand when detection is wrong (pixels of the original frame). |
+| `--fps N` | Frames per second of the video. Default: the video's own, or 5 for a frame folder. At most 60. |
+| `--every N` | Video only: keep every Nth frame as a dated frame. The web video keeps all of them. |
+| `--max-width N` | Scale frames down, nearest-neighbour only. |
+| `--preset`, `--detail` | Write `sonification.preset` (and `.detail`, which needs a preset). |
+| `--legend picture` | Write `legend: "picture"`. The colour bar is still needed. |
+
+What it does, in order: it checks every argument (nothing is written before they pass), makes the frames (`ffmpeg` for a video), dates them, finds the colour bar on the first frame, encodes the web video (`video/<id>.mp4`: H.264, yuv420p, even size, no sound, faststart), writes the frames and `manifest.json` through `convert_frames.py`, and adds the `video` field. The title, source, credit and licence stay `TODO` for a person to fill in from the NASA page.
+
+**How the colour bar is found.** A horizontal bar is looked for in the bottom 30% of the rows, a vertical one in the right-hand 30% of the columns: a band of at least 5 rows (or columns) of saturated pixels that change by at most 12 per channel from one pixel to the next, at least 40% of the frame wide (or tall), whose colours change along its length. The longest wins. The box is the bar's bounds, 1 pixel inside its edge. A bar wider than tall is horizontal with its low end on the left; a taller bar is vertical with its low end at the bottom. The map area is the frame without the bar, 2 pixels clear of it. A bar that passes through white or grey (some diverging scales), or that sits at the top or left, is not found: use `--legend-box`.
+
+### Checklist after ingesting
+
+1. Does the printed direction of the bar match NASA's legend? If the low end is at the other end, the values are reversed: give `--legend-box` so that the box runs from the low end to the high end.
+2. Is the map area right? Move it with `--map-area` if a title, logo or the colour bar's label is inside it.
+3. Fill in every `TODO` from the source page, then do the checks in "Checklist after converting" above.
+4. Add the data set to `public/data/index.json` and run `npm run check-data`.
+
+Not covered here: choosing the visualisations (EIC02), turning the set into a finished data set (EIC03) and making the video small enough for a phone (H06).
+
+## Known answers (D04)
+
+`npm run check-data` checks that the legend reads back its own stops, but not that the picture means the same numbers as NASA's. A data set can add `public/data/<id>/known-answers.json`: points where NASA's own number is known. `src/data/known-answers.test.ts` reads each point from the frame's picture through the legend, using the app's own `valueAtPixel`, and fails when the result differs from NASA's number by more than the legend's rounding (`legendRounding` in `src/data/check.ts`). A data set without the file is not checked. The schema and the check are in `src/data/knownAnswers.ts`.
+
+```json
+{
+  "id": "<the data set's id>",
+  "map": { "projection": "equirectangular", "west": 55.0, "east": 65.0, "north": -10.0, "south": -22.0 },
+  "checks": [
+    {
+      "frameId": "<a frame id of this data set>",
+      "lat": -19.5, "lon": 57.5,
+      "value": 27.4, "unit": "°C", "decimals": 1,
+      "source": { "dataset": "<NASA short name>", "variable": "<variable in the file>", "time": "2023-04-03T00:00:00Z", "url": "<page or file>", "retrievedOn": "YYYY-MM-DD" }
+    }
+  ]
+}
+```
+
+| Field | What it is |
+|---|---|
+| `id` | The data set's id; it must match the folder |
+| `map` | Where the map sits on the globe. `"equirectangular"` with `west`, `east`, `north`, `south` in degrees, which covers `mapArea` (or the whole image). Or `"other"` with `control`: at least 4 points `{ lat, lon, x, y }` whose place in the whole image (fractions 0 to 1) is known, fitted bilinearly; they must spread over the map, not lie on one line. One form only |
+| `checks` | At least 5. Spread them across the map, put at least one near each end of the legend, and keep them off land and at least one cell from a coast |
+| `checks[].frameId`, `lat`, `lon` | The frame and the place, in degrees |
+| `checks[].value`, `unit`, `decimals` | NASA's number as the source gives it, its unit, and how many decimals it has |
+| `checks[].tolerance` (optional) | Extra allowed difference in the same unit. The limit is the larger of this and the legend's rounding. Only set it with a reason |
+| `checks[].source` | Required for every check: the NASA data set's short name, the variable, the time of the value, the page or file address, and the day it was read |
+
+**How to get a NASA number.** Open the NASA source for the data set: the data file (for example, through the provider's subsetting or OPeNDAP tool) or a value the source publishes for a stated place and time. Read the value at each chosen point and time, and write it down with its source. Never take a number from memory, estimate it, or read it off the picture: that would check the picture against itself.
+
+**When a check fails**, the message names the frame, the place, NASA's number, the value read and the limit. A person decides whether the point moves (it was on land or a coast), whether NASA's number is read again, or whether the legend is wrong. A legend that disagrees with NASA's numbers stops the data set's sign-off: the legend is fixed, never the tolerance.
 
 ## Real data set: `mur-sst-mauritius` (T85)
 

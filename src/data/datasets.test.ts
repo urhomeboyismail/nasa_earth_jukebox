@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { Note } from 'tonal'
 import { describe, expect, it } from 'vitest'
 import catalogJson from '../../public/data/index.json'
+import { accentWarning } from '../features/mascot/accent'
 import { checkCatalogEntry, checkDataset, describeProblem } from './check'
 import { catalogSchema, describeIssues, visualizationSchema } from './schema'
 import type { Visualization } from './types'
@@ -45,6 +46,12 @@ describe('the data sets on disk', () => {
           ...checkDataset(v!, image => readFileSync(`${dataDir}/${id}/${image}`)),
         ]
         if (problems.length) expect.fail(`\n${problems.map(describeProblem).join('\n')}`)
+      })
+
+      it("gives Echo an accent it can show (JB04): a warning only, never a failure", () => {
+        // A too-dark mascot.accent is not an error: Echo falls back to the legend's or the theme's colour. The warning says to pick another.
+        const warning = accentWarning(v!)
+        if (warning) console.warn(warning)
       })
 
       it('has an image on disk for every frame', () => {

@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
@@ -120,6 +120,26 @@ describe('the sound check', () => {
     await toCheck('I can see the map')
     expect(screen.getByRole('heading', { name: 'Sound check' })).toHaveFocus()
     expect(fake.sequences).toHaveLength(0)
+  })
+
+  it('plays the note only after the spoken question has ended, and cannot be started twice (SN13)', async () => {
+    const utterances: { text: string; onend?: () => void }[] = []
+    vi.stubGlobal('speechSynthesis', { speak: (u: { text: string }) => utterances.push(u), cancel: vi.fn() })
+    vi.stubGlobal('SpeechSynthesisUtterance', class { text: string; constructor(text: string) { this.text = text } })
+    const { user } = await toCheck('I can see the map')
+    await user.click(screen.getByRole('button', { name: 'Play' }))
+    expect(utterances.at(-1)?.text).toMatch(/\?$/)
+    expect(fake.sequences).toHaveLength(0) // no playSequence call while the question is spoken
+    expect(screen.getByRole('button', { name: 'Replay' })).toBeDisabled()
+    await act(async () => { utterances.at(-1)?.onend?.() })
+    await waitFor(() => expect(fake.sequences).toHaveLength(1))
+    expect(screen.getByRole('button', { name: 'Replay' })).toBeEnabled()
+  })
+
+  it('plays the note at once when speech is off', async () => {
+    const { user } = await toCheck('I use a screen reader')
+    await user.click(screen.getByRole('button', { name: 'Play' }))
+    await waitFor(() => expect(fake.sequences).toHaveLength(1))
   })
 
   it('plays one note, then left, right and centre at pans of -1, 1 and 0', async () => {

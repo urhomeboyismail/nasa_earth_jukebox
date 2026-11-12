@@ -130,6 +130,16 @@ export type VideoSpec = {
  */
 export type SonificationSpec = { preset: PresetId; detail?: DetailLevel; voices?: VoiceId[] }
 
+/** The look of Echo's jet trail (JB04). A style, never the name of a data set. */
+export type MascotTrail = 'sparks' | 'bubbles' | 'ions' | 'pulse'
+
+/**
+ * How Echo looks while this data set is open (JB04). `accent` is a colour written "#rrggbb" for the boots, headphones and trail; without it, or
+ * with too little contrast against Echo's visor, Echo takes the most saturated colour of `colorScale`, then the theme's primary colour.
+ * `trail` defaults to 'sparks'. Read it with `mascotTheme` (src/features/mascot/accent.ts).
+ */
+export type MascotSpec = { accent?: string; trail?: MascotTrail }
+
 /** The request's "FrameManifest": one data set's manifest.json. */
 export type Visualization = {
   id: string
@@ -154,6 +164,8 @@ export type Visualization = {
   video?: VideoSpec
   /** v3: the default sonification. Optional; without it, Listen uses preset 'major', detail 'standard', all seven voices. */
   sonification?: SonificationSpec
+  /** Echo's accent and jet trail for this data set. Optional; without it, the accent comes from `colorScale` and the trail is 'sparks'. */
+  mascot?: MascotSpec
 }
 
 export type CatalogEntry = { id: string; title: string; summary: string }

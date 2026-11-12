@@ -412,3 +412,36 @@ describe('v3 fields: legend, video and sonification (SN05)', () => {
     expect(errorAfter(v => { v.sonification = { preset: 'major', detial: 'calm' } })).toMatch(/^sonification: .*detial/)
   })
 })
+
+describe("Echo's look: the mascot field (JB04)", () => {
+  const accepts = (change: (v: any) => void) => {
+    const v: any = valid()
+    change(v)
+    const result = visualizationSchema.safeParse(v)
+    expect(result.success ? '' : describeIssues(result.error, 10)).toBe('')
+  }
+
+  it('is optional, and the fixture has none', () => {
+    expect(visualizationSchema.parse(fixture)).not.toHaveProperty('mascot')
+  })
+
+  it('accepts an accent, a trail, both or neither', () => {
+    accepts(v => { v.mascot = { accent: '#00ffcc', trail: 'bubbles' } })
+    accepts(v => { v.mascot = { accent: '#00F0FF' } })
+    accepts(v => { v.mascot = { trail: 'pulse' } })
+    accepts(v => { v.mascot = {} })
+    for (const trail of ['sparks', 'bubbles', 'ions', 'pulse']) accepts(v => { v.mascot = { trail } })
+  })
+
+  it('rejects a colour that is not #rrggbb, and names the field', () => {
+    const message = 'mascot.accent: must be a colour written #rrggbb, for example "#00ffcc"'
+    expect(errorAfter(v => { v.mascot = { accent: 'teal' } })).toBe(message)
+    expect(errorAfter(v => { v.mascot = { accent: '#0fc' } })).toBe(message)
+    expect(errorAfter(v => { v.mascot = { accent: '00ffcc' } })).toBe(message)
+  })
+
+  it('rejects an unknown trail and a misspelt field', () => {
+    expect(errorAfter(v => { v.mascot = { trail: 'forest' } })).toBe('mascot.trail: must be one of sparks, bubbles, ions, pulse')
+    expect(errorAfter(v => { v.mascot = { acent: '#00ffcc' } })).toMatch(/^mascot: .*acent/)
+  })
+})

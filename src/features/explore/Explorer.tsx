@@ -6,6 +6,7 @@ import { Button, Notice, Slider } from '../../components'
 import type { Visualization } from '../../data'
 import { describeCell } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
+import { ProbeSwitch } from './ProbeSwitch'
 import type { ExplorerState } from './useExplorer'
 import './explore.css'
 
@@ -34,6 +35,7 @@ export function ExplorerSurface({ explorer }: { explorer: ExplorerState }) {
         onPointerMove={explorer.onPointerMove}
         onPointerUp={explorer.onPointerUp}
         onPointerCancel={explorer.onPointerUp}
+        onPointerLeave={explorer.onPointerLeave}
       >
         {grid && (
           <div
@@ -104,6 +106,7 @@ export function ExplorerPanel({ visualization, explorer }: { visualization: Visu
           </div>
         </>
       )}
+      <ProbeSwitch settings={explorer.probeSettings} />
     </div>
   )
 }

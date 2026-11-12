@@ -63,7 +63,7 @@ Our agents run on different laptops, so they talk through this file in git. When
 - From: G01 (agent B, Claude Code)
 - To: team leader (owner of `server/app/config.py`)
 - Needed by: G01 (step 3; the rest of G01 goes ahead without it)
-- Status: open
+- Status: closed
 - Context: `docs/tickets/G01-adk-core.md`, "Settings". G01 adds the ADK agent package `server/app/agent/`, which nothing imports yet, so the running server is unchanged. The settings below are off by default, and nothing calls the model while `agent_enabled` is false. Each one also goes into `server/.env.example`, commented out, with no key.
 - Question: may G01 add these five fields to `Settings`, as written? (a) yes, as written; (b) yes, with changes (say which); (c) no, keep them somewhere else.
   ```python
@@ -74,5 +74,47 @@ Our agents run on different laptops, so they talk through this file in git. When
   agent_max_requests_per_minute: int = Field(default=5, gt=0)   # one token bucket for the whole server
   assistant_engine: Literal["bridge", "adk"] = "bridge"  # G05 changes the default to "adk"
   ```
+- Answer: (team leader, 2026-11-11) (a) yes, as written.
+- Recorded in: `server/app/config.py`, `server/.env.example`; `docs/tickets/G01-adk-core.md` (Result)
+
+### R-20261111-SN12-1: The ensemble's offline render is not byte-identical above Calm; can SN04 find the source?
+- From: SN12 (offline render, agent C)
+- To: SN04 (owner of `src/audio/ensemble/`)
+- Needed by: SN12 "Done when" (two renders with equal hashes)
+- Status: open
+- Context: `synthetic-storm` (10 dates, `full`), rendered three times in headless Edge through `renderSequence` (`src/features/playlist/renderSequence.ts`) and `createEnsemble(...).renderOffline`. The captions and the sidecar are identical every time, but the WAV differs: about 100 of 926,100 samples, each by one 16-bit step. By detail: `calm` 0 differing samples, `standard` 104, `full` 111. Removing single voices from a `full` schedule: no hot spots 70, no bass 71, no rhythm 68, no motion 0, only bass 2, only hot spots 27. The graph already avoids Freeverb, PolySynth, noise and `Math.random` (`graph.ts` comment), so the cause is something else in it. The check script is a short DevTools-protocol driver; the numbers are in `docs/tickets/SN12-offline-render-playlist.md` under Result.
+- Question: can SN04 find what makes the offline render vary (a panner, a filter, the compressor or the clip curve, event timing)? Or should SN12 accept "same to within one 16-bit step" and say so in the ticket (option b), and drop "byte-identical" for the real engine?
+- Answer:
+- Recorded in: nowhere needed yet
+- Note (2026-11-11, SN12): option (b) was chosen for SN12 to ship: "same to within one 16-bit step". SN04 may still look for the source; no deadline.
+
+### R-20261111-SN13-1: `App.tsx` still calls `noteGuidePlaybackCommand`; may it be removed there?
+- From: SN13 (one voice at a time, agent C)
+- To: team leader (owner of `src/App.tsx`, hotspot `app`)
+- Needed by: nothing; SN13 ships without it
+- Status: open
+- Context: SN13 changes `useDucking` (`src/assistant/ducking.ts`) from pausing the player to ducking the music, so nothing needs "the listener just asked for sound" any more. The ticket says to remove `noteGuidePlaybackCommand` and its callers in `src/hooks/useVoiceAssistant.ts`, but the only caller is `src/App.tsx` line 138, which is outside SN13's Touches. To keep `App.tsx` compiling, `ducking.ts` keeps `noteGuidePlaybackCommand` as an empty function (and `resetDucking`, now `duck.reset()`).
+- Question: may the next ticket that edits `App.tsx` delete the `noteGuidePlaybackCommand(action.command)` line and then the empty function in `ducking.ts`? (Yes / no, leave it.)
+- Answer:
+- Recorded in: `docs/tickets/SN13-one-voice-at-a-time.md` (Result)
+
+### R-20261112-JB04-1: May the next `App.tsx` ticket pass the open data set to `MascotDock`?
+- From: JB04 (data-set colour themes, agent D)
+- To: team leader (owner of `src/App.tsx`, hotspot `app`)
+- Needed by: JB04 "Done when" (switching data sets changes Echo in the running app); JB04 itself ships without it
+- Status: open
+- Context: JB04 gives `MascotDock` (`src/features/mascot/MascotDock.tsx`) an optional `visualization` prop. With it, the dock sets `--mascot-accent`, `--mascot-accent-soft`, `--mascot-trail` and `data-trail` from the manifest (`mascotTheme`, `src/features/mascot/accent.ts`); without it, Echo keeps its own colours. `src/App.tsx` line 237 renders `<MascotDock …>` without it, and `App.tsx` is outside JB04's Touches. The context bus only carries `player` and `compare`, so the dock cannot read the data set any other way.
+- Question: may the next ticket that edits `App.tsx` add `visualization={visualization}` to the `<MascotDock>` element (one prop, the same value `CurrentPage` gets)? (a) yes; (b) no, give the dock the data set another way (say how).
+- Answer:
+- Recorded in: `docs/tickets/JB04-dataset-mascot-theme.md` (Result)
+
+
+### R-20261112-G03-1: Who owns `src/features/ask/`?
+- From: G03 (Ask front end on the agent, agent D)
+- To: team leader
+- Needed by: nothing; G03 ships without it (its ticket asks for the owner to be confirmed here in one line)
+- Status: open
+- Context: `docs/PLAN.md` §4 lists no owner for `src/features/ask/`. The panel is mounted on Listen (`src/features/player/index.tsx`) and, after G03, reuses the voice guide's action allow-list (`toAssistantAction`, `src/hooks/useVoiceAssistant.ts`), both Mohammad's.
+- Question: (a) Mohammad, as owner of Listen and the voice guide; (b) the team leader; (c) someone else (say who). The answer goes in the §4 table.
 - Answer:
 - Recorded in: nowhere needed yet

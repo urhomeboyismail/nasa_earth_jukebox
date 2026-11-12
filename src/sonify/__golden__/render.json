@@ -1,0 +1,205 @@
+{
+  "fixture": {
+    "wavSha256": "e9fecb63544eb30e6617a6511530a9c3f0573f3a6eabbf12d06446cb489d267c",
+    "vtt": "WEBVTT\n\n2024-01-15\n00:00:00.000 --> 00:00:01.000\nThe overall level is low; 1 hot spot, the largest in the centre.\nMelody: low Harmony: thin chord, 1 note Bass: middle Hot spots: 1, the largest is a low one in the centre Time: steady pulse\n\n2024-07-15\n00:00:01.000 --> 00:00:02.000\nThe overall level is low and rising; the picture is still; a new month.\nMelody: low, rising Harmony: thin chord, 1 note Bass: high, rising Motion: still Time: steady pulse, new month\n\n2024-12-15\n00:00:02.000 --> 00:00:03.000\nThe overall level is middle and rising; 1 hot spot, the largest in the centre; the picture is still; a new month.\nMelody: middle, rising Harmony: thin chord, 1 note Bass: high, steady Hot spots: 1, the largest is a high one in the centre Motion: still Time: steady pulse, new month\n\n2025-03-15\n00:00:03.000 --> 00:00:04.000\nNot enough readable data on this date: only the time pulse sounds.\nMelody: not enough data Harmony: not enough data Bass: not enough data Time: steady pulse, new year\n",
+    "sidecar": {
+      "id": "fixture",
+      "title": "Fixture ocean",
+      "preset": "major",
+      "detail": "full",
+      "sampleRate": 44100,
+      "stepSeconds": 1,
+      "dropoutSeed": 20261109,
+      "frames": [
+        {
+          "frameId": "2024-01-15",
+          "date": "2024-01-15",
+          "atSeconds": 0,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is low; 1 hot spot, the largest in the centre.",
+          "hotspotIds": [
+            "h1"
+          ]
+        },
+        {
+          "frameId": "2024-07-15",
+          "date": "2024-07-15",
+          "atSeconds": 1,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is low and rising; the picture is still; a new month.",
+          "hotspotIds": []
+        },
+        {
+          "frameId": "2024-12-15",
+          "date": "2024-12-15",
+          "atSeconds": 2,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is middle and rising; 1 hot spot, the largest in the centre; the picture is still; a new month.",
+          "hotspotIds": [
+            "h2"
+          ]
+        },
+        {
+          "frameId": "2025-03-15",
+          "date": "2025-03-15",
+          "atSeconds": 3,
+          "confidence": 0,
+          "dropout": true,
+          "missing": [
+            "melody",
+            "harmony",
+            "bass"
+          ],
+          "summary": "Not enough readable data on this date: only the time pulse sounds.",
+          "hotspotIds": []
+        }
+      ]
+    }
+  },
+  "synthetic-storm": {
+    "wavSha256": "89004cc888523e5fd89d3e3e31e4d80b217a053903d52b92285836baf604f553",
+    "vtt": "WEBVTT\n\n2026-03-01\n00:00:00.000 --> 00:00:01.000\nThe overall level is middle; 1 hot spot, the largest in the west.\nMelody: middle Harmony: thin chord, 1 note Bass: middle Hot spots: 1, the largest is a high one in the west Time: steady pulse\n\n2026-03-02\n00:00:01.000 --> 00:00:02.000\nThe overall level is middle and steady; 1 hot spot, the largest in the west; movement towards the east.\nMelody: middle, steady Harmony: thin chord, 1 note Bass: middle, steady Hot spots: 1, the largest is a high one in the west Motion: high, towards the east Time: steady pulse\n\n2026-03-03\n00:00:02.000 --> 00:00:03.000\nThe overall level is middle and steady; 1 hot spot, the largest in the centre; movement towards the east.\nMelody: middle, steady Harmony: thin chord, 1 note Bass: middle, steady Hot spots: 1, the largest is a high one in the centre Motion: high, towards the east Time: steady pulse\n\n2026-03-04\n00:00:03.000 --> 00:00:04.000\nThe overall level is middle and steady; 1 hot spot, the largest in the centre; movement towards the east.\nMelody: middle, steady Harmony: thin chord, 1 note Bass: middle, steady Hot spots: 1, the largest is a high one in the centre Motion: high, towards the east Time: steady pulse\n\n2026-03-05\n00:00:04.000 --> 00:00:05.000\nThe overall level is middle and steady; 1 hot spot, the largest in the centre; movement towards the east.\nMelody: middle, steady Harmony: thin chord, 1 note Bass: middle, steady Hot spots: 1, the largest is a high one in the centre Motion: high, towards the east Time: steady pulse\n\n2026-03-06\n00:00:05.000 --> 00:00:06.000\nThe overall level is middle and steady; 2 hot spots, the largest in the centre; sparse edges; movement towards the east.\nMelody: middle, steady Harmony: thin chord, 1 note Bass: middle, steady Hot spots: 2, the largest is a high one in the centre Rhythm: sparse Motion: high, towards the east Time: steady pulse\n\n2026-03-07\n00:00:06.000 --> 00:00:07.000\nThe overall level is middle and steady; 2 hot spots, the largest in the centre; sparse edges; movement towards the east.\nMelody: middle, steady Harmony: thin chord, 1 note Bass: middle, steady Hot spots: 2, the largest is a high one in the centre Rhythm: sparse Motion: high, towards the east Time: steady pulse\n\n2026-03-08\n00:00:07.000 --> 00:00:08.000\nThe overall level is middle and steady; 2 hot spots, the largest in the centre; sparse edges; movement towards the east.\nMelody: middle, steady Harmony: thin chord, 1 note Bass: middle, steady Hot spots: 2, the largest is a high one in the centre Rhythm: sparse Motion: high, towards the east Time: steady pulse\n\n2026-03-09\n00:00:08.000 --> 00:00:09.000\nThe overall level is middle and steady; 1 hot spot, the largest in the centre; movement towards the east.\nMelody: middle, steady Harmony: thin chord, 1 note Bass: middle, steady Hot spots: 1, the largest is a high one in the centre Motion: middle, towards the east Time: steady pulse\n\n2026-03-10\n00:00:09.000 --> 00:00:10.000\nNot enough readable data on this date: only the time pulse sounds.\nMelody: not enough data Harmony: not enough data Bass: not enough data Time: steady pulse\n",
+    "sidecar": {
+      "id": "synthetic-storm",
+      "title": "Synthetic storm (made-up practice data)",
+      "preset": "major",
+      "detail": "full",
+      "sampleRate": 44100,
+      "stepSeconds": 1,
+      "dropoutSeed": 20261109,
+      "frames": [
+        {
+          "frameId": "2026-03-01",
+          "date": "2026-03-01",
+          "atSeconds": 0,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is middle; 1 hot spot, the largest in the west.",
+          "hotspotIds": [
+            "h1"
+          ]
+        },
+        {
+          "frameId": "2026-03-02",
+          "date": "2026-03-02",
+          "atSeconds": 1,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is middle and steady; 1 hot spot, the largest in the west; movement towards the east.",
+          "hotspotIds": [
+            "h1"
+          ]
+        },
+        {
+          "frameId": "2026-03-03",
+          "date": "2026-03-03",
+          "atSeconds": 2,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is middle and steady; 1 hot spot, the largest in the centre; movement towards the east.",
+          "hotspotIds": [
+            "h1"
+          ]
+        },
+        {
+          "frameId": "2026-03-04",
+          "date": "2026-03-04",
+          "atSeconds": 3,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is middle and steady; 1 hot spot, the largest in the centre; movement towards the east.",
+          "hotspotIds": [
+            "h1"
+          ]
+        },
+        {
+          "frameId": "2026-03-05",
+          "date": "2026-03-05",
+          "atSeconds": 4,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is middle and steady; 1 hot spot, the largest in the centre; movement towards the east.",
+          "hotspotIds": [
+            "h1"
+          ]
+        },
+        {
+          "frameId": "2026-03-06",
+          "date": "2026-03-06",
+          "atSeconds": 5,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is middle and steady; 2 hot spots, the largest in the centre; sparse edges; movement towards the east.",
+          "hotspotIds": [
+            "h1",
+            "h2"
+          ]
+        },
+        {
+          "frameId": "2026-03-07",
+          "date": "2026-03-07",
+          "atSeconds": 6,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is middle and steady; 2 hot spots, the largest in the centre; sparse edges; movement towards the east.",
+          "hotspotIds": [
+            "h1",
+            "h2"
+          ]
+        },
+        {
+          "frameId": "2026-03-08",
+          "date": "2026-03-08",
+          "atSeconds": 7,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is middle and steady; 2 hot spots, the largest in the centre; sparse edges; movement towards the east.",
+          "hotspotIds": [
+            "h1",
+            "h2"
+          ]
+        },
+        {
+          "frameId": "2026-03-09",
+          "date": "2026-03-09",
+          "atSeconds": 8,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is middle and steady; 1 hot spot, the largest in the centre; movement towards the east.",
+          "hotspotIds": [
+            "h1"
+          ]
+        },
+        {
+          "frameId": "2026-03-10",
+          "date": "2026-03-10",
+          "atSeconds": 9,
+          "confidence": 0,
+          "dropout": true,
+          "missing": [
+            "melody",
+            "harmony",
+            "bass"
+          ],
+          "summary": "Not enough readable data on this date: only the time pulse sounds.",
+          "hotspotIds": []
+        }
+      ]
+    }
+  }
+}

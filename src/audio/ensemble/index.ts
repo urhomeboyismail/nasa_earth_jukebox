@@ -3,6 +3,7 @@
 // as the Simple mode. Tone is loaded on start(), which has to happen in a click or key press anyway (WCAG 1.4.2), so it stays out of the first load.
 
 import type { DetailLevel, MusicFrame, Preset, VoiceId } from '../../sonify/types'
+import { duck } from '../duck'
 import { MAX_RENDER_S, PAUSE_FADE_S, RENDER_TAIL_S, RESUME_FADE_S, STOP_FADE_S, VOLUME_RAMP_S } from './constants'
 import { buildGraph, type Graph } from './graph'
 import { createStatus, watchContext, watchVisibility } from './lifecycle'
@@ -23,6 +24,9 @@ export function createEnsemble(preset: Preset, options: EnsembleOptions = {}): E
   const spatial = options.spatial ?? 'stereo'
   let detail: DetailLevel = options.detail ?? 'full'
   let volume = clamp01(options.volume ?? 1)
+  /** The duck controller's target (1, or DUCK_LINEAR). The master's level while sounding is volume × this. */
+  let duckGain = duck.target()
+  const level = () => volume * duckGain
   let soloed: VoiceId | null = null
   const muted = new Set<VoiceId>()
   const status = createStatus()
@@ -58,9 +62,15 @@ export function createEnsemble(preset: Preset, options: EnsembleOptions = {}): E
         if (status.get() === 'paused' && context.state !== 'running') status.set('suspended')
       },
     )
+    // A voice speaking lowers the master and lets it back; a paused or stopped ensemble stays at 0 and resumes at the current target.
+    const stopDuck = duck.subscribe((gain, rampS) => {
+      duckGain = gain
+      if (rampS > 0 && graph && status.get() === 'on') graph.master.gain.rampTo(level(), rampS)
+    })
     removeListeners = () => {
       stopContext()
       stopVisibility()
+      stopDuck()
     }
   }
 
@@ -69,7 +79,7 @@ export function createEnsemble(preset: Preset, options: EnsembleOptions = {}): E
     await t.start()
     if (disposed) return
     if (!graph) build(t)
-    graph!.master.gain.rampTo(volume, RESUME_FADE_S)
+    graph!.master.gain.rampTo(level(), RESUME_FADE_S)
     t.getTransport().start()
     status.set(raw!.state === 'running' ? 'on' : 'suspended')
   }
@@ -108,7 +118,7 @@ export function createEnsemble(preset: Preset, options: EnsembleOptions = {}): E
       return
     }
     tone!.getTransport().start()
-    graph.master.gain.rampTo(volume, RESUME_FADE_S)
+    graph.master.gain.rampTo(level(), RESUME_FADE_S)
     status.set('on')
   }
 
@@ -158,7 +168,7 @@ export function createEnsemble(preset: Preset, options: EnsembleOptions = {}): E
     setVolume(zeroToOne: number) {
       if (disposed) return
       volume = clamp01(zeroToOne)
-      if (graph && status.get() === 'on') graph.master.gain.rampTo(volume, VOLUME_RAMP_S)
+      if (graph && status.get() === 'on') graph.master.gain.rampTo(level(), VOLUME_RAMP_S)
     },
     status: () => status.get(),
     now: () => raw?.currentTime ?? 0,

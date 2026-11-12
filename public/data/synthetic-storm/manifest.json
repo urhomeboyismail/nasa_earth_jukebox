@@ -361,5 +361,9 @@
       "durationMs": 300
     }
   },
-  "comparisons": []
+  "comparisons": [],
+  "mascot": {
+    "accent": "#00f0ff",
+    "trail": "ions"
+  }
 }

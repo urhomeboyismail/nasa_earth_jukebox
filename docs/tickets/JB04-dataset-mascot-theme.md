@@ -120,4 +120,61 @@ npm run check-data
 
 ## Result
 
-Not started.
+Built by agent D on `feature/JB04-dataset-mascot-theme`, 12 Nov 2026.
+
+**What changed**
+
+- `src/data/schema.ts`, `src/data/types.ts`: optional, strict `mascot { accent?, trail? }`. `accent` must be `#rrggbb`, `trail` one of `sparks`, `bubbles`, `ions`, `pulse`. Schema and type change together (the `expectTypeOf` check in `schema.test.ts` compiles).
+- `src/features/mascot/accent.ts` (new, pure): `mascotTheme` picks the first of the manifest accent and the most saturated legend stop (ties go to the higher stop) with at least 3:1 against the visor `#0f2233`; otherwise `var(--md-sys-color-primary)`. The trail defaults to `sparks`. `accentWarning` produces the `check-data` warning.
+- `src/features/mascot/MascotDock.tsx`: a new optional `visualization` prop. With it, the dock's root gets `--mascot-accent`, `--mascot-accent-soft` (a 55 % mix with white) and `--mascot-trail`, plus `data-trail`. Without it, Echo keeps its own colours.
+- `src/components/mascot.css`: four trail shapes keyed off an ancestor `[data-trail]` (short dashes, small rings, long streaks, a wide ring). They are still pictures by default and move only under `prefers-reduced-motion: no-preference`. `pulse` runs one cycle every 0.8 s, under the 2 a second limit.
+- Manifests: `mur-sst-mauritius` and `synthetic-ocean` get `#00ffcc` / `bubbles`; `synthetic-storm` gets `#00f0ff` / `ions`. Only the field is added (a JSON round trip left the rest byte-identical).
+- `src/data/datasets.test.ts` (run by `npm run check-data`): one warning-only case per data set prints `accentWarning`. None of the current data sets triggers it.
+- Docs: `docs/data-sources.md` gains the "Echo's look (JB04)" section, `docs/DATASET-PLAYBOOK.md` step 4 gains the accent and trail line, and `docs/PRE-HACKATHON-WORK.md` gains one line.
+
+**Still open (outside Touches)**
+
+- `src/App.tsx:237` does not pass the data set to `<MascotDock>`, so in the running app Echo keeps its default colours until it does. Asked on the board: `R-20261112-JB04-1` (one prop, `visualization={visualization}`). "Done when: switching data sets changes Echo" is covered by `MascotDock.test.tsx` but needs that line in the app.
+- The trails only show while Echo is `boosting` or `retro`, and nothing in the dock sets a motion yet (JB02 does). The shapes are ready for it.
+- `Mascot.tsx` still writes its own `data-trail="spark"` on the `<svg>`. The styles key off the dock's attribute, so it does no harm; it could go in a later Mascot ticket.
+- The fallback token `--md-sys-color-primary` is `#802cc9` in light mode, which is itself only 2.4:1 against the visor. It is today's look, as the ticket asks. The dark theme's `#cd97ff` passes.
+- The generators `scripts/make_synthetic.py` and `make_synthetic_storm.py` rewrite their manifests in full, so a regeneration would drop `mascot` (as it would `variable.words` in `synthetic-ocean` today).
+
+**Checks** (Windows, Node 24.19.0)
+
+`npm run lint`:
+```
+> moon-heist@0.0.0 lint
+> oxlint
+```
+(exit 0, no findings)
+
+`npm run build`:
+```
+dist/assets/player-Ce8cMOyu.js             49.06 kB │ gzip:  16.52 kB
+dist/assets/esm-Cf-aICZN.js               340.81 kB │ gzip:  79.42 kB
+dist/assets/index-PQHmzxle.js             389.09 kB │ gzip: 121.94 kB
+✓ built in 974ms
+```
+(exit 0)
+
+`npm test`: the default run (8 `vmThreads` workers) aborted with `FATAL ERROR: Zone Allocation failed - process out of memory` on this laptop (8 GB, about 1.2 GB free). Re-run as `npx vitest run --maxWorkers=2`:
+```
+ FAIL  src/data/sound-regression.test.ts > sound regression baseline > notices when one legend stop of the fixture changes
+ Test Files  1 failed | 109 passed (110)
+      Tests  1 failed | 1828 passed (1829)
+   Duration  84.33s
+```
+
+`npm run check-data` (as `npx vitest run --maxWorkers=2 src/data src/analysis/synthetic.test.ts`):
+```
+ FAIL  src/data/sound-regression.test.ts > sound regression baseline > notices when one legend stop of the fixture changes
+ Test Files  1 failed | 11 passed (12)
+      Tests  1 failed | 258 passed (259)
+```
+
+The one failure is not from JB04. It fails the same way on `main` with these changes stashed. The test compares a string with `
+` endings against `src/data/__golden__/fixture.json` read from disk, and this machine checks files out with `core.autocrlf=true` (`git ls-files --eol`: `i/lf w/crlf`), so the file on disk has `
+`. On a checkout with LF endings it should pass.
+
+The JB04 tests, all passing: `schema.test.ts` "Echo's look: the mascot field (JB04)" (4), `accent.test.ts` (12) and `MascotDock.test.tsx` "Echo's look follows the open data set (JB04)" (3, the first with `expectNoA11yViolations`). The six mascot, schema and data-set files together give 162 passed.

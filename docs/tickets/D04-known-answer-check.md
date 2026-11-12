@@ -137,4 +137,52 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Steps 1 to 4 built by agent D on `feature/D04-known-answer-check`, 12 Nov 2026. Steps 5 to 7 need a person (NASA's numbers) and are not done, so no data set has a `known-answers.json` yet.
+
+**What changed**
+
+- `src/data/knownAnswers.ts` (new):
+  - `knownAnswersSchema` is strict, with `map` either `equirectangular` (west/east/north/south, the right way round) or `other` (at least 4 `control` points that can be fitted), never both. It requires at least 5 checks, each with a full `source`.
+  - `allowedError` is the larger of `legendRounding` and `tolerance`. The Design text says the tolerance "adds", but the function comment and Tests say "whichever is larger", so it follows Tests.
+  - `pointOf` puts an equirectangular map into `mapArea`; control points are fitted bilinearly by least squares (`fitControl`).
+  - `checkKnownAnswers` returns one line per failure: a wrong number, a point that can't be read (land, cloud, a label), a frame not in the data set, a point outside the map, or a file whose `id` doesn't match. It decodes each picture once.
+- `src/data/known-answers.test.ts` (new), run by `npm run check-data` with the rest of `src/data`: the loop over `index.json`, which is empty until a file exists; a test that every file belongs to a listed data set; and the schema, `pointOf`, `allowedError` and mechanism tests on `scene()` from `src/test/changeScene.ts`. The mechanism tests include a pass, a 3-unit fail with the exact one-line message, a land point, a missing frame, a point off the map and a mismatched id.
+- `docs/data-sources.md`: the section "Known answers (D04)", covering the file, its fields, how to get a NASA number, and what to do when a check fails.
+
+**Left for a person (steps 5 to 7)**: read NASA's numbers for `mur-sst-mauritius` (at least 5 points with their sources) from the PO.DAAC MUR data, then an agent converts the table to `public/data/mur-sst-mauritius/known-answers.json` and runs the test.
+
+**Checks** (Windows, Node 24.19.0)
+
+`npm run lint`:
+```
+> moon-heist@0.0.0 lint
+> oxlint
+```
+(exit 0, no findings)
+
+`npm run build`:
+```
+✓ built in 1.42s
+```
+(exit 0)
+
+`npm test` (as `npx vitest run --maxWorkers=2`; the default 8 workers run out of memory on this 8 GB laptop):
+```
+ FAIL  src/data/sound-regression.test.ts > sound regression baseline > notices when one legend stop of the fixture changes
+ Test Files  1 failed | 109 passed (110)
+      Tests  1 failed | 1817 passed (1818)
+   Duration  112.88s
+```
+
+`npm run check-data` (as `npx vitest run --maxWorkers=2 src/data src/analysis/synthetic.test.ts`):
+```
+ FAIL  src/data/sound-regression.test.ts > sound regression baseline > notices when one legend stop of the fixture changes
+ Test Files  1 failed | 12 passed (13)
+      Tests  1 failed | 262 passed (263)
+```
+
+`src/data/known-answers.test.ts` alone: `Tests  15 passed (15)`.
+
+The one failure is not from D04. It fails the same way on clean `main`: this machine checks files out with `core.autocrlf=true`, so `src/data/__golden__/fixture.json` has `
+` on disk, and the test compares it against `
+` text (see JB04's Result). With no `known-answers.json` present, the loop adds no tests and passes, as step 3 asks.

@@ -1,0 +1,51 @@
+/* Echo, the Juke-Bot (F58, drawn in Mascot.tsx). The colours come from --mascot-* variables set on the <svg>'s parent (JB04 sets
+   --mascot-accent, --mascot-accent-soft and --mascot-trail per data set); Mascot.tsx gives each a fallback, so nothing needs them set.
+   The tilt, the flames and the pointing arm are still pictures, so a state is visible with reduced motion.
+   Everything that moves sits in no-preference. Nothing flashes more than 3 times a second. */
+
+.mascot__body { transform-box: view-box; transform-origin: 100px 224px; }
+.mascot__arm--right { transform-box: view-box; transform-origin: 138px 146px; }
+.mascot__flame { transform-box: fill-box; transform-origin: 50% 0; transform: scaleY(calc(0.4 + 0.6 * var(--thrust, 0.7))); }
+.mascot__globe-lines { transform-box: fill-box; transform-origin: center; }
+.mascot__sweep { transform-box: fill-box; transform-origin: center; }
+
+[data-motion='boosting'] .mascot__body { transform: rotate(-15deg); }
+[data-motion='retro'] .mascot__body { transform: rotate(10deg); }
+[data-motion='retro'] .mascot__flame { transform: rotate(-35deg) scaleY(0.6); }
+[data-motion='pointing'] .mascot__arm--right { transform: rotate(-60deg); }
+
+/* Jet trails (JB04). The dock sets data-trail from the open data set's manifest; the particles show only while boosting or in a retro burn.
+   Each style is its own shape, so the trail is never told apart by colour alone: sparks are short dashes, bubbles are small rings,
+   ions are long thin streaks, pulse is a wide ring. They are still pictures under reduced motion. */
+[data-part='trail'] { transform-box: fill-box; transform-origin: center; }
+[data-trail='sparks'] [data-part='trail'] { scale: 0.7 1.8; }
+[data-trail='bubbles'] [data-part='trail'] { fill: none; stroke: var(--mascot-trail, #7fe7ff); stroke-width: 1.2px; scale: 1.3; }
+[data-trail='ions'] [data-part='trail'] { scale: 0.45 3.2; opacity: 1; }
+[data-trail='pulse'] [data-part='trail'] { fill: none; stroke: var(--mascot-trail, #7fe7ff); stroke-width: 1px; scale: 2; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .mascot__body, .mascot__arm--right { transition: transform 0.25s ease-out; }
+  [data-motion='idle'] .mascot__body { animation: floatIdle 4s ease-in-out infinite; }
+  [data-motion='boosting'] .mascot__flame { animation: flickerFlame 0.4s steps(1, end) infinite; }
+  [data-motion='retro'] .mascot__flame { animation: retroBurn 0.4s ease-out 1 both; }
+  [data-expression='eq_active'] [data-part='visor-eq_active'],
+  [data-expression='alert'] [data-part='visor-alert'] { animation: visorPulse 1.6s ease-in-out infinite; }
+  [data-expression='searching'] .mascot__sweep { animation: radarSweep 1.6s ease-in-out infinite alternate; }
+  [data-globe='spinning'] .mascot__globe-lines { animation: globeTurn calc(10s - 8.5s * var(--globe-spin, 0)) ease-in-out infinite alternate; }
+  /* Each trail fades in and out once a cycle, never a flash; pulse cycles every 0.8 s, under the 2 a second its ticket allows. */
+  [data-trail='sparks'] [data-part='trail'] { animation: trailSpark 0.6s ease-out infinite; }
+  [data-trail='bubbles'] [data-part='trail'] { animation: trailBubble 1.4s ease-in-out infinite; }
+  [data-trail='ions'] [data-part='trail'] { animation: trailIon 0.7s linear infinite; }
+  [data-trail='pulse'] [data-part='trail'] { animation: trailPulse 0.8s ease-out infinite; }
+}
+
+@keyframes floatIdle { 50% { transform: translateY(-4px); } }
+@keyframes flickerFlame { 50% { opacity: 0.7; } }
+@keyframes retroBurn { from { opacity: 1; transform: rotate(-35deg) scaleY(1); } to { opacity: 0; transform: rotate(-35deg) scaleY(0.3); } }
+@keyframes visorPulse { 50% { opacity: 0.7; } }
+@keyframes radarSweep { from { transform: translateY(-9px); } to { transform: translateY(9px); } }
+@keyframes globeTurn { from { transform: scaleX(1); } to { transform: scaleX(0.3); } }
+@keyframes trailSpark { from { translate: 0 -4px; opacity: 1; } to { translate: 0 8px; opacity: 0; } }
+@keyframes trailBubble { from { translate: 0 6px; opacity: 0.9; } to { translate: 2px -10px; opacity: 0; } }
+@keyframes trailIon { from { translate: 0 -6px; opacity: 1; } to { translate: 0 14px; opacity: 0.2; } }
+@keyframes trailPulse { from { scale: 0.8; opacity: 0.9; } to { scale: 2.8; opacity: 0; } }

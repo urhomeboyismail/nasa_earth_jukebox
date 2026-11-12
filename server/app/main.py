@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.assistant import router as assistant_router
+from app.api.jukebox import router as jukebox_router
 from app.config import settings
 from app.study.api import router as study_router
 
@@ -26,3 +27,4 @@ def health() -> dict:
 
 app.include_router(assistant_router)
 app.include_router(study_router)
+app.include_router(jukebox_router)

@@ -1,41 +1,50 @@
-// Music never plays over the voice guide. While the guide listens or speaks, the player is paused; nothing here
-// resumes it by itself, so the listener decides ("play" to the guide, or the Play button).
-//
-// This goes through the player's own commands rather than the sound engine's duck(): the engine is created inside
-// each page, and pausing it directly would leave the Play/Pause button showing "playing" over silence.
+// Music steps aside for the voice guide (ticket SN13). While the guide listens or speaks, the sound is ducked by DUCK_DB (src/audio/duck.ts);
+// it is never paused, so the listener's place stays and the music comes back by itself a moment after the guide is done.
 
 import { useEffect, useRef } from 'react'
-import { sendPlayerCommand, type PlayerCommand } from '../features/player/controls'
+import { DUCK_RELEASE_S, duck } from '../audio/duck'
+import type { PlayerCommand } from '../features/player/controls'
 import type { AssistantStatus } from '../hooks/useVoiceAssistant'
 
-/** Commands that mean "I want to hear sound now". */
-const WANTS_SOUND = (command: PlayerCommand) => command !== 'pause' && command !== 'stop'
+/**
+ * Kept only so `App.tsx` still compiles: nothing needs to know whether the listener just asked for sound any more, because the guide ducks
+ * the music instead of pausing it. Remove this and its call in `App.tsx` when that file is next edited.
+ */
+export function noteGuidePlaybackCommand(_command: PlayerCommand) {}
 
-let wantsSound = false
-
-/** Call for every playback command the guide sends. A listener who just asked for sound keeps it while the guide confirms. */
-export function noteGuidePlaybackCommand(command: PlayerCommand) {
-  wantsSound = WANTS_SOUND(command)
-}
-
-/** For tests: forget what the guide last asked for. */
+/** For tests: forget every duck. */
 export function resetDucking() {
-  wantsSound = false
+  duck.reset()
 }
 
 export function useDucking(status: AssistantStatus) {
-  const previous = useRef<AssistantStatus>('idle')
+  const active = status === 'listening' || status === 'speaking'
+  const held = useRef(false)
+  const timer = useRef<number | undefined>(undefined)
+
   useEffect(() => {
-    const before = previous.current
-    previous.current = status
-    if (status === 'listening' && before !== 'speaking') {
-      // The guide has just opened (or reconnected): quiet the music so the microphone hears the listener.
-      sendPlayerCommand('pause')
-    } else if (status === 'speaking' && !wantsSound) {
-      sendPlayerCommand('pause')
-    } else if (status === 'listening' && before === 'speaking') {
-      // The guide finished its turn. A request for sound has been answered; the next turn starts fresh.
-      wantsSound = false
+    if (active) {
+      window.clearTimeout(timer.current)
+      timer.current = undefined
+      if (!held.current) {
+        held.current = true
+        duck.begin('guide')
+      }
+    } else if (held.current && timer.current === undefined) {
+      // The end of a sentence is not cut: the release waits for the music's own fade time.
+      timer.current = window.setTimeout(() => {
+        timer.current = undefined
+        held.current = false
+        duck.end('guide')
+      }, DUCK_RELEASE_S * 1000)
     }
-  }, [status])
+  }, [active])
+
+  useEffect(() => () => {
+    window.clearTimeout(timer.current)
+    if (held.current) {
+      held.current = false
+      duck.end('guide')
+    }
+  }, [])
 }

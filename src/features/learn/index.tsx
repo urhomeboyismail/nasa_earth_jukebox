@@ -10,6 +10,7 @@ import { useDescriptionDetail } from '../../describe/detail'
 import { currentDataParam, hashFor } from '../../route'
 import type { PageProps } from '../types'
 import { LEGEND_GAP_MS, legendSteps } from './legendTour'
+import { VoiceCards } from './VoiceCardsSection'
 import './learn.css'
 
 /** Gap between sounds in "Play all", long enough to hear each one finish. */
@@ -251,6 +252,7 @@ export default function LearnPage({ visualization }: PageProps) {
       <p>
         Ready? <a className="learn__next" href={hashFor('listen', { data: currentDataParam() })}>Go to Listen</a>
       </p>
+      <VoiceCards visualization={visualization} />
     </div>
   )
 }

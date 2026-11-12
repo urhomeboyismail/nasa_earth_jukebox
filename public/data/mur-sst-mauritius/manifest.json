@@ -2244,5 +2244,9 @@
       "toFrame": "2023-08-01",
       "text": "By late July and on 1 August the sea is about 24.7 °C, cold on our scale and nearly 4 °C cooler than on 3 April. The notes are as low as they get in this set."
     }
-  ]
+  ],
+  "mascot": {
+    "accent": "#00ffcc",
+    "trail": "bubbles"
+  }
 }

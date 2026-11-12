@@ -157,4 +157,12 @@ npx vitest run src/components/Mascot.test.tsx src/features/welcome src/features/
 
 ## Result
 
-Not started.
+Done on `feature/F58-juke-bot` (agent C, 2026-11-11). Echo and Sonny are redrawn as Juke-Bot; five visor expressions and four motion states are props; colours are `--mascot-*` variables with fallbacks; the persona says Echo is a program, not a person; the concept page and PNG are rendered from the real component.
+
+- `npm run lint`: 0 warnings, 0 errors.
+- `npm test`: 1740 passed, 1 failed. The failure is `src/data/sound-regression.test.ts` ("notices when one legend stop of the fixture changes"): the expected text has CRLF line endings from this Windows checkout (git autocrlf). It does not touch the mascot and is not caused by this change.
+- `npx vitest run src/components/Mascot.test.tsx src/features/welcome src/features/help src/features/demo src/App.test.tsx`: 74 passed (Mascot.test.tsx: 21).
+- `npm run build`: built.
+- `server`: `.venv/Scripts/python -m pytest`: 132 passed.
+- Found while drawing: a glow filter draws nothing for a shape with no height, so the resting eyes are slight curves, not flat lines.
+- Still for people: tick the "Do not resemble" list in the PR; two team members look at the art.
