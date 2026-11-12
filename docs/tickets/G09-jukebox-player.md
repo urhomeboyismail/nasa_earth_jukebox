@@ -36,12 +36,12 @@ Playback:
 
 - **Tempo:** `base_bpm` sets the Transport's tempo. Each value of `volume_curve` is one step, an eighth note long.
 - **Volume:** each track has one `Tone.Synth` and one `Tone.Sequence` over its `volume_curve`. At each step the sequence sets the synth's volume from the value (0 to 1 as gain, in decibels) and plays a note. A value of 0 is a rest.
-- **Pitch:** `pitch_range` gives the lowest and highest MIDI note. The payload has no pitch curve, so pitch follows volume: the quietest value of the track plays the lowest note, the loudest plays the highest, and the notes between are spread evenly. A flat curve plays the middle note. MIDI becomes frequency with `440 × 2^((midi − 69) / 12)`.
+- **Pitch:** `pitch_range` gives the lowest and highest MIDI note. The payload has no pitch curve, so pitch follows volume: the quietest sounding value of the track plays the lowest note (a rest does not count), the loudest plays the highest, and the notes between are spread evenly. A flat curve plays the middle note. MIDI becomes frequency with `440 × 2^((midi − 69) / 12)`.
 - **Level:** every synth goes through one limiter at −1 dBFS, and each track's gain is divided by the number of tracks.
-- **End:** playback stops by itself after the longest track's last step.
+- **End:** playback stops by itself one step after the longest track's last step.
 - `instrument` is shown as text and does not choose a sound yet: every track is a `Tone.Synth`.
 
-The payload is model output, so the browser checks it again with zod before playing (`parseAudioPayload`), the same limits as the server.
+The payload is model output, so the browser checks it again with zod before playing (`parseAudioPayload`): the server's limits, and also at most 16 tracks and 4096 steps a track, which the server does not cap.
 
 The component is not on any page yet: `src/App.tsx` is a hotspot held by another ticket. To hear it, a page that only the dev server serves, `jukebox.html`, shows a text box for the JSON and the player. The production build does not include it.
 
@@ -53,7 +53,7 @@ The component is not on any page yet: `src/App.tsx` is a hotspot held by another
 
 ## Touches
 
-- `src/features/jukebox/` (new): `JukeboxPlayer.tsx`, `payload.ts`, `jukebox.css`, their tests, `dev.tsx`
+- `src/features/jukebox/` (new): `JukeboxPlayer.tsx`, `payload.ts`, `jukebox.css`, their tests, `DevPage.tsx`, `dev.tsx`
 - `jukebox.html` (new, dev server only)
 - `docs/tickets/G09-jukebox-player.md`, `docs/TICKETS.md` (own row), `docs/PRE-HACKATHON-WORK.md` (after the merge)
 
@@ -96,4 +96,28 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent: the branch, the commits, and the real output of the checks, failures included.
+Branch `feature/G09-jukebox-player`.
+
+```
+$ npm run lint
+lint exit 0 (no warnings)
+
+$ npm test
+ Test Files  126 passed (126)
+      Tests  2104 passed (2104)
+
+$ npm run build
+✓ built in 529ms
+build exit 0   (dist/ holds no jukebox file: the dev page is not in the build)
+```
+
+One earlier full run had 1 failed test out of 2103; its name was not captured, and three later full runs and five runs of this ticket's tests all passed.
+
+**In a browser** (Chrome, `http://localhost:5199/jukebox.html`, the sample payload: 2 tracks, 16 steps, 120 beats a minute, with the real Tone.js 15.1.22): Play turned to Stop and "Playing" was announced; playback ended by itself after about 4 seconds, with "Finished"; a second Play and a Stop both worked; the console showed no error or warning. This checks the controls and the scheduling. Nobody has listened to it yet: the check was automated and cannot hear.
+
+Two things the browser check changed:
+
+- Stopping the Transport from inside its own callback made Tone warn about timing. The end now runs from a timer set for the time the callback was for.
+- Tone's Draw was tried for that and dropped: it waits for the page to be painted, so in a background tab playback never ended.
+
+Known limits, as under Out of scope: the player is on no page of the app, `instrument` does not choose a sound, and it must not play at the same time as the app's own player.
