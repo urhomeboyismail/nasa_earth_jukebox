@@ -113,7 +113,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [H02](tickets/H02-live-parity-check.md) | Live parity check with a billed key | S | 👤 | G04 | — | open |
 | [G05](tickets/G05-adk-default.md) | ADK by default; retire the old bridge | S | agent | G04, H02 | server-assistant | open |
 | [G06](tickets/G06-agent-sees-more.md) | The agent sees facts, the explorer and the music; context schemas and drift test | M | agent | G04, SN03 | server-assistant, player, compare, ask | open |
-| [G07](tickets/G07-agent-eval-drafter.md) | Agent evaluation (scoring bug fixed) and the offline drafter | M | agent+👤 | G02 | — | open |
+| [G07](tickets/G07-agent-eval-drafter.md) | Agent evaluation (scoring bug fixed) and the offline drafter | M | agent+👤 | G02 | — | claimed: E, 2026-11-12 |
 | [G08](tickets/G08-jukebox-orchestrator.md) | Jukebox orchestrator: a LangGraph of four ADK agents (supervisor, synthesizer, vision, critic), and its route `POST /api/v1/jukebox/generate` | M | agent | — | — | done |
 | [V01](tickets/V01-agent-panel-focus-undo.md) | Agent panel: focus not stolen, "Echo did" with Undo, Alt+E, Stop | M | agent | — | app, voice | done |
 | [V02](tickets/V02-mic-consent-text-only.md) | Mic consent first, text-only mode, push-to-talk, session warning | M | agent | — | app, voice | ready: feature/V02-mic-consent-text-only |
