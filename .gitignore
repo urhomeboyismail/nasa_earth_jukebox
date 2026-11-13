@@ -40,3 +40,10 @@ public/data/stress-*/
 
 # Converter rehearsal output (T91): generated, never committed
 public/data/rehearsal-*/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
