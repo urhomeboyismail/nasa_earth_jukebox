@@ -391,6 +391,41 @@ describe('Player: keyboard', () => {
     expect(screen.getByRole('slider', { name: 'Date' })).toHaveValue('0')
   })
 
+  it('a step in time while the dates are not playing changes the date and says it, and does not play the chord of the date as well (IX06)', async () => {
+    const { user } = await renderReady()
+    screen.getByRole('button', { name: 'Stop' }).focus()
+    await user.keyboard('{ArrowRight}')
+    await tick(0)
+    expect(screen.getByRole('slider', { name: 'Date' })).toHaveValue('1')
+    // The slice (a few notes of the date's music) is the sound; it goes through the ensemble, not the sound engine's one-date chord.
+    expect(fake.sequences).toHaveLength(0)
+    expect(liveText()).toContain('July 2024')
+    // At the end, a step that cannot move says so and changes nothing.
+    await jumpTo(3)
+    await user.keyboard('{ArrowRight}')
+    await tick(0)
+    expect(liveText()).toBe('Last date.')
+    expect(screen.getByRole('slider', { name: 'Date' })).toHaveValue('3')
+  })
+
+  it('Alt with Left, Right, Home and End steps through the dates (IX06)', async () => {
+    const { user } = await renderReady()
+    screen.getByRole('button', { name: 'Stop' }).focus()
+    const date = () => screen.getByRole('slider', { name: 'Date' })
+    await user.keyboard('{Alt>}{ArrowRight}{/Alt}')
+    await tick(0)
+    expect(date()).toHaveValue('1')
+    await user.keyboard('{Alt>}{End}{/Alt}')
+    await tick(0)
+    expect(date()).toHaveValue('3')
+    await user.keyboard('{Alt>}{ArrowLeft}{/Alt}')
+    await tick(0)
+    expect(date()).toHaveValue('2')
+    await user.keyboard('{Alt>}{Home}{/Alt}')
+    await tick(0)
+    expect(date()).toHaveValue('0')
+  })
+
   it('does not take Space from a focused button, which should press it once', async () => {
     const { user } = await renderReady()
     screen.getByRole('button', { name: 'Stop' }).focus()

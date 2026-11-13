@@ -452,7 +452,7 @@ describe('Explorer: keys at the edges', () => {
     expect(liveText()).toBe('')
   })
 
-  it.each(['ctrlKey', 'altKey', 'metaKey'])('does not handle an arrow pressed with %s, so browser and player shortcuts still work', async modifier => {
+  it.each(['ctrlKey', 'metaKey'])('does not handle an arrow pressed with %s, so browser and player shortcuts still work', async modifier => {
     await exploring()
     const notStopped = fireEvent.keyDown(surface(), { key: 'ArrowRight', [modifier]: true })
     expect(notStopped).toBe(true)
@@ -462,6 +462,16 @@ describe('Explorer: keys at the edges', () => {
     expect(liveText()).toBe('')
     // The same key without a modifier is handled and stopped.
     expect(fireEvent.keyDown(surface(), { key: 'ArrowRight' })).toBe(false)
+  })
+
+  it('does not move the cursor on Alt with an arrow: the player takes it as a step in time (IX06)', async () => {
+    await exploring()
+    // Handled by the player's time scrub, so the key is stopped, but the map's cursor stays where it is.
+    expect(fireEvent.keyDown(surface(), { key: 'ArrowRight', altKey: true })).toBe(false)
+    await tick(0)
+    expect(dateSlider()).toHaveValue('1')
+    expect(column()).toHaveValue(String(START.col))
+    expect(row()).toHaveValue(String(START.row))
   })
 
   it('puts the cursor back in the middle when a new date has fewer rows than the cursor needs', async () => {

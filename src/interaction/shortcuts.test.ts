@@ -60,7 +60,19 @@ describe('the keyboard rows', () => {
     expect(actionFor(press('R', { code: 'KeyR' }), 'map')).toEqual({ type: 'replayPlace' })
     expect(actionFor(press('r', { code: 'KeyR', ctrl: true }), 'map')).toBeNull()
     expect(actionFor(press('ArrowLeft', { alt: true }), 'map')).toBeNull()
-    expect(actionFor(press('ArrowLeft', { alt: true }), 'listen')).toBeNull()
+    // Alt with an arrow is the time scrub on Listen (IX06), and nothing on the sound map, where the arrows move the cursor.
+    expect(actionFor(press('ArrowLeft', { alt: true }), 'listen')).toEqual({ type: 'scrubTime', by: -1 })
+  })
+
+  it('routes Alt with Left, Right, Home and End to the time scrub, and only with Alt alone (IX06)', () => {
+    expect(actionFor(press('ArrowRight', { alt: true }), 'listen')).toEqual({ type: 'scrubTime', by: 1 })
+    expect(actionFor(press('Home', { alt: true }), 'listen')).toEqual({ type: 'scrubTime', to: 'first' })
+    expect(actionFor(press('End', { alt: true }), 'listen')).toEqual({ type: 'scrubTime', to: 'last' })
+    for (const key of ['ArrowLeft', 'ArrowRight', 'Home', 'End']) {
+      expect(actionFor(press(key, { alt: true, shift: true }), 'listen'), `Shift + Alt + ${key}`).toBeNull()
+      expect(actionFor(press(key, { alt: true, ctrl: true }), 'listen'), `Ctrl + Alt + ${key}`).toBeNull()
+    }
+    expect(actionFor(press('Home'), 'listen')).toBeNull()
   })
 
   it('knows no other key', () => {

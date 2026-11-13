@@ -23,6 +23,7 @@ export type ShortcutId =
   | 'map-west' | 'map-east' | 'map-north' | 'map-south'
   | 'edge-west' | 'edge-east' | 'edge-north' | 'edge-south'
   | 'replay' | 'sweep' | 'lock'
+  | 'scrub-left' | 'scrub-right' | 'scrub-home' | 'scrub-end'
   | 'query' | 'mark' | 'find' | 'follow-toggle' | 'follow-previous' | 'follow-next' | 'voice-solo' | 'voice-mute'
   | `touch-${string}` | `pad-${string}`
 
@@ -48,6 +49,15 @@ export type Shortcut = {
 
 const BIG_STEP = 4
 const never = () => null
+
+/** Alt (Option on a Mac) with one named key and nothing else held. */
+const isAltKey = (input: KeyInput, key: string) => input.alt && !input.ctrl && !input.meta && !input.shift && input.key === key
+
+/** A key of the time scrub (IX06): works anywhere on Listen except in a field, and also with the sound map focused, where the plain arrows move the cursor. */
+const scrub = (id: ShortcutId, label: string, key: string, action: Action, does: string): Shortcut => ({
+  id, keys: `Alt + ${label}`, device: 'keyboard', scope: 'listen', does: () => does,
+  when: target => !isField(target), match: input => (isAltKey(input, key) ? action : null),
+})
 
 const arrow = (key: string, id: ShortcutId, label: string, step: (big: number) => { dx: number; dy: number }): Shortcut => ({
   id, keys: label, device: 'keyboard', scope: 'map',
@@ -95,6 +105,11 @@ export const SHORTCUTS: readonly Shortcut[] = [
   { id: 'play', keys: 'Space', device: 'keyboard', scope: 'listen', does: () => 'Play or pause the dates.', note: 'Not while a button or a field has focus: Space presses that instead.', when: target => !spaceActivates(target), match: input => (isNamed(input, ' ') ? { type: 'transport', command: 'toggle' } : null) },
   { id: 'next', keys: 'Right arrow', device: 'keyboard', scope: 'listen', does: () => 'Go to the next date.', note: 'When the sound map does not have focus.', when: target => !isField(target), match: input => (isNamed(input, 'ArrowRight') ? { type: 'scrubTime', by: 1 } : null) },
   { id: 'previous', keys: 'Left arrow', device: 'keyboard', scope: 'listen', does: () => 'Go to the date before.', note: 'When the sound map does not have focus.', when: target => !isField(target), match: input => (isNamed(input, 'ArrowLeft') ? { type: 'scrubTime', by: -1 } : null) },
+  // IX06: Alt (Option on a Mac) with Left, Right, Home or End moves through time by ear. The plain arrows above do the same when the sound map does not have focus.
+  scrub('scrub-left', 'Left', 'ArrowLeft', { type: 'scrubTime', by: -1 }, 'Go to the date before and hear a short slice of it.'),
+  scrub('scrub-right', 'Right', 'ArrowRight', { type: 'scrubTime', by: 1 }, 'Go to the next date and hear a short slice of it.'),
+  scrub('scrub-home', 'Home', 'Home', { type: 'scrubTime', to: 'first' }, 'Go to the first date and hear a short slice of it.'),
+  scrub('scrub-end', 'End', 'End', { type: 'scrubTime', to: 'last' }, 'Go to the last date and hear a short slice of it.'),
   { id: 'undo', keys: 'Ctrl + Z or Cmd + Z', device: 'keyboard', scope: 'listen', does: () => 'Undo your last move on the map, or your last lock.', when: target => !isField(target) && !isTyping(target), match: input => ((input.ctrl || input.meta) && !input.alt && !input.shift && (input.code ? input.code === 'KeyZ' : input.key.toLowerCase() === 'z') ? { type: 'undo' } : null) },
   { id: 'stop', keys: 'Escape', device: 'keyboard', scope: 'anywhere', does: () => 'Stop the sound, the trace and what this app is saying.', note: 'It cannot silence a screen reader. It no longer unlocks a locked place: press L.', prevent: false, match: input => (isNamed(input, 'Escape') ? { type: 'stopSpeech' } : null) },
 

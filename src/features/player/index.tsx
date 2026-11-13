@@ -29,6 +29,7 @@ import { ShortcutsDialog } from './ShortcutsDialog'
 import { Viewer } from './Viewer'
 import { useListenMode, type ListenMode } from './listenMode'
 import { Scan } from './Scan'
+import { useScrub } from './useScrub'
 import { Symphony } from './Symphony'
 
 const SPEEDS: { id: Speed; label: string }[] = [
@@ -190,9 +191,16 @@ function Player({ visualization }: { visualization: Visualization }) {
     if (playing) player.pause()
     else player.play()
   })
-  useActionHandler('scrubTime', action => {
-    const target = 'by' in action ? player.index + action.by : action.to === 'first' ? 0 : frames.length - 1
-    chooseDate(Math.min(frames.length - 1, Math.max(0, target)))
+  // IX06: a step in time sounds a 150 ms slice of the date it lands on. While the dates play, or a hot spot is followed, a step carries on as it did.
+  useScrub({
+    visualization,
+    index: player.index,
+    ensemble: explorer.ensemble,
+    carryOn: () => playing || follow.isFollowing(),
+    chooseDate,
+    showDate: player.showDate,
+    formatDate: player.formatDate,
+    onStep: i => { if (vibration.enabled) vibrateForDate(player.categoryAt(i), visualization.mapping) },
   })
   useActionHandler('trace', () => {
     // "Trace the warm edge", from the sound map, in the change style.
