@@ -1,8 +1,10 @@
 import { Card, Legend } from '../../components'
 import { variableWords, type Visualization } from '../../data'
 import { dateFormatterFor, formatDate } from '../../dates'
+import { presetFor } from '../../sonify'
 import { PlaylistPanel } from '../playlist/PlaylistPanel'
 import type { PageProps } from '../types'
+import { SoundRecipe } from './SoundRecipe'
 import './about.css'
 
 const percent = (fraction: number) => `${Math.round(fraction * 100)}%`
@@ -87,6 +89,10 @@ function About({ visualization }: { visualization: Visualization }) {
             </tbody>
           </table>
         </div>
+      </Card>
+
+      <Card title="The sound recipe" headingLevel={2}>
+        <SoundRecipe preset={presetFor(visualization.sonification?.preset ?? 'major')} />
       </Card>
 
       <Card title="What to keep in mind" headingLevel={2}>

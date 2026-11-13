@@ -5,6 +5,7 @@
 // happening (off, on, paused, suspended), so the panel's button and status line are derived from it and not from a second copy.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { FrameFeatures } from '../../analysis/features/types'
 import { LOW_CONFIDENCE, type SequenceSpeed } from '../../analysis/video/clock'
 import type { LiveFrame, SourceStatus } from '../../analysis/video/types'
 import { useLiveSource } from '../../analysis/video/useLiveSource'
@@ -51,7 +52,7 @@ export type Symphony = {
   /** Why the checked frames are used, when they are. */
   reason: string | undefined
   /** The newest reading: the music, the date it was read for and how sure the reading is. null before the first frame and after Stop. */
-  latest: { music: MusicFrame; date: string; confidence: number } | null
+  latest: { music: MusicFrame; features: FrameFeatures; date: string; confidence: number } | null
   /** True when the listener paused; false when the page being hidden did. */
   listenerPaused: boolean
   detail: DetailLevel
@@ -103,7 +104,7 @@ export function useSymphony(visualization: Visualization, video: HTMLVideoElemen
     const music = toMusicFrame(frame.features, preset, previous.current)
     previous.current = music
     ensemble.apply(music, ensemble.now() + SCHEDULE_LOOKAHEAD_S)
-    setLatest({ music, date: frame.date, confidence: frame.confidence })
+    setLatest({ music, features: frame.features, date: frame.date, confidence: frame.confidence })
   }, [ensemble, preset])
 
   const source = useLiveSource({ video, visualization, step: speed, onFrame })
