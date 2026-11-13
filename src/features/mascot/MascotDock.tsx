@@ -1,13 +1,14 @@
 // Echo, docked bottom right on every page (docs/tickets/JB01-mascot-dock.md). A button opens a small panel: a speech bubble with the tip, then Talk to
 // Echo, Show me around and Turn Echo off. No sound and no speech of its own: a tip waits until the listener opens the bubble, and is then announced once.
-// Hidden while the voice guide is open, and when the listener turned Echo off. Echo's visor follows the app (expressionFor.ts).
-// The open data set colours Echo and picks its jet trail (accent.ts, JB04): set on the dock as --mascot-* variables and data-trail.
+// Echo is drawn by the 3D robot (Ixia.tsx, JB08). A click on the robot opens the bubble; the dock's button does the same from the keyboard and is
+// what screen readers find (it shows when focused). The robot moves itself clear of what is under it, so the bubble, the tip dot and the name label
+// follow where it is drawn. While the voice guide is open the robot steps beside the panel, mouths what the guide says, and the button goes.
+// Gone when the listener turned Echo off.
+// Echo's face follows the app (expressionFor.ts). The open data set colours Echo (accent.ts, JB04): set on the dock as --mascot-* variables.
 
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { currentContext, subscribeContext } from '../../assistant/context'
-import { LEVEL_BANDS } from '../../audio/levels'
 import { Button, useAnnounce } from '../../components'
-import { Echo } from '../../components/Mascot'
 import type { MascotPose } from '../../components/mascotTypes'
 import type { Visualization } from '../../data'
 import type { AssistantStatus } from '../../hooks/useVoiceAssistant'
@@ -17,14 +18,13 @@ import { TIPS } from '../help/tips'
 import { MASCOT_NAME } from '../welcome/lines'
 import { mascotTheme } from './accent'
 import { expressionFor } from './expressionFor'
+import Ixia from './Ixia'
 import { placeBubble } from './placeBubble'
 import { useDataAlerts } from './useDataAlerts'
 import { useFaceState } from './useFaceState'
-import { useLevels } from './useLevels'
 import { startTour, stopTour, useTour } from './tour'
 import { TourLayer } from './TourOverlay'
 import { useMascotGuide, useMascotGuideState } from './useMascotGuide'
-import { useScrollVelocity } from './useScrollVelocity'
 import './mascot-dock.css'
 
 type Props = {
@@ -34,6 +34,8 @@ type Props = {
   voice: AssistantStatus
   /** The voice panel is open: the dock steps aside. */
   voiceOpen: boolean
+  /** What the voice guide is saying now (empty when it is quiet): the robot mouths it. */
+  line?: string
   /** Opens the voice guide. */
   onTalk: () => void
   /** Called when the guided tour starts (JB05). The dock runs the tour itself, so this is only a hook for the page. */
@@ -68,19 +70,19 @@ function useExploreState(): ExploreState {
   return state
 }
 
-/** One tall bar in the chest, placed across the bars by the value under the cursor (position 0 is the first bar, 1 the last). */
-function exploreLevels(position: number): Uint8Array {
-  const bars = new Uint8Array(LEVEL_BANDS)
-  bars[Math.round(position * (LEVEL_BANDS - 1))] = 255
-  return bars
+/** Where the robot's body is drawn now: the robot's own click target, or the dock's box before the robot has loaded. */
+function robotBox(dock: HTMLElement | null): DOMRect | null {
+  if (!dock) return null
+  const box = dock.querySelector('robot-companion')?.shadowRoot?.querySelector('.hit')?.getBoundingClientRect()
+  return box && box.width > 0 ? box : dock.getBoundingClientRect()
 }
 
-/** The accent on the boots, headphones and trail, and a lighter mix of it for the nozzles and the unlit LEDs. */
+/** The data set's accent, for the robot's bubble and glow (mascot-dock.css maps it onto the --robot-* variables). */
 function themeStyle(accent: string): CssVars {
   return { '--mascot-accent': accent, '--mascot-accent-soft': `color-mix(in srgb, ${accent} 55%, #ffffff)`, '--mascot-trail': accent }
 }
 
-export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, onTour, visualization }: Props) {
+export default function MascotDock({ page, loading, voice, voiceOpen, line = '', onTalk, onTour, visualization }: Props) {
   const mascotOn = useMascotOn()
   const announce = useAnnounce()
   const { tip } = useMascotGuideState()
@@ -89,20 +91,23 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
   const explore = useExploreState()
   // JB06: a notable event in the music puts Echo in alert for a few seconds (not while Echo is off or the voice guide is open).
   useDataAlerts(mascotOn && !voiceOpen)
-  const chest = useLevels(mascotOn && !voiceOpen && face.playing && !face.hidden)
-  const boost = useScrollVelocity()
   const touring = useTour().active
   const [open, setOpen] = useState(false)
+  /** The page the bubble opened on: a new page closes it (the robot stays, so the dock is not remounted). */
+  const [openOn, setOpenOn] = useState(page)
   /** The text in the bubble, fixed when it opened (a tip that waited is cleared then, so the button stops saying it has one). */
   const [shown, setShown] = useState('')
-  /** The name label under hover or focus; Esc dismisses it (WCAG 1.4.13). */
+  /** The name label under hover (focus shows the button itself, which carries the name); Esc dismisses it (WCAG 1.4.13). */
   const [hint, setHint] = useState(false)
   const panelId = useId()
   const button = useRef<HTMLButtonElement>(null)
   const panel = useRef<HTMLElement>(null)
+  const dock = useRef<HTMLDivElement>(null)
+  const dot = useRef<HTMLSpanElement>(null)
+  const label = useRef<HTMLSpanElement>(null)
 
-  // The voice panel took over: the bubble closes (state adjusted while rendering, not in an effect).
-  if (voiceOpen && open) setOpen(false)
+  // The voice panel took over, or the page changed: the bubble closes (state adjusted while rendering, not in an effect).
+  if (open && (voiceOpen || openOn !== page)) setOpen(false)
 
   // The voice guide and the tour do not share the screen: opening the guide stops the tour.
   useEffect(() => { if (voiceOpen) stopTour() }, [voiceOpen])
@@ -110,12 +115,20 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
   const expression = expressionFor({ loading: loading || explore.exploring, voice, playing: face.playing, tipMood: tip?.mood, idleMs: face.idleMs, hidden: face.hidden })
   const name = tip ? `${MASCOT_NAME}, your guide, has a tip` : `${MASCOT_NAME}, your guide`
 
-  /** Puts the bubble beside the helmet. Writes to the element, so a scroll or resize costs no render. */
+  /** Puts the bubble beside the robot, the tip dot on its head and the label to its left. Writes to the elements, so following costs no render. */
   const reposition = useCallback(() => {
-    const from = button.current
+    const anchor = robotBox(dock.current)
+    if (!anchor) return
+    if (dot.current) {
+      dot.current.style.left = `${anchor.right - 16}px`
+      dot.current.style.top = `${anchor.top}px`
+    }
+    if (label.current) {
+      label.current.style.left = `${anchor.left - 8}px`
+      label.current.style.top = `${anchor.top + anchor.height / 2}px`
+    }
     const bubble = panel.current
-    if (!from || !bubble) return
-    const anchor = from.getBoundingClientRect()
+    if (!bubble) return
     const place = placeBubble(anchor, { w: bubble.offsetWidth, h: bubble.offsetHeight }, { w: window.innerWidth, h: window.innerHeight })
     bubble.style.left = `${place.x}px`
     bubble.style.top = `${place.y}px`
@@ -126,23 +139,35 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
     bubble.style.setProperty('--tail', `${Math.min(length - TAIL_INSET, Math.max(TAIL_INSET, tail))}px`)
   }, [])
 
-  // Before paint when it opens, then on resize and scroll, at most once a frame.
+  // Before paint, then once a frame while something follows the robot (it can move at any time, not only on scroll).
+  const following = !voiceOpen && (open || tip !== null || hint)
   useLayoutEffect(() => {
-    if (!open || voiceOpen) return
-    reposition()
+    if (!following) return
     let frame = 0
-    const schedule = () => {
-      cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(reposition)
+    const tick = () => {
+      reposition()
+      frame = requestAnimationFrame(tick)
     }
-    window.addEventListener('resize', schedule)
-    window.addEventListener('scroll', schedule, { passive: true })
-    return () => {
-      cancelAnimationFrame(frame)
-      window.removeEventListener('resize', schedule)
-      window.removeEventListener('scroll', schedule)
+    tick()
+    return () => cancelAnimationFrame(frame)
+  }, [following, shown, reposition])
+
+  // Esc closes an open bubble wherever focus is (opened with a click on the robot, focus is still on the page). Caught first and stopped there,
+  // so neither the player's own Esc nor the robot's (which would send it away to its corner) also runs. Focus goes back to the button only when
+  // it was in the bubble or on the button.
+  useEffect(() => {
+    if (!open) return
+    const onKey = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      event.stopPropagation()
+      const active = document.activeElement
+      const inside = active !== null && (active === button.current || (panel.current?.contains(active) ?? false))
+      setOpen(false)
+      if (inside) button.current?.focus()
     }
-  }, [open, voiceOpen, shown, reposition])
+    document.addEventListener('keydown', onKey, true)
+    return () => document.removeEventListener('keydown', onKey, true)
+  }, [open])
 
   // Esc drops the name label wherever focus is: a listener using only the mouse has focus elsewhere (WCAG 1.4.13).
   useEffect(() => {
@@ -152,7 +177,7 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
     return () => document.removeEventListener('keydown', onKey)
   }, [hint])
 
-  if (!mascotOn || voiceOpen) return <TourLayer />
+  if (!mascotOn) return <TourLayer />
 
   const theme = visualization ? mascotTheme(visualization) : null
 
@@ -168,12 +193,8 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
     announce(text)
     if (tip) clearTip()
     setHint(false)
+    setOpenOn(page)
     setOpen(true)
-  }
-
-  /** Esc closes an open bubble (and stays inside the dock, so the player's own Esc does not also run). */
-  function onKeyDown(event: KeyboardEvent) {
-    if (event.key === 'Escape' && open) { event.stopPropagation(); close() }
   }
 
   function talk() {
@@ -194,20 +215,20 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
     announce(`${MASCOT_NAME} is off. To bring ${MASCOT_NAME} back, open Help and choose Turn ${MASCOT_NAME} on.`)
   }
 
+  // One tree whether or not the voice panel is open, so the robot is never remounted (its 3D scene is set up once).
   return (
     <>
     <div
-      className="mascot-dock"
+      ref={dock}
+      className={voiceOpen ? 'mascot-dock mascot-dock--beside-voice' : 'mascot-dock'}
       style={theme ? themeStyle(theme.accent) : undefined}
       data-trail={theme?.trail}
-      onKeyDown={onKeyDown}
       onPointerEnter={() => setHint(true)}
       onPointerLeave={() => setHint(false)}
-      onFocus={() => setHint(true)}
-      onBlur={() => setHint(false)}
       hidden={touring}
     >
-      {open && (
+      <Ixia className="mascot-dock__robot" pose={poseFor(voice)} expression={expression} say={voiceOpen ? line : ''} onActivate={voiceOpen ? undefined : toggle} />
+      {open && !voiceOpen && (
         <section id={panelId} ref={panel} className="mascot-speech-bubble" aria-label={`${MASCOT_NAME}, your guide`}>
           <p>{shown}</p>
           <div className="mascot-speech-bubble__actions">
@@ -217,11 +238,13 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
           </div>
         </section>
       )}
-      {hint && !open && <span className="mascot-dock__label" aria-hidden="true">{MASCOT_NAME}, your guide</span>}
-      <button ref={button} type="button" className="mascot-dock__button" aria-expanded={open} aria-controls={open ? panelId : undefined} aria-label={name} onClick={toggle}>
-        <Echo className="mascot-dock__echo" pose={poseFor(voice)} expression={expression} motion={boost.motion} thrust={boost.thrust} levels={explore.exploring && explore.position !== null ? exploreLevels(explore.position) : (chest.levels ?? undefined)} globeSpin={chest.loudness} />
-        {tip && <span className="mascot-dock__tip-dot" aria-hidden="true" />}
-      </button>
+      {hint && !open && !voiceOpen && <span ref={label} className="mascot-dock__label" aria-hidden="true">{MASCOT_NAME}, your guide</span>}
+      {tip && !open && !voiceOpen && <span ref={dot} className="mascot-dock__tip-dot" aria-hidden="true" />}
+      {!voiceOpen && (
+        <button ref={button} type="button" className="mascot-dock__button" aria-expanded={open} aria-controls={open ? panelId : undefined} onClick={toggle}>
+          {name}
+        </button>
+      )}
     </div>
     <TourLayer />
     </>

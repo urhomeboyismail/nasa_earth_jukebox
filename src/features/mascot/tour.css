@@ -32,7 +32,7 @@
   inline-size: 64px;
   block-size: 64px;
 }
-.tour__echo[data-side='right'] svg { transform: scaleX(-1); }
+.tour__echo[data-side='right'] img { transform: scaleX(-1); }
 
 /* The bar sits above the bottom navigation on a phone and clear of the home indicator. */
 .tour-bar {

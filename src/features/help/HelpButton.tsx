@@ -3,7 +3,7 @@
 
 import { useId, useRef, useState, type KeyboardEvent } from 'react'
 import { Button, useAnnounce } from '../../components'
-import { Sonny } from '../../components/Mascot'
+import { RobotBadge } from '../../components/RobotBadge'
 import type { Page } from '../../pages'
 import { currentDataParam, hashFor } from '../../route'
 import { MASCOT_NAME } from '../welcome/lines'
@@ -45,7 +45,7 @@ export function HelpButton({ page }: { page: Page }) {
   return (
     <div ref={wrapper} className="help" onKeyDown={onKeyDown}>
       <Button aria-expanded={open} aria-controls={panel} onClick={() => (open ? close() : setOpen(true))}>
-        {mascotOn && <Sonny size={24} className="help__mascot" />}
+        {mascotOn && <RobotBadge size={24} className="help__mascot" />}
         {label}
       </Button>
       {open && (

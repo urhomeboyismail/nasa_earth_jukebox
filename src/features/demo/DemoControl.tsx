@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { subscribeContext } from '../../assistant/context'
 import { Button } from '../../components'
-import { Sonny } from '../../components/Mascot'
+import { RobotBadge } from '../../components/RobotBadge'
 import { playerUpdate } from '../../data'
 import { currentDataParam, hashFor } from '../../route'
 import { hush, speak } from '../welcome/speak'
@@ -126,7 +126,7 @@ export function DemoControl() {
       )}
       {/* The mascot's face sits beside what it says. It is decoration: the caption is the text. */}
       <div className="demo__say">
-        {mascotOn && caption && <Sonny size={32} className="demo__mascot" />}
+        {mascotOn && caption && <RobotBadge size={32} className="demo__mascot" />}
         <p className="demo__caption" aria-live="polite">{caption}</p>
       </div>
     </div>

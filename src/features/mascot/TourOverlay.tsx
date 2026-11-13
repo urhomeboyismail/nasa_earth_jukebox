@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Button } from '../../components'
-import { Echo } from '../../components/Mascot'
+import { RobotBadge } from '../../components/RobotBadge'
 import { anchorFor, TOUR_ECHO_SIZE } from './flightPath'
 import { backStep, FLIGHT_MS, nextStep, stopTour, useTour, type TourStop } from './tour'
 import './tour.css'
@@ -53,7 +53,7 @@ function TourStopView({ stop }: { stop: TourStop }) {
       )}
       {rect && <div className="tour__ring" style={{ left: rect.left, top: rect.top, width: rect.width, height: rect.height }} />}
       <div className="tour__echo" data-flying={flying} data-side={rest.side} style={echoStyle}>
-        <Echo motion={flying ? 'boosting' : 'pointing'} thrust={flying ? 1 : 0} />
+        <RobotBadge size={TOUR_ECHO_SIZE} />
       </div>
     </div>
   )

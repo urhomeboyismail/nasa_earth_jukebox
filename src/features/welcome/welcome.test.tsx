@@ -70,7 +70,7 @@ describe('the welcome on Home', () => {
     expect(fake.unlocked).toBe(0)
     expect(fake.sequences).toHaveLength(0)
     // The drawing is decoration.
-    expect(container.querySelector('.welcome svg')).toHaveAttribute('aria-hidden', 'true')
+    expect(container.querySelector('.welcome__mascot')).toHaveAttribute('alt', '')
     await expectNoA11yViolations(container)
   })
 
