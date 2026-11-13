@@ -131,7 +131,9 @@ describe('shortcutsFor and the list people are shown', () => {
     // IX02 handles "What's here?": I and gamepad X.
     expect(listed).toContain('query')
     expect(listed).toContain('pad-x')
-    for (const later of ['mark', 'find', 'follow-toggle', 'voice-solo', 'pad-y']) expect(listed, later).not.toContain(later)
+    // IX03 handles following a hot spot: H, [ and ], and gamepad LB and RB.
+    for (const id of ['follow-toggle', 'follow-previous', 'follow-next', 'pad-lb', 'pad-rb']) expect(listed, id).toContain(id)
+    for (const later of ['mark', 'find', 'voice-solo', 'pad-y']) expect(listed, later).not.toContain(later)
   })
 
   it('has a row for touch, mouse and gamepad', () => {

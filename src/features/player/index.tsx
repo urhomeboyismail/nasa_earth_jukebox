@@ -12,6 +12,7 @@ import { useGamepad, useKeyboard } from '../../interaction/useInput'
 import { AskPanel } from '../ask/AskPanel'
 import { ExplorerPanel, ExplorerSurface } from '../explore/Explorer'
 import { useExplorer } from '../explore/useExplorer'
+import { useFollow } from '../follow/useFollow'
 import { StoryPanel } from '../story/StoryPanel'
 import type { PageProps } from '../types'
 import './player.css'
@@ -85,6 +86,12 @@ function Player({ visualization }: { visualization: Visualization }) {
   // The data table is built only while it is open: a closed <details> still keeps its content in the page.
   const [tableOpen, setTableOpen] = useState(false)
   const explorer = useExplorer({ visualization, frame, engine: player.engine, vibrate: vibration.enabled, frames, formatDate: player.formatDate, onDate: player.showDate, start: linked.cell })
+  // IX03: H follows a hot spot through the dates on the sound map. It stops when the map goes off (Play, the story, the toggle).
+  const follow = useFollow({ visualization, explorer, frames, index: player.index, showDate: player.showDate })
+  /** A date chosen by the listener: a followed spot is heard there and the dates play on from it; otherwise the date plays as usual. */
+  const chooseDate = (i: number) => {
+    if (follow.isFollowing()) { player.showDate(i); follow.showFollowedDate(i) } else player.goTo(i)
+  }
 
   // F40: the address follows the date, the cell (once the map has been read) and the style, and a link opened on this page is applied.
   const { halt, showDate, applyLinkedStyle } = player
@@ -173,8 +180,8 @@ function Player({ visualization }: { visualization: Visualization }) {
     else player.play()
   })
   useActionHandler('scrubTime', action => {
-    if ('by' in action) player.goTo(player.index + action.by)
-    else player.goTo(action.to === 'first' ? 0 : frames.length - 1)
+    const target = 'by' in action ? player.index + action.by : action.to === 'first' ? 0 : frames.length - 1
+    chooseDate(Math.min(frames.length - 1, Math.max(0, target)))
   })
   useActionHandler('trace', () => {
     // "Trace the warm edge", from the sound map, in the change style.
@@ -194,6 +201,8 @@ function Player({ visualization }: { visualization: Visualization }) {
         <ExplorerSurface explorer={explorer} />
       </Viewer>
       <ExplorerPanel visualization={visualization} explorer={explorer} />
+      {/* IX03: what follow is doing. Not a live region: losing the spot is said through the speech gate. */}
+      {follow.text && <p className="player__follow">{follow.text}</p>}
 
       {player.results && <Description visualization={visualization} results={player.results} index={player.index} />}
       {player.style === 'change' && player.score && (
@@ -257,7 +266,7 @@ function Player({ visualization }: { visualization: Visualization }) {
             if (explorer.locked) {
               player.showDate(i)
               void explorer.playLockedAt(i)
-            } else player.goTo(i)
+            } else chooseDate(i)
           }}
           describe={i => player.ready ? player.describeDate(i) : player.formatDate(frames[i].date)}
         />
