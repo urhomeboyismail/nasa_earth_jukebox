@@ -14,12 +14,23 @@ vi.mock('./assistant/audio', async importOriginal => ({
   startRecorder: async () => ({ stop: () => {}, setMuted: () => {} }),
 }))
 
+// How often the guide's lazy modules were loaded, and a gate that can hold the panel's load (I10).
+const lazyLoads = vi.hoisted(() => ({ audio: 0, panel: 0, panelGate: Promise.resolve() }))
+vi.mock('./VoiceAssistant', async importOriginal => {
+  lazyLoads.panel++
+  await lazyLoads.panelGate
+  return importOriginal()
+})
+
 // The voice guide's microphone and speech player need browser audio, which jsdom has not.
-vi.mock('./assistant/audio', () => ({
-  frameLevel: () => 0,
-  startRecorder: async () => ({ stop: () => {}, setMuted: () => {} }),
-  SpeechPlayer: class { busy = false; onIdle = null; resume = async () => {}; play = () => {}; flush = () => {}; close = () => {} },
-}))
+vi.mock('./assistant/audio', () => {
+  lazyLoads.audio++
+  return {
+    frameLevel: () => 0,
+    startRecorder: async () => ({ stop: () => {}, setMuted: () => {} }),
+    SpeechPlayer: class { busy = false; onIdle = null; resume = async () => {}; play = () => {}; flush = () => {}; close = () => {} },
+  }
+})
 
 // The real analysis decodes images, which jsdom cannot do; the Player's own tests cover that path with the same mock.
 vi.mock('./analysis', () => ({
@@ -43,6 +54,35 @@ afterEach(() => vi.unstubAllGlobals())
 
 /** A link in the main navigation. Pages have links of their own (Learn links to Listen), so look only in the nav. */
 const navLink = (name: string) => within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name })
+
+// First in the file on purpose: a module loads once per test file, so only the first test can see it not loaded yet.
+describe('First load (I10)', () => {
+  it('loads the voice panel and its audio code the first time the guide is opened, not before, and says it is loading', async () => {
+    Element.prototype.scrollTo ??= () => {}
+    let release = () => {}
+    lazyLoads.panelGate = new Promise<void>(resolve => { release = resolve })
+    const user = userEvent.setup()
+    render(<App />)
+    await screen.findByText(/Now playing from: Fixture ocean/)
+    expect(lazyLoads).toMatchObject({ panel: 0, audio: 0 })
+    expect(screen.queryByRole('region', { name: 'Voice guide' })).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: 'Voice guide' }))
+    expect(screen.getByText('Loading the voice guide…')).toHaveAttribute('role', 'status')
+    expect(lazyLoads.panel).toBe(1)
+    await waitFor(() => expect(lazyLoads.audio).toBe(1))
+
+    release()
+    expect(await screen.findByRole('region', { name: 'Voice guide' })).toBeInTheDocument()
+    expect(screen.queryByText('Loading the voice guide…')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Start talking' })).toBeInTheDocument()
+  })
+
+  it('shows the demo button at once', () => {
+    render(<App />)
+    expect(screen.getByRole('button', { name: 'Play the demo' })).toBeInTheDocument()
+  })
+})
 
 describe('App shell', () => {
   it('loads the first visualization and shows it on each page', async () => {
@@ -279,7 +319,8 @@ describe('App shell chrome (T116)', () => {
     const toggle = screen.getByRole('button', { name: 'Voice guide' })
     await userEvent.click(toggle)
     expect(toggle).toHaveAttribute('aria-pressed', 'true')
-    await userEvent.click(screen.getByRole('button', { name: 'Close voice guide' }))
+    // The panel loads the first time it is opened (I10).
+    await userEvent.click(await screen.findByRole('button', { name: 'Close voice guide' }))
     expect(toggle).toHaveAttribute('aria-pressed', 'false')
     expect(toggle).toHaveFocus()
   })

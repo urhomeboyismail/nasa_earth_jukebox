@@ -81,4 +81,63 @@ npx vitest run src/App.test.tsx src/hooks src/assistant src/features/demo
 
 ## Result
 
-Not started.
+Built by agent D on `fix/I10-first-load`, 13 Nov 2026, from `main` at `72bea67`.
+
+**Sizes.** The entry chunk `dist/assets/index-*.js`, before (main) and after:
+
+| | raw | gzip (`gzip -c`) | gzip (Node `zlib`, what `check-bundle` reads) |
+|---|---|---|---|
+| Before | 265,912 | 83,483 | 83,734 |
+| After | 253,930 | 80,057 | 80,344 |
+
+Everything the first page loads (the entry plus its preloaded chunks and CSS, from `dist/index.html`) went from 139,913 to 135,922 bytes gzip. That count includes the panel's 7.6 KB of CSS, which now loads with the panel. Rolldown now splits three small shared chunks (`schemas`, `context`, `pages`) that the first page still preloads; the totals include them. The 9 Nov numbers in **Why** (388 KB / 117 KB) were already out of date: the entry is mostly `react-dom` now (read from a sourcemap build).
+
+**What changed**
+
+- `src/App.tsx`: `VoiceAssistant` is a `React.lazy` import. While it loads, a `role="status"` paragraph (the page loader's pattern) says "Loading the voice guide…". The lazy factory also starts loading the guide's audio code, so it has normally arrived before Start is pressed.
+- `src/hooks/useVoiceAssistant.ts`: `src/assistant/audio.ts` is no longer imported at the top (only its types are). `loadAssistantAudio()` imports it once and keeps it, and tries again after a failed load. **Not a plain `await import()` in `start`:** `open()` builds the `SpeechPlayer` and the recorder inside the click, because browsers (Safari strictest) only allow audio inside a user gesture ("Everything that needs the click's user activation happens before the first await"). So `open()` uses the loaded module synchronously. Only a click that beats the download shows "connecting" and goes on when the code arrives. Stop, another start or unmount cancel that wait (`openAttempt`, moved on by `teardown`). A failed load ends with "Echo could not connect. The rest of the app still works." The exports and their names in `audio.ts` are unchanged, and the meter still gets `frameLevel` through the recorder callback.
+- `scripts/check-bundle.mjs` (new), `npm run check-bundle`, and a CI step after `npm run build`. Budget `BUDGET_BYTES = 84_362` (80,344 + 5%). Note: the budget sits above the old 83,734, as the ticket's "+5%" rule gives.
+- `src/App.test.tsx`: new "First load (I10)" tests. The panel and audio modules have not loaded at first render. After a click, the loading status shows while the panel's load is held, then the panel appears (`findByRole`), and each module has loaded once. The demo button is there at once. On main's `App.tsx` and hook the first test fails (`expected { audio: 1, panel: 1 } to match { panel: 0, audio: 0 }`). One existing test now waits for the panel with `findByRole`. The hook and assistant tests pass unchanged.
+
+**Not done, and why**
+
+- **Step 4 (demo tour on click): skipped.** The click handler is in `src/features/demo/DemoControl.tsx`, which is not in this ticket's Touches. I measured it in a throwaway build: lazy-loading `runDemo.ts` and `script.ts` saves 280 bytes gzip (83,483 → 83,203). That's too little to justify editing a file outside Touches. A later ticket that touches `DemoControl.tsx` can do it in a few lines.
+- **Step 5 (`tonal`): kept, with its size reported.** `schema.ts` uses `Note.midi` inside the manifest's parse, to check `changeSteps` and `contourLevels` note names and ranges. Running that check later would change when a bad manifest is rejected. Swapping `Note.midi` for something smaller could change what is accepted. Cost, measured by building without it: the first-load `data` chunk shrinks from 37,468 to 29,191 bytes gzip (8.3 KB, 23.5 KB raw). Importing `@tonaljs/note` alone might keep most of that saving, but it is not a direct dependency (`package.json` is limited to one script here).
+- The app has no error boundary, so a lazy chunk that fails to download (offline) throws. That is already true for the lazy pages; this ticket adds the panel to the same pattern. Out of scope here.
+
+**Checks.** On this laptop the default `npm test` (8 vmThreads workers) runs out of memory (about 650 MB free), so the suite ran as `npx vitest run --pool=forks --maxWorkers=1`. Same tests, one process.
+
+```
+$ npm run lint
+> moon-heist@0.0.0 lint
+> oxlint
+(exit 0)
+
+$ npx vitest run --pool=forks --maxWorkers=1
+ Test Files  133 passed (133)
+      Tests  2236 passed (2236)
+   Duration  445.73s
+
+$ npm run build
+dist/assets/audio-D3ds3KIB.js               3.09 kB │ gzip:  1.40 kB
+dist/assets/VoiceAssistant-CGPfSKSl.js      9.28 kB │ gzip:  3.11 kB
+dist/assets/index-DKQbD16p.js             253.93 kB │ gzip: 81.20 kB
+✓ built in 857ms
+
+$ npm run check-bundle
+index-DKQbD16p.js: 80344 bytes gzip (78.5 KB), within the budget of 84362 bytes (82.4 KB).
+
+$ # with BUDGET_BYTES = 1, then reset
+index-DKQbD16p.js: 80344 bytes gzip (78.5 KB), over the budget of 1 bytes (0.0 KB) by 80343.
+(exit 1)
+
+$ # with no dist/
+Expected one entry chunk (index-*.js) in dist/assets, found 0. Run npm run build first.
+(exit 1)
+
+$ npx vitest run src/App.test.tsx src/hooks src/assistant src/features/demo --pool=forks --maxWorkers=1
+ Test Files  8 passed (8)
+      Tests  155 passed (155)
+```
+
+CI will show whether `check-bundle` passes there once the branch is pushed.

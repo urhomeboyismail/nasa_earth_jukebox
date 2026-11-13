@@ -1,5 +1,4 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ComponentType, type CSSProperties, type MouseEvent } from 'react'
-import VoiceAssistant from './VoiceAssistant'
 import { AnnouncerProvider, DatasetPicker, Notice } from './components'
 import { Icon, type IconName } from './components/Icon'
 import { Sonny } from './components/Mascot'
@@ -10,7 +9,7 @@ import HomePage from './features/home'
 import type { PageProps } from './features/types'
 import { noteGuidePlaybackCommand, useDucking } from './assistant/ducking'
 import { sendPlayerCommand } from './features/player/controls'
-import { useVoiceAssistant, type AssistantAction } from './hooks/useVoiceAssistant'
+import { loadAssistantAudio, useVoiceAssistant, type AssistantAction } from './hooks/useVoiceAssistant'
 import { MascotGuideProvider } from './features/mascot/MascotGuideProvider'
 import { pages, type Page } from './pages'
 import { currentDataParam, hashFor, parseHash } from './route'
@@ -24,6 +23,12 @@ const LearnPage = lazy(() => import('./features/learn'))
 const PlayerPage = lazy(() => import('./features/player'))
 // Echo's corner widget is not needed to read the page, so it loads after it.
 const MascotDock = lazy(() => import('./features/mascot/MascotDock'))
+// The voice panel loads the first time the guide is opened. The guide's audio code starts loading with it, so it is
+// there by the time Start is pressed. If it fails here, Start loads it again and says so.
+const VoiceAssistant = lazy(() => {
+  loadAssistantAudio().catch(() => {})
+  return import('./VoiceAssistant')
+})
 
 const pageComponents: Record<Page, ComponentType<PageProps>> = {
   home: HomePage,
@@ -253,7 +258,11 @@ function App() {
           </Suspense>
         </main>
 
-        {assistantOpen && <VoiceAssistant assistant={assistant} onClose={closeAssistant} />}
+        {assistantOpen && (
+          <Suspense fallback={<p role="status" className="app-loading">Loading the voice guide…</p>}>
+            <VoiceAssistant assistant={assistant} onClose={closeAssistant} />
+          </Suspense>
+        )}
 
         {/* Echo, bottom right on every page. The key closes its bubble when the page changes. */}
         <Suspense fallback={null}>
