@@ -24,7 +24,7 @@ describe('readListenMode', () => {
   })
 
   it('ignores a remembered value it does not know', () => {
-    localStorage.setItem(KEY, 'scan')
+    localStorage.setItem(KEY, 'karaoke')
     expect(readListenMode(true)).toBe('symphony')
     expect(readListenMode(false)).toBe('simple')
   })

@@ -1,11 +1,11 @@
 // Which way Listen plays (docs/PLAN.md §6.3, ticket SN07): Symphony reads each frame as it is shown and plays the ensemble; Simple is the player that plays
-// one note per date. SN08 adds 'scan'. The choice is remembered on this device; without one, a data set with a `sonification` block opens in Symphony and
+// one note per date; Scan (SN08) sweeps one frame from west to east. The choice is remembered on this device; without one, a data set with a `sonification` block opens in Symphony and
 // every other data set in Simple, so a data set from before v3 plays as it always did.
 
 import { useCallback, useState } from 'react'
 import type { Visualization } from '../../data'
 
-export type ListenMode = 'symphony' | 'simple'
+export type ListenMode = 'symphony' | 'simple' | 'scan'
 
 const KEY = 'earth-jukebox:listen-mode'
 
@@ -13,7 +13,7 @@ const KEY = 'earth-jukebox:listen-mode'
 export function readListenMode(hasSonification: boolean): ListenMode {
   try {
     const stored = localStorage.getItem(KEY)
-    if (stored === 'symphony' || stored === 'simple') return stored
+    if (stored === 'symphony' || stored === 'simple' || stored === 'scan') return stored
   } catch {
     // Not remembered; the default below applies.
   }

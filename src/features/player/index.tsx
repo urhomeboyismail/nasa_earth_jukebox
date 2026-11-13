@@ -20,6 +20,7 @@ import { shortcutFor } from './shortcuts'
 import { ShortcutsDialog } from './ShortcutsDialog'
 import { Viewer } from './Viewer'
 import { useListenMode, type ListenMode } from './listenMode'
+import { Scan } from './Scan'
 import { Symphony } from './Symphony'
 
 const SPEEDS: { id: Speed; label: string }[] = [
@@ -51,6 +52,7 @@ export default function PlayerPage({ visualization }: PageProps) {
 const MODES: { id: ListenMode; label: string; says: string }[] = [
   { id: 'symphony', label: 'Symphony mode', says: 'Symphony mode. Press Play to start.' },
   { id: 'simple', label: 'Simple mode', says: 'Simple mode. Press Play to start.' },
+  { id: 'scan', label: 'Scan', says: 'Scan. Press Scan from the west edge to start.' },
 ]
 
 /** Symphony reads each frame as it is shown and plays the ensemble; Simple is the player that plays one note a date. Only the one chosen is on the page. */
@@ -68,7 +70,7 @@ function ListenPage({ visualization }: { visualization: Visualization }) {
           </label>
         ))}
       </fieldset>
-      {mode === 'symphony' ? <Symphony visualization={visualization} /> : <Player visualization={visualization} />}
+      {mode === 'symphony' ? <Symphony visualization={visualization} /> : mode === 'scan' ? <Scan visualization={visualization} /> : <Player visualization={visualization} />}
     </>
   )
 }
