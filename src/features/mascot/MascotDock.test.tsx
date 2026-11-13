@@ -114,18 +114,15 @@ describe('the dock', () => {
     expect(screen.queryByRole('region', { name: 'Echo, your guide' })).not.toBeInTheDocument()
   })
 
-  it('offers Show me around only when the tour is given', async () => {
+  it('offers Show me around, starts the tour, and tells the page', async () => {
     const user = userEvent.setup()
-    const { unmount } = render(<Dock />)
-    await user.click(echoButton())
-    expect(screen.queryByRole('button', { name: 'Show me around' })).not.toBeInTheDocument()
-    unmount()
-
     const onTour = vi.fn()
     render(<Dock onTour={onTour} />)
     await user.click(echoButton())
     await user.click(screen.getByRole('button', { name: 'Show me around' }))
     expect(onTour).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('region', { name: 'Guided tour' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Stop tour' }))
   })
 
   it('turns Echo off, remembers it, and says how to bring Echo back', async () => {

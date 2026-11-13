@@ -108,4 +108,19 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Built on `feature/JB05-tour-flight-path`.
+
+- `npm run lint`: no warnings or errors.
+- `npx tsc -b`: clean.
+- `npm test`: 193 files, 2848 tests passed (one earlier run under load timed out in `change-regression.test.ts` and a player test; the re-run passed).
+- `npm run build`: built.
+
+Differences from the ticket, for the reviewer:
+
+- **No Export button exists in the player** (`src/features/player/index.tsx` has Play, Stop, Replay, Explore the map and others, no Export). The third stop points at **Explore the map** (`data-tour="explore"`) instead; the two attributes in the player are `play` and `explore`.
+- **`App.tsx` is not in Touches** (and JB08 holds it), so `App` still does not pass `onTour`. The dock now runs the tour itself, and "Show me around" is always offered; `onTour` stays as an optional callback. The tour state is in `src/features/mascot/tour.ts` (outside React), because the dock is keyed by page and remounts when the tour changes page.
+- The welcome's last screen is unchanged (the ticket said only if it fits).
+- A missing target is not flown to: its caption gets a note saying what to do, and the step still waits for Next.
+- The runner is extended, not duplicated: `runDemo` calls `pointAt` per step. Back restarts it from the previous step; a step ends on Next instead of a timer.
+- Not tried in a real browser (motion on and reduced); the flight uses CSS `offset-path`, which jsdom cannot show.
+
