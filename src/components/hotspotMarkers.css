@@ -1,0 +1,55 @@
+/* Hot-spot markers (ticket SN10). Still rings over the picture: no animation, and a dark outline so they read on any colour. */
+.hotspot-markers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hotspot-markers__rings {
+  position: absolute;
+  inset: 0;
+}
+
+.hotspot-markers__ring {
+  position: absolute;
+  width: 1.25rem;
+  height: 1.25rem;
+  transform: translate(-50%, -50%);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px #000, inset 0 0 0 2px #000;
+  box-sizing: border-box;
+}
+
+/* A dark band is drawn with a dashed ring, so the two bands differ by shape and not only by colour. */
+.hotspot-markers__ring--low {
+  border-style: dashed;
+}
+
+.hotspot-markers__id {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  margin-left: 0.25rem;
+  transform: translateY(-50%);
+  padding: 0 0.25rem;
+  border-radius: 0.25rem;
+  color: #fff;
+  background: #000;
+  font-size: 0.75rem;
+  line-height: 1.25;
+}
+
+@media (forced-colors: active) {
+  .hotspot-markers__ring {
+    border-color: CanvasText;
+    box-shadow: none;
+    background: Canvas;
+  }
+
+  .hotspot-markers__id {
+    color: CanvasText;
+    background: Canvas;
+    border: 1px solid CanvasText;
+  }
+}

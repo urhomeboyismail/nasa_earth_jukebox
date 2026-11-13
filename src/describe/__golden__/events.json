@@ -1,0 +1,83 @@
+{
+  "events": {
+    "fixture": [
+      [
+        "The cold area in the centre has gone."
+      ],
+      [
+        "A new hot area appeared in the centre."
+      ],
+      [
+        "There is not enough readable data on this date."
+      ]
+    ],
+    "synthetic-storm": [
+      [
+        "The hot area moved east."
+      ],
+      [
+        "The hot area moved east."
+      ],
+      [
+        "The hot area moved east."
+      ],
+      [
+        "The hot area moved east."
+      ],
+      [
+        "The hot area moved east.",
+        "A new cold area appeared in the south-east."
+      ],
+      [
+        "The hot area moved east."
+      ],
+      [
+        "The hot area moved east."
+      ],
+      [
+        "The hot area moved east.",
+        "The cold area in the south-east has gone."
+      ],
+      [
+        "There is not enough readable data on this date."
+      ]
+    ]
+  },
+  "markers": {
+    "fixture": [
+      "Cold area h1 in the centre, about 100% of the map."
+    ],
+    "synthetic-storm": [
+      "Hot area h1 in the west, about 4% of the map."
+    ]
+  },
+  "recipe": {
+    "major": [
+      "Melody (calm): The middle value of the whole map, as a place on the colour legend. A single line that rises and falls with the overall level.",
+      "Harmony (calm): The mix of ranges across the map (the histogram). A chord: thin when the map is of one kind, thicker when it is mixed. It changes only when the mix does.",
+      "Bass (standard): How far the map is from normal, or from where this run began when the data has no normal. A low note that sits higher when the map is above normal and lower when it is below.",
+      "Hot spots (standard): The largest patches of the highest or lowest range: where they are and how big. One short note a patch. Patches in the west sound in the left ear and patches in the east in the right; bigger patches are louder.",
+      "Rhythm (full): The strongest edge in the picture and how much of the picture is edge. An arpeggio that follows the edge from west to east: slow when the picture is smooth, busy when it is full of edges.",
+      "Motion (full): How much of the picture moved since the last frame, and which way. A soft pad that opens when there is more movement and leans towards the side the movement goes.",
+      "Time (calm): The date. A steady pulse, with a small accent at the start of a new month and a bigger one at the start of a new year."
+    ],
+    "dorian": [
+      "Melody (calm): The middle value of the whole map, as a place on the colour legend. A single line that rises and falls with the overall level.",
+      "Harmony (calm): The mix of ranges across the map (the histogram). A chord: thin when the map is of one kind, thicker when it is mixed. It changes only when the mix does.",
+      "Bass (standard): How far the map is from normal, or from where this run began when the data has no normal. A low note that sits higher when the map is above normal and lower when it is below.",
+      "Hot spots (standard): The largest patches of the highest or lowest range: where they are and how big. One short note a patch. Patches in the west sound in the left ear and patches in the east in the right; bigger patches are louder.",
+      "Rhythm (full): The strongest edge in the picture and how much of the picture is edge. An arpeggio that follows the edge from west to east: slow when the picture is smooth, busy when it is full of edges.",
+      "Motion (full): How much of the picture moved since the last frame, and which way. A soft pad that opens when there is more movement and leans towards the side the movement goes.",
+      "Time (calm): The date. A steady pulse, with a small accent at the start of a new month and a bigger one at the start of a new year."
+    ],
+    "pentatonic": [
+      "Melody (calm): The middle value of the whole map, as a place on the colour legend. A single line that rises and falls with the overall level.",
+      "Harmony (calm): The mix of ranges across the map (the histogram). A chord: thin when the map is of one kind, thicker when it is mixed. It changes only when the mix does.",
+      "Bass (standard): How far the map is from normal, or from where this run began when the data has no normal. A low note that sits higher when the map is above normal and lower when it is below.",
+      "Hot spots (standard): The largest patches of the highest or lowest range: where they are and how big. One short note a patch. Patches in the west sound in the left ear and patches in the east in the right; bigger patches are louder.",
+      "Rhythm (full): The strongest edge in the picture and how much of the picture is edge. An arpeggio that follows the edge from west to east: slow when the picture is smooth, busy when it is full of edges.",
+      "Motion (full): How much of the picture moved since the last frame, and which way. A soft pad that opens when there is more movement and leans towards the side the movement goes.",
+      "Time (calm): The date. A steady pulse, with a small accent at the start of a new month and a bigger one at the start of a new year."
+    ]
+  }
+}

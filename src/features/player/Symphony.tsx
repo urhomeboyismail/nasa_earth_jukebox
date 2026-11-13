@@ -1,5 +1,7 @@
-import { useState, type KeyboardEvent } from 'react'
+import { useMemo, useState, type KeyboardEvent } from 'react'
 import { Button } from '../../components'
+import { HotspotMarkers } from '../../components/HotspotMarkers'
+import { hotspotMarkers } from '../../describe/markers'
 import { dateFormatterFor } from '../../dates'
 import type { Frame, Visualization } from '../../data'
 import { DetailControl } from './DetailControl'
@@ -7,6 +9,7 @@ import { LayerCaptions } from './LayerCaptions'
 import { shortcutFor } from './shortcuts'
 import { statusText, useSymphony, type ButtonKind } from './symphonyState'
 import { Viewer } from './Viewer'
+import { useEventAnnouncer } from './useEventAnnouncer'
 import { VoiceMixer } from './VoiceMixer'
 import './symphony.css'
 
@@ -32,6 +35,9 @@ function frameAt(frames: Frame[], date: string): Frame {
 export function Symphony({ visualization }: { visualization: Visualization }) {
   const [video, setVideo] = useState<HTMLVideoElement | null>(null)
   const symphony = useSymphony(visualization, video)
+  const features = symphony.latest?.features ?? null
+  useEventAnnouncer(features, visualization)
+  const markers = useMemo(() => (features ? hotspotMarkers(features, visualization) : []), [features, visualization])
   const { frames, regions, source } = visualization
   const format = dateFormatterFor(frames.map(frame => frame.date))
   const date = symphony.latest?.date ?? frames[0].date
@@ -64,6 +70,7 @@ export function Symphony({ visualization }: { visualization: Visualization }) {
             aria-label={frame.altText}
           />
         )}
+        <HotspotMarkers markers={markers} />
       </Viewer>
 
       <p className="symphony__status">{statusText(symphony)}</p>

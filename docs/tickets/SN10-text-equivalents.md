@@ -154,4 +154,35 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Built on `feature/SN10-text-equivalents` (agent E, 2026-11-13).
+
+**Files.** New: `src/describe/events.ts`, `announce.ts`, `markers.ts`, `recipe.ts` with `events.test.ts`, `announce.test.ts`, `markers.test.ts`, `recipe.test.ts`, `events.golden.test.ts` and `__golden__/events.json`; `src/components/HotspotMarkers.tsx`, `hotspotMarkers.css` and `HotspotMarkers.test.tsx`; `src/features/about/SoundRecipe.tsx` and its test; `src/features/player/useEventAnnouncer.ts` and its test. Edited: `src/features/about/index.tsx` (one Card), `src/features/player/Symphony.tsx` (the hook, the markers and the `HotspotMarkers` line).
+
+**Outside Touches, for the reviewer.**
+- `src/features/player/symphonyState.ts`: `latest` gains `features: FrameFeatures` (the frame's features, already in hand in `onFrame`). Events and markers need them, and `MusicFrame` has no hot-spot centres. Three lines; no behaviour changed.
+- `src/features/player/useEventAnnouncer.ts` is new and lives in the player folder, not `src/describe/` (the ticket allowed either). It is a React hook, and `src/describe/` is pure.
+
+**Decisions where the ticket was silent or wrong.**
+- The ticket says `compassOf`; the function in `src/sonify/captions.ts` is `sectorOf`. Used that.
+- S04 has merged (`src/components/announceRate.ts`), but it is a different limiter: a 1.5 s, newest-wins throttle on the live region. This ticket's rules (4 s gap, 8 a minute, 30 s repeat window, refused events dropped) cannot be expressed in it, so `AnnounceLimiter` is new and sits in front of it. They do different jobs: an event that passes the gate is announced with `busy: true`, so the live region's throttle still applies.
+- A listener's own answer is never refused, but it does count towards the gap and the minute, so an event does not talk over it.
+- A frame that cannot be read gives only `dropout`, and the frame after it only `recovered`; the hot spots of an unreadable frame are not announced as gone or new. The first frame of a run (and the first after Stop) gives no events.
+- A spot that moves and grows in one step gives both events; the limiter lets the first through.
+- "Moved" is a shift of more than 2 cells (2/64 of the image width) in either axis; the direction is the larger component.
+- Picture data sets (`legend: 'picture'`) say bright and dark; all others use the manifest's top and bottom category labels. `describeEvent` and `hotspotMarkers` take the whole visualization for this.
+- Marker labels use the same band words as the events ("Warm area h1 in the north-east, about 4% of the map."); a share under 0.5% reads "less than 1%".
+- A low-band ring is dashed and a high-band ring solid, so the bands differ by shape and not only colour. The rings use a dark outline and a `forced-colors` fallback; they have no animation.
+- The recipe table is on About in its own Card, "The sound recipe", with the preset named once above it. Layout was not checked (platform rule).
+
+**Markers and announcements are mounted in Symphony.** The Scan panel does not use them (it has its own scan line and no frame-to-frame events).
+
+**Checks.**
+
+```
+npm run lint   -> exit 0, no findings
+npm run build  -> built in 1.85s
+npm test       -> Test Files 141 passed (141); Tests 2273 passed (2273)
+```
+New tests: events (moved east three cells, appeared, gone, grew, shrank, dropout and recovered, fixed order, the data set's own words, bright and dark, no stray numbers), limiter (four in a second give one, the 4 s gap, the ninth in a minute, the 30 s repeat, dropped not queued, user answers always made, backwards clock), markers, recipe, `HotspotMarkers` (list, still rings, axe), `SoundRecipe` (table roles, axe), `useEventAnnouncer`, and a golden file over the fixture and `synthetic-storm`.
+
+**Manual check: not done.** No listener or speakers in this session. To do by a person: `npm run dev`, Listen, Symphony on `synthetic-storm`, Play: rings should appear on the hot spot and "The hot area moved east." should be announced by a screen reader no more than once every 4 s.
