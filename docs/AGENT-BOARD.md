@@ -188,3 +188,13 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: may a follow-up ticket add `describeNeighbours(visualization, grid, col, row, options)` to `src/describe/index.ts` (the four neighbours by direction in the data set's words, for example "North: cool, about 14 °C. East: warm, about 21 °C. …") and make level 2 `describePlace` plus that? (a) yes, as described; (b) yes, with other words (say which); (c) no, keep level 2 as it is.
 - Answer:
 - Recorded in: `docs/tickets/IX02-whats-here.md` (Result)
+
+### R-20261113-IX07-1: Two named held tones for the ensemble?
+- From: IX07 (agent E)
+- To: SN04 owner
+- Needed by: IX07
+- Status: open
+- Context: `src/audio/ensemble/types.ts:30` has `hold(tone | null, atTime?)`, one held tone at a time, used by SN09 (`src/features/explore/probeAudio.ts`). IX07 must hold two tones at once, date A panned left and date B panned right.
+- Question: Can `hold` take a slot, for example `hold(tone | null, atTime?, slot?: 'A' | 'B')`, with the default slot keeping today's behaviour so SN09 is unchanged?
+- Answer:
+- Recorded in: nowhere needed
