@@ -84,7 +84,7 @@ Built by agent D on `fix/I03-friendly-data-errors`, 12 Nov 2026.
 - `src/App.tsx`: both load failures go through `failureOf`, which calls `console.error(error)` once and stores the friendly sentence. The empty list throws a `DataError` on `index.json`, so it gets the list sentence. The `Notice` shows only the sentence (it already starts with "Error:"); the old "The data could not be loaded." prefix is gone, since the sentence says that. `messageOf` was no longer used and is removed.
 - `src/App.test.tsx`: the two tests that expected developer text now expect the sentences. New: list HTTP 500 (text, "Reload the page", no `HTTP`/`index.json`/`manifest.json`/`public/data` on the page, one console call carrying the detail, no a11y violations), manifest not valid JSON, empty list, and unit tests for `friendlyDataMessage` (list, data set, string, `null`, `undefined`, plain `Error`).
 
-Checks. On this laptop the default `npm test` (8 vmThreads workers) runs out of memory (about 650 MB free), so the suite ran as `npx vitest run --pool=forks --maxWorkers=1`. Same tests, one process.
+Checks, run again on 13 Nov 2026 after rebasing onto `main` at `5b82420` (the rebase was clean). On this laptop the default `npm test` (8 vmThreads workers) runs out of memory (about 650 MB free), so the suite ran as `npx vitest run --pool=forks --maxWorkers=1`. Same tests, one process.
 
 ```
 $ npm run lint
@@ -93,12 +93,12 @@ $ npm run lint
 (exit 0)
 
 $ npx vitest run --pool=forks --maxWorkers=1
- Test Files  114 passed (114)
-      Tests  1939 passed (1939)
-   Duration  440.80s
+ Test Files  131 passed (131)
+      Tests  2201 passed (2201)
+   Duration  482.18s
 
 $ npm run build
-✓ built in 877ms
+✓ built in 1.41s
 
 $ npx vitest run src/App.test.tsx src/data --pool=forks --maxWorkers=1
  Test Files  14 passed (14)
