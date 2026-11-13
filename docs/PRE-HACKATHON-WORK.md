@@ -98,6 +98,7 @@ Add one line per piece of work, newest last.
 | 13 Nov | JB07 Echo mirrors the sound map (searching visor, a chest bar that follows the value, the "What's here?" sentence in the bubble) and the legend is playable: focus or click a category to hear its tone and its label, range and pitch direction | `feature/JB07-explorer-mirror-legend` |
 | 13 Nov | G06 The voice guide sees the facts and the sound map: checked context schemas, `set_date` refuses dates the data set lacks, a drift test for the context keys, and `testInProgress` during the listening test | `feature/G06-agent-sees-more` (#55) |
 | 13 Nov | IX11 The first minute is a game: four tasks (move, find the highest place, ask what's here, lock a place and change the date) teach the keys by doing them; each step met plays the lock chime and is announced once, the prompt is text, Skip and Done are remembered on the device and a button starts it again | `feature/IX11-interactive-onboarding` (#56) |
+| 13 Nov | IX05 Predict, then hear: a Predict button on a date with a tracked warm spot asks one question (bigger, smaller or the same; which way it moves) before the next two dates; the two dates play, then two rising or falling notes and "You said bigger. It got bigger." announced once; the right answer comes from the frames, and it works in the story (a button per chapter) and the demo (one waiting step) | `feature/IX05-predict-then-hear` (#57) |
 
 ## Outside resources used
 
