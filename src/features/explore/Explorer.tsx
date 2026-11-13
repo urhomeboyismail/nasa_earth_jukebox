@@ -4,8 +4,10 @@
 import { useEffect, useId, useMemo, useRef, useSyncExternalStore } from 'react'
 import { Button, ButtonGroup, Notice, Slider } from '../../components'
 import type { Visualization } from '../../data'
+import { PatternLayer } from '../../components/PatternLayer'
 import { describeCell } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
+import { useDisplaySettings } from '../../display/useDisplaySettings'
 import { Magnifier } from './Magnifier'
 import { ProbeSwitch } from './ProbeSwitch'
 import type { ExplorerState } from './useExplorer'
@@ -49,6 +51,7 @@ export function ExplorerSurface({ explorer }: { explorer: ExplorerState }) {
   const instructions = useId()
   const surface = useRef<HTMLDivElement>(null)
   const { on, area, grid, cursor } = explorer
+  const { patterns } = useDisplaySettings().flags
   const [magnifier] = useViewChoice(MAGNIFIER_KEY)
   const [outline] = useViewChoice(OUTLINE_KEY)
   useEffect(() => { if (on) surface.current?.focus() }, [on])
@@ -73,6 +76,7 @@ export function ExplorerSurface({ explorer }: { explorer: ExplorerState }) {
         onPointerLeave={explorer.onPointerLeave}
         onContextMenu={explorer.onContextMenu}
       >
+        {grid && patterns && <PatternLayer grid={grid} categoryIds={explorer.mapping.categories.map(category => category.id)} />}
         {grid && (
           <>
             <div className="explorer__line explorer__line--across" aria-hidden="true" data-testid="crosshair-row" style={{ top: `${((cursor.row + 0.5) / grid.rows) * 100}%` }} />
@@ -108,7 +112,8 @@ export function ExplorerPanel({ visualization, explorer }: { visualization: Visu
     () => (grid ? describeCell(visualization, grid, cursor.col, cursor.row, { detail }) : ''),
     [grid, cursor.col, cursor.row, visualization, detail],
   )
-  if (!on) return null
+  const { patterns } = useDisplaySettings().flags
+  if (!on) return patterns ? <p className="explorer__here">Turn on Explore the map to see the patterns.</p> : null
 
   return (
     <div className="explorer__panel">

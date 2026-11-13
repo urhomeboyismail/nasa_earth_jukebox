@@ -114,4 +114,20 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Built on `feature/VIS2-patterns-display-settings` (agent E, 2026-11-13).
+
+- `src/display/`: `flags.ts`, `useDisplaySettings.ts` (context, zod-checked storage, `prefers-contrast: more` default), `DisplaySettings.tsx` (`DisplaySettingsProvider` and the header `DisplayButton` with three switches and "Reset display"), `display.test.tsx`.
+- `src/styles/display.css` (readable font, high-contrast scheme, pattern strokes, panel), one import and two `@font-face` in `src/index.css`.
+- `src/components/PatternLayer.tsx` and `patterns.ts` (six stroke-only patterns, rank mapping), `Legend.tsx` (pattern swatch per category and for missing data).
+- `src/features/explore/Explorer.tsx` (layer over the grid; "Turn on Explore the map to see the patterns." when the explorer is off), `src/App.tsx` (provider and header button).
+- `public/fonts/AtkinsonHyperlegible-{Regular,Bold}.woff2` (34.7 KB together) and `OFL-AtkinsonHyperlegible.txt`; source, version and SHA-256 in `docs/data-sources.md`.
+- **One change outside Touches:** `src/features/explore/useExplorer.ts` now also returns `mapping`, because `ExplorerSurface` needs the category order and the other route (a prop) would edit `src/features/player/index.tsx`, which agent D holds (IX03).
+
+```
+npm run lint   -> oxlint, no warnings or errors
+npm test       -> Test Files 153 passed (153), Tests 2441 passed (2441)
+npm run build  -> tsc -b clean, vite build: built in 719ms
+(cd server && .venv/Scripts/python -m pytest -q) -> 296 passed, 2 skipped
+```
+
+`public/data/` is unchanged, so `check-data` was not needed. Layout was not checked (platform.md). Not done by a person: the font was not looked at in a browser, and the high-contrast scheme was checked by contrast ratios only.

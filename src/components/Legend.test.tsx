@@ -2,6 +2,8 @@ import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import fixture from '../../public/data/fixture/manifest.json'
 import type { ColorScale, Visualization } from '../data'
+import { DEFAULT_FLAGS } from '../display/flags'
+import { DisplaySettingsContext } from '../display/useDisplaySettings'
 import { expectNoA11yViolations } from '../test/a11y'
 import { colourAt } from './colourAt'
 import { Legend } from './Legend'
@@ -88,6 +90,28 @@ describe('Legend', () => {
 
   it('has no accessibility violations', async () => {
     const { container } = renderLegend()
+    await expectNoA11yViolations(container)
+  })
+})
+
+describe('Legend with colour-vision patterns (VIS2)', () => {
+  const withPatterns = (on: boolean) => render(
+    <DisplaySettingsContext.Provider value={{ flags: { ...DEFAULT_FLAGS, patterns: on }, setDisplay: () => {}, reset: () => {} }}>
+      <Legend colorScale={visualization.colorScale} mapping={visualization.mapping} variable={visualization.variable} />
+    </DisplaySettingsContext.Provider>,
+  )
+
+  it('shows no pattern while the setting is off', () => {
+    const { container } = withPatterns(false)
+    expect(container.querySelector('.pattern-swatch')).toBeNull()
+  })
+
+  it('shows a pattern swatch for each category, and one for missing data, with the words kept', async () => {
+    const { container } = withPatterns(true)
+    const swatches = [...container.querySelectorAll('.pattern-swatch')]
+    expect(swatches).toHaveLength(visualization.mapping.categories.length + 1)
+    expect(new Set(swatches.map(swatch => swatch.getAttribute('data-pattern'))).size).toBe(swatches.length)
+    expect(screen.getByText('Not enough data')).toBeInTheDocument()
     await expectNoA11yViolations(container)
   })
 })

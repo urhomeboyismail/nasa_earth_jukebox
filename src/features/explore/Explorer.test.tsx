@@ -1,5 +1,6 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
 import type { FrameGrid } from '../../analysis'
@@ -14,6 +15,7 @@ import { describeCell, describePlace, describeSweep, explorerMessage, sweepEndMe
 import { expectNoA11yViolations } from '../../test/a11y'
 import PlayerPage from '../player'
 import { AnnouncerProvider } from '../../components'
+import { DisplaySettingsProvider } from '../../display/DisplaySettings'
 
 const visualization = fixture as Visualization
 const COLS = 24
@@ -1176,5 +1178,46 @@ describe('Explorer: low-vision map tools (VIS1)', () => {
     await user.click(outline())
     vi.useRealTimers()
     await expectNoA11yViolations(container)
+  })
+})
+
+describe('Explorer: colour-vision patterns (VIS2)', () => {
+  const wrap = ({ children }: { children: ReactNode }) => <AnnouncerProvider><DisplaySettingsProvider>{children}</DisplaySettingsProvider></AnnouncerProvider>
+
+  async function exploringWith(patterns: boolean) {
+    localStorage.setItem('earth-jukebox:display', JSON.stringify({ patterns }))
+    const user = userEvent.setup({ delay: null })
+    render(<PlayerPage visualization={visualization} />, { wrapper: wrap })
+    await tick(0)
+    await user.click(screen.getByRole('button', { name: 'Explore the map' }))
+    await tick(0)
+  }
+
+  it('draws the pattern layer over the grid, hidden from screen readers, when the setting is on', async () => {
+    await exploringWith(true)
+    expect(screen.getByTestId('pattern-layer')).toHaveAttribute('aria-hidden', 'true')
+    expect(screen.getByTestId('pattern-layer').querySelectorAll('rect')).toHaveLength(COLS * ROWS)
+  })
+
+  it('draws nothing when the setting is off', async () => {
+    await exploringWith(false)
+    expect(screen.queryByTestId('pattern-layer')).toBeNull()
+  })
+
+  it('reads the grid the same way with the patterns on and off', async () => {
+    await exploringWith(false)
+    const off = analyzeGrid.mock.calls.map(call => call.slice(0, 4))
+    cleanup()
+    analyzeGrid.mockClear()
+    await exploringWith(true)
+    expect(off.length).toBeGreaterThan(0)
+    expect(analyzeGrid.mock.calls.map(call => call.slice(0, 4))).toEqual(off)
+  })
+
+  it('says how to see the patterns while the explorer is off', async () => {
+    localStorage.setItem('earth-jukebox:display', JSON.stringify({ patterns: true }))
+    render(<PlayerPage visualization={visualization} />, { wrapper: wrap })
+    await tick(0)
+    expect(screen.getByText('Turn on Explore the map to see the patterns.')).toBeInTheDocument()
   })
 })

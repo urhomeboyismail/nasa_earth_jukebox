@@ -1,10 +1,25 @@
 @import './styles/tokens.css';
+@import './styles/display.css';
 
 /* Roboto Flex, variable weight, Latin subset, self-hosted (SIL OFL; the licence is beside the file). The typeface tokens name it. */
 @font-face {
   font-family: 'Roboto Flex';
   src: url('/fonts/RobotoFlex-latin.woff2') format('woff2');
   font-weight: 100 1000;
+  font-display: swap;
+}
+
+/* Atkinson Hyperlegible, Latin subset, self-hosted (SIL OFL; the licence is beside the files). Only fetched when "Easier reading font" is on. */
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  src: url('/fonts/AtkinsonHyperlegible-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  src: url('/fonts/AtkinsonHyperlegible-Bold.woff2') format('woff2');
+  font-weight: 700;
   font-display: swap;
 }
 

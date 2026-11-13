@@ -1,5 +1,7 @@
 import type { ColorScale, RGB, SoundMapping, Visualization } from '../data'
+import { useDisplaySettings } from '../display/useDisplaySettings'
 import { colourAt } from './colourAt'
+import { PatternSwatch } from './PatternLayer'
 
 type Props = {
   colorScale: ColorScale
@@ -25,6 +27,8 @@ function gradient(colorScale: ColorScale): string {
 export function Legend({ colorScale, mapping, variable }: Props) {
   const values = colorScale.stops.map(stop => stop.value)
   const unit = variable.unit ? ` ${variable.unit}` : ''
+  const { patterns } = useDisplaySettings().flags
+  const ids = mapping.categories.map(category => category.id)
   return (
     <div className="ui-legend">
       <div className="ui-legend__bar" style={{ background: gradient(colorScale) }} aria-hidden="true" />
@@ -34,11 +38,19 @@ export function Legend({ colorScale, mapping, variable }: Props) {
           const [from, to] = category.range
           return (
             <li key={category.id}>
-              <span className="ui-legend__swatch" style={{ background: css(colourAt(colorScale, (from + to) / 2)) }} aria-hidden="true" />
+              <span className="ui-legend__swatch" style={{ background: css(colourAt(colorScale, (from + to) / 2)) }} aria-hidden="true">
+                {patterns && <PatternSwatch category={category.id} categoryIds={ids} />}
+              </span>
               <span><strong>{category.label}</strong>: {from} to {to}{unit}</span>
             </li>
           )
         })}
+        {patterns && (
+          <li>
+            <span className="ui-legend__swatch" aria-hidden="true"><PatternSwatch category="insufficient" categoryIds={ids} /></span>
+            <span><strong>Not enough data</strong></span>
+          </li>
+        )}
       </ul>
     </div>
   )
