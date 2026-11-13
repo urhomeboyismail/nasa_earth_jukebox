@@ -7,6 +7,7 @@ import type { FrameFeatures } from '../../analysis/features/types'
 import { useAnnounce } from '../../components'
 import { AnnounceLimiter } from '../../describe/announce'
 import { describeEvent, eventsBetween, type EventWords } from '../../describe/events'
+import { publishDataEvents } from '../mascot/dataEvents'
 
 /**
  * Announces the events from the last frame to this one, through `useAnnounce`, at most as often as the limiter allows. `features` null (before the first
@@ -21,8 +22,12 @@ export function useEventAnnouncer(features: FrameFeatures | null, words: EventWo
   useEffect(() => {
     const before = last.current
     last.current = features
-    if (!features || features === before) return
-    for (const event of eventsBetween(before, features)) {
+    if (!features) { publishDataEvents([]); return }
+    if (features === before) return
+    const events = eventsBetween(before, features)
+    // JB06: Echo's visor shows the same events, one list a frame. Not rate limited here: the hook that listens keeps its own gap.
+    publishDataEvents(events.map(event => ({ kind: event.kind, sentence: describeEvent(event, words) })))
+    for (const event of events) {
       const text = describeEvent(event, words)
       if (limiter.current.offer(text, 'event')) announce(text, { busy: true })
     }

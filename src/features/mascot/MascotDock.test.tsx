@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixtureManifest from '../../../public/data/fixture/manifest.json'
 import oceanManifest from '../../../public/data/synthetic-ocean/manifest.json'
 import { publishContext } from '../../assistant/context'
+import { publishDataEvents } from './dataEvents'
 import { AnnouncerProvider } from '../../components'
 import type { Visualization } from '../../data'
 import { visualizationSchema } from '../../data/schema'
@@ -52,6 +53,17 @@ afterEach(() => {
 })
 
 describe('the dock', () => {
+  it('shows the alert symbol when the music has a notable event, keeps the sentence for the bubble, and says nothing aloud', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<Dock />)
+    act(() => publishDataEvents([{ kind: 'appeared', sentence: 'A new warm area appeared in the north-east.' }]))
+    expect(face(container)).toBe('alert')
+    expect(liveText()).toBe('')
+    await user.click(echoButton('Echo, your guide, has a tip'))
+    expect(screen.getByRole('region', { name: 'Echo, your guide' })).toHaveTextContent('A new warm area appeared in the north-east.')
+    await expectNoA11yViolations(container)
+  })
+
   it('is a button named for Echo, closed to begin with', () => {
     render(<Dock />)
     expect(echoButton()).toHaveAttribute('aria-expanded', 'false')

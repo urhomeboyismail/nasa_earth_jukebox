@@ -18,6 +18,7 @@ import { MASCOT_NAME } from '../welcome/lines'
 import { mascotTheme } from './accent'
 import { expressionFor } from './expressionFor'
 import { placeBubble } from './placeBubble'
+import { useDataAlerts } from './useDataAlerts'
 import { useFaceState } from './useFaceState'
 import { useLevels } from './useLevels'
 import { useMascotGuide, useMascotGuideState } from './useMascotGuide'
@@ -84,6 +85,8 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
   const { clearTip } = useMascotGuide()
   const face = useFaceState()
   const explore = useExploreState()
+  // JB06: a notable event in the music puts Echo in alert for a few seconds (not while Echo is off or the voice guide is open).
+  useDataAlerts(mascotOn && !voiceOpen)
   const chest = useLevels(mascotOn && !voiceOpen && face.playing && !face.hidden)
   const boost = useScrollVelocity()
   const [open, setOpen] = useState(false)
