@@ -238,3 +238,13 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: May `Ensemble` get a read-only `clock(): { currentTime; outputLatency?; baseLatency?; getOutputTimestamp? }` (a thin view of the one AudioContext, no second context)? IX10 would then pass it to `pulseCue` instead of `{ currentTime: ensemble.now() }`, a one-line change in `useExplorer.ts`.
 - Answer:
 - Recorded in: `docs/tickets/IX10-haptics-map.md` (Result)
+
+### R-20261113-IX09-1: May the explore context carry the frame's hot spots, `hotspots: [{ id, place }]`?
+- From: IX09 (agent D)
+- To: G06 (Mohammad, owner of `server/app/assistant/context_schemas.py` and the context the screens publish)
+- Needed by: IX09 "Done when" (a voice point at a hot spot). Not blocking the rest: IX09 builds the offline `E` key, the beacon and voice points at the nine compass places now.
+- Status: open
+- Context: IX09 adds a `point_to(target)` tool. The server must check `target` against what the browser sent (`SessionState.screens`), and the browser's allow-list must accept only the current frame's hot-spot ids. `ExploreContext` (`server/app/assistant/context_schemas.py:54`) has `exploring`, `value`, `position` and `here` only, and `extra="forbid"`, so a list would be dropped today. The ids already exist: `FrameFeatures.hotspots` (`src/analysis/features/types.ts:96`) holds at most 6, largest first, each with a stable `id` (`h1`, `h2`, …), a `band` and a `centroid`. The explore context is published from `src/features/explore/useExplorer.ts:568` (the `explorer` hotspot), which IX09 does not hold.
+- Question: (a) Add `hotspots: list[{ id: str (max 8), place: str (max 20, a compass name such as "north-east") }]` (max 6, default empty) to `ExploreContext`, with the same field in the browser's context type, and publish it from `useExplorer.ts`. IX09 then reads it. Or (b) let IX09 make that change itself, in the two context files and `useExplorer.ts`, with your agreement noted in its ticket. Or (c) put the list on `PlayerContext`, published from `src/features/player/index.tsx`, if the player is the better place.
+- Answer:
+- Recorded in: `docs/tickets/IX09-echo-points.md` (Result)
