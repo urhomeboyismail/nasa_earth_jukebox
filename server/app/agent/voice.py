@@ -18,9 +18,15 @@ from typing import Any, AsyncIterator, Protocol
 
 from fastapi import WebSocket
 
-from app.assistant.context_schemas import validate_context
-from app.agent.limits import ANNOUNCE_GAP_SECONDS, CONTEXT_KEYS, MAX_AUDIO_FRAME_BYTES, MAX_CONTEXT_BYTES, MAX_TEXT_CHARS
+from app.agent.limits import (
+    ANNOUNCE_GAP_SECONDS,
+    CONTEXT_KEYS,
+    MAX_AUDIO_FRAME_BYTES,
+    MAX_CONTEXT_BYTES,
+    MAX_TEXT_CHARS,
+)
 from app.agent.sink import sink
+from app.assistant.context_schemas import validate_context
 from app.assistant.knowledge import PAGES, event_prompt, system_instruction
 from app.config import settings
 

@@ -12,6 +12,8 @@ type Props = {
   disabled?: boolean
 }
 
+type CssVars = CSSProperties & Record<`--${string}`, number>
+
 /**
  * A labelled range input that shows its value as text and announces it in words. It looks like the Material 3
  * Expressive slider: two tracks with a gap around a tall handle, and a value indicator while it is in use.
@@ -21,8 +23,9 @@ export function Slider({ label, value, min, max, step = 1, onChange, describe, d
   const words = describe ? describe(value) : String(value)
   // How far along the handle is, from 0 to 1. The CSS draws the two tracks and places the indicator from it.
   const fill = max > min ? Math.min(1, Math.max(0, (value - min) / (max - min))) : 0
+  const style: CssVars = { '--ui-fill': fill }
   return (
-    <div className="ui-slider" style={{ '--ui-fill': fill } as CSSProperties}>
+    <div className="ui-slider" style={style}>
       <label htmlFor={id} className="ui-slider__label">{label}</label>
       <div className="ui-slider__control">
         <input

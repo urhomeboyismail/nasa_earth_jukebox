@@ -1,0 +1,12 @@
+# The server's linter (ticket I11). CI runs `ruff check app tests`. No formatter: that would change every file at once.
+line-length = 120
+target-version = "py312"
+
+[lint]
+select = ["E", "F", "I", "B"]
+# E501: the code keeps long lines on purpose (184 over 120 when this was added); rewrapping them is formatting, which I11 leaves out.
+ignore = ["E501"]
+
+[lint.per-file-ignores]
+# I001: the import order inside two handlers. This file is the `server-assistant` hotspot (docs/TICKETS.md), which I11 may not edit; drop this when a ticket that holds it sorts them.
+"app/api/assistant.py" = ["I001"]

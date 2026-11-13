@@ -1,10 +1,8 @@
 """G06: every context payload is checked, only valid ones are stored, and set_date refuses a date the data set does not have."""
 import pytest
-from fastapi.testclient import TestClient
 
 from app.assistant.context_schemas import CONTEXT_SCHEMAS, validate_context
 from app.assistant.tools import SessionState, run_tool
-from app.main import app
 
 ORIGIN = {"origin": "http://localhost:5173"}
 

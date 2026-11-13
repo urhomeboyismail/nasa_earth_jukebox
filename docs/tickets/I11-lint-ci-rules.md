@@ -75,7 +75,70 @@ npm run check-data
 - Rules that need type information, if oxlint does not provide them without a second tool.
 - Formatting (`ruff format`, Prettier). That would change many files at once.
 - Visual or accessibility rules (the axe checks in tests cover those).
+- `typescript/no-non-null-assertion` (no `!`): 30 in app code (`src/audio/engine.ts` alone has 13, and it is the `engine` hotspot), 306 counting tests. Over the limit of 20 in Step 3, so not enabled.
+- `no-explicit-any` and `consistent-type-assertions` in tests, their helpers (`test*.ts`, `*TestSupport.ts`, `toneMock.ts`, `src/test/`) and `scripts/`: 37 `any` and 350 assertions, mostly casting mocks. Turned off there by an override.
+- Three casts in hotspot files I11 does not list, exempted by name in `.oxlintrc.json` (second override). Remove each entry when the file's ticket takes the cast out: `src/App.tsx:219` (`app`, held by JB08: a CSS-variable `style`, use the `CssVars` type as `Slider.tsx` does), `src/hooks/useVoiceAssistant.ts:63` (`voice`, held by JB08: narrow with `'date' in previous`), `src/data/schema.ts:243` (`schema`: `Note.midi` already returns `number | null`, so the cast can just go).
+- E501 (line too long) in ruff: 184 lines over 120. Ignored in `server/ruff.toml`, because rewrapping them is formatting. I001 in `server/app/api/assistant.py` (two imports inside handlers) is ignored for that file only, because it is the `server-assistant` hotspot.
 
 ## Result
 
-Not started.
+Done 2026-11-13, agent D, branch `chore/I11-lint-ci-rules`.
+
+**Step 1, rule names** (oxlint 1.90.0, from `node_modules/oxlint/configuration_schema.json`). All found: `typescript/no-explicit-any`, `typescript/no-non-null-assertion`, `typescript/consistent-type-assertions` (with `assertionStyle: "never"`, which still allows `as const`: the 51 `as const` in app code pass), `react/set-state-in-effect`. None missing, so Step 5's grep script was not needed.
+
+**Step 2, counts with the four rules as `warn`** (`npm run lint`, whole repo): 704 problems. `consistent-type-assertions` 361, `no-non-null-assertion` 306, `no-explicit-any` 37, `set-state-in-effect` 0, `only-export-components` 0. In app code only (no tests, test helpers or scripts): `no-explicit-any` 0, `set-state-in-effect` 0, `consistent-type-assertions` 11, `no-non-null-assertion` 30.
+
+**Step 3 and 4, now `error`:** `react/only-export-components`, `react/set-state-in-effect`, `typescript/no-explicit-any`, `typescript/consistent-type-assertions` (never). Of the 11 assertions, 8 are fixed without a cast:
+
+- `Slider.tsx`, `Magnifier.tsx`: typed `CssVars` style, the pattern `Mascot.tsx` already uses.
+- `mySoundMix.ts`: `VOICE_IDS.some(voice => voice === name)`.
+- `captions.ts`: a literal `Record<VoiceId, string>`, so a new voice is now a type error until it has a caption.
+- `analyze.ts`: `CategoryId` is `string`, so a type annotation is enough.
+- `lru.ts`: values are boxed, so a stored `undefined` is still told apart from a missing key.
+- `registry.ts`: a type predicate `isOfType` narrows the action.
+- `assistant/audio.ts`: `event.data instanceof ArrayBuffer` (the worklet posts `this.frame.buffer.slice(0)`).
+
+The other 3 are in hotspots (Out of scope).
+
+**A deliberate violation fails** (`src/zz-probe/Probe.tsx`, then deleted):
+
+```
+src/zz-probe/Probe.tsx:8:14: error react(only-export-components): Fast refresh only works when a file only exports components. …
+src/zz-probe/Probe.tsx:4:21: error react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders …
+src/zz-probe/Probe.tsx:4:26: error typescript(consistent-type-assertions): Do not use any type assertions. …
+src/zz-probe/Probe.tsx:5:12: error typescript(no-explicit-any): Unexpected `any`. Specify a different type. …
+exit=1
+```
+
+**Step 6:** CI's web job runs `npm run check-data` after `npm test`.
+
+**Step 7:** `server/ruff.toml` (`select = ["E", "F", "I", "B"]`, line length 120), `ruff>=0.8` under Tests in `server/requirements.txt`, and a `ruff check app tests` step before pytest in the server job (job name kept as `Server (pytest)`, so the required check keeps its name). Ruff 0.17.5 found 195: 184 E501 (ignored, see Out of scope), 7 I001 and 3 F401 (fixed with `--fix`, except the 2 I001 in the hotspot), 1 B017 (`tests/test_assistant.py`: `pytest.raises(Exception)` is now `pytest.raises(WebSocketDisconnect)`).
+
+**Checks** (on this laptop the suite runs with `--pool=forks --maxWorkers=1` because of memory; the same files as `npm test` and `npm run check-data`):
+
+```
+$ npm run lint
+> oxlint
+lint exit=0
+
+$ npm test   (npx vitest run --pool=forks --maxWorkers=1)
+ Test Files  193 passed (193)
+      Tests  2848 passed (2848)
+vitest exit=0
+
+$ npm run build
+✓ built in 1.25s
+build exit=0
+
+$ npm run check-bundle
+index-CoXI8A_U.js: 81053 bytes gzip (79.2 KB), within the budget of 84362 bytes (82.4 KB).
+
+$ npm run check-data   (npx vitest run src/data src/analysis/synthetic.test.ts --pool=forks --maxWorkers=1)
+check-data exit=0
+
+$ cd server && .venv/Scripts/ruff.exe check app tests
+All checks passed!
+
+$ cd server && .venv/Scripts/python.exe -m pytest -q
+321 passed, 2 skipped in 14.72s
+```

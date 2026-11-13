@@ -12,6 +12,8 @@ function lensPosition(cell: { col: number; row: number }, grid: { cols: number; 
   return { x: (cell.col + 0.5) / grid.cols, y: (cell.row + 0.5) / grid.rows }
 }
 
+type CssVars = CSSProperties & Record<`--${string}`, number>
+
 type Props = {
   /** The frame's picture. */
   image: string
@@ -24,7 +26,7 @@ type Props = {
 export function Magnifier({ image, cell, grid, area }: Props) {
   const at = lensPosition(cell, grid)
   const width = area.x1 - area.x0, height = area.y1 - area.y0
-  const style = {
+  const style: CssVars = {
     left: `${at.x * 100}%`,
     top: `${at.y * 100}%`,
     backgroundImage: `url("${image}")`,
@@ -34,6 +36,6 @@ export function Magnifier({ image, cell, grid, area }: Props) {
     '--lens-at-x': area.x0 / width + at.x,
     '--lens-at-y': area.y0 / height + at.y,
     '--lens-flip': at.x > 0.5 ? 1 : 0,
-  } as CSSProperties
+  }
   return <div className="explorer__lens" aria-hidden="true" data-testid="magnifier" style={style} />
 }

@@ -1,5 +1,4 @@
 """G02: POST /api/v1/agent/ask. No key, no network: the model is FakeLlm."""
-import json
 
 import pytest
 from fastapi.testclient import TestClient

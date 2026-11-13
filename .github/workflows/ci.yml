@@ -28,6 +28,7 @@ jobs:
       - run: npm run build
       - run: npm run check-bundle
       - run: npm test
+      - run: npm run check-data
 
   server:
     name: Server (pytest)
@@ -43,4 +44,5 @@ jobs:
           cache: pip
           cache-dependency-path: server/requirements.txt
       - run: pip install -r requirements.txt
+      - run: ruff check app tests
       - run: python -m pytest

@@ -38,7 +38,12 @@ export function useActionHandler<T extends ActionType>(type: T, handler: (action
   useEffect(() => {
     latest.current = handler
   })
-  useEffect(() => addActionHandler(type, action => latest.current(action as ActionOf<T>)), [type])
+  useEffect(() => addActionHandler(type, action => { if (isOfType(action, type)) latest.current(action) }), [type])
+}
+
+/** Handlers are kept by type, so this always holds; checking it lets TypeScript narrow the action without a cast. */
+function isOfType<T extends ActionType>(action: Action, type: T): action is ActionOf<T> {
+  return action.type === type
 }
 
 /** For tests only. */

@@ -12,5 +12,7 @@ httpx>=0.27
 
 # Tests
 pytest>=8.3.0
+# The linter CI runs before the tests (server/ruff.toml).
+ruff>=0.8
 # fastapi.testclient prefers httpx2 (a real package, not a typo) and warns when it falls back to httpx.
 httpx2

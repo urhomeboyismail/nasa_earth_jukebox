@@ -66,7 +66,7 @@ export function valueAtPixel(pixels: Pixels, px: number, py: number, colorScale:
 
 /** Fraction of the values in each category, for every category (zero included). */
 function sharesOf(values: number[], mapping: SoundMapping): Record<CategoryId, number> {
-  const counts = Object.fromEntries(mapping.categories.map(c => [c.id, 0])) as Record<CategoryId, number>
+  const counts: Record<CategoryId, number> = Object.fromEntries(mapping.categories.map(c => [c.id, 0]))
   for (const value of values) counts[categoryFor(value, mapping)]++
   for (const id of Object.keys(counts)) counts[id] /= values.length
   return counts
