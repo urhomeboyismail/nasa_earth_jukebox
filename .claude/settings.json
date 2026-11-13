@@ -22,6 +22,15 @@
             "statusMessage": "Checking which tickets are unclaimed..."
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/loop-watchdog.cjs\"",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -34,6 +43,40 @@
             "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/tickets.py\" guard",
             "timeout": 40,
             "statusMessage": "Checking the ticket is claimed..."
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/loop-watchdog.cjs\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/loop-watchdog.cjs\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/loop-watchdog.cjs\"",
+            "timeout": 10
           }
         ]
       }
