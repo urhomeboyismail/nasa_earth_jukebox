@@ -160,4 +160,4 @@ The one failure is `src/App.test.tsx > App shell > loads the first visualization
 
 New tests: 17 in `scan.test.ts` (plan, pan, determinism, golden for the fixture and `synthetic-storm` frame 0) and 25 in `Scan.test.tsx` (no sound before a click, one chord per column at `start + atMs`, dropout columns, line at column 31 at 2.5 s, reduced motion, start and end announced once and nothing per column, Stop and Escape, focus, hidden page, axe, the third radio in the Listen page, and `scanFeatures` caching).
 
-**Manual check (step 5): not done.** This session has no speakers and no listener, so nothing was heard. Still to do by a person: `npm run dev`, Listen, choose Scan on a frame with a clear warm patch, and note whether the notes are louder and brighter where the patch is. Record what was heard here.
+**Manual check (step 5): done by the team lead (13 Nov 2026).** Listen, Scan, on a checked frame: it works as intended. No further notes were written down.
