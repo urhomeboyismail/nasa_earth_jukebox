@@ -9,18 +9,19 @@ export type Lru<V> = {
 
 /** Holds at most `limit` entries. `get` and `set` both count as a use; past the limit the least recently used entry goes. */
 export function createLru<V>(limit: number): Lru<V> {
-  const entries = new Map<string, V>()
+  // Each value sits in a box, so a stored `undefined` is still told apart from a missing key without a cast.
+  const entries = new Map<string, { value: V }>()
   return {
     get(key) {
-      if (!entries.has(key)) return undefined
-      const value = entries.get(key) as V
+      const entry = entries.get(key)
+      if (!entry) return undefined
       entries.delete(key)
-      entries.set(key, value)
-      return value
+      entries.set(key, entry)
+      return entry.value
     },
     set(key, value) {
       entries.delete(key)
-      entries.set(key, value)
+      entries.set(key, { value })
       if (entries.size > limit) {
         const oldest = entries.keys().next()
         if (!oldest.done) entries.delete(oldest.value)

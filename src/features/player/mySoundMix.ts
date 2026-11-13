@@ -14,7 +14,7 @@ export const DEFAULT_MIX: SoundMix = { muted: [], solo: null }
 
 const stored = z.object({ muted: z.array(z.string()), solo: z.string().nullable() })
 
-const isVoice = (name: string): name is VoiceId => (VOICE_IDS as readonly string[]).includes(name)
+const isVoice = (name: string): name is VoiceId => VOICE_IDS.some(voice => voice === name)
 
 /** A mix with its voices in the mixer's order, each once, and only the ones that exist. */
 export function cleanMix(mix: { muted: readonly string[]; solo: string | null }): SoundMix {

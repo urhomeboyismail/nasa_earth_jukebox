@@ -36,7 +36,6 @@ from typing import Annotated, Literal, Sequence, TypedDict, TypeVar
 from urllib.parse import urlsplit
 
 import httpx
-
 from google.adk.agents import LlmAgent
 from google.adk.models import BaseLlm
 from google.adk.runners import InMemoryRunner

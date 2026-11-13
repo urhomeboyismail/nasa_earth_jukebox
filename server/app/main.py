@@ -3,7 +3,8 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.agent import agent_ready, router as agent_router
+from app.api.agent import agent_ready
+from app.api.agent import router as agent_router
 from app.api.assistant import router as assistant_router
 from app.api.jukebox import router as jukebox_router
 from app.config import settings

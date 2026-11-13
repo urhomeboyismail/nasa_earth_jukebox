@@ -76,7 +76,7 @@ export async function startRecorder(onFrame: (pcm: ArrayBuffer) => void): Promis
     processorOptions: { targetRate: INPUT_RATE, frameSamples: FRAME_SAMPLES },
   });
   let muted = false;
-  node.port.onmessage = event => { if (!muted) onFrame(event.data as ArrayBuffer); };
+  node.port.onmessage = event => { if (!muted && event.data instanceof ArrayBuffer) onFrame(event.data); };
   // The worklet must be pulled by the graph to run; a muted gain keeps it silent.
   const sink = context.createGain();
   sink.gain.value = 0;

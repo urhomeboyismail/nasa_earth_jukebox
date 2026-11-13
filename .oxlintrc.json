@@ -2,8 +2,38 @@
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["react", "typescript", "oxc"],
   "ignorePatterns": ["docs/planning/**"],
+  // The rules in .claude/rules/frontend.md that a tool can check (ticket I11).
   "rules": {
     "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
+    "react/only-export-components": ["error", { "allowConstantExport": true }],
+    "react/set-state-in-effect": "error",
+    "typescript/no-explicit-any": "error",
+    // "never" still allows `as const`.
+    "typescript/consistent-type-assertions": ["error", { "assertionStyle": "never" }]
+  },
+  "overrides": [
+    {
+      // Tests, their helpers and the dev scripts cast mocks and fixtures on purpose.
+      "files": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "src/test/**",
+        "src/**/test*.ts",
+        "src/**/*TestSupport.ts",
+        "src/**/toneMock.ts",
+        "scripts/**"
+      ],
+      "rules": {
+        "typescript/no-explicit-any": "off",
+        "typescript/consistent-type-assertions": "off"
+      }
+    },
+    {
+      // Hotspot files I11 may not edit (docs/TICKETS.md): app and voice are held by JB08, schema is not listed. Remove each once its cast is gone.
+      "files": ["src/App.tsx", "src/hooks/useVoiceAssistant.ts", "src/data/schema.ts"],
+      "rules": {
+        "typescript/consistent-type-assertions": "off"
+      }
+    }
+  ]
 }

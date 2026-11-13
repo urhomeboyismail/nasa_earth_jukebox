@@ -302,7 +302,8 @@ def test_a_second_session_gets_busy_while_the_cap_is_full(fake_session, monkeypa
         assert first.receive_json() == {"type": "ready"}
         with client.websocket_connect(LIVE, headers=ORIGIN) as second:
             assert second.receive_json()["code"] == "busy"
-            with pytest.raises(Exception):
+            from starlette.websockets import WebSocketDisconnect
+            with pytest.raises(WebSocketDisconnect):
                 second.receive_json()  # the socket is closed
         first.send_json({"type": "stop"})
         assert first.receive_json()["type"] == "ended"

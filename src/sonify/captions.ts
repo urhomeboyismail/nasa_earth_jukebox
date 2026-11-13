@@ -3,7 +3,7 @@
 // A voice with no data says "not enough data"; a voice that is merely quiet has an empty caption.
 
 import type { Band } from '../analysis/features/types'
-import { VOICE_IDS, type VoiceId } from '../data/sonification'
+import type { VoiceId } from '../data/sonification'
 import { TREND_STEP } from './ranges'
 
 export type Trend = 'rising' | 'falling' | 'steady'
@@ -54,7 +54,7 @@ const rhythmWord = (perBeat: 1 | 2 | 4) => (perBeat === 1 ? 'sparse' : perBeat =
 const eastWest = (sweep: number) => (sweep > 0.1 ? 'east' : sweep < -0.1 ? 'west' : null)
 
 export function captionsFor(parts: CaptionParts): { caption: Record<VoiceId, string>; summary: string } {
-  const caption = Object.fromEntries(VOICE_IDS.map(id => [id, ''])) as Record<VoiceId, string>
+  const caption: Record<VoiceId, string> = { melody: '', harmony: '', bass: '', hotspots: '', rhythm: '', motion: '', time: '' }
   for (const id of parts.missing) caption[id] = `${LABELS[id]}: ${NOT_ENOUGH}`
 
   if (parts.melody) caption.melody = `Melody: ${withTrend(levelWord(parts.melody.position), parts.melody.trend)}`
