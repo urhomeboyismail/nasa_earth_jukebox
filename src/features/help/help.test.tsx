@@ -134,7 +134,7 @@ describe('the demo host', () => {
     view.unmount()
     const { container } = await runAndStop()
     const face = container.querySelector('.demo__mascot')
-    expect(face).toHaveAttribute('aria-hidden', 'true')
+    expect(face).toHaveAttribute('alt', '')
     expect(screen.getByRole('button', { name: 'Play the demo' })).toBeInTheDocument()
     await expectNoA11yViolations(container)
   })

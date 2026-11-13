@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ComponentType, type CSSProperties, type MouseEvent } from 'react'
 import { AnnouncerProvider, DatasetPicker, LoadingIndicator, Notice } from './components'
 import { Icon, type IconName } from './components/Icon'
-import { Sonny } from './components/Mascot'
+import { RobotBadge } from './components/RobotBadge'
 import { DataError, friendlyDataMessage, loadCatalog, loadVisualization, type CatalogEntry, type Visualization } from './data'
 import { DisplayButton, DisplaySettingsProvider } from './display/DisplaySettings'
 import { DemoControl } from './features/demo/DemoControl'
@@ -162,6 +162,8 @@ function App() {
 
   const assistant = useVoiceAssistant({ language: 'en', page, onAction: handleAssistantAction })
   useDucking(assistant.status)
+  /** What the guide is saying now, for Echo's robot to mouth (JB08). */
+  const spokenLine = assistant.status === 'speaking' ? (assistant.transcript.findLast(entry => entry.role === 'assistant')?.text ?? '') : ''
 
   function closeAssistant() {
     assistant.stop()
@@ -242,7 +244,7 @@ function App() {
           <DisplayButton />
           <button ref={guideToggle} type="button" className="app-guide-toggle" aria-pressed={assistantOpen}
             aria-keyshortcuts="Alt+E" onClick={toggleGuide}>
-            <Sonny size={32} className="app-guide-toggle__mascot" />
+            <RobotBadge size={32} className="app-guide-toggle__mascot" />
             <span className="app-guide-toggle__label">Voice guide</span>
             {/* Shown instead of the full label in a narrow header. Hidden from screen readers, so the button's name is always
                 "Voice guide", which contains the visible word (WCAG 2.5.3). */}
@@ -271,9 +273,9 @@ function App() {
           </Suspense>
         )}
 
-        {/* Echo, bottom right on every page. The key closes its bubble when the page changes. */}
+        {/* Echo, bottom right on every page. Not keyed by page: its 3D robot is set up once (the dock closes its bubble on a new page). */}
         <Suspense fallback={null}>
-          <MascotDock key={page} page={page} loading={!visualization && !loadError} voice={assistant.status} voiceOpen={assistantOpen}
+          <MascotDock page={page} loading={!visualization && !loadError} voice={assistant.status} voiceOpen={assistantOpen} line={spokenLine}
             onTalk={() => setAssistantOpen(true)} />
         </Suspense>
       </MascotGuideProvider>

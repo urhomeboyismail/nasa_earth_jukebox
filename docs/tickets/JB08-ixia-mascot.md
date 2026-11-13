@@ -54,7 +54,8 @@ The guide is still Echo (the same Gemini Live voice guide, panel, dock, tips and
 - `src/VoiceAssistant.tsx`, `src/VoiceAssistant.test.tsx`, `src/styles/assistant.css`
 - `src/features/welcome/*`, `src/features/help/HelpButton.tsx`, `src/features/demo/DemoControl.tsx`
 - `src/App.tsx`, `src/App.css`, `src/vite-env.d.ts` (or a new `src/types/robot-companion.d.ts`)
-- `docs/PRE-HACKATHON-WORK.md`
+- `docs/PRE-HACKATHON-WORK.md` (after the merge)
+- Removed with the SVG robot, as nothing else used them: `src/features/mascot/{useLevels,useScrollVelocity}.ts`, `src/audio/levels.ts` and their tests; `.oxlintrc.json` skips `public/robot/`
 
 ## Steps
 
@@ -102,4 +103,48 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent: the branch, the commits, and the real output of the checks, failures included.
+Branch `feature/JB08-ixia-mascot`.
+
+What changed:
+- **The robot.** `public/robot/` holds the robot and three.js, byte for byte from the live site with their sha256 (see `README.md`). It also holds our chest logo ("echo") and a still of the head for the badges.
+- **The dock.** `MascotDock` renders `Ixia.tsx` once and no longer remounts it per page (App drops `key={page}`; the bubble closes on a page change instead).
+  - The robot takes the pointer: its `robot-click` opens our bubble, not its chat.
+  - The dock button is the keyboard and screen-reader way in. It is out of sight until focused, then shows as a chip left of the robot. It sits outside the robot's box because the robot moves away from anything clickable under it.
+  - Our bubble, the tip dot and the name label follow where the robot is drawn.
+  - Esc closes the bubble wherever focus is, and is stopped there, so the robot does not also send itself away.
+- **The voice guide.** While the panel is open, the same robot steps beside it (no button) and mouths the guide's spoken line a piece at a time (`spokenLine` in App, from the transcript while speaking).
+- **Faces and gestures.** Echo's expressions map to the robot's faces, and its poses to gestures (`robot.ts`).
+- **Badges.** Sonny (header toggle, Help, demo caption) and the Welcome robot are now `RobotBadge`, the still head.
+- **Removed.** The SVG `Mascot.tsx`, `mascot.css`, the voice-panel robot CSS, and the chest-bar and booster hooks (the robot reacts to scrolling by itself).
+
+Checks (13 Nov 2026):
+
+```
+$ npm run lint
+> oxlint
+(no warnings or errors)
+
+$ npm test
+ FAIL  src/data/change-regression.test.ts > change regression baseline > gives the same Score every time
+   (Test timed out in 90000ms)
+ Test Files  1 failed | 167 passed (168)
+      Tests  1 failed | 2608 passed (2609)
+
+$ npm run build
+✓ built in 1.05s
+```
+
+The one failure fails the same way on a clean `origin/main` (a b9405fd checkout: `Tests 1 failed | 6 passed (7)` for that file, timing out at 90 s on this machine). It is a data-analysis test that this ticket does not touch.
+
+In the browser (`vite`, Playwright headless Chromium at 1440 by 900):
+- the robot renders bottom right with "echo" on its chest;
+- a click on it opens our bubble, and its own chat stays closed;
+- its body and corner button are out of the Tab order;
+- Esc closes the bubble, and the robot stays;
+- opening the voice guide moves the same element beside the panel;
+- `say()` types into its bubble with the mouth moving;
+- no request leaves the app's origin.
+
+Not done here:
+- **Credit line in the About page.** It is the `about` hotspot, not this ticket's. Suggested: "Echo's robot: the myt Learning Hub's robot companion, used with permission."
+- **The muted-microphone case.** The voice panel's old "listening but muted is idle" pose rule is gone: the dock's pose follows the status only.

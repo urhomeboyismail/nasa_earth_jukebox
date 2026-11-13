@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import { Button, ButtonGroup, IconButton, Notice } from './components'
 import type { AnswerLength } from './assistant/consent'
 import { Icon } from './components/Icon'
-import { Echo, type MascotPose } from './components/Mascot'
 import { NO_RETRY_CODES, type useVoiceAssistant } from './hooks/useVoiceAssistant'
 import './styles/assistant.css'
 
@@ -102,11 +101,9 @@ export default function VoiceAssistant({ assistant, onClose }: { assistant: Assi
 
   const micOff = connected && !micSending
   const orbClass = ['voice-assistant__orb', `voice-assistant__orb--${status}`, micOff && 'is-muted'].filter(Boolean).join(' ')
-  const pose: MascotPose = status === 'speaking' ? 'talking' : status === 'connecting' ? 'thinking' : status === 'listening' && micSending ? 'listening' : 'idle'
 
   return <>
-  {/* The mascot stands beside the panel on tablet and desktop. Decoration only: the status line says the same in words. */}
-  <Echo className={`voice-mascot voice-mascot--${pose}`} pose={pose} />
+  {/* Echo's robot stands beside the panel on tablet and desktop: the mascot dock moves it there (MascotDock.tsx). */}
   <section ref={panel} className="voice-assistant" role="region" aria-labelledby="voice-assistant-title" onKeyDown={onKeyDown}>
     <span className="voice-assistant__handle" aria-hidden="true" />
     <header className="voice-assistant__header">

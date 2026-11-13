@@ -6,7 +6,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { subscribeContext } from '../../assistant/context'
 import { createSoundEngine, type SoundEngine } from '../../audio'
 import { Button, Slider, useAnnounce } from '../../components'
-import { Echo } from '../../components/Mascot'
+import { RobotBadge } from '../../components/RobotBadge'
 import { playerUpdate, type Visualization } from '../../data'
 import { useDescriptionDetail } from '../../describe/detail'
 import { currentDataParam, hashFor } from '../../route'
@@ -160,7 +160,7 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
         <Button variant="text" onClick={skipWelcome}>Skip the welcome</Button>
       </div>
       <div className="welcome__body">
-        <Echo className="welcome__mascot" pose={path ? 'listening' : 'idle'} />
+        <RobotBadge size={128} className="welcome__mascot" />
         <div className="welcome__talk">
           <h2 id={titleId} className="welcome__title">Welcome</h2>
           {!path ? (

@@ -155,7 +155,7 @@ Echo, the guide, redrawn as Juke-Bot (helmet visor, headphones, chest screen, ai
 | [JB05](tickets/JB05-tour-flight-path.md) | Guided tour flight path with a glowing jet trail | L | agent | JB01, JB02 | player | open |
 | [JB06](tickets/JB06-alert-visor.md) | Alert visor on notable data events | S | agent | JB01, SN10 | player | open |
 | [JB07](tickets/JB07-explorer-mirror-legend.md) | Echo mirrors the explorer; the legend becomes playable | M | agent | JB01, SN09, IX02 | explorer | done |
-| [JB08](tickets/JB08-ixia-mascot.md) | Echo wears Ixia: the myt Learning Hub's 3D robot replaces the SVG robot; our voice guide stays | M | agent | — | app, voice | claimed: A, 2026-11-13 |
+| [JB08](tickets/JB08-ixia-mascot.md) | Echo wears Ixia: the myt Learning Hub's 3D robot replaces the SVG robot; our voice guide stays | M | agent | — | app, voice | ready: feature/JB08-ixia-mascot |
 
 ### P3: people, evidence and submission
 

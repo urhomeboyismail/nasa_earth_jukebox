@@ -94,23 +94,10 @@ describe('VoiceAssistant panel', () => {
 })
 
 describe('the mascot beside the panel', () => {
-  const mascot = (container: HTMLElement) => container.querySelector('svg.voice-mascot')
-
-  it('is there, hidden from screen readers, and the panel still passes accessibility checks', async () => {
-    const { container } = render(<VoiceAssistant assistant={fakeAssistant()} onClose={() => {}} />)
-    expect(mascot(container)).toHaveAttribute('aria-hidden', 'true')
+  it("draws no robot of its own: the dock's robot steps beside the panel (JB08)", async () => {
+    const { container } = render(<VoiceAssistant assistant={fakeAssistant({ status: 'speaking' })} onClose={() => {}} />)
+    expect(container.querySelector('robot-companion, svg.voice-mascot')).toBeNull()
     await expectNoA11yViolations(container)
-  })
-
-  it.each([
-    ['idle', false, 'idle'],
-    ['connecting', false, 'thinking'],
-    ['listening', false, 'listening'],
-    ['listening', true, 'idle'],
-    ['speaking', false, 'talking'],
-  ] as const)('takes its pose from the guide: %s (muted %s) is %s', (status, micMuted, pose) => {
-    const { container } = render(<VoiceAssistant assistant={fakeAssistant({ status, micMuted })} onClose={() => {}} />)
-    expect(mascot(container)).toHaveClass(`voice-mascot--${pose}`)
   })
 })
 

@@ -23,14 +23,14 @@ function OfferButton({ tip }: { tip: Tip }) {
   return <button type="button" onClick={() => guide.offerTip(tip)}>Offer a tip</button>
 }
 
-type Props = Partial<{ page: 'home' | 'listen'; loading: boolean; voice: AssistantStatus; voiceOpen: boolean; onTour: () => void; onTalk: () => void; tip: Tip; visualization: Visualization | null }>
+type Props = Partial<{ page: 'home' | 'listen'; loading: boolean; voice: AssistantStatus; voiceOpen: boolean; line: string; onTour: () => void; onTalk: () => void; tip: Tip; visualization: Visualization | null }>
 
-function Dock({ page = 'listen', loading = false, voice = 'idle', voiceOpen = false, onTour, onTalk = () => {}, tip = { text: 'Try the date slider.' }, visualization }: Props) {
+function Dock({ page = 'listen', loading = false, voice = 'idle', voiceOpen = false, line, onTour, onTalk = () => {}, tip = { text: 'Try the date slider.' }, visualization }: Props) {
   return (
     <AnnouncerProvider>
       <MascotGuideProvider>
         <OfferButton tip={tip} />
-        <MascotDock page={page} loading={loading} voice={voice} voiceOpen={voiceOpen} onTalk={onTalk} onTour={onTour} visualization={visualization} />
+        <MascotDock page={page} loading={loading} voice={voice} voiceOpen={voiceOpen} line={line} onTalk={onTalk} onTour={onTour} visualization={visualization} />
       </MascotGuideProvider>
     </AnnouncerProvider>
   )
@@ -38,7 +38,8 @@ function Dock({ page = 'listen', loading = false, voice = 'idle', voiceOpen = fa
 
 const liveText = () => document.querySelector('[aria-live="polite"]')?.textContent?.trim() ?? ''
 const echoButton = (name = 'Echo, your guide') => screen.getByRole('button', { name })
-const face = (container: HTMLElement) => container.querySelector('svg[data-expression]')?.getAttribute('data-expression')
+const robot = (container: HTMLElement) => container.querySelector('robot-companion')
+const face = (container: HTMLElement) => robot(container)?.getAttribute('data-expression')
 
 beforeEach(() => {
   setMascotOn(true)
@@ -127,18 +128,41 @@ describe('the dock', () => {
     await vi.waitFor(() => expect(liveText()).toMatch(/Echo is off\. To bring Echo back, open Help and choose Turn Echo on\./), { timeout: 3000 })
   })
 
-  it('renders nothing while the voice panel is open, and closes an open bubble when it opens', async () => {
+  it('keeps only the robot while the voice panel is open, the same one, and closes an open bubble when it opens', async () => {
     const user = userEvent.setup()
-    const { rerender } = render(<Dock />)
+    const { container, rerender } = render(<Dock />)
+    const before = robot(container)
     await user.click(echoButton())
     rerender(<Dock voiceOpen />)
     expect(screen.queryByRole('button', { name: /Echo, your guide/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Echo, your guide' })).not.toBeInTheDocument()
+    expect(container.querySelector('.mascot-dock')).toHaveClass('mascot-dock--beside-voice')
+    // Not remounted: its 3D scene is set up once.
+    expect(robot(container)).toBe(before)
     rerender(<Dock />)
+    expect(echoButton()).toHaveAttribute('aria-expanded', 'false')
+    expect(robot(container)).toBe(before)
+  })
+
+  it('closes on Esc while focus is elsewhere on the page (as after a click on the robot)', async () => {
+    const user = userEvent.setup()
+    render(<Dock />)
+    await user.click(echoButton())
+    act(() => echoButton().blur())
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('region', { name: 'Echo, your guide' })).not.toBeInTheDocument()
+  })
+
+  it('closes the bubble when the page changes', async () => {
+    const user = userEvent.setup()
+    const { rerender } = render(<Dock page="listen" />)
+    await user.click(echoButton())
+    rerender(<Dock page="home" />)
+    expect(screen.queryByRole('region', { name: 'Echo, your guide' })).not.toBeInTheDocument()
     expect(echoButton()).toHaveAttribute('aria-expanded', 'false')
   })
 
-  it('shows its name on hover or focus, keeps it while hovered, and drops it on Esc', async () => {
+  it('shows its name on hover, keeps it while hovered, drops it on Esc, and shows the named button on focus', async () => {
     const user = userEvent.setup()
     render(<Dock />)
     const label = () => document.querySelector('.mascot-dock__label')
@@ -152,11 +176,10 @@ describe('the dock', () => {
     expect(label()).toBeNull()
     await user.unhover(echoButton())
     expect(label()).toBeNull()
-    // Focus shows it too, and it goes when focus leaves.
+    // Focus shows the button itself, which carries the name, so the label does not repeat it.
     act(() => echoButton().focus())
-    expect(label()).not.toBeNull()
-    act(() => echoButton().blur())
     expect(label()).toBeNull()
+    expect(echoButton()).toHaveTextContent('Echo, your guide')
   })
 
   it('has no accessibility violations, closed or open', async () => {
@@ -168,43 +191,26 @@ describe('the dock', () => {
   })
 })
 
-describe("Echo's chest (JB03)", () => {
-  it('rests while nothing plays, and the dock never creates an audio context', () => {
+describe("Echo's robot (JB08)", () => {
+  it('is drawn by the 3D robot, hidden from screen readers, under the button, and never makes a sound', () => {
     const contexts = vi.fn()
     vi.stubGlobal('AudioContext', contexts)
     const { container } = render(<Dock />)
-    const heights = () => [...container.querySelectorAll('[data-part="eq-bar"]')].map(bar => bar.getAttribute('height'))
-    const resting = heights()
-    expect(resting).toHaveLength(4)
-    expect(container.querySelector('svg[data-globe]')?.getAttribute('data-globe')).toBe('still')
+    expect(robot(container)).toHaveAttribute('aria-hidden', 'true')
+    expect(robot(container)).toHaveAttribute('data-pose', 'idle')
+    expect(robot(container)?.closest('.mascot-dock')).toContainElement(echoButton())
     expect(contexts).not.toHaveBeenCalled()
     vi.unstubAllGlobals()
   })
-})
 
-describe("Echo's boots (JB02)", () => {
-  afterEach(() => { vi.unstubAllGlobals(); Reflect.deleteProperty(window, 'scrollY') })
-
-  it('fire when the page scrolls fast and settle when it stops, without a sound or an announcement', () => {
-    let y = 0
-    let frame: FrameRequestCallback | undefined
-    vi.useFakeTimers()
-    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => { frame = callback; return 1 })
-    vi.stubGlobal('cancelAnimationFrame', () => { frame = undefined })
-    Object.defineProperty(window, 'scrollY', { configurable: true, get: () => y })
-    const { container } = render(<Dock />)
-    const motion = () => container.querySelector('svg[data-motion]')?.getAttribute('data-motion')
-    expect(motion()).toBe('idle')
-    const before = liveText()
-    y = 80
-    act(() => { window.dispatchEvent(new Event('scroll')) })
-    act(() => { frame?.(performance.now()) })
-    expect(motion()).toBe('boosting')
-    act(() => { vi.advanceTimersByTime(120) })
-    expect(motion()).toBe('retro')
-    act(() => { vi.advanceTimersByTime(400) })
-    expect(motion()).toBe('idle')
-    expect(liveText()).toBe(before)
+  it("takes its pose from the voice guide, and mouths the guide's line only while the voice panel is open", () => {
+    const { container, rerender } = render(<Dock voice="speaking" line="Hello there." />)
+    expect(robot(container)).toHaveAttribute('data-pose', 'talking')
+    expect(robot(container)).toHaveAttribute('data-say', '')
+    rerender(<Dock voice="speaking" voiceOpen line="Hello there." />)
+    expect(robot(container)).toHaveAttribute('data-say', 'Hello there.')
+    rerender(<Dock voice="listening" voiceOpen line="" />)
+    expect(robot(container)).toHaveAttribute('data-pose', 'listening')
   })
 })
 
@@ -299,19 +305,6 @@ describe('Echo mirrors the sound map (JB07)', () => {
     publishContext('explore', exploring(0.2))
     const { container } = render(<Dock />)
     expect(face(container)).toBe('searching')
-  })
-
-  it('moves one bar of the chest with the value under the cursor', () => {
-    const { container } = render(<Dock />)
-    const resting = container.innerHTML
-    act(() => publishContext('explore', exploring(0)))
-    const low = container.innerHTML
-    act(() => publishContext('explore', exploring(1)))
-    const high = container.innerHTML
-    expect(low).not.toBe(resting)
-    expect(high).not.toBe(low)
-    act(() => publishContext('explore', exploring(0)))
-    expect(container.innerHTML).toBe(low)
   })
 
   it("shows the latest What's here sentence when the bubble is opened, and the usual tip when it is not exploring", async () => {
