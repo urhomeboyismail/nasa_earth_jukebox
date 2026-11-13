@@ -90,6 +90,7 @@ Add one line per piece of work, newest last.
 | 13 Nov | I03 Friendly data errors: a list or data set that fails to load shows a plain sentence that says what to do; the file name, HTTP status and validation detail go to the console once | `fix/I03-friendly-data-errors` (#42) |
 | 13 Nov | I10 Smaller first load: the voice panel and the guide's audio code load when the guide is first opened (entry chunk 83.5 → 80.1 KB gzip), and `npm run check-bundle` in CI fails if the entry chunk grows more than 5% | `fix/I10-first-load` (#45) |
 | 13 Nov | VIS3 Design-system housekeeping: Roboto Flex loaded; the token generator reproduces `tokens.css` (and adds the warning pair and Echo's `--mascot-*` colours); Echo's art, the corner radii and the colour fallbacks use tokens; the shared loader as the Suspense fallback | `feature/VIS3-design-system-housekeeping` (#48) |
+| 13 Nov | IX02 What's here on demand: I, a long press, a right click or gamepad X says and shows what the place shows, a second ask within 4 s where it is; no sound; Escape forgets the question; Brief or Full kept on the device | `feature/IX02-whats-here` (#49) |
 
 ## Outside resources used
 
