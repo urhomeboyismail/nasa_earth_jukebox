@@ -9,5 +9,6 @@ export function colourAt(colorScale: ColorScale, value: number): RGB {
   const upper = stops.findIndex(stop => stop.value >= value)
   const [below, above] = [stops[upper - 1], stops[upper]]
   const t = (value - below.value) / (above.value - below.value)
-  return below.rgb.map((channel, i) => Math.round(channel + (above.rgb[i] - channel) * t)) as RGB
+  const mix = (channel: 0 | 1 | 2) => Math.round(below.rgb[channel] + (above.rgb[channel] - below.rgb[channel]) * t)
+  return [mix(0), mix(1), mix(2)]
 }

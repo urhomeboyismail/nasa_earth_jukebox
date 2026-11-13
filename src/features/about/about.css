@@ -35,5 +35,5 @@
   margin-inline-end: 0.5rem;
   vertical-align: middle;
   border: 1px solid var(--text);
-  border-radius: 0.25rem;
+  border-radius: var(--md-sys-shape-corner-extra-small);
 }

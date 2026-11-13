@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ComponentType, type CSSProperties, type MouseEvent } from 'react'
-import { AnnouncerProvider, DatasetPicker, Notice } from './components'
+import { AnnouncerProvider, DatasetPicker, LoadingIndicator, Notice } from './components'
 import { Icon, type IconName } from './components/Icon'
 import { Sonny } from './components/Mascot'
 import { DataError, friendlyDataMessage, loadCatalog, loadVisualization, type CatalogEntry, type Visualization } from './data'
@@ -257,13 +257,13 @@ function App() {
           )}
           {dataMissing && <Notice>The data set “{requestedData}” was not found, so this shows “{catalog?.[0].title}” instead.</Notice>}
           {loadError && <Notice variant="error">{loadError}</Notice>}
-          <Suspense fallback={<p role="status" className="app-loading">Loading…</p>}>
+          <Suspense fallback={<div className="app-loading"><LoadingIndicator label="Loading…" /></div>}>
             <CurrentPage visualization={visualization} testMode={testMode} />
           </Suspense>
         </main>
 
         {assistantOpen && (
-          <Suspense fallback={<p role="status" className="app-loading">Loading the voice guide…</p>}>
+          <Suspense fallback={<div className="app-loading"><LoadingIndicator label="Loading the voice guide…" /></div>}>
             <VoiceAssistant assistant={assistant} onClose={closeAssistant} />
           </Suspense>
         )}

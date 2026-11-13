@@ -137,4 +137,19 @@ describe('the mascot', () => {
       await expectNoA11yViolations(container)
     })
   })
+
+  describe('colours (VIS3)', () => {
+    const PAINT = ['fill', 'stroke', 'stop-color', 'flood-color', 'lighting-color', 'color']
+
+    it.each(EXPRESSIONS)('paints Echo %s only with the --mascot-* tokens, with no hex left in the art', async expression => {
+      const { container } = render(<><Echo expression={expression} motion="boosting" /><Sonny expression={expression} /></>)
+      const painted = [...container.querySelectorAll('svg, svg *')].flatMap(node => PAINT.map(name => node.getAttribute(name)).filter(value => value !== null))
+      expect(painted.length).toBeGreaterThan(10)
+      for (const value of painted) expect(value).toMatch(/^(none|currentColor|url\(#[\w-]+\)|var\(--mascot-[a-z-]+\))$/)
+      for (const node of container.querySelectorAll('svg, svg *')) {
+        for (const { name, value } of node.attributes) expect(value, `${node.tagName} ${name}`).not.toMatch(/(^|[^(])#[0-9a-f]{3,8}\b/i)
+      }
+      await expectNoA11yViolations(container)
+    })
+  })
 })

@@ -15,13 +15,19 @@ vi.mock('./assistant/audio', async importOriginal => ({
   startRecorder: async () => ({ stop: () => {}, setMuted: () => {} }),
 }))
 
-// How often the guide's lazy modules were loaded, and a gate that can hold the panel's load (I10).
-const lazyLoads = vi.hoisted(() => ({ audio: 0, panel: 0, panelGate: Promise.resolve() }))
+// How often the guide's lazy modules were loaded, and gates that can hold the panel's (I10) and the About page's (VIS3) load.
+const lazyLoads = vi.hoisted(() => ({ audio: 0, panel: 0, panelGate: Promise.resolve(), aboutGate: Promise.resolve() }))
 vi.mock('./VoiceAssistant', async importOriginal => {
   lazyLoads.panel++
   await lazyLoads.panelGate
   return importOriginal()
 })
+vi.mock('./features/about', async importOriginal => {
+  await lazyLoads.aboutGate
+  return importOriginal()
+})
+/** The shared loader (role status) that says `label`. */
+const loader = (label: string) => screen.getByText(label).closest('[role="status"]')
 
 // The voice guide's microphone and speech player need browser audio, which jsdom has not.
 vi.mock('./assistant/audio', () => {
@@ -69,7 +75,7 @@ describe('First load (I10)', () => {
     expect(screen.queryByRole('region', { name: 'Voice guide' })).toBeNull()
 
     await user.click(screen.getByRole('button', { name: 'Voice guide' }))
-    expect(screen.getByText('Loading the voice guide…')).toHaveAttribute('role', 'status')
+    expect(loader('Loading the voice guide…')).toHaveClass('ui-loading')
     expect(lazyLoads.panel).toBe(1)
     await waitFor(() => expect(lazyLoads.audio).toBe(1))
 
@@ -82,6 +88,19 @@ describe('First load (I10)', () => {
   it('shows the demo button at once', () => {
     render(<App />)
     expect(screen.getByRole('button', { name: 'Play the demo' })).toBeInTheDocument()
+  })
+
+  it('shows the shared loader while a page loads for the first time (VIS3)', async () => {
+    let release = () => {}
+    lazyLoads.aboutGate = new Promise<void>(resolve => { release = resolve })
+    const user = userEvent.setup()
+    const { container } = render(<App />)
+    await user.click(navLink('About the data'))
+    expect(loader('Loading…')).toHaveClass('ui-loading')
+    await expectNoA11yViolations(container)
+    release()
+    expect(await screen.findByRole('heading', { level: 1, name: 'About the data' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull())
   })
 })
 
