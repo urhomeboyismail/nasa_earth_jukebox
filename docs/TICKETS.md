@@ -156,6 +156,8 @@ Echo, the guide, redrawn as Juke-Bot (helmet visor, headphones, chest screen, ai
 | [JB06](tickets/JB06-alert-visor.md) | Alert visor on notable data events | S | agent | JB01, SN10 | player | done |
 | [JB07](tickets/JB07-explorer-mirror-legend.md) | Echo mirrors the explorer; the legend becomes playable | M | agent | JB01, SN09, IX02 | explorer | done |
 | [JB08](tickets/JB08-ixia-mascot.md) | Echo wears Ixia: the myt Learning Hub's 3D robot replaces the SVG robot; our voice guide stays | M | agent | — | app, voice | ready: feature/JB08-ixia-mascot |
+| [JB09](tickets/JB09-tour-from-welcome.md) | The tour starts after the welcome (map path), and Echo flies home to the dock when it finishes | S | agent | JB05 | — | claimed: B, 2026-11-13 |
+| [JB10](tickets/JB10-tour-mixer-stop.md) | The tour's third stop is the Speed and Volume mixer, not Explore the map | S | agent | JB05 | player | open |
 
 ### P3: people, evidence and submission
 
