@@ -94,7 +94,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
 
   useAssistantContext(
     'compare',
-    { frameA: frameAId, frameB: frameBId, answered: answer !== null, revealed },
+    { frameA: frameAId, frameB: frameBId, answered: answer !== null, revealed, testInProgress: false },
     revealed ? `comparison_revealed:${preset?.id ?? `${frameAId}_${frameBId}`}` : undefined,
   )
 

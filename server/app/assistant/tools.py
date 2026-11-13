@@ -48,7 +48,8 @@ def tools() -> list:
         types.FunctionDeclaration(
             name="get_screen_context",
             description=("What the user is doing right now: current page, plus the visualization, date and "
-                         "description they have open."),
+                         "description they have open, the facts about the data (with the dates it has), and "
+                         "the sound map (whether it is on, the value under the cursor)."),
             parameters_json_schema={"type": "object", "properties": {}},
         ),
     ]
@@ -97,6 +98,11 @@ def run_tool(name: str, args: dict | None, state: SessionState) -> ToolResult:
         day = args.get("date")
         if not isinstance(day, str) or not _ISO_DATE.match(day) or not _is_real_date(day):
             return ToolResult({"error": "The date must be written YYYY-MM-DD, for example 2024-07-15."})
+        # The Ask panel's list of dates, when the guide has it. Without it (another page, or an older browser) the browser checks the date.
+        facts = state.screens.get("facts")
+        known = facts.get("knownDates") if isinstance(facts, dict) else None
+        if isinstance(known, list) and day not in known:
+            return ToolResult({"error": "That date is not in this data set."})
         return ToolResult({"ok": True, "date": day}, {"action": "player", "command": {"setDate": day}})
     if name == "get_screen_context":
         screens = {key: value for key, value in state.screens.items() if value is not None}

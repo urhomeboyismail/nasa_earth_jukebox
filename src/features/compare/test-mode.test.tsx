@@ -5,6 +5,7 @@ import fixture from '../../../public/data/fixture/manifest.json'
 import type { Visualization } from '../../data'
 import { expectNoA11yViolations } from '../../test/a11y'
 import ComparePage from '.'
+import { subscribeContext, type ContextUpdate } from '../../assistant/context'
 
 const base = fixture as Visualization
 // Two comparisons, so the fixed order can be seen.
@@ -259,5 +260,24 @@ describe('Test mode: a comparison that names a date the data set does not have',
     await toQuestions(user, { images: true })
     expect(screen.getByText(/picture for this question is missing/)).toBeInTheDocument()
     await expectNoA11yViolations(container)
+  })
+})
+
+describe('Test mode: the voice guide', () => {
+  it('tells the guide a test is in progress until the thank-you, and gives it no dates', async () => {
+    const updates: ContextUpdate[] = []
+    const unsubscribe = subscribeContext(update => updates.push(update))
+    const user = userEvent.setup()
+    render(<ComparePage visualization={visualization} testMode />)
+    expect(updates.at(-1)).toEqual({ key: 'compare', data: { frameA: '', frameB: '', answered: false, revealed: false, testInProgress: true }, announce: undefined })
+    await toQuestions(user)
+    expect(updates.at(-1)).toMatchObject({ data: { testInProgress: true } })
+    await user.click(screen.getByRole('radio', { name: 'B is warmer' }))
+    await user.click(screen.getByRole('button', { name: 'Submit and go to the next question' }))
+    await user.click(screen.getByRole('radio', { name: 'A is warmer' }))
+    await user.click(screen.getByRole('button', { name: 'Submit and finish' }))
+    await screen.findByRole('heading', { name: 'Thank you' })
+    expect(updates.at(-1)).toMatchObject({ key: 'compare', data: { testInProgress: false } })
+    unsubscribe()
   })
 })

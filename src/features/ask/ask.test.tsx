@@ -6,6 +6,7 @@ import type { FrameAnalysis } from '../../analysis'
 import { AnnouncerProvider } from '../../components'
 import { AnnouncerContext } from '../../components/announcerContext'
 import type { Visualization } from '../../data'
+import { currentContext, subscribeContext, type ContextUpdate } from '../../assistant/context'
 import { onPlayerCommand, type PlayerCommand } from '../player/controls'
 import { expectNoA11yViolations } from '../../test/a11y'
 import { AskPanel } from './AskPanel'
@@ -314,5 +315,30 @@ describe('AskPanel', () => {
     await expectNoA11yViolations(container)
     await user.click(screen.getByRole('button', { name: 'Is any data missing?' }))
     await expectNoA11yViolations(container)
+  })
+})
+
+describe('AskPanel: the voice guide reads the facts', () => {
+  beforeEach(() => { vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(new Response('Not found', { status: 404 })))) })
+  afterEach(() => { vi.unstubAllGlobals() })
+
+  it('publishes the dates of the data set and the same facts, and clears them when the panel goes away', () => {
+    const { unmount } = render(<AnnouncerProvider><AskPanel visualization={visualization} results={results} /></AnnouncerProvider>)
+    const published = currentContext().find(item => item.key === 'facts')?.data
+    expect(published).toEqual({ knownDates: dates, facts: facts.map(({ id, kind, text }) => ({ id, kind, text })) })
+    unmount()
+    expect(currentContext().some(item => item.key === 'facts')).toBe(false)
+  })
+
+  it('sends it to a subscriber only, and not after it has unsubscribed', () => {
+    const updates: ContextUpdate[] = []
+    const unsubscribe = subscribeContext(update => updates.push(update))
+    const first = render(<AnnouncerProvider><AskPanel visualization={visualization} results={results} /></AnnouncerProvider>)
+    expect(updates.map(update => update.key)).toEqual(['facts'])
+    first.unmount()
+    unsubscribe()
+    updates.length = 0
+    render(<AnnouncerProvider><AskPanel visualization={visualization} results={results} /></AnnouncerProvider>)
+    expect(updates).toEqual([])
   })
 })

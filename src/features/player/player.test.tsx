@@ -438,7 +438,8 @@ describe('Player: the voice guide', () => {
     await tick(4000)
     expect(updates.filter(u => u.announce === 'playback_finished:fixture')).toHaveLength(1)
     unmount()
-    expect(updates.at(-1)).toMatchObject({ key: 'player', data: null })
+    // The Ask panel on this page publishes the facts too (G06), so look at the player's own last update.
+    expect(updates.filter(u => u.key === 'player').at(-1)).toMatchObject({ data: null })
     unsubscribe()
   })
 

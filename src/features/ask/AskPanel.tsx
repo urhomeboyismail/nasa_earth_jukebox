@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from 'rea
 import type { FrameAnalysis } from '../../analysis'
 import { Button } from '../../components'
 import { useAnnounce } from '../../components/useAnnounce'
+import { useAssistantContext } from '../../assistant/context'
 import type { Visualization } from '../../data'
 import type { AssistantAction } from '../../hooks/useVoiceAssistant'
 import { pages } from '../../pages'
@@ -34,6 +35,12 @@ export function AskPanel({ visualization, results }: Props) {
   const facts = useMemo(() => buildFacts(visualization, results), [visualization, results])
   const dates = useMemo(() => visualization.frames.map(frame => frame.date), [visualization])
   const questions = useMemo(() => availableQuestions(facts), [facts])
+  // G06: the voice guide reads the same facts (and the dates the data set has) through get_screen_context. Only sent while a voice
+  // conversation is open, and cleared when the panel goes away. The server drops a fact over 400 characters, so a long one is cut here.
+  useAssistantContext('facts', {
+    knownDates: dates,
+    facts: facts.map(({ id, kind, text }) => ({ id, kind, text: text.slice(0, 400) })),
+  })
   const [text, setText] = useState('')
   const [answer, setAnswer] = useState<Shown | null>(null)
   const [working, setWorking] = useState(false)

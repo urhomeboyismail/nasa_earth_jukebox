@@ -198,3 +198,13 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: Can `hold` take a slot, for example `hold(tone | null, atTime?, slot?: 'A' | 'B')`, with the default slot keeping today's behaviour so SN09 is unchanged?
 - Answer:
 - Recorded in: nowhere needed
+
+### R-20261113-G06-1: Should the sound map publish the lock, the style and the cell too?
+- From: G06 (agent C)
+- To: whoever owns `explorer` (`useExplorer.ts`)
+- Needed by: not blocking; G06 part A is ready without it
+- Status: open
+- Context: `src/features/explore/useExplorer.ts` publishes `explore` as `{ exploring, value, position, here }` (JB07, read by `MascotDock`). The G06 ticket asked for `{ on, locked, style, cell }`. G06 made the server's `ExploreContext` match what is published today (`server/app/assistant/context_schemas.py`), so the guide now receives it.
+- Question: Add `locked` (a boolean) and the cell under the cursor (`col`, `row`) to that publish? The server schema is strict, so it must gain the same optional fields in the same change. Option: yes, as optional fields, in one small ticket.
+- Answer:
+- Recorded in: nowhere needed

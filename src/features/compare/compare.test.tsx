@@ -225,7 +225,7 @@ describe('Compare: the voice guide and cleanup', () => {
     const updates: ContextUpdate[] = []
     const unsubscribe = subscribeContext(update => updates.push(update))
     const { user, unmount } = await renderReady()
-    expect(updates.at(-1)).toMatchObject({ key: 'compare', data: { frameA: '2024-01-15', frameB: '2024-12-15', answered: false, revealed: false } })
+    expect(updates.at(-1)).toMatchObject({ key: 'compare', data: { frameA: '2024-01-15', frameB: '2024-12-15', answered: false, revealed: false, testInProgress: false } })
     await user.click(screen.getByRole('radio', { name: 'B is warmer' }))
     expect(updates.at(-1)).toMatchObject({ data: { answered: true, revealed: false } })
     await user.click(screen.getByRole('button', { name: 'Reveal the answer' }))

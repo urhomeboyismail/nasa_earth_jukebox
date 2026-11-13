@@ -27,6 +27,7 @@ import logging
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
+from app.assistant.context_schemas import validate_context
 from app.assistant.knowledge import LANGUAGE_NAMES, PAGES, event_prompt, system_instruction
 from app.assistant.tools import SessionState, run_tool, tools
 from app.config import settings
@@ -86,6 +87,9 @@ class _Bridge:
             return
         data = event.get("data")
         if data is not None and len(json.dumps(data)) > MAX_CONTEXT_BYTES:
+            return
+        valid, data = validate_context(key, data)
+        if not valid:
             return
         self.state.screens[key] = data
         announce = event.get("announce")
