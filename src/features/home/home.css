@@ -27,3 +27,15 @@
 
 .home a { color: var(--accent-strong); }
 .home a:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 0.25rem; }
+
+/* The crate (blueprint §2.1). Layout is deferred (platform.md): a plain list for now. */
+.crate__filters { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; }
+.crate__filters input[type='search'] { min-block-size: var(--control-size); padding-inline: 0.75rem; font: inherit; }
+.crate__only-saved { display: inline-flex; gap: 0.5rem; align-items: center; min-block-size: var(--control-size); }
+.crate__recent { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: center; }
+.crate__recent a, .crate__open { display: inline-flex; align-items: center; min-block-size: var(--control-size); font-weight: 600; }
+.crate__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
+.crate__sleeve { display: grid; gap: 0.25rem; padding-block: 0.5rem; border-block-end: 1px solid var(--border); }
+.crate__title { margin: 0; font-size: 1.1rem; }
+.crate__badge { font-weight: 600; }
+.crate__buttons { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; }

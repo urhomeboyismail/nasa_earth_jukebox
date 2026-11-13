@@ -400,7 +400,7 @@ describe('v3 fields: legend, video and sonification (SN05)', () => {
   })
 
   it('rejects an unknown preset or detail, a duplicate or unknown voice, an empty voice list and a misspelt field', () => {
-    expect(errorAfter(v => { v.sonification = { preset: 'jazz' } })).toBe('sonification.preset: must be one of major, dorian, pentatonic')
+    expect(errorAfter(v => { v.sonification = { preset: 'jazz' } })).toBe('sonification.preset: must be one of major, dorian, pentatonic, cinematic, chiptune, lofi, bass, nature')
     expect(errorAfter(v => { v.sonification = { preset: 'major', detail: 'loud' } })).toBe('sonification.detail: must be one of calm, standard, full')
     expect(errorAfter(v => { v.sonification = { preset: 'major', voices: ['melody', 'bass', 'melody'] } })).toBe(
       'sonification.voices.2: "melody" is listed more than once; name each voice once',

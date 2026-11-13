@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { DETAIL_LEVELS, PRESET_IDS, VOICE_IDS, legendOf } from './sonification'
+import { DETAIL_LEVELS, PRESET_IDS, STYLE_IDS, VOICE_IDS, legendOf } from './sonification'
 
 describe('the v3 lists', () => {
-  it('name three presets, three detail levels and the seven voices in caption order', () => {
-    expect(PRESET_IDS).toEqual(['major', 'dorian', 'pentatonic'])
+  it('name the presets (three keys, then the five music styles), three detail levels and the seven voices in caption order', () => {
+    expect(PRESET_IDS).toEqual(['major', 'dorian', 'pentatonic', 'cinematic', 'chiptune', 'lofi', 'bass', 'nature'])
+    expect(STYLE_IDS.every(id => PRESET_IDS.includes(id))).toBe(true)
     expect(DETAIL_LEVELS).toEqual(['calm', 'standard', 'full'])
     expect(VOICE_IDS).toEqual(['melody', 'harmony', 'bass', 'hotspots', 'rhythm', 'motion', 'time'])
   })

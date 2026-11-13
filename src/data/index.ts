@@ -5,10 +5,10 @@ import type { CatalogEntry, Visualization } from './types'
 
 export type * from './types'
 export { DEFAULT_WORDS, higherPhrase, variableWords } from './words'
-export { DETAIL_LEVELS, PRESET_IDS, VOICE_IDS, legendOf } from './sonification'
-export type { DetailLevel, LegendKind, PresetId, VoiceId } from './sonification'
+export { DETAIL_LEVELS, PRESET_IDS, STYLE_IDS, VOICE_IDS, legendOf } from './sonification'
+export type { DetailLevel, LegendKind, PresetId, StyleId, VoiceId } from './sonification'
 export { dateOfVideoFrame, videoFrameOf } from './video'
-export { playerUpdate, storedWelcome, studyCreated } from './boundaries'
+export { playerUpdate, storedAudioPrefs, storedWelcome, studyCreated } from './boundaries'
 
 /** Content data could not be loaded or is not valid. The message names the file. */
 export class DataError extends Error {

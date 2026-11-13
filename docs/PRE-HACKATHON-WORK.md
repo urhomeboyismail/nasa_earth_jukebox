@@ -83,6 +83,7 @@ Add one line per piece of work, newest last.
 | 12 Nov | Voice client: checked server messages, quieter status line, shared icons (V03) | `feature/V03-voice-client-hygiene` (#34) |
 | 12 Nov | Agent eval with the scoring bug fixed, and the offline alias drafter (G07; held-out questions still needed) | `feature/G07-agent-eval-drafter` (#33) |
 | 12 Nov | G09 Jukebox player: a React component that plays the orchestrator's `AudioPayload` with Tone.js, on a dev-server page (`jukebox.html`) | `feature/G09-jukebox-player` (#38) |
+| 13 Nov | UI/UX blueprint: five music styles, sound preferences in the welcome and mixer, the crate with save for offline, Compare "Two data sets" (`pairsWith`) | `feature/uiux-blueprint` |
 
 ## Outside resources used
 

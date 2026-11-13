@@ -13,7 +13,7 @@ export type NoteEvent = { midi: number; level: number; pan: number; elevation?: 
 
 export type ScheduledFrame = { frame: MusicFrame; atSeconds: number }
 
-export type EnsembleOptions = { detail?: DetailLevel; volume?: number; spatial?: SpatialMode }
+export type EnsembleOptions = { detail?: DetailLevel; volume?: number; spatial?: SpatialMode; bassDb?: number }
 
 export type Ensemble = {
   /** Call from a click or key press only (WCAG 1.4.2). Starts the audio context and resumes it if the browser suspended it. */
@@ -39,6 +39,8 @@ export type Ensemble = {
   setDetail(level: DetailLevel): void
   /** 0 to 1 (clamped). Ramps over VOLUME_RAMP_S. */
   setVolume(zeroToOne: number): void
+  /** The listener's Bass setting, −6 to +6 dB (clamped), added to the bass voice. Ramps over VOLUME_RAMP_S. */
+  setBass(db: number): void
   status(): EnsembleStatus
   /** The audio clock in seconds (the raw context's currentTime), or 0 before start(). Scan and explore line the picture up with the sound through it. */
   now(): number

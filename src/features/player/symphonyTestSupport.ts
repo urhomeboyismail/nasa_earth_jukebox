@@ -28,6 +28,7 @@ export function createFakeEnsemble() {
     mute: vi.fn(),
     setDetail: vi.fn(),
     setVolume: vi.fn(),
+    setBass: vi.fn(),
     status: () => status,
     now: () => 10,
     onStatus: (listener: (status: EnsembleStatus) => void) => {

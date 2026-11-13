@@ -6,6 +6,7 @@ import { currentDataParam, hashFor } from '../../route'
 import type { PageProps } from '../types'
 import { useMascotOn } from '../help/mascotSetting'
 import { useWelcome } from '../welcome/storage'
+import { Crate } from './Crate'
 import './home.css'
 
 // The welcome is only for a first visit, so its code is fetched only then.
@@ -29,6 +30,8 @@ export default function HomePage({ visualization }: PageProps) {
       <p>Hear how our planet is changing. The Earth Jukebox turns NASA Earth imagery into sound.</p>
       {!welcome.done && mascotOn && <Suspense fallback={null}><Welcome visualization={visualization} /></Suspense>}
       {visualization && <p>Now playing from: {visualization.title}. {visualization.summary}</p>}
+
+      <Crate currentId={visualization?.id ?? null} />
 
       <Card title="What you will try" headingLevel={2}>
         <p>Can you hear, without seeing the image, which date shows {higherPhrase(variableWords(visualization?.variable))}, and when the change happened?</p>

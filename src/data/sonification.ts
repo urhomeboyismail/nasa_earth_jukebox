@@ -2,8 +2,12 @@
 // src/sonify/presets.ts and src/sonify/detail.ts (SN03) define a preset for each id and a value for each detail level.
 
 /** The artistic presets: key, scale and instruments. A preset never carries data. */
-export const PRESET_IDS = ['major', 'dorian', 'pentatonic'] as const
+export const PRESET_IDS = ['major', 'dorian', 'pentatonic', 'cinematic', 'chiptune', 'lofi', 'bass', 'nature'] as const
 export type PresetId = (typeof PRESET_IDS)[number]
+
+/** The presets a listener picks as a music style (welcome and mixer). Each has its own instrument kit. */
+export const STYLE_IDS = ['cinematic', 'chiptune', 'lofi', 'bass', 'nature'] as const satisfies readonly PresetId[]
+export type StyleId = (typeof STYLE_IDS)[number]
 
 /** How many voices play: Calm (melody, harmony, time), Standard, or Full (all seven). */
 export const DETAIL_LEVELS = ['calm', 'standard', 'full'] as const

@@ -11,6 +11,7 @@ import { playerUpdate, type Visualization } from '../../data'
 import { useDescriptionDetail } from '../../describe/detail'
 import { currentDataParam, hashFor } from '../../route'
 import { sendPlayerCommand } from '../player/controls'
+import { SoundPrefs } from '../player/SoundPrefs'
 import { CHECK_STEPS, GREETING, NOT_HEARD, PATH_HINTS, PATH_LABELS, VOLUME_QUESTION } from './lines'
 import { hush, speak } from './speak'
 import { saveWelcome, type WelcomePath } from './storage'
@@ -200,6 +201,8 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
                 </>
               ) : (
                 <>
+                  <h4 className="welcome__step-title">What do you love listening to?</h4>
+                  <SoundPrefs ownPreset={visualization?.sonification?.preset ?? 'major'} instruments sample />
                   <p id={`${titleId}-q`} className="welcome__question">{VOLUME_QUESTION}</p>
                   <Slider label="Volume" min={0} max={100} step={5} value={volume} onChange={setVolume} describe={value => `${value} percent`} />
                   <div className="welcome__buttons" role="group" aria-labelledby={`${titleId}-q`}>

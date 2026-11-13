@@ -114,3 +114,26 @@ describe('buildGraph: the same graph, live and offline', () => {
     expect(calls.filter(c => c.method === 'dispose')).toHaveLength(made)
   })
 })
+
+describe('buildGraph: a style\'s kit and the Bass setting', () => {
+  type SynthOptions = { oscillator: { type: string }; volume: number }
+  const synthOptions = (synth: unknown) => (synth as MockNode).options as SynthOptions
+
+  it('plays the melody, bass and rhythm with the kit\'s waveforms, and the default kit is triangle', () => {
+    const plain = buildGraph(Tone, { master: 0, spatial: 'stereo' })
+    expect(synthOptions(plain.melody.synth).oscillator.type).toBe('triangle')
+    resetTone()
+    const g = buildGraph(Tone, { master: 0, spatial: 'stereo', kit: { melody: 'square', bass: 'sawtooth', rhythm: 'sine' } })
+    expect(synthOptions(g.melody.synth).oscillator.type).toBe('square')
+    expect(synthOptions(g.bass.synth).oscillator.type).toBe('sawtooth')
+    expect(synthOptions(g.rhythm.synth).oscillator.type).toBe('sine')
+  })
+
+  it('adds the Bass setting to the bass voice only', () => {
+    const flat = synthOptions(buildGraph(Tone, { master: 0, spatial: 'stereo' }).bass.synth).volume
+    resetTone()
+    const g = buildGraph(Tone, { master: 0, spatial: 'stereo', bassDb: 4 })
+    expect(synthOptions(g.bass.synth).volume).toBe(flat + 4)
+  })
+})
+

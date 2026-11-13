@@ -87,6 +87,7 @@ One optional field chooses how Echo, the guide, looks while this data set is ope
 | Field | Default when left out | What it does |
 |---|---|---|
 | `mascot` | accent from `colorScale`, trail `"sparks"` | `{ accent?, trail? }`. `accent` is a colour written `"#rrggbb"`, for example `"#00ffcc"`. `trail` is one of `sparks`, `bubbles`, `ions`, `pulse`: a style, never the name of a data set |
+| `pairsWith` | none | `[{ id, note }]`: data sets this one can be heard together with in Compare → "Two data sets". `id` is another entry of `index.json`; `note` says, in one sentence, why hearing them together is honest (same region, same dates). The pairing is a decision about the data, so it lives here and never in `src/`. Only dates both data sets have are played |
 
 **The accent and its contrast.** Echo uses the first of these with a contrast of at least 3:1 against its visor (`#0f2233`, WCAG 1.4.11): the manifest's `accent`, then the most saturated stop of `colorScale` (ties go to the stop with the higher value), then the theme's primary colour. A manifest `accent` below 3:1 is not an error, but `npm run check-data` prints a warning that names it and its ratio, and Echo will not use it. `mascot` is strict like `sonification`: a misspelt field is reported. The colour is never the only signal: each trail has its own shape (dashes, small rings, long streaks, a wide ring), and every state of Echo is also in text. Which accent and trail suit which kind of data is in `docs/DATASET-PLAYBOOK.md`, step 4.
 

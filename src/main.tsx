@@ -8,3 +8,11 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 )
+
+// Saved data sets play without a network (src/data/offline.ts). Only in a build: the dev server's files change all the time.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  void navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {
+    // Saving for offline still downloads; the files just are not served without a network.
+  })
+}
+

@@ -8,6 +8,10 @@ export type { DetailLevel, PresetId, VoiceId }
 
 export type ScaleName = 'major' | 'dorian' | 'minorPentatonic'
 
+/** The oscillator each kit voice plays. Only the timbre: which data drives a voice never changes. */
+export type Waveform = 'sine' | 'triangle' | 'square' | 'sawtooth'
+export type Kit = { melody: Waveform; bass: Waveform; rhythm: Waveform }
+
 export type Preset = {
   id: PresetId
   label: string
@@ -20,6 +24,10 @@ export type Preset = {
   bpm: number
   /** 0 to 1. How bright the hot-spot voices and the motion pad sound. */
   brightness: number
+  /** The instruments. Absent: the default kit (triangle melody, bass and rhythm). */
+  kit?: Kit
+  /** One line on how the style sounds, shown and spoken when it is chosen. Styles only. */
+  sound?: string
 }
 
 export type MusicFrame = {

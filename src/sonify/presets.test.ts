@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DETAIL_LEVELS, PRESET_IDS, VOICE_IDS } from '../data/sonification'
+import { DETAIL_LEVELS, PRESET_IDS, STYLE_IDS, VOICE_IDS } from '../data/sonification'
 import { DETAIL_VOICES, voicesFor } from './detail'
 import { PRESETS, SCALES, pitchClasses, presetFor, snapToScale } from './presets'
 
@@ -27,6 +27,13 @@ describe('presets', () => {
       expect(preset.brightness).toBeGreaterThanOrEqual(0)
       expect(preset.brightness).toBeLessThanOrEqual(1)
       expect(JSON.stringify(preset)).not.toMatch(/°|celsius|temperature|ocean|\bsea\b|mauritius/i)
+    }
+  })
+
+  it('gives every music style its own instrument kit and a line on how it sounds', () => {
+    for (const id of STYLE_IDS) {
+      expect(PRESETS[id].kit, id).toBeDefined()
+      expect(PRESETS[id].sound, id).toMatch(/\.$/)
     }
   })
 

@@ -5,16 +5,11 @@ import type { Frame, Visualization } from '../../data'
 import { DetailControl } from './DetailControl'
 import { LayerCaptions } from './LayerCaptions'
 import { shortcutFor } from './shortcuts'
+import { SoundPrefs } from './SoundPrefs'
 import { statusText, useSymphony, type ButtonKind } from './symphony'
 import { Viewer } from './Viewer'
 import { VoiceMixer } from './VoiceMixer'
 import './symphony.css'
-
-const SPEEDS = [
-  { id: 'slow', label: 'Slow' },
-  { id: 'normal', label: 'Normal' },
-  { id: 'fast', label: 'Fast' },
-] as const
 
 const BUTTON_LABELS: Record<ButtonKind, string> = { play: 'Play', pause: 'Pause', resume: 'Resume', sound: 'Turn sound on' }
 
@@ -80,12 +75,7 @@ export function Symphony({ visualization }: { visualization: Visualization }) {
       <DetailControl detail={symphony.detail} onChange={symphony.setDetail} />
       <VoiceMixer voices={symphony.voices} muted={symphony.muted} solo={symphony.solo} onMute={symphony.toggleMute} onSolo={symphony.toggleSolo} />
 
-      <div role="group" aria-label="Speed" className="player__speed">
-        <span className="player__speed-label" aria-hidden="true">Speed</span>
-        {SPEEDS.map(({ id, label }) => (
-          <Button key={id} pressed={symphony.speed === id} onClick={() => symphony.setSpeed(id)}>{label}</Button>
-        ))}
-      </div>
+      <SoundPrefs ownPreset={visualization.sonification?.preset ?? 'major'} />
 
       <p className="player__hint">Keyboard: Space plays or pauses, and Escape stops.</p>
     </section>

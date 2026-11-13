@@ -116,6 +116,9 @@ const mascot = z
   })
   .strict()
 
+// Fusion (blueprint §3.2): the data sets this one may be heard together with in Compare, and why the pairing is honest. Strict, like `mascot`.
+const pairsWith = z.array(z.object({ id: nonEmpty, note: nonEmpty }).strict())
+
 export const visualizationSchema = z
   .object({
     id: nonEmpty,
@@ -147,6 +150,7 @@ export const visualizationSchema = z
     video: video.optional(),
     sonification: sonification.optional(),
     mascot: mascot.optional(),
+    pairsWith: pairsWith.optional(),
   })
   .superRefine((data, ctx) => {
     const problem = (path: (string | number)[], message: string) => ctx.addIssue({ code: 'custom', path, message })

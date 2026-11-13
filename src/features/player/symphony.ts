@@ -4,13 +4,14 @@
 // Nothing sounds before a click: play() is the only caller of ensemble.start() (WCAG 1.4.2). The ensemble's own status is the truth about what is
 // happening (off, on, paused, suspended), so the panel's button and status line are derived from it and not from a second copy.
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { LOW_CONFIDENCE, type SequenceSpeed } from '../../analysis/video/clock'
 import type { LiveFrame, SourceStatus } from '../../analysis/video/types'
 import { useLiveSource } from '../../analysis/video/useLiveSource'
 import { SCHEDULE_LOOKAHEAD_S } from '../../audio/ensemble/constants'
 import type { EnsembleStatus } from '../../audio/ensemble/types'
 import { useEnsemble } from '../../audio/ensemble/useEnsemble'
+import { saveAudioPrefs, useAudioPrefs } from '../../audio/prefs'
 import { useAnnounce } from '../../components'
 import { VOICE_IDS, type DetailLevel, type Visualization, type VoiceId } from '../../data'
 import { DETAIL_VOICES, presetFor, toMusicFrame } from '../../sonify'
@@ -86,11 +87,13 @@ export function statusText(s: Pick<Symphony, 'ensembleStatus' | 'sourceStatus' |
 export function useSymphony(visualization: Visualization, video: HTMLVideoElement | null): Symphony {
   const announce = useAnnounce()
   const spec = visualization.sonification
-  const preset = presetFor(spec?.preset ?? 'major')
+  // The listener's preferences (welcome and mixer) choose the style, the bass, the speed and the muted voices; the manifest's preset is the default.
+  const prefs = useAudioPrefs()
+  const preset = presetFor(prefs.style ?? spec?.preset ?? 'major')
   const allowed: readonly VoiceId[] = spec?.voices ?? VOICE_IDS
   const [detail, setDetailState] = useState<DetailLevel>(spec?.detail ?? 'standard')
-  const [speed, setSpeedState] = useState<SequenceSpeed>('normal')
-  const [muted, setMuted] = useState<ReadonlySet<VoiceId>>(new Set())
+  const speed: SequenceSpeed = prefs.speed
+  const muted = useMemo<ReadonlySet<VoiceId>>(() => new Set(prefs.muted), [prefs.muted])
   const [solo, setSolo] = useState<VoiceId | null>(null)
   const [latest, setLatest] = useState<Symphony['latest']>(null)
   const [listenerPaused, setListenerPaused] = useState(false)
@@ -109,10 +112,26 @@ export function useSymphony(visualization: Visualization, video: HTMLVideoElemen
   const source = useLiveSource({ video, visualization, step: speed, onFrame })
   const { start: startSource, stop: stopSource } = source
 
-  // A voice the manifest leaves out never sounds.
+  // Muting the melody is allowed here for the moment (the mixer is for listening closely), but it is not kept: the store never keeps it muted.
+  const [melodyMuted, setMelodyMuted] = useState(false)
+  const shownMuted = useMemo<ReadonlySet<VoiceId>>(() => (melodyMuted ? new Set([...muted, 'melody']) : muted), [muted, melodyMuted])
+
+  // A voice the manifest leaves out never sounds; the others follow the mutes. Only a voice whose state changed is told, and a new ensemble
+  // (a new style) is told everything.
+  const applied = useRef<{ ensemble: typeof ensemble; state: Map<VoiceId, boolean> } | null>(null)
   useEffect(() => {
-    for (const voice of VOICE_IDS) if (!allowed.includes(voice)) ensemble.mute(voice, true)
-  }, [ensemble, allowed])
+    if (applied.current?.ensemble !== ensemble) applied.current = { ensemble, state: new Map() }
+    const { state } = applied.current
+    for (const voice of VOICE_IDS) {
+      const off = !allowed.includes(voice) || shownMuted.has(voice)
+      if (state.get(voice) !== off && (off || state.has(voice))) ensemble.mute(voice, off)
+      state.set(voice, off)
+    }
+  }, [ensemble, allowed, shownMuted])
+
+  useEffect(() => {
+    ensemble.setBass(prefs.bassDb)
+  }, [ensemble, prefs.bassDb])
 
   // The video plays at the chosen speed.
   useEffect(() => {
@@ -174,18 +193,12 @@ export function useSymphony(visualization: Visualization, video: HTMLVideoElemen
     announce(detailSentence(level, allowed))
   }, [announce, allowed])
 
-  const setSpeed = useCallback((next: SequenceSpeed) => setSpeedState(next), [])
+  const setSpeed = useCallback((next: SequenceSpeed) => saveAudioPrefs({ speed: next }), [])
 
   const toggleMute = useCallback((voice: VoiceId) => {
-    const next = !muted.has(voice)
-    ensemble.mute(voice, next)
-    setMuted(current => {
-      const copy = new Set(current)
-      if (next) copy.add(voice)
-      else copy.delete(voice)
-      return copy
-    })
-  }, [ensemble, muted])
+    if (voice === 'melody') setMelodyMuted(on => !on)
+    else saveAudioPrefs({ muted: muted.has(voice) ? [...muted].filter(v => v !== voice) : [...muted, voice] })
+  }, [muted])
 
   const toggleSolo = useCallback((voice: VoiceId) => {
     const next = solo === voice ? null : voice
@@ -204,7 +217,7 @@ export function useSymphony(visualization: Visualization, video: HTMLVideoElemen
     detail,
     speed,
     voices: VOICE_IDS.filter(voice => allowed.includes(voice) && DETAIL_VOICES[detail].includes(voice)),
-    muted,
+    muted: shownMuted,
     solo,
     button,
     toggle,
