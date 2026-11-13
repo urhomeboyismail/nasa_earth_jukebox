@@ -86,6 +86,8 @@ Add one line per piece of work, newest last.
 | 12 Nov | Agent eval with the scoring bug fixed, and the offline alias drafter (G07; held-out questions still needed) | `feature/G07-agent-eval-drafter` (#33) |
 | 12 Nov | G09 Jukebox player: a React component that plays the orchestrator's `AudioPayload` with Tone.js, on a dev-server page (`jukebox.html`) | `feature/G09-jukebox-player` (#38) |
 | 12 Nov | G10 Jukebox studio on `jukebox.html`: narration in time with the sound, instrument timbres (bass, pad, lead), and the live route call with a demo fallback | `feature/G10-jukebox-studio` (#39) |
+| 13 Nov | I03 Friendly data errors: a list or data set that fails to load shows a plain sentence that says what to do; the file name, HTTP status and validation detail go to the console once | `fix/I03-friendly-data-errors` (#42) |
+| 13 Nov | I10 Smaller first load: the voice panel and the guide's audio code load when the guide is first opened (entry chunk 83.5 → 80.1 KB gzip), and `npm run check-bundle` in CI fails if the entry chunk grows more than 5% | `fix/I10-first-load` (#45) |
 
 ## Outside resources used
 
