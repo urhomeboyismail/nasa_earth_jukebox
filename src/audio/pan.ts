@@ -3,8 +3,8 @@
 // (south) to +1 (north), heard through an HRTF panner on headphones. Height is a place in space, never a pitch: pitch already
 // means "warmer".
 
-import { useCallback, useState } from 'react'
 import type { Region } from '../data'
+import { readStored, useStoredValue } from '../hooks/useStoredValue'
 
 type ToneModule = typeof import('tone')
 
@@ -47,26 +47,16 @@ export type SpatialMode = 'stereo' | '3d'
 
 const KEY = 'earth-jukebox:spatial-mode'
 
-/** The remembered mode, or 'stereo'. Storage can be blocked (private windows), so every access is guarded. */
+const parseSpatialMode = (stored: string): SpatialMode => (stored === '3d' ? '3d' : 'stereo')
+
+/** The remembered mode, or 'stereo'. */
 export function readSpatialMode(): SpatialMode {
-  try {
-    return localStorage.getItem(KEY) === '3d' ? '3d' : 'stereo'
-  } catch {
-    return 'stereo'
-  }
+  return readStored(KEY, parseSpatialMode, 'stereo')
 }
 
+/** The mode and a way to choose it. If storage is blocked the choice is not remembered for next time, but it still holds on every page for this visit. */
 export function useSpatialMode(): [SpatialMode, (mode: SpatialMode) => void] {
-  const [mode, setMode] = useState<SpatialMode>(readSpatialMode)
-  const choose = useCallback((next: SpatialMode) => {
-    setMode(next)
-    try {
-      localStorage.setItem(KEY, next)
-    } catch {
-      // Not remembered, but the choice still holds for this visit.
-    }
-  }, [])
-  return [mode, choose]
+  return useStoredValue<SpatialMode>(KEY, parseSpatialMode, 'stereo')
 }
 
 export type Panner = InstanceType<ToneModule['Panner']> | InstanceType<ToneModule['Panner3D']>

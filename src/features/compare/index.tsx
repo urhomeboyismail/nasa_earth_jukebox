@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { analyzeAll, type FrameAnalysis } from '../../analysis'
+import { useFrameAnalysis } from '../../analysis/useFrameAnalysis'
 import { hasChange } from '../../analysis/available'
-import { createSoundEngine, type SoundEngine } from '../../audio'
+import { useSoundEngine } from '../../audio/useSoundEngine'
 import { styleFor, useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
 import { useAssistantContext } from '../../assistant/context'
@@ -29,7 +29,7 @@ export default function ComparePage({ visualization, testMode = false }: PagePro
 }
 
 function Compare({ visualization }: { visualization: Visualization }) {
-  const { frames, comparisons, regions, colorScale, mapping } = visualization
+  const { frames, comparisons, regions, mapping } = visualization
   const words = variableWords(visualization.variable)
   const announce = useAnnounce()
   const changeAvailable = hasChange(visualization)
@@ -40,27 +40,12 @@ function Compare({ visualization }: { visualization: Visualization }) {
   const [customB, setCustomB] = useState(frames[frames.length - 1].id)
   const [answer, setAnswer] = useState<Answer | null>(null)
   const [revealed, setRevealed] = useState(false)
-  const [results, setResults] = useState<FrameAnalysis[] | null>(null)
-  const [analysisError, setAnalysisError] = useState('')
   const [playError, setPlayError] = useState('')
 
-  const { engine, engineError } = useMemo((): { engine: SoundEngine | null; engineError: string } => {
-    try {
-      return { engine: createSoundEngine(mapping), engineError: '' }
-    } catch (error) {
-      return { engine: null, engineError: error instanceof Error ? error.message : String(error) }
-    }
-  }, [mapping])
+  const { engine, engineError } = useSoundEngine(mapping)
 
-  useEffect(() => {
-    let cancelled = false
-    // With a baseline each result also carries its change step. Without one the call is exactly what it was.
-    const done = changeAvailable ? analyzeAll(frames, regions[0], colorScale, mapping, visualization) : analyzeAll(frames, regions[0], colorScale, mapping)
-    done
-      .then(all => { if (!cancelled) setResults(all) })
-      .catch((error: unknown) => { if (!cancelled) setAnalysisError(error instanceof Error ? error.message : String(error)) })
-    return () => { cancelled = true }
-  }, [frames, regions, colorScale, mapping, visualization, changeAvailable])
+  // With a baseline each result also carries its change step.
+  const { results, error: analysisError } = useFrameAnalysis(visualization, regions[0], { withChange: changeAvailable })
 
   const [chosenStyle, setSoundStyle] = useSoundStyle()
   // A remembered "change" is not used for a data set with no baseline.

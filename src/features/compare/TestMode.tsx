@@ -3,8 +3,10 @@
 // The right answers are never shown here; this is a test, not practice.
 
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { analyzeAll, type FrameAnalysis } from '../../analysis'
-import { createSoundEngine, type SoundEngine } from '../../audio'
+import type { FrameAnalysis } from '../../analysis'
+import { useFrameAnalysis } from '../../analysis/useFrameAnalysis'
+import type { SoundEngine } from '../../audio'
+import { useSoundEngine } from '../../audio/useSoundEngine'
 import { useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
 import { useAssistantContext } from '../../assistant/context'
@@ -33,7 +35,7 @@ const CONFIDENCE = [
 ]
 
 export default function TestMode({ visualization, client: given }: { visualization: Visualization; client?: StudyClient }) {
-  const { comparisons, frames, regions, colorScale, mapping } = visualization
+  const { comparisons, regions, mapping } = visualization
   const words = variableWords(visualization.variable)
   const client = useMemo(() => given ?? new StudyClient(), [given])
   const [status, setStatus] = useState<StudyStatus>(() => client.status)
@@ -53,22 +55,8 @@ export default function TestMode({ visualization, client: given }: { visualizati
   useAssistantContext('compare', { frameA: '', frameB: '', answered: false, revealed: false, testInProgress: step !== 'thanks' })
 
   // Sound: the same engine and analysis as the Compare page.
-  const { engine, engineError } = useMemo((): { engine: SoundEngine | null; engineError: string } => {
-    try {
-      return { engine: createSoundEngine(mapping), engineError: '' }
-    } catch (error) {
-      return { engine: null, engineError: error instanceof Error ? error.message : String(error) }
-    }
-  }, [mapping])
-  const [results, setResults] = useState<FrameAnalysis[] | null>(null)
-  const [analysisError, setAnalysisError] = useState('')
-  useEffect(() => {
-    let cancelled = false
-    analyzeAll(frames, regions[0], colorScale, mapping)
-      .then(done => { if (!cancelled) setResults(done) })
-      .catch((error: unknown) => { if (!cancelled) setAnalysisError(error instanceof Error ? error.message : String(error)) })
-    return () => { cancelled = true }
-  }, [frames, regions, colorScale, mapping])
+  const { engine, engineError } = useSoundEngine(mapping)
+  const { results, error: analysisError } = useFrameAnalysis(visualization, regions[0])
   const [soundStyle] = useSoundStyle()
   // The listening test plays full or simple only, until the 13 Nov decision on the "change" style (docs/PLAN.md §6.2).
   useEffect(() => { engine?.setStyle(soundStyle === 'change' ? 'full' : soundStyle) }, [engine, soundStyle])

@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { hasChange } from '../../analysis/available'
 import type { Contour } from '../../analysis'
 import { Button, Card, Notice, useAnnounce } from '../../components'
-import { createSoundEngine, type SequenceStep, type SoundEngine } from '../../audio'
+import type { SequenceStep, SoundEngine } from '../../audio'
+import { useSoundEngine } from '../../audio/useSoundEngine'
 import { useSoundStyle } from '../../audio/style'
 import { variableWords, type CategoryId, type SoundMapping } from '../../data'
 import { describeContour } from '../../describe'
@@ -40,19 +41,8 @@ function describeRange(range: [number, number], unit: string) {
   return `${range[0]} to ${range[1]} ${unit}`.trim()
 }
 
-function useEngine(mapping: SoundMapping | undefined): { engine: SoundEngine | null; error: string } {
-  return useMemo(() => {
-    if (!mapping) return { engine: null, error: '' }
-    try {
-      return { engine: createSoundEngine(mapping), error: '' }
-    } catch (error) {
-      return { engine: null, error: error instanceof Error ? error.message : String(error) }
-    }
-  }, [mapping])
-}
-
 export default function LearnPage({ visualization }: PageProps) {
-  const { engine, error } = useEngine(visualization?.mapping)
+  const { engine, engineError: error } = useSoundEngine(visualization?.mapping)
   const [playingAll, setPlayingAll] = useState(false)
   const announce = useAnnounce()
   const [style] = useSoundStyle()
