@@ -14,6 +14,8 @@ import { useExplorer } from '../explore/useExplorer'
 import { useFollow } from '../follow/useFollow'
 import { FindPanel } from '../find/FindPanel'
 import { useFindGame } from '../find/useFindGame'
+import { OnboardingPanel } from '../onboarding/OnboardingPanel'
+import { useOnboarding } from '../onboarding/useOnboarding'
 import { StoryPanel } from '../story/StoryPanel'
 import type { PageProps } from '../types'
 import './player.css'
@@ -91,6 +93,8 @@ function Player({ visualization }: { visualization: Visualization }) {
   const follow = useFollow({ visualization, explorer, frames, index: player.index, showDate: player.showDate })
   // IX04: F (or the button) starts the find game on the sound map's date.
   const find = useFindGame({ visualization, frame, explorer })
+  // IX11: the first-minute game listens to the same actions, and to the find game's first target found.
+  const onboarding = useOnboarding({ visualization, explorer, findStatus: find.game.status })
   /** A date chosen by the listener: a followed spot is heard there and the dates play on from it; otherwise the date plays as usual. */
   const chooseDate = (i: number) => {
     if (follow.isFollowing()) { player.showDate(i); follow.showFollowedDate(i) } else player.goTo(i)
@@ -207,6 +211,7 @@ function Player({ visualization }: { visualization: Visualization }) {
       {/* IX03: what follow is doing. Not a live region: losing the spot is said through the speech gate. */}
       {follow.text && <p className="player__follow">{follow.text}</p>}
       <FindPanel find={find} />
+      <OnboardingPanel onboarding={onboarding} />
 
       {player.results && <Description visualization={visualization} results={player.results} index={player.index} />}
       {player.style === 'change' && player.score && (
@@ -266,6 +271,8 @@ function Player({ visualization }: { visualization: Visualization }) {
           value={player.index}
           disabled={!player.ready}
           onChange={i => {
+            // The slider is not an action, so the first-minute game is told of the date change here.
+            onboarding.record({ type: 'scrubTime', by: i - player.index })
             // A locked place is heard on the new date, not the whole map.
             if (explorer.locked) {
               player.showDate(i)

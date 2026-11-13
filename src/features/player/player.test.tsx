@@ -12,6 +12,7 @@ import { sendPlayerCommand } from './controls'
 import { dispatch } from '../../interaction/registry'
 import { listedShortcuts } from '../../interaction/shortcuts'
 import PlayerPage from '.'
+import { resetOnboarding, saveOnboardingDone } from '../onboarding/store'
 import { AnnouncerProvider } from '../../components'
 
 const visualization = fixture as Visualization
@@ -1107,5 +1108,44 @@ describe('Player: following a hot spot (IX03)', () => {
     expect(screen.getByRole('button', { name: 'Stop the find game' })).toHaveAttribute('aria-pressed', 'true')
     await user.keyboard('{Escape}')
     expect(screen.getByRole('button', { name: 'Start the find game' })).toBeInTheDocument()
+  })
+})
+
+describe('Player: the first-minute game (IX11)', () => {
+  beforeEach(() => {
+    resetOnboarding()
+    localStorage.clear()
+    analyzeGrid.mockReset()
+    analyzeGrid.mockImplementation(async (frame: { id: string }) => ({ frameId: frame.id, cols: 24, rows: 12, area: { x0: 0, y0: 0, x1: 1, y1: 1 }, cells: Array.from({ length: 24 * 12 }, () => ({ value: 14, category: 'mild' })) }))
+  })
+  afterEach(() => { resetOnboarding(); localStorage.clear() })
+
+  it('offers the game on a first visit, takes its first step from the arrow keys on the sound map, and has no accessibility violations', async () => {
+    const { user, container } = await renderReady()
+    const game = screen.getByRole('group', { name: 'First-minute game' })
+    expect(within(game).getByText('Step 1 of 4')).toBeInTheDocument()
+    expect(within(game).getByText('First, press Explore the map to turn on the sound map.')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Explore the map' }))
+    await tick(0)
+    expect(within(game).queryByText(/^First, press Explore the map/)).toBeNull()
+    await user.keyboard('{ArrowRight}{ArrowRight}{ArrowRight}')
+    expect(within(game).getByText('Step 2 of 4')).toBeInTheDocument()
+    vi.useRealTimers() // axe waits on real timers
+    await expectNoA11yViolations(container)
+  })
+
+  it('hides on Skip and comes back from the restart button', async () => {
+    const { user } = await renderReady()
+    await user.click(screen.getByRole('button', { name: 'Skip' }))
+    expect(screen.queryByRole('group', { name: 'First-minute game' })).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Play the first-minute game' }))
+    expect(screen.getByRole('group', { name: 'First-minute game' })).toBeInTheDocument()
+  })
+
+  it('is not offered on its own once it was done or skipped', async () => {
+    saveOnboardingDone()
+    await renderReady()
+    expect(screen.queryByRole('group', { name: 'First-minute game' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Play the first-minute game' })).toBeInTheDocument()
   })
 })
