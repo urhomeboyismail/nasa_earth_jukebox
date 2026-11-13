@@ -5,7 +5,7 @@ import { useSoundEngine } from '../../audio/useSoundEngine'
 import { styleFor, useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
 import { useAssistantContext } from '../../assistant/context'
-import { Button, Card, LoadingIndicator, Notice, RegionPicker } from '../../components'
+import { Button, ButtonGroup, Card, LoadingIndicator, Notice, RegionPicker } from '../../components'
 import { useRegionChoice } from '../../components/useRegionChoice'
 import { useAnnounce } from '../../components/useAnnounce'
 import { higherPhrase, regionFor, variableWords, type Visualization } from '../../data'
@@ -17,6 +17,7 @@ import './compare.css'
 import './test-mode.css'
 import { answerText, baselineName, categoryLabel, changeStepLabel, judge, type Answer } from './judge'
 import TestMode from './TestMode'
+import { Fusion } from './Fusion'
 
 const CUSTOM = 'custom'
 
@@ -24,8 +25,20 @@ const CUSTOM = 'custom'
 export default function ComparePage({ visualization, testMode = false }: PageProps) {
   if (!visualization) return <p>Loading the data…</p>
   if (testMode) return <TestMode key={visualization.id} visualization={visualization} />
+  return <CompareModes key={visualization.id} visualization={visualization} />
+}
+
+type Mode = 'dates' | 'sets'
+const MODES = [{ value: 'dates', label: 'Two dates' }, { value: 'sets', label: 'Two data sets' }] as const
+
+/** Two dates of this data set, or this data set with one it is paired with (fusion, blueprint §3.2). */
+function CompareModes({ visualization }: { visualization: Visualization }) {
+  const [mode, setMode] = useState<Mode>('dates')
   return (
-    <Compare key={visualization.id} visualization={visualization} />
+    <>
+      <ButtonGroup type="connected" legend="Compare" options={MODES} value={mode} onChange={setMode} />
+      {mode === 'dates' ? <Compare visualization={visualization} /> : <Fusion visualization={visualization} />}
+    </>
   )
 }
 

@@ -3,6 +3,7 @@
 export { toMusicFrame } from './music'
 export { PRESETS, SCALES, presetFor, snapToScale } from './presets'
 export { DETAIL_VOICES, voicesFor } from './detail'
+export { FUSION_ROLES, fuseFrames, type Deck } from './fuse'
 export { captionsFor, levelWord, sectorOf, trendOf } from './captions'
 export * from './ranges'
 export type { DetailLevel, MusicFrame, Preset, PresetId, ScaleName, VoiceId } from './types'

@@ -6,7 +6,7 @@
 // The limiter does the work and the hard clip after it holds the peak at −1 dBFS whatever the voices do. No noise, no Tone.Reverb (its impulse is random),
 // no Freeverb and no PolySynth (measured: their renders differ from run to run), and nothing that calls Math.random.
 
-import type { VoiceId } from '../../sonify/types'
+import type { Kit, VoiceId, Waveform } from '../../sonify/types'
 import { createPanner, type Panner, type SpatialMode } from '../pan'
 import {
   CEILING_LINEAR, CLIP_CURVE_POINTS, COMPRESSOR, DROPOUT_GAIN_DB, GLIDE_S, HARMONY_POLYPHONY, HOLD_FILTER_HZ, MALLET_ENVELOPE, MASTER_LIMIT_DB, MAX_HOTSPOT_VOICES,
@@ -51,7 +51,13 @@ export type GraphOptions = {
   /** The master gain to start at: 0 live (start() fades it in), 1 offline. */
   master: number
   spatial: SpatialMode
+  /** The style's instruments; absent is the default kit. */
+  kit?: Kit
+  /** Added to the bass voice's level, −6 to +6 dB (the listener's Bass setting). */
+  bassDb?: number
 }
+
+const DEFAULT_KIT: Kit = { melody: 'triangle', bass: 'triangle', rhythm: 'triangle' }
 
 export function buildGraph(t: ToneModule, options: GraphOptions): Graph {
   const nodes: { dispose(): unknown }[] = []
@@ -71,7 +77,8 @@ export function buildGraph(t: ToneModule, options: GraphOptions): Graph {
   const space = track(new t.FeedbackDelay({ ...firstLine, wet: SPACE.wet }).connect(secondDelay))
 
   const gain = (target: Parameters<Gain['connect']>[0]) => track(new t.Gain(0).connect(target))
-  const synthFor = (voice: VoiceId, type: 'triangle' | 'sine' | 'sawtooth', envelope: object, extra: object = {}) =>
+  const kit = options.kit ?? DEFAULT_KIT
+  const synthFor = (voice: VoiceId, type: Waveform, envelope: object, extra: object = {}) =>
     track(new t.Synth({ oscillator: { type }, envelope, volume: VOICE_GAIN_DB[voice], ...extra }))
   const filterTo = (target: Gain | Panner, frequency: number) => track(new t.Filter({ type: 'lowpass', frequency, Q: 1, rolloff: -12 }).connect(target))
   const pannerTo = (target: Gain) => track(createPanner(t, options.spatial).connect(target))
@@ -79,7 +86,7 @@ export function buildGraph(t: ToneModule, options: GraphOptions): Graph {
 
   // Centred voices skip the panner.
   const melodyOut = gain(space)
-  const melody: Chain = { synth: synthFor('melody', 'triangle', MALLET_ENVELOPE).connect(melodyOut), out: melodyOut }
+  const melody: Chain = { synth: synthFor('melody', kit.melody, MALLET_ENVELOPE).connect(melodyOut), out: melodyOut }
   melody.synth.portamento = 0
 
   const harmonyOut = gain(space)
@@ -88,7 +95,7 @@ export function buildGraph(t: ToneModule, options: GraphOptions): Graph {
   const harmony = { synths: harmonySynths, out: harmonyOut }
 
   const bassOut = gain(bus)
-  const bass: Chain = { synth: synthFor('bass', 'triangle', { attack: 0.02, decay: 0.2, sustain: 0.6, release: 0.3 }).connect(bassOut), out: bassOut }
+  const bass: Chain = { synth: synthFor('bass', kit.bass, { attack: 0.02, decay: 0.2, sustain: 0.6, release: 0.3 }, { volume: VOICE_GAIN_DB.bass + (options.bassDb ?? 0) }).connect(bassOut), out: bassOut }
 
   const hotspots = Array.from({ length: MAX_HOTSPOT_VOICES }, () => {
     const out = gain(bus)
@@ -100,7 +107,7 @@ export function buildGraph(t: ToneModule, options: GraphOptions): Graph {
 
   const rhythmOut = gain(bus)
   const rhythmPanner = pannerTo(rhythmOut)
-  const rhythm = { synth: synthFor('rhythm', 'triangle', PLUCK).connect(rhythmPanner), out: rhythmOut, panner: rhythmPanner }
+  const rhythm = { synth: synthFor('rhythm', kit.rhythm, PLUCK).connect(rhythmPanner), out: rhythmOut, panner: rhythmPanner }
 
   const motionOut = gain(bus)
   const motionPanner = pannerTo(motionOut)
@@ -118,7 +125,7 @@ export function buildGraph(t: ToneModule, options: GraphOptions): Graph {
   const scan = Array.from({ length: SCAN_VOICES }, () => {
     const panner = pannerTo(bus)
     const filter = filterTo(panner, HOLD_FILTER_HZ.high)
-    const synth = synthFor('melody', 'triangle', PLUCK).connect(filter)
+    const synth = synthFor('melody', kit.melody, PLUCK).connect(filter)
     return { synth, filter, panner }
   })
 

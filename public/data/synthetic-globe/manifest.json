@@ -577,5 +577,11 @@
       "toFrame": "2024-12-15",
       "text": "From September the patch cools again, and by December it is back to about 9 °C, close to where the year began. The heatwave has faded, for now."
     }
+  ],
+  "pairsWith": [
+    {
+      "id": "synthetic-change",
+      "note": "Both are made-up monthly practice frames for 2024, so each month of one lines up with the same month of the other."
+    }
   ]
 }

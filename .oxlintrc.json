@@ -1,8 +1,7 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["react", "typescript", "oxc"],
-  "ignorePatterns": ["docs/planning/**"],
-  // The rules in .claude/rules/frontend.md that a tool can check (ticket I11).
+  "ignorePatterns": ["docs/planning/**", "public/robot/**"],
   "rules": {
     "react/rules-of-hooks": "error",
     "react/only-export-components": ["error", { "allowConstantExport": true }],

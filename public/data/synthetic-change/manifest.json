@@ -638,5 +638,11 @@
     "kind": "climatology",
     "label": "the made-up normal for each month",
     "noiseFloor": 0.2
-  }
+  },
+  "pairsWith": [
+    {
+      "id": "synthetic-globe",
+      "note": "Both are made-up monthly practice frames for 2024, so each month of one lines up with the same month of the other."
+    }
+  ]
 }

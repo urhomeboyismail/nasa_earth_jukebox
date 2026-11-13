@@ -36,6 +36,12 @@ describe('the data sets on disk', () => {
       const parsed = visualizationSchema.safeParse(manifestFor(id))
       const v = parsed.success ? (parsed.data as Visualization) : null
 
+      it('pairs only with other data sets in the catalog (pairsWith)', () => {
+        const listed = new Set(catalog.map(entry => entry.id))
+        const bad = (v?.pairsWith ?? []).filter(pair => pair.id === id || !listed.has(pair.id)).map(pair => pair.id)
+        expect(bad, 'pairsWith names itself or a data set that is not in index.json').toEqual([])
+      })
+
       it('is a valid manifest', () => {
         expect(parsed.success ? '' : describeIssues(parsed.error, 10)).toBe('')
       })

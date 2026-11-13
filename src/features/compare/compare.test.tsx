@@ -146,6 +146,8 @@ describe('Compare: the ready-made comparison', () => {
   it('goes from start to finish by keyboard alone', async () => {
     const { user } = await renderReady()
     await user.tab()
+    expect(screen.getByRole('radio', { name: 'Two dates' })).toHaveFocus()
+    await user.tab()
     expect(screen.getByRole('combobox', { name: 'Comparison' })).toHaveFocus()
     await user.tab()
     expect(screen.getByRole('button', { name: 'Play date A' })).toHaveFocus()

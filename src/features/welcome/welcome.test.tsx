@@ -29,6 +29,8 @@ const fake = vi.hoisted(() => {
   return engine
 })
 vi.mock('../../audio', () => ({ createSoundEngine: () => fake }))
+const sample = vi.hoisted(() => ({ played: [] as string[] }))
+vi.mock('../player/soundSample', () => ({ playSample: async (preset: { id: string }) => { sample.played.push(preset.id) } }))
 
 const pans = () => fake.sequences.map(steps => steps[0].pan)
 
@@ -68,7 +70,7 @@ describe('the welcome on Home', () => {
     expect(fake.unlocked).toBe(0)
     expect(fake.sequences).toHaveLength(0)
     // The drawing is decoration.
-    expect(container.querySelector('.welcome svg')).toHaveAttribute('aria-hidden', 'true')
+    expect(container.querySelector('.welcome__mascot')).toHaveAttribute('alt', '')
     await expectNoA11yViolations(container)
   })
 
@@ -234,3 +236,46 @@ describe('the three paths', () => {
     expect(fake.volumes).toContain(0.8)
   })
 })
+
+describe('what do you love listening to?', () => {
+  async function toTaste() {
+    const user = userEvent.setup()
+    await renderHome()
+    await user.click(screen.getByRole('button', { name: 'I can see the map' }))
+    for (let i = 0; i < 4; i++) {
+      await user.click(screen.getByRole('button', { name: /^(Play|Replay)$/ }))
+      await user.click(screen.getByRole('button', { name: 'Yes' }))
+    }
+    return user
+  }
+
+  it('offers the five styles, the bass, the speed and the instruments, and remembers the choice', async () => {
+    const user = await toTaste()
+    expect(screen.getAllByRole('radio').map(radio => radio.getAttribute('name') && (radio.closest('label')?.textContent ?? ''))).toEqual([
+      'The data set\'s own sound', 'Cinematic orchestral', '8-bit arcade', 'Lo-fi ambient', 'Heavy bass electronic', 'Organic nature',
+    ])
+    await user.click(screen.getByRole('radio', { name: 'Organic nature' }))
+    expect(screen.getByText(/Wood, water and gentle percussion\./)).toBeInTheDocument()
+    await user.click(screen.getByRole('checkbox', { name: 'rhythm' }))
+    await user.click(screen.getByRole('button', { name: 'Fast' }))
+    fireEvent.change(screen.getByRole('slider', { name: 'Bass' }), { target: { value: '-2' } })
+    expect(screen.getByRole('checkbox', { name: 'melody' })).toBeDisabled()
+    expect(JSON.parse(localStorage.getItem('earth-jukebox:audio-prefs') ?? '{}')).toEqual({ style: 'nature', bassDb: -2, speed: 'fast', muted: ['rhythm'] })
+  })
+
+  it('plays a sample of the chosen style, or of the data set\'s own preset', async () => {
+    const user = await toTaste()
+    sample.played.length = 0
+    await user.click(screen.getByRole('button', { name: 'Play sample' }))
+    await user.click(screen.getByRole('radio', { name: '8-bit arcade' }))
+    await user.click(screen.getByRole('button', { name: 'Play sample' }))
+    expect(sample.played[1]).toBe('chiptune')
+    expect(sample.played).toHaveLength(2)
+  })
+
+  it('has no accessibility violations', async () => {
+    await toTaste()
+    await expectNoA11yViolations(document.body)
+  })
+})
+

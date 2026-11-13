@@ -9,6 +9,7 @@ import type { Preset } from '../../sonify/types'
 import { DetailControl } from './DetailControl'
 import { LayerCaptions } from './LayerCaptions'
 import { shortcutFor } from './shortcuts'
+import { SoundPrefs } from './SoundPrefs'
 import { statusText, useSymphony, type ButtonKind } from './symphonyState'
 import { Viewer } from './Viewer'
 import { useEventAnnouncer } from './useEventAnnouncer'
@@ -16,12 +17,6 @@ import { MyMixControls } from './MyMixControls'
 import { useMixerKeys } from './useMixerKeys'
 import { VoiceMixer } from './VoiceMixer'
 import './symphony.css'
-
-const SPEEDS = [
-  { id: 'slow', label: 'Slow' },
-  { id: 'normal', label: 'Normal' },
-  { id: 'fast', label: 'Fast' },
-] as const
 
 /** The keys of the mixer (1 to 7, Shift + 1 to 7) and the undo of a change to it: the sound map's and Listen's parts of the shortcut list. */
 const MIXER_SCOPES = ['map', 'listen'] as const
@@ -98,12 +93,7 @@ export function Symphony({ visualization, preset, region }: { visualization: Vis
       <VoiceMixer voices={symphony.voices} muted={symphony.muted} solo={symphony.solo} onMute={symphony.toggleMute} onSolo={symphony.toggleSolo} />
       <MyMixControls voices={symphony.voices} muted={symphony.muted} solo={symphony.solo} setMix={symphony.setMix} />
 
-      <div role="group" aria-label="Speed" className="player__speed">
-        <span className="player__speed-label" aria-hidden="true">Speed</span>
-        {SPEEDS.map(({ id, label }) => (
-          <Button key={id} pressed={symphony.speed === id} onClick={() => symphony.setSpeed(id)}>{label}</Button>
-        ))}
-      </div>
+      <SoundPrefs ownPreset={visualization.sonification?.preset ?? 'major'} />
 
       <p className="player__hint">Keyboard: Space plays or pauses, and Escape stops. Keys 1 to 7 solo a voice, Shift and 1 to 7 mute it, and Control Z puts the last change back.</p>
     </section>

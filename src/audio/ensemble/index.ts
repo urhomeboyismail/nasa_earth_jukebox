@@ -4,7 +4,7 @@
 
 import type { DetailLevel, MusicFrame, Preset, VoiceId } from '../../sonify/types'
 import { duck } from '../duck'
-import { MAX_RENDER_S, PAUSE_FADE_S, RENDER_TAIL_S, RESUME_FADE_S, STOP_FADE_S, VOLUME_RAMP_S } from './constants'
+import { MAX_RENDER_S, PAUSE_FADE_S, RENDER_TAIL_S, RESUME_FADE_S, STOP_FADE_S, VOICE_GAIN_DB, VOLUME_RAMP_S } from './constants'
 import { buildGraph, type Graph } from './graph'
 import { createStatus, watchContext, watchVisibility } from './lifecycle'
 import { createPlayer, type Player } from './voices'
@@ -19,11 +19,15 @@ type ToneModule = typeof import('tone')
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, Number.isFinite(value) ? value : 0))
 const DEFAULT_SAMPLE_RATE = 44100
+/** The Bass setting is kept to ±6 dB, so no preference can push the bus into the limiter hard. */
+export const BASS_DB_RANGE = 6
+const clampBass = (db: number) => Math.min(BASS_DB_RANGE, Math.max(-BASS_DB_RANGE, Number.isFinite(db) ? db : 0))
 
 export function createEnsemble(preset: Preset, options: EnsembleOptions = {}): Ensemble {
   const spatial = options.spatial ?? 'stereo'
   let detail: DetailLevel = options.detail ?? 'full'
   let volume = clamp01(options.volume ?? 1)
+  let bassDb = clampBass(options.bassDb ?? 0)
   /** The duck controller's target (1, or DUCK_LINEAR). The master's level while sounding is volume × this. */
   let duckGain = duck.target()
   const level = () => volume * duckGain
@@ -41,7 +45,7 @@ export function createEnsemble(preset: Preset, options: EnsembleOptions = {}): E
 
   /** Built once, on the first start(): the graph, the player and the two listeners. */
   function build(t: ToneModule) {
-    graph = buildGraph(t, { master: 0, spatial })
+    graph = buildGraph(t, { master: 0, spatial, kit: preset.kit, bassDb })
     raw = t.getContext().rawContext
     const context = raw
     player = createPlayer({ t, graph, preset, clock: () => context.currentTime, canSound: () => status.get() === 'on' })
@@ -131,7 +135,7 @@ export function createEnsemble(preset: Preset, options: EnsembleOptions = {}): E
     const t = (tone ??= await import('tone'))
     // A graph of its own on the offline context, at full level whatever the listening volume is: the file is played on the listener's own volume.
     const buffer = await t.Offline(() => {
-      const offlineGraph = buildGraph(t, { master: 1, spatial })
+      const offlineGraph = buildGraph(t, { master: 1, spatial, kit: preset.kit, bassDb })
       const offlinePlayer = createPlayer({ t, graph: offlineGraph, preset, clock: () => 0, canSound: () => true })
       offlinePlayer.setDetail(opts.detail)
       for (const { frame, atSeconds } of sorted) offlinePlayer.apply(frame, atSeconds)
@@ -169,6 +173,11 @@ export function createEnsemble(preset: Preset, options: EnsembleOptions = {}): E
       if (disposed) return
       volume = clamp01(zeroToOne)
       if (graph && status.get() === 'on') graph.master.gain.rampTo(level(), VOLUME_RAMP_S)
+    },
+    setBass(db: number) {
+      if (disposed) return
+      bassDb = clampBass(db)
+      graph?.bass.synth.volume.rampTo(VOICE_GAIN_DB.bass + bassDb, VOLUME_RAMP_S)
     },
     status: () => status.get(),
     now: () => raw?.currentTime ?? 0,

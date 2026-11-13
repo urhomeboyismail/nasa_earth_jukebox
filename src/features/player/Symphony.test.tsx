@@ -9,13 +9,14 @@ import { installFakeAudioContext } from '../../test/fakes'
 import { createFakeEnsemble, createFakeSource, withV3, type FakeEnsemble, type FakeSource } from './symphonyTestSupport'
 import PlayerPage from '.'
 
-const fakes = vi.hoisted(() => ({ ensemble: null as FakeEnsemble | null, source: null as FakeSource | null }))
+const fakes = vi.hoisted(() => ({ ensemble: null as FakeEnsemble | null, source: null as FakeSource | null, presetId: '' }))
 
 // The real ensemble needs Tone, and the real source a worker and a video.
 vi.mock('../../audio/ensemble/useEnsemble', async () => {
   const { useEffect, useSyncExternalStore } = await import('react')
   return {
-    useEnsemble: () => {
+    useEnsemble: (preset: { id: string }) => {
+      fakes.presetId = preset.id
       const e = fakes.ensemble!
       // As the real hook: the ensemble is let go of when the page goes (tested in useEnsemble.test.tsx).
       useEffect(() => () => e.ensemble.dispose(), [e])
@@ -350,3 +351,42 @@ describe('Symphony: accessibility', () => {
     await expectNoA11yViolations(container)
   })
 })
+
+describe('Your sound (the listener\'s preferences)', () => {
+  it('plays the manifest\'s preset until a style is chosen, then the style, and remembers it', async () => {
+    const { user } = mount()
+    expect(fakes.presetId).toBe(v3.sonification?.preset ?? 'major')
+    await user.click(screen.getByRole('radio', { name: '8-bit arcade' }))
+    expect(fakes.presetId).toBe('chiptune')
+    expect(live()).toMatch(/Style: 8-bit arcade/)
+    expect(JSON.parse(localStorage.getItem('earth-jukebox:audio-prefs') ?? '{}').style).toBe('chiptune')
+    await user.click(screen.getByRole('button', { name: 'Reset to the data set\'s sound' }))
+    expect(fakes.presetId).toBe(v3.sonification?.preset ?? 'major')
+  })
+
+  it('sends the Bass setting to the ensemble', () => {
+    mount()
+    fireEvent.change(screen.getByRole('slider', { name: 'Bass' }), { target: { value: '3' } })
+    expect(e.ensemble.setBass).toHaveBeenLastCalledWith(3)
+  })
+
+  it('keeps a muted voice muted on the next visit, but never the melody', async () => {
+    const { user, unmount } = mount()
+    await user.click(screen.getByRole('button', { name: 'Mute bass' }))
+    await user.click(screen.getByRole('button', { name: 'Mute melody' }))
+    expect(e.ensemble.mute).toHaveBeenLastCalledWith('melody', true)
+    unmount()
+    e = createFakeEnsemble()
+    fakes.ensemble = e
+    mount()
+    expect(screen.getByRole('button', { name: 'Mute bass' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Mute melody' })).toHaveAttribute('aria-pressed', 'false')
+    expect(e.ensemble.mute).toHaveBeenCalledWith('bass', true)
+  })
+
+  it('has no accessibility violations', async () => {
+    const { container } = mount()
+    await expectNoA11yViolations(container)
+  })
+})
+

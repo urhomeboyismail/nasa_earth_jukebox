@@ -1,5 +1,5 @@
 import { Card, Legend } from '../../components'
-import { primaryRegion, variableWords, type Visualization } from '../../data'
+import { STYLE_IDS, primaryRegion, variableWords, type Visualization } from '../../data'
 import { dateFormatterFor, formatDate } from '../../dates'
 import { presetFor } from '../../sonify'
 import { PlaylistPanel } from '../playlist/PlaylistPanel'
@@ -72,6 +72,9 @@ function About({ visualization }: { visualization: Visualization }) {
             </tbody>
           </table>
         </div>
+
+        <h3>Music styles</h3>
+        <p>You can choose a music style when you start, or on Listen: {STYLE_IDS.map(id => presetFor(id).label).join(', ')}. Styles are a choice of taste. They change the instruments and the key, never what the data says.</p>
 
         <h3>The colour legend</h3>
         <Legend colorScale={colorScale} mapping={mapping} variable={variable} />

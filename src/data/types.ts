@@ -166,6 +166,8 @@ export type Visualization = {
   sonification?: SonificationSpec
   /** Echo's accent and jet trail for this data set. Optional; without it, the accent comes from `colorScale` and the trail is 'sparks'. */
   mascot?: MascotSpec
+  /** Data sets this one can be heard together with in Compare ("Two data sets"), each with the reason the pair is meaningful. Optional; default none. */
+  pairsWith?: { id: string; note: string }[]
 }
 
 export type CatalogEntry = { id: string; title: string; summary: string }
