@@ -2,14 +2,21 @@
 // along a row or column. `useExplorer` (useExplorer.ts) holds the state; `ExplorerSurface` is drawn over the image and `ExplorerPanel` sits below it.
 
 import { useEffect, useId, useMemo, useRef, useSyncExternalStore } from 'react'
-import { Button, Notice, Slider } from '../../components'
+import { Button, ButtonGroup, Notice, Slider } from '../../components'
 import type { Visualization } from '../../data'
 import { describeCell } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
 import { Magnifier } from './Magnifier'
 import { ProbeSwitch } from './ProbeSwitch'
 import type { ExplorerState } from './useExplorer'
+import type { Verbosity } from './whatsHere'
 import './explore.css'
+
+/** IX02: how many words the first "What's here?" gives. */
+const VERBOSITY_OPTIONS: readonly { value: Verbosity; label: string }[] = [
+  { value: 'brief', label: 'Brief' },
+  { value: 'full', label: 'Full' },
+]
 
 // VIS1: three choices about how the map looks. They only change the view, never what is read or sounded. Kept on the device; when
 // storage is blocked they still hold for the visit. Shared by the surface and the panel, which are separate components.
@@ -109,6 +116,8 @@ export function ExplorerPanel({ visualization, explorer }: { visualization: Visu
       {error && <Notice variant="error">The map could not be read. {error}</Notice>}
       {grid && (
         <>
+          {/* IX02: the answer to "What's here?" stays here until the next one. It is not a live region: the announcer already says it. */}
+          {explorer.whatsHere && <p className="explorer__here">{explorer.whatsHere}</p>}
           <div className="explorer__sliders">
             <Slider
               label="Column, west to east"
@@ -142,6 +151,7 @@ export function ExplorerPanel({ visualization, explorer }: { visualization: Visu
             <Button pressed={explorer.locked} onClick={explorer.locked ? explorer.unlock : explorer.lock}>Lock this place</Button>
             <Button disabled={!explorer.locked} onClick={() => void explorer.playAcrossDates()}>Play this place across the dates</Button>
           </div>
+          <ButtonGroup type="connected" legend="Words for What's here" options={VERBOSITY_OPTIONS} value={explorer.verbosity} onChange={explorer.setVerbosity} />
         </>
       )}
       <ProbeSwitch settings={explorer.probeSettings} />

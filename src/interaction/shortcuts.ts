@@ -74,8 +74,9 @@ export const SHORTCUTS: readonly Shortcut[] = [
   { id: 'lock', keys: 'L', device: 'keyboard', scope: 'map', does: () => 'Lock this place, so the date slider plays it on each date. Press again to unlock.', match: input => (isLetter(input, 'l') ? { type: 'lock' } : null) },
   { id: 'trace', keys: 'T', device: 'keyboard', scope: 'map', does: words => `Trace the ${words.edge}, one line at a time.`, note: 'Only in the "Change from normal" sound.', match: input => (isLetter(input, 't') ? { type: 'trace' } : null) },
   { id: 'help', keys: '?', device: 'keyboard', scope: 'map', does: () => 'Open this list.', match: input => (noModifier(input) && input.key === '?' ? { type: 'openShortcuts' } : null) },
+  // Handled by IX02 (useExplorer.ts). A second press within 4 s says where the place is.
+  { id: 'query', keys: 'I', device: 'keyboard', scope: 'map', does: () => 'Ask what is here.', match: input => (isLetter(input, 'i') ? { type: 'query' } : null) },
   // Routed now, handled and listed by the tickets that own them.
-  { id: 'query', keys: 'I', device: 'keyboard', scope: 'map', does: () => 'Ask what is here.', listed: false, match: input => (isLetter(input, 'i') ? { type: 'query' } : null) },
   { id: 'mark', keys: 'M', device: 'keyboard', scope: 'map', does: () => 'Mark this moment.', listed: false, match: input => (isLetter(input, 'm') ? { type: 'mark' } : null) },
   { id: 'find', keys: 'F', device: 'keyboard', scope: 'map', does: () => 'Start or stop the find game.', listed: false, match: input => (isLetter(input, 'f') ? { type: 'find', command: 'toggle' } : null) },
   { id: 'follow-toggle', keys: 'H', device: 'keyboard', scope: 'map', does: () => 'Follow a hot spot through time.', listed: false, match: input => (isLetter(input, 'h') ? { type: 'follow', step: 'toggle' } : null) },
@@ -106,7 +107,7 @@ export const SHORTCUTS: readonly Shortcut[] = [
   { id: 'pad-stick', keys: 'Left stick', device: 'gamepad', scope: 'map', does: () => `Move over the map, ${STICK_CELLS_PER_S} places a second.`, match: never },
   ...GAMEPAD_BINDINGS.map((binding): Shortcut => ({
     id: `pad-${binding.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`, keys: binding.name, device: 'gamepad', scope: 'listen', does: () => binding.does, match: never,
-    listed: ['move', 'scrubTime', 'transport', 'stopSpeech', 'lock', 'replayPlace', 'undo'].includes(binding.press.type),
+    listed: ['move', 'scrubTime', 'transport', 'stopSpeech', 'lock', 'replayPlace', 'undo', 'query'].includes(binding.press.type),
   })),
 ]
 
