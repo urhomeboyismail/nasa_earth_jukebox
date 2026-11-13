@@ -2,6 +2,8 @@ import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
+import motionManifest from '../../../public/data/synthetic-motion/manifest.json'
+import { visualizationSchema } from '../../data/schema'
 import { subscribeContext, type ContextUpdate } from '../../assistant/context'
 import { variableWords, type Visualization } from '../../data'
 import { expectNoA11yViolations } from '../../test/a11y'
@@ -75,7 +77,22 @@ const fake = vi.hoisted(() => {
 vi.mock('../../audio', () => ({ createSoundEngine: () => fake }))
 
 const analyzeAll = vi.hoisted(() => vi.fn())
-vi.mock('../../analysis', () => ({ analyzeAll }))
+// IX03: the sound map reads a grid of each date, and its ensemble is a recording stand-in (as in Explorer.test.tsx).
+const analyzeGrid = vi.hoisted(() => vi.fn())
+vi.mock('../../analysis', () => ({ analyzeAll, analyzeGrid }))
+const ensemble = vi.hoisted(() => ({
+  hold: vi.fn(), playNotes: vi.fn(), playDropout: vi.fn(), now: vi.fn(() => 0), status: vi.fn(() => 'on' as const), start: vi.fn(async () => {}), setDetail: vi.fn(),
+}))
+vi.mock('../../audio/ensemble/useEnsemble', () => ({ useEnsemble: () => ({ ensemble, status: 'on', start: ensemble.start }) }))
+// Following a hot spot reads each date's picture; here from the files on disk (jsdom cannot decode an image).
+vi.mock('../../analysis/video/input', async importOriginal => {
+  const { readFileSync } = await import('node:fs')
+  const { decodePng } = await import('../../analysis/png')
+  return {
+    ...(await importOriginal<typeof import('../../analysis/video/input')>()),
+    defaultLoadPixels: async (url: string) => decodePng(readFileSync(`public/data/synthetic-motion/${url}`)),
+  }
+})
 
 const analysis = () => visualization.frames.map((frame, i) => ({ frameId: frame.id, regionId: 'centre', sampled: 9, valid: 9, category: CATEGORIES[i] }))
 
@@ -1030,5 +1047,49 @@ describe('Player: how often the live region changes (T93)', () => {
     } finally {
       localStorage.clear()
     }
+  })
+})
+
+describe('Player: following a hot spot (IX03)', () => {
+  const motion = visualizationSchema.parse(motionManifest)
+  const COLS = 24
+  const ROWS = 12
+  const motionGrid = (frameId: string) => ({ frameId, cols: COLS, rows: ROWS, area: { x0: 0, y0: 0, x1: 1, y1: 1 }, cells: Array.from({ length: COLS * ROWS }, () => ({ value: 14, category: 'mild' })) })
+
+  beforeEach(() => {
+    localStorage.setItem('earth-jukebox:listen-mode', 'simple')
+    analyzeAll.mockImplementation(async () => motion.frames.map(frame => ({ frameId: frame.id, regionId: 'open-sea', sampled: 9, valid: 9, category: 'mild' })))
+    analyzeGrid.mockReset()
+    analyzeGrid.mockImplementation(async (frame: { id: string }) => motionGrid(frame.id))
+    ensemble.playNotes.mockClear()
+  })
+  afterEach(() => localStorage.clear())
+
+  it('follows a hot spot with H on the sound map, steps the dates with its note, and stops when Play takes the sound back', async () => {
+    const user = setup()
+    const { container } = render(<PlayerPage visualization={motion} />, { wrapper: AnnouncerProvider })
+    await tick(0)
+    await user.click(screen.getByRole('button', { name: 'Explore the map' }))
+    await tick(0)
+    const date = () => screen.getByRole('slider', { name: 'Date' })
+    expect(date()).toHaveValue('0')
+    await user.keyboard('h')
+    await vi.waitFor(() => expect(screen.getByText(/^Following hot spot h\d+\.$/)).toBeInTheDocument())
+    expect(ensemble.playNotes).toHaveBeenCalledTimes(1)
+    await tick(600)
+    expect(date()).toHaveValue('1')
+    expect(ensemble.playNotes).toHaveBeenCalledTimes(2)
+    // The shortcut list names the keys now that something handles them.
+    expect(listedShortcuts().map(shortcut => shortcut.keys)).toEqual(expect.arrayContaining(['H', '[', ']']))
+    vi.useRealTimers()
+    await expectNoA11yViolations(container)
+    vi.useFakeTimers({ shouldAdvanceTime: false })
+
+    await user.click(screen.getByRole('button', { name: 'Play' }))
+    await tick(0)
+    expect(screen.queryByText(/^Following hot spot/)).toBeNull()
+    const notes = ensemble.playNotes.mock.calls.length
+    await tick(600 * 3)
+    expect(ensemble.playNotes).toHaveBeenCalledTimes(notes)
   })
 })

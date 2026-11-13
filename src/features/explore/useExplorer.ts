@@ -233,7 +233,13 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
    * Moves the cursor and plays the cell: a sound, never a sentence. With the continuous tone on, a pointer holds the tone while it stays and anything
    * else (keys, sliders) holds it briefly; the one-note sound is not played. A move by key can be taken back (undo).
    */
-  const moveTo = useCallback((col: number, row: number, by: 'key' | 'pointer' | 'slider' = 'key') => {
+  const moveTo = useCallback((col: number, row: number, by: 'key' | 'pointer' | 'slider' | 'follow' = 'key') => {
+    // IX03: following a hot spot moves the cursor in silence (the spot's own note is the sound), with no undo step, and also while a new date's map is being read.
+    if (by === 'follow') {
+      if (locked) return
+      place(grid ? { col: Math.min(grid.cols - 1, Math.max(0, col)), row: Math.min(grid.rows - 1, Math.max(0, row)) } : { col, row })
+      return
+    }
     if (!grid || locked) return
     const next = { col: Math.min(grid.cols - 1, Math.max(0, col)), row: Math.min(grid.rows - 1, Math.max(0, row)) }
     const before = cursorRef.current
@@ -543,5 +549,7 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     probeSettings,
     /** IX02: the last "What's here?" answer, and the "Words for What's here" choice. */
     whatsHere, verbosity, setVerbosity,
+    /** IX03: the map's ensemble, so a followed hot spot sounds through the same graph (one ensemble per page, not two). */
+    ensemble,
   }
 }
