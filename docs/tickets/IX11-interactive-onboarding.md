@@ -99,4 +99,24 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Built on `feature/IX11-interactive-onboarding` (agent C, 2026-11-13).
+
+Files: `src/features/onboarding/` (`steps.ts`, `store.ts`, `useOnboarding.ts`, `OnboardingPanel.tsx` and four test files), a one-line import and call in `src/features/welcome/Welcome.tsx`, and in `src/features/player/index.tsx` the hook, the panel and one line telling the game of a date-slider change. Tests added: `steps.test.ts`, `store.test.ts`, `OnboardingPanel.test.tsx`, and three in `player.test.tsx`.
+
+Decisions that differ from, or fill a gap in, the ticket text:
+
+- **Step 4 does not name Alt.** Alt+Left and Alt+Right are not routed yet (IX01 left them to IX06; Alt+Left is the browser's Back), so the prompt says "move the Date slider" instead, which works today. The step is met by a `lock` and then any `scrubTime` while locked (L again unlocks, as on the map). The date slider is not an action, so the player tells the game of a slider change with one line. Posted on `docs/AGENT-BOARD.md` for IX06.
+- **IX04 has no "target found" callback**, and `useFindGame.ts` is not in this ticket's Touches. The game reads `find.game.status` and treats a change to `found` as the event, so IX04 is untouched.
+- **A move counts only if it lands on another place** (`landsOnAnotherPlace`), so a press against the map's edge teaches nothing and is not counted. Nothing counts while the sound map is off, and the panel then says to press "Explore the map" first.
+- **Find step wording** uses the data set's own word (`variableWords(...).highest`) instead of "warmest".
+- **Only the Simple Listen mode has the sound map**, so the panel appears there (where `Player` mounts the explorer). A data set that opens in Symphony mode does not show it until the listener chooses Simple.
+- **Welcome:** "Just play me something" clears the stored flag (`resetOnboarding()`), so the game is offered when Listen opens, and it still starts the music as before.
+
+Checks (run in `../nasa-c`):
+
+```
+npm run lint   -> oxlint, exit 0
+npm test       -> Test Files 164 passed (164), Tests 2562 passed (2562), exit 0
+npm run build  -> built in 1.33s, exit 0
+```
+
