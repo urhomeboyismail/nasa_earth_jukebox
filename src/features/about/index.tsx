@@ -1,5 +1,5 @@
 import { Card, Legend } from '../../components'
-import { variableWords, type Visualization } from '../../data'
+import { primaryRegion, variableWords, type Visualization } from '../../data'
 import { dateFormatterFor, formatDate } from '../../dates'
 import { presetFor } from '../../sonify'
 import { PlaylistPanel } from '../playlist/PlaylistPanel'
@@ -17,8 +17,8 @@ export default function AboutPage({ visualization }: PageProps) {
 
 /** Everything on this page is read from the visualization's manifest, so it can never disagree with the data. */
 function About({ visualization }: { visualization: Visualization }) {
-  const { variable, source, frames, regions, colorScale, mapping } = visualization
-  const region = regions[0]
+  const { variable, source, frames, colorScale, mapping } = visualization
+  const region = primaryRegion(visualization)
   const dates = frames.map(frame => frame.date).sort()
   const formatFrameDate = dateFormatterFor(dates)
   const missing = frames.filter(frame => frame.note)

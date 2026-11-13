@@ -12,7 +12,7 @@ import { styleFor, useSoundStyle, type SoundStyle } from '../../audio/style'
 import { useSoundEngine } from '../../audio/useSoundEngine'
 import { voicingFor } from '../../audio/voicing'
 import { useAnnounce } from '../../components/useAnnounce'
-import { variableWords, type Region, type SoundMapping, type Visualization } from '../../data'
+import { primaryRegion, variableWords, type Region, type SoundMapping, type Visualization } from '../../data'
 import { dateFormatterFor } from '../../dates'
 import { categoryChanged, describeContour, describeHidden, playerDateLine, playerStopLine, withUnit, type DateParts, type StopKind } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
@@ -55,8 +55,8 @@ export function usePlayer(
   /** F40: where a link opened the page. Both are already checked against this data set; null means "as usual". */
   start?: { index: number | null; style: SoundStyle | null },
 ) {
-  const { frames, regions, mapping } = visualization
-  const region = regions[0]
+  const { frames, mapping } = visualization
+  const region = primaryRegion(visualization)
   const announce = useAnnounce()
   const [detail] = useDescriptionDetail()
   const formatDate = useMemo(() => dateFormatterFor(frames.map(frame => frame.date)), [frames])

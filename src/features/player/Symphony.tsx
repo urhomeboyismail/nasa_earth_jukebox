@@ -4,7 +4,7 @@ import { useKeyboard } from '../../interaction/useInput'
 import { HotspotMarkers } from '../../components/HotspotMarkers'
 import { hotspotMarkers } from '../../describe/markers'
 import { dateFormatterFor } from '../../dates'
-import type { Frame, Visualization } from '../../data'
+import { primaryRegion, type Frame, type Visualization } from '../../data'
 import type { Preset } from '../../sonify/types'
 import { DetailControl } from './DetailControl'
 import { LayerCaptions } from './LayerCaptions'
@@ -45,7 +45,7 @@ export function Symphony({ visualization, preset }: { visualization: Visualizati
   const features = symphony.latest?.features ?? null
   useEventAnnouncer(features, visualization)
   const markers = useMemo(() => (features ? hotspotMarkers(features, visualization) : []), [features, visualization])
-  const { frames, regions, source } = visualization
+  const { frames, source } = visualization
   const format = dateFormatterFor(frames.map(frame => frame.date))
   const date = symphony.latest?.date ?? frames[0].date
   const frame = frameAt(frames, date)
@@ -68,7 +68,7 @@ export function Symphony({ visualization, preset }: { visualization: Visualizati
 
   return (
     <section className="player symphony" aria-label="Symphony" onKeyDown={onKeyDown}>
-      <Viewer frame={frame} dateText={format(date)} region={regions[0]} source={source}>
+      <Viewer frame={frame} dateText={format(date)} region={primaryRegion(visualization)} source={source}>
         {/* Always present, because the live source needs an element to be made. Without a video it has no source, stays hidden, and the source steps the checked frames instead. */}
         <video
           ref={setVideo}

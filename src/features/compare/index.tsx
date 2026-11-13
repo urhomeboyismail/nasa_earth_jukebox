@@ -7,7 +7,7 @@ import { voicingFor } from '../../audio/voicing'
 import { useAssistantContext } from '../../assistant/context'
 import { Button, Card, LoadingIndicator, Notice } from '../../components'
 import { useAnnounce } from '../../components/useAnnounce'
-import { higherPhrase, variableWords, type Visualization } from '../../data'
+import { higherPhrase, primaryRegion, variableWords, type Visualization } from '../../data'
 import { describeFrame } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
 import { dateFormatterFor } from '../../dates'
@@ -29,7 +29,7 @@ export default function ComparePage({ visualization, testMode = false }: PagePro
 }
 
 function Compare({ visualization }: { visualization: Visualization }) {
-  const { frames, comparisons, regions, mapping } = visualization
+  const { frames, comparisons, mapping } = visualization
   const words = variableWords(visualization.variable)
   const announce = useAnnounce()
   const changeAvailable = hasChange(visualization)
@@ -45,7 +45,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
   const { engine, engineError } = useSoundEngine(mapping)
 
   // With a baseline each result also carries its change step.
-  const { results, error: analysisError } = useFrameAnalysis(visualization, regions[0], { withChange: changeAvailable })
+  const { results, error: analysisError } = useFrameAnalysis(visualization, primaryRegion(visualization), { withChange: changeAvailable })
 
   const [chosenStyle, setSoundStyle] = useSoundStyle()
   // A remembered "change" is not used for a data set with no baseline.

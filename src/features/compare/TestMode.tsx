@@ -11,7 +11,7 @@ import { useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
 import { useAssistantContext } from '../../assistant/context'
 import { Button, Card, Notice } from '../../components'
-import { variableWords, type Comparison, type Visualization } from '../../data'
+import { primaryRegion, variableWords, type Comparison, type Visualization } from '../../data'
 import { dateFormatterFor } from '../../dates'
 import { StudyClient, type Participant, type StudyStatus } from './studyClient'
 
@@ -35,7 +35,7 @@ const CONFIDENCE = [
 ]
 
 export default function TestMode({ visualization, client: given }: { visualization: Visualization; client?: StudyClient }) {
-  const { comparisons, regions, mapping } = visualization
+  const { comparisons, mapping } = visualization
   const words = variableWords(visualization.variable)
   const client = useMemo(() => given ?? new StudyClient(), [given])
   const [status, setStatus] = useState<StudyStatus>(() => client.status)
@@ -56,7 +56,7 @@ export default function TestMode({ visualization, client: given }: { visualizati
 
   // Sound: the same engine and analysis as the Compare page.
   const { engine, engineError } = useSoundEngine(mapping)
-  const { results, error: analysisError } = useFrameAnalysis(visualization, regions[0])
+  const { results, error: analysisError } = useFrameAnalysis(visualization, primaryRegion(visualization))
   const [soundStyle] = useSoundStyle()
   // The listening test plays full or simple only, until the 13 Nov decision on the "change" style (docs/PLAN.md §6.2).
   useEffect(() => { engine?.setStyle(soundStyle === 'change' ? 'full' : soundStyle) }, [engine, soundStyle])

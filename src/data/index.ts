@@ -8,6 +8,7 @@ export { DEFAULT_WORDS, higherPhrase, variableWords } from './words'
 export { DETAIL_LEVELS, PRESET_IDS, VOICE_IDS, legendOf } from './sonification'
 export type { DetailLevel, LegendKind, PresetId, VoiceId } from './sonification'
 export { dateOfVideoFrame, videoFrameOf } from './video'
+export { primaryRegion, regionFor } from './regions'
 export { playerUpdate, storedWelcome, studyCreated } from './boundaries'
 
 /** Content data could not be loaded or is not valid. The message names the file. */
