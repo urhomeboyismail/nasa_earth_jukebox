@@ -10,7 +10,7 @@ import { LOW_CONFIDENCE, type SequenceSpeed } from '../../analysis/video/clock'
 import type { LiveFrame, SourceStatus } from '../../analysis/video/types'
 import { useLiveSource } from '../../analysis/video/useLiveSource'
 import { SCHEDULE_LOOKAHEAD_S } from '../../audio/ensemble/constants'
-import type { EnsembleStatus } from '../../audio/ensemble/types'
+import type { Ensemble, EnsembleStatus } from '../../audio/ensemble/types'
 import { useEnsemble } from '../../audio/ensemble/useEnsemble'
 import { useAnnounce } from '../../components'
 import { VOICE_IDS, type DetailLevel, type Visualization, type VoiceId } from '../../data'
@@ -68,6 +68,10 @@ export type Symphony = {
   setSpeed: (speed: SequenceSpeed) => void
   toggleMute: (voice: VoiceId) => void
   toggleSolo: (voice: VoiceId) => void
+  /** Sets every voice's mute and the solo at once (My mix, and undo of a keyboard change). A voice the manifest leaves out stays silent. */
+  setMix: (muted: ReadonlySet<VoiceId>, solo: VoiceId | null) => void
+  /** The ensemble, so a keyboard change can sound its one note. */
+  ensemble: Pick<Ensemble, 'playNotes' | 'status'>
 }
 
 /** One plain sentence on what is being read and how sure the reading is. */
@@ -194,6 +198,15 @@ export function useSymphony(visualization: Visualization, video: HTMLVideoElemen
     setSolo(next)
   }, [ensemble, solo])
 
+  const setMix = useCallback((nextMuted: ReadonlySet<VoiceId>, nextSolo: VoiceId | null) => {
+    const kept = new Set([...nextMuted].filter(voice => allowed.includes(voice)))
+    for (const voice of allowed) ensemble.mute(voice, kept.has(voice))
+    const soloVoice = nextSolo !== null && allowed.includes(nextSolo) ? nextSolo : null
+    ensemble.solo(soloVoice)
+    setMuted(kept)
+    setSolo(soloVoice)
+  }, [ensemble, allowed])
+
   const button: ButtonKind = ensembleStatus === 'on' ? 'pause' : ensembleStatus === 'paused' ? 'resume' : ensembleStatus === 'suspended' ? 'sound' : 'play'
 
   return {
@@ -214,5 +227,7 @@ export function useSymphony(visualization: Visualization, video: HTMLVideoElemen
     setSpeed,
     toggleMute,
     toggleSolo,
+    setMix,
+    ensemble,
   }
 }
