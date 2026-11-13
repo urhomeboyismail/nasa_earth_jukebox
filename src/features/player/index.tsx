@@ -14,6 +14,7 @@ import { useExplorer } from '../explore/useExplorer'
 import { useFollow } from '../follow/useFollow'
 import { FindPanel } from '../find/FindPanel'
 import { useFindGame } from '../find/useFindGame'
+import { MarksPanel } from '../marks/MarksPanel'
 import { OnboardingPanel } from '../onboarding/OnboardingPanel'
 import { useOnboarding } from '../onboarding/useOnboarding'
 import { PredictPanel } from '../predict/PredictPanel'
@@ -225,6 +226,7 @@ function Player({ visualization }: { visualization: Visualization }) {
       <FindPanel find={find} />
       <PredictPanel predict={predict} index={player.index} />
       <OnboardingPanel onboarding={onboarding} />
+      <MarksPanel visualization={visualization} index={player.index} cursor={moment.cell} grid={explorer.grid} formatDate={player.formatDate} style={player.style} />
 
       {player.results && <Description visualization={visualization} results={player.results} index={player.index} />}
       {player.style === 'change' && player.score && (
