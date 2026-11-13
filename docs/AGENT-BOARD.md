@@ -178,3 +178,13 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: (a) add `src/interaction/` to the §4 table, owner Mohammad? (b) add an `Action` entry to §5 pointing at `src/interaction/actions.ts`, with the rule that another ticket adds a member only when it needs one and says so in its Touches?
 - Answer:
 - Recorded in: nowhere needed
+
+### R-20261113-IX02-1: Level 2 of "What's here?" repeats level 1; may `src/describe/` get a neighbours sentence?
+- From: IX02 (agent D, 13 Nov)
+- To: Roni (owner of `src/describe/`, `docs/PLAN.md` §5.8)
+- Needed by: nothing blocks; IX02 ships with level 2 as its ticket says
+- Status: open
+- Context: IX02 (`src/features/explore/whatsHere.ts`) answers `I` with `describeCell` (level 1) and a second `I` within 4 s with `describePlace` (level 2), because SN10's hot-spot sentences need a frame's `FrameFeatures`, which the sound map does not read. With the default detail (`rich`), level 1 already ends "north-east (column 19 of 24, row 3 of 11)", so level 2 ("North-east, column 19, row 3.") adds nothing, and the "Full" setting, which starts at level 2, says less than "Brief".
+- Question: may a follow-up ticket add `describeNeighbours(visualization, grid, col, row, options)` to `src/describe/index.ts` (the four neighbours by direction in the data set's words, for example "North: cool, about 14 °C. East: warm, about 21 °C. …") and make level 2 `describePlace` plus that? (a) yes, as described; (b) yes, with other words (say which); (c) no, keep level 2 as it is.
+- Answer:
+- Recorded in: `docs/tickets/IX02-whats-here.md` (Result)

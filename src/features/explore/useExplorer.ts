@@ -17,9 +17,20 @@ import { recordUndo, undoLast } from '../../interaction/history'
 import { positionOfValue } from '../../interaction/notes'
 import { useActionHandler } from '../../interaction/registry'
 import { listedShortcuts } from '../../interaction/shortcuts'
+import { registerSpeechStopper } from '../../interaction/speech'
 import { useKeyboard, usePointerInput } from '../../interaction/useInput'
 import { vibrateForDate } from '../player/vibration'
 import { createProbeAudio, useProbeSettings, type ProbeAudio } from './probeAudio'
+import { VERBOSITY_KEY, nextLevel, parseVerbosity, whatsHereText, type LastQuery, type Verbosity } from './whatsHere'
+
+/** IX02: the stored "Words for What's here". Blocked storage gives "brief", and the choice then holds only while the page is open. */
+function readVerbosity(): Verbosity {
+  try { return parseVerbosity(localStorage.getItem(VERBOSITY_KEY)) } catch { return 'brief' }
+}
+
+function saveVerbosity(verbosity: Verbosity) {
+  try { localStorage.setItem(VERBOSITY_KEY, verbosity) } catch { /* Not kept for next time; it still holds for this visit. */ }
+}
 
 /** One cell of a sweep per step. */
 const SWEEP_STEP_MS = 250
@@ -105,6 +116,13 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   /** A locked place is playing across the dates. The date moves under it, which must not stop it the way a new date stops a sweep. */
   const scrubbing = useRef(false)
   const cursorRef = useRef(cursor)
+  /** IX02: the answer to the last "What's here?", shown under the map until the next one, and how many words a first question gets. */
+  const [whatsHere, setWhatsHere] = useState('')
+  const [verbosity, setVerbosityState] = useState<Verbosity>(readVerbosity)
+  /** The last question, for the 4 s rule. Escape forgets it, so the next question starts again. */
+  const lastQuery = useRef<LastQuery | null>(null)
+  /** A long press asked a question: lifting that finger must not then say the cell over the answer. */
+  const queriedThisPress = useRef(false)
   /** Sets the cursor everywhere at once, so a second key pressed before the next render still starts from the right cell. */
   const place = useCallback((next: Cursor) => { cursorRef.current = next; setCursor(next) }, [])
 
@@ -152,6 +170,12 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   }, [on, frame, colorScale, mapping, visualization, clearTimers, place, stopSweep])
 
   useEffect(() => clearTimers, [clearTimers])
+
+  // IX02: Escape (IX01's stopSpeech) also drops a sentence the map was about to say, and the question in progress.
+  useEffect(() => registerSpeechStopper(() => {
+    window.clearTimeout(announceTimer.current)
+    lastQuery.current = null
+  }), [])
 
   const cellAt = useCallback((col: number, row: number) => grid?.cells[row * grid.cols + col], [grid])
   /** The middle of a column as a fraction of the whole image (not just of the map), so the pan matches the picture. */
@@ -395,9 +419,16 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     setOn(false)
     setRead(null)
     setLocked(false)
+    setWhatsHere('')
+    lastQuery.current = null
     placed.current = false
     stopSound()
   }, [stopSound])
+
+  const setVerbosity = useCallback((next: Verbosity) => {
+    saveVerbosity(next)
+    setVerbosityState(next)
+  }, [])
 
   // IX01: every key, tap and gamepad button on the map arrives as an action (src/interaction/). These are the handlers for the ones the map answers.
   // The handlers run in the press itself, which is also what starts the audio.
@@ -412,6 +443,7 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     if (!on || !grid) return
     const { col, row } = cursorRef.current
     if (action.via === 'pointer') {
+      queriedThisPress.current = false
       begin()
       moveTo(action.col ?? col, action.row ?? row, 'pointer')
       wake()
@@ -448,6 +480,19 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     if (!on) return
     undoLast()
   })
+  // IX02: I, a long press, a right click or gamepad X. Words, never sound: level 1 says what the place shows, a second question within 4 s where it is.
+  useActionHandler('query', () => {
+    if (!on || !grid) return
+    const now = Date.now()
+    const level = nextLevel(lastQuery.current, now, verbosity)
+    lastQuery.current = { at: now, level }
+    window.clearTimeout(announceTimer.current)
+    queriedThisPress.current = true
+    const { col, row } = cursorRef.current
+    const text = whatsHereText(visualization, grid, col, row, level, detail)
+    setWhatsHere(text)
+    announce(text)
+  })
 
   /** The keys of the sound map: the 'map' scope of the shortcut list. */
   const onKeyDown = useKeyboard(MAP_SCOPES)
@@ -467,7 +512,8 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     hover: probe !== null,
     onRelease: () => {
       probe?.leave()
-      announceCell(cursorRef.current, 0)
+      if (queriedThisPress.current) queriedThisPress.current = false
+      else announceCell(cursorRef.current, 0)
     },
     onLeave: () => probe?.leave(),
   })
@@ -484,5 +530,7 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     turnOn, turnOff, openAt, moveTo, sweep, stopSound, lock, unlock, playLockedAt, playAcrossDates, onKeyDown, ...pointer, cellAt, instructions,
     /** SN09: the "Continuous tone" and "Slope cue" choices. */
     probeSettings,
+    /** IX02: the last "What's here?" answer, and the "Words for What's here" choice. */
+    whatsHere, verbosity, setVerbosity,
   }
 }

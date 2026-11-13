@@ -97,4 +97,49 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Built by agent D on `feature/IX02-whats-here`, 13 Nov 2026, from `main` at `7ad1e64`.
+
+**What changed**
+
+- `src/features/explore/whatsHere.ts` (new, pure): `QUERY_REPEAT_MS` (4000), `startLevel(verbosity)`, `nextLevel(previous, now, verbosity)`, `parseVerbosity`, and `whatsHereText`. Level 1 is `describeCell(…, { detail })`. Level 2 is `describePlace` as a sentence ("North-east, column 5, row 1."). A second question within 4 s of the last gets level 2, and after that the next question starts again. A clock that went backwards also starts again.
+- `src/features/explore/useExplorer.ts`: a `query` handler. It does nothing with the explorer off or the map not read, and makes no sound. It announces the text through `useAnnounce` and keeps it for the panel. A speech stopper (`registerSpeechStopper`) clears `announceTimer` and forgets the last question, so after Escape the next `I` is level 1 again. "Words for What's here" is stored under `earth-jukebox:verbosity`; blocked storage gives Brief. Turning the explorer off clears the answer.
+- **Long press fix:** lifting the finger after a long press used to announce the cell (`onRelease`). That would say the plain sentence over the answer, and over level 2. The release is now silent when that press asked the question. A plain press and lift still says the cell, as before.
+- `src/features/explore/Explorer.tsx`: the answer in a `<p class="explorer__here">` at the top of the panel, under the map. It is not a live region, because the announcer already says it. Below it, a `ButtonGroup` radio group "Words for What's here" (Brief, Full).
+- **Outside Touches, as IX01 asks:** `src/interaction/shortcuts.ts:4` says the ticket that handles a routed key flips it to listed. So `I` and gamepad X are now listed: they show in the shortcuts dialog and in the map's instructions ("I: Ask what is here."). In `shortcuts.test.ts`, `query` and `pad-x` move from the "later" list to the listed one. That's three one-line changes.
+
+**Level 2, built as written.** SN10's hot-spot sentences (`hotspotMarkers`) need a frame's `FrameFeatures`, which the sound map does not read, so level 2 is `describePlace` alone, as the ticket's fallback says. With the default detail, level 1 already gives the column and row, so level 2 adds nothing, and "Full" says less than "Brief". Asked on the board: R-20261113-IX02-1 (a neighbours sentence in `src/describe/`, for Roni).
+
+**Tests:** `whatsHere.test.ts` (13): first question, within 4 s, after 4 s, the clock going backwards, full, parsing, and the words at both levels. `Explorer.test.tsx` (10 new):
+- `I` says and shows level 1, and a second `I` gives level 2, with no sound.
+- After 4 s it is level 1 again.
+- It answers for the cursor's place, and arrows still say nothing.
+- Escape forgets the question.
+- With the explorer off (never on, or turned off) nothing happens.
+- The query action, as gamepad X sends it, is answered.
+- A long press answers, and the lift does not overwrite the answer. A right click answers, and a second one gives level 2.
+- Full starts at level 2 and survives a remount.
+- Blocked storage gives Brief.
+- `I` is in the instructions, and there are no a11y violations with the answer and the radio group shown.
+
+With the release guard removed, the long-press test fails ("January 2024. Cold, …" over the answer).
+
+**Checks.** On this laptop the default `npm test` (8 vmThreads workers) runs out of memory (about 650 MB free), so the suite ran as `npx vitest run --pool=forks --maxWorkers=1`. Same tests, one process.
+
+```
+$ npm run lint
+> moon-heist@0.0.0 lint
+> oxlint
+(exit 0)
+
+$ npx vitest run --pool=forks --maxWorkers=1
+ Test Files  152 passed (152)
+      Tests  2407 passed (2407)
+   Duration  532.89s
+
+$ npm run build
+✓ built in 1.25s
+
+$ npx vitest run src/features/explore src/interaction --pool=forks --maxWorkers=1
+ Test Files  15 passed (15)
+      Tests  216 passed (216)
+```

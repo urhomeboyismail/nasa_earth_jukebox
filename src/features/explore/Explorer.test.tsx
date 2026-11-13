@@ -7,10 +7,10 @@ import { elevationForPoint, panForPoint } from '../../audio/pan'
 import type { ActionType } from '../../interaction/actions'
 import { noteForPosition, positionOfValue } from '../../interaction/notes'
 import { resetUndo } from '../../interaction/history'
-import { addActionHandler } from '../../interaction/registry'
+import { addActionHandler, dispatch } from '../../interaction/registry'
 import { PRESETS } from '../../sonify/presets'
 import type { Visualization } from '../../data'
-import { describeCell, describeSweep, explorerMessage, sweepEndMessage } from '../../describe'
+import { describeCell, describePlace, describeSweep, explorerMessage, sweepEndMessage } from '../../describe'
 import { expectNoA11yViolations } from '../../test/a11y'
 import PlayerPage from '../player'
 import { AnnouncerProvider } from '../../components'
@@ -720,6 +720,137 @@ describe('Explorer: pointer and touch', () => {
     fireEvent.pointerUp(surface(), { pointerId: 2 })
     expect(asked).toEqual(['query', 'query', 'stopSpeech'])
     off.forEach(stop => stop())
+  })
+})
+
+describe("Explorer: What's here? (IX02)", () => {
+  /** Level 1: what the place shows. Level 2: where it is. */
+  const level1 = (col: number, row: number) => describeCell(visualization, grid, col, row)
+  const level2 = (col: number, row: number) => {
+    const place = describePlace(grid, col, row)
+    return `${place.charAt(0).toUpperCase()}${place.slice(1)}.`
+  }
+  const shown = () => document.querySelector('.explorer__here')?.textContent ?? null
+  const brief = () => screen.getByRole('radio', { name: 'Brief' })
+  const full = () => screen.getByRole('radio', { name: 'Full' })
+
+  it('says and shows what is here on I, and where it is on a second I within 4 s, with no sound', async () => {
+    const { user } = await exploring()
+    expect(shown()).toBeNull()
+    const sounds = soundsHeard()
+    await user.keyboard('i')
+    expect(liveText()).toBe(level1(START.col, START.row))
+    expect(shown()).toBe(level1(START.col, START.row))
+    await tick(3000)
+    await user.keyboard('i')
+    expect(liveText()).toBe(level2(START.col, START.row))
+    expect(shown()).toBe(level2(START.col, START.row))
+    expect(soundsHeard()).toBe(sounds)
+    expect(engine.playCategory).not.toHaveBeenCalled()
+  })
+
+  it('starts again at level 1 after 4 s', async () => {
+    const { user } = await exploring()
+    await user.keyboard('i')
+    await tick(4000)
+    await user.keyboard('i')
+    expect(liveText()).toBe(level1(START.col, START.row))
+  })
+
+  it('answers for the place the cursor is on now, and arrow moves still say nothing', async () => {
+    const { user } = await exploring()
+    await user.keyboard('i')
+    await user.keyboard('{ArrowRight}')
+    await tick(2000)
+    expect(liveText()).toBe(level1(START.col, START.row))
+    await tick(4000)
+    await user.keyboard('i')
+    expect(liveText()).toBe(level1(START.col + 1, START.row))
+  })
+
+  it('forgets the question on Escape, so the next I starts again at level 1', async () => {
+    const { user } = await exploring()
+    await user.keyboard('i')
+    await user.keyboard('{Escape}')
+    await user.keyboard('i')
+    expect(liveText()).toBe(level1(START.col, START.row))
+    expect(shown()).toBe(level1(START.col, START.row))
+  })
+
+  it('does nothing with the explorer off', async () => {
+    const user = userEvent.setup({ delay: null })
+    render(<PlayerPage visualization={visualization} />, { wrapper: AnnouncerProvider })
+    await tick(0)
+    act(() => { dispatch({ type: 'query' }) })
+    expect(liveText()).toBe('')
+    expect(soundsHeard()).toBe(0)
+    await user.click(screen.getByRole('button', { name: 'Explore the map' }))
+    await tick(0)
+    await user.keyboard('i')
+    await user.click(screen.getByRole('button', { name: 'Explore the map' }))
+    const said = liveText()
+    act(() => { dispatch({ type: 'query' }) })
+    expect(liveText()).toBe(said)
+    expect(shown()).toBeNull()
+  })
+
+  it('answers gamepad X and the other ways of asking, all through the query action', async () => {
+    await exploring()
+    act(() => { dispatch({ type: 'query' }) })
+    expect(liveText()).toBe(level1(START.col, START.row))
+  })
+
+  it('answers a long press on a cell, and lifting the finger does not say the cell over the answer', async () => {
+    await exploring()
+    sizedSurface()
+    const at = { clientX: 3 * 10 + 5, clientY: 2 * 10 + 5, pointerId: 1 }
+    fireEvent.pointerDown(surface(), at)
+    await tick(500)
+    expect(liveText()).toBe(level1(3, 2))
+    fireEvent.pointerUp(surface(), at)
+    expect(liveText()).toBe(level1(3, 2))
+    // A plain press and lift after that says the cell again, as before (the map's first message of its own, so it starts with the date).
+    await tick(4000)
+    fireEvent.pointerDown(surface(), at)
+    fireEvent.pointerUp(surface(), at)
+    expect(liveText()).toBe(first(level1(3, 2)))
+    fireEvent.contextMenu(surface())
+    expect(liveText()).toBe(level1(3, 2))
+    fireEvent.contextMenu(surface())
+    expect(liveText()).toBe(level2(3, 2))
+  })
+
+  it('starts at level 2 with Full, and keeps the choice after a remount', async () => {
+    const { user, unmount } = await exploring()
+    expect(brief()).toBeChecked()
+    await user.click(full())
+    expect(localStorage.getItem('earth-jukebox:verbosity')).toBe('full')
+    surface().focus()
+    await user.keyboard('i')
+    expect(liveText()).toBe(level2(START.col, START.row))
+    unmount()
+    const again = await exploring()
+    expect(full()).toBeChecked()
+    await again.user.keyboard('i')
+    expect(liveText()).toBe(level2(START.col, START.row))
+  })
+
+  it('falls back to Brief when storage is blocked', async () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('blocked') })
+    const { user } = await exploring()
+    expect(brief()).toBeChecked()
+    await user.keyboard('i')
+    expect(liveText()).toBe(level1(START.col, START.row))
+    vi.mocked(Storage.prototype.getItem).mockRestore()
+  })
+
+  it('lists I in the map instructions, and passes accessibility checks with the answer and the choice shown', async () => {
+    const { user, container } = await exploring()
+    expect(document.getElementById(surface().getAttribute('aria-describedby')!)).toHaveTextContent(/I: Ask what is here\./)
+    await user.keyboard('i')
+    expect(screen.getByRole('group', { name: "Words for What's here" })).toBeInTheDocument()
+    vi.useRealTimers()
+    await expectNoA11yViolations(container)
   })
 })
 
