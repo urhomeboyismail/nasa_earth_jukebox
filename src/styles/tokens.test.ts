@@ -34,6 +34,7 @@ const dark = { ...light, ...block(tokens, '@media (prefers-color-scheme: dark) {
 const lightHc = { ...light, ...block(tokens, '@media (prefers-contrast: more) {') }
 const darkHc = { ...dark, ...block(tokens, '@media (prefers-color-scheme: dark) and (prefers-contrast: more) {') }
 const aliases = block(index, ':root {')
+const display = readFileSync('src/styles/display.css', 'utf8')
 
 const schemes = { light, dark, 'light, high contrast': lightHc, 'dark, high contrast': darkHc }
 
@@ -152,5 +153,49 @@ describe('index.css', () => {
     expect(face).toContain("url('/fonts/RobotoFlex-latin.woff2') format('woff2')")
     expect(face).toContain('font-display: swap')
     for (const file of ['RobotoFlex-latin.woff2', 'OFL-RobotoFlex.txt']) expect(readFileSync(`public/fonts/${file}`).length, file).toBeGreaterThan(0)
+  })
+})
+
+// VIS2: the high-contrast display scheme is yellow and cyan on black, used only on black.
+describe('high-contrast display scheme (VIS2)', () => {
+  const scheme = block(display, ':root.display-high-contrast {')
+  const color = (name: string) => hex(scheme[`md-sys-color-${name}`])
+  const black = hex('#000000')
+
+  it('has white text on black at 4.5:1 or more (21:1)', () => {
+    expect(ratio(color('on-surface'), color('surface'))).toBeGreaterThanOrEqual(21)
+    expect(ratio(color('on-surface-variant'), color('surface'))).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('has the yellow focus ring and the cyan selected state at 3:1 or more on black', () => {
+    expect(ratio(color('secondary'), black)).toBeGreaterThanOrEqual(3)
+    expect(ratio(color('primary'), black)).toBeGreaterThanOrEqual(3)
+    expect(ratio(hex('#ffe600'), black)).toBeGreaterThanOrEqual(16)
+    expect(ratio(hex('#00ffff'), black)).toBeGreaterThanOrEqual(16)
+  })
+
+  it('reads on every surface and on a filled cyan button', () => {
+    for (const [text, surface] of [
+      ['on-surface', 'surface'], ['on-surface', 'surface-container-highest'], ['on-primary-container', 'primary-container'],
+      ['on-secondary-container', 'secondary-container'], ['on-error-container', 'error-container'], ['on-primary', 'primary'],
+    ]) expect(ratio(color(text), color(surface)), `${text} on ${surface}`).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('draws the borders white, 3 px or more', () => {
+    expect(ratio(color('outline'), black)).toBeGreaterThanOrEqual(3)
+    expect(display).toMatch(/border-width: 3px/)
+  })
+
+  it('never puts yellow or cyan on a light surface or on each other', () => {
+    const lightSurfaces = ['surface', 'surface-container', 'surface-container-highest', 'inverse-surface', 'primary-container', 'secondary-container'].map(name => [name, color(name)] as const)
+    for (const [name, rgb] of lightSurfaces) {
+      if (name === 'inverse-surface') continue // white, used only for its own dark text
+      expect(luminance(rgb), name).toBeLessThan(0.01)
+    }
+    expect(color('inverse-primary')).toEqual(black)
+    expect(scheme['md-sys-color-on-primary-container']).not.toBe(scheme['md-sys-color-secondary-container'])
+    // An accent never sits on the other accent: each accent's container is black.
+    expect(color('primary-container')).toEqual(black)
+    expect(color('secondary-container')).toEqual(black)
   })
 })

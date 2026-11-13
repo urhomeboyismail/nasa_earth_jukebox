@@ -3,6 +3,7 @@ import { AnnouncerProvider, DatasetPicker, LoadingIndicator, Notice } from './co
 import { Icon, type IconName } from './components/Icon'
 import { Sonny } from './components/Mascot'
 import { DataError, friendlyDataMessage, loadCatalog, loadVisualization, type CatalogEntry, type Visualization } from './data'
+import { DisplayButton, DisplaySettingsProvider } from './display/DisplaySettings'
 import { DemoControl } from './features/demo/DemoControl'
 import { HelpButton } from './features/help/HelpButton'
 import HomePage from './features/home'
@@ -200,6 +201,7 @@ function App() {
 
   return (
     <AnnouncerProvider>
+      <DisplaySettingsProvider>
       <MascotGuideProvider>
         {/* The hash holds the page, so the skip link moves focus itself instead of jumping to an anchor. */}
         <a className="app-skip" href={hashFor(page, { data: linkData })} onClick={event => { event.preventDefault(); heading.current?.focus() }}>
@@ -237,6 +239,7 @@ function App() {
               })}
             </ul>
           </nav>
+          <DisplayButton />
           <button ref={guideToggle} type="button" className="app-guide-toggle" aria-pressed={assistantOpen}
             aria-keyshortcuts="Alt+E" onClick={toggleGuide}>
             <Sonny size={32} className="app-guide-toggle__mascot" />
@@ -274,6 +277,7 @@ function App() {
             onTalk={() => setAssistantOpen(true)} />
         </Suspense>
       </MascotGuideProvider>
+      </DisplaySettingsProvider>
     </AnnouncerProvider>
   )
 }

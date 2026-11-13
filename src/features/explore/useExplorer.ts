@@ -526,7 +526,7 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     .join(' ')} Direct touch: drag to hear each place. Two fingers tap to stop.`
 
   return {
-    on, grid, error, cursor, sweeping, locked, area, image: frame.image, loading: on && !grid && !error,
+    on, grid, mapping, error, cursor, sweeping, locked, area, image: frame.image, loading: on && !grid && !error,
     turnOn, turnOff, openAt, moveTo, sweep, stopSound, lock, unlock, playLockedAt, playAcrossDates, onKeyDown, ...pointer, cellAt, instructions,
     /** SN09: the "Continuous tone" and "Slope cue" choices. */
     probeSettings,

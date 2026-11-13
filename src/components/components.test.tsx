@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { expectNoA11yViolations } from '../test/a11y'
+import { PatternLayer, PatternSwatch } from './PatternLayer'
+import { PATTERN_NAMES, patternFor } from './patterns'
 import { AnnouncerProvider, Button, ButtonGroup, Card, IconButton, LoadingIndicator, Notice, Slider, useAnnounce } from '.'
 
 describe('Button', () => {
@@ -316,5 +318,45 @@ describe('LoadingIndicator', () => {
     render(<LoadingIndicator hideLabel />)
     expect(screen.getByRole('status')).toHaveTextContent('Loading…')
     expect(screen.getByText('Loading…')).toHaveClass('ui-visually-hidden')
+  })
+})
+
+describe('PatternLayer (VIS2)', () => {
+  const ids = ['cold', 'cool', 'mild', 'warm', 'hot']
+  const grid = { cols: 3, rows: 2, cells: [{ category: 'cold' }, { category: 'mild' }, { category: 'hot' }, { category: 'insufficient' }, { category: 'cool' }, { category: 'warm' }] }
+
+  it('has six distinct patterns', () => {
+    const { container } = render(<PatternLayer grid={grid} categoryIds={ids} />)
+    const defined = [...container.querySelectorAll('pattern')]
+    expect(defined).toHaveLength(6)
+    expect(new Set(defined.map(pattern => pattern.id)).size).toBe(6)
+    expect(new Set(defined.map(pattern => pattern.getAttribute('data-pattern'))).size).toBe(6)
+    expect(PATTERN_NAMES).toHaveLength(6)
+  })
+
+  it('maps the category rank to the expected pattern, and missing data to the wavy line', () => {
+    expect(ids.map(id => patternFor(id, ids))).toEqual(['lines-wide', 'lines-narrow', 'crosshatch', 'dots-small', 'dots-large'])
+    expect(patternFor('insufficient', ids)).toBe('wavy')
+    expect(patternFor('unknown', ids)).toBe('wavy')
+  })
+
+  it('gives a rank above four the large dots', () => {
+    expect(patternFor('g', ['a', 'b', 'c', 'd', 'e', 'f', 'g'])).toBe('dots-large')
+  })
+
+  it('fills one rectangle per cell with its category pattern, and is hidden from assistive technology', async () => {
+    const { container } = render(<PatternLayer grid={grid} categoryIds={ids} />)
+    expect(screen.getByTestId('pattern-layer')).toHaveAttribute('aria-hidden', 'true')
+    const fills = [...container.querySelectorAll('rect')].map(rect => rect.getAttribute('fill') ?? '')
+    expect(fills).toHaveLength(6)
+    const nameOf = (fill: string) => container.querySelector(`[id="${fill.slice(5, -1)}"]`)?.getAttribute('data-pattern')
+    expect(fills.map(nameOf)).toEqual(['lines-wide', 'crosshatch', 'dots-large', 'wavy', 'lines-narrow', 'dots-small'])
+    await expectNoA11yViolations(container)
+  })
+
+  it('keeps ids unique when more than one set is on the page', () => {
+    const { container } = render(<><PatternLayer grid={grid} categoryIds={ids} /><PatternSwatch category="hot" categoryIds={ids} /></>)
+    const found = [...container.querySelectorAll('[id]')].map(element => element.id)
+    expect(new Set(found).size).toBe(found.length)
   })
 })

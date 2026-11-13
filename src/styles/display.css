@@ -1,0 +1,102 @@
+/* VIS2: display settings. Three classes on <html>, set by DisplaySettingsProvider. They change how things look, never what is read or sounded. */
+
+/* Easier reading font: Atkinson Hyperlegible (self-hosted, @font-face in index.css) and a taller line. The font is only fetched when this class is on. */
+:root.display-readable {
+  --md-ref-typeface-brand: 'Atkinson Hyperlegible', system-ui, 'Segoe UI', sans-serif;
+  --md-ref-typeface-plain: 'Atkinson Hyperlegible', system-ui, 'Segoe UI', sans-serif;
+  line-height: 1.6;
+}
+:root.display-readable body { line-height: 1.6; }
+
+/* High contrast: white on black. Yellow is the focus ring and cyan marks selected and pressed things. Both are only ever drawn on black. */
+:root.display-high-contrast {
+  color-scheme: dark;
+  --md-sys-color-primary: #00ffff;
+  --md-sys-color-on-primary: #000000;
+  --md-sys-color-primary-container: #000000;
+  --md-sys-color-on-primary-container: #00ffff;
+  --md-sys-color-inverse-primary: #000000;
+  --md-sys-color-secondary: #ffe600;
+  --md-sys-color-on-secondary: #000000;
+  --md-sys-color-secondary-container: #000000;
+  --md-sys-color-on-secondary-container: #ffe600;
+  --md-sys-color-tertiary: #ffffff;
+  --md-sys-color-on-tertiary: #000000;
+  --md-sys-color-tertiary-container: #000000;
+  --md-sys-color-on-tertiary-container: #ffffff;
+  --md-sys-color-error: #ff9a9a;
+  --md-sys-color-on-error: #000000;
+  --md-sys-color-error-container: #000000;
+  --md-sys-color-on-error-container: #ff9a9a;
+  --md-sys-color-warning-container: #000000;
+  --md-sys-color-on-warning-container: #ffffff;
+  --md-sys-color-surface: #000000;
+  --md-sys-color-on-surface: #ffffff;
+  --md-sys-color-surface-variant: #000000;
+  --md-sys-color-on-surface-variant: #ffffff;
+  --md-sys-color-surface-dim: #000000;
+  --md-sys-color-surface-bright: #000000;
+  --md-sys-color-surface-container-lowest: #000000;
+  --md-sys-color-surface-container-low: #000000;
+  --md-sys-color-surface-container: #000000;
+  --md-sys-color-surface-container-high: #000000;
+  --md-sys-color-surface-container-highest: #000000;
+  --md-sys-color-inverse-surface: #ffffff;
+  --md-sys-color-inverse-on-surface: #000000;
+  --md-sys-color-outline: #ffffff;
+  --md-sys-color-outline-variant: #ffffff;
+  --md-sys-color-shadow: #000000;
+  --md-sys-color-scrim: #000000;
+  --md-sys-color-background: #000000;
+  --md-sys-color-on-background: #ffffff;
+}
+/* Borders of at least 3 px on the things you press and read in. The map image is not recoloured. */
+:root.display-high-contrast :is(button, input, select, textarea, .ui-card, .ui-notice, .ui-legend__bar, .display-control__panel) {
+  border-width: 3px;
+  border-style: solid;
+  border-color: #ffffff;
+}
+:root.display-high-contrast :is(button[aria-pressed='true'], button[aria-expanded='true'], .ui-button--filled, .ui-button--primary) {
+  border-color: #00ffff;
+}
+:root.display-high-contrast :focus-visible { outline: 3px solid #ffe600; outline-offset: 2px; }
+
+/* Colour-vision patterns: still, stroke only. */
+.pattern-layer { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; pointer-events: none; }
+.pattern-swatch { display: block; inline-size: 100%; block-size: 100%; }
+.pattern__line { fill: none; stroke: #000; stroke-opacity: 0.7; stroke-width: 1.6; }
+.pattern__halo { display: none; }
+/* In high contrast the strokes are white and a black outline sits under them. */
+:root.display-high-contrast .pattern__line { stroke: #fff; stroke-opacity: 1; }
+:root.display-high-contrast .pattern__halo { display: inline; fill: none; stroke: #000; stroke-width: 4; }
+
+/* The header button and its panel. */
+.display-control { position: relative; }
+.display-control__button {
+  min-block-size: 44px;
+  min-inline-size: 44px;
+  padding-inline: 1rem;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-full);
+  font: inherit;
+  color: var(--md-sys-color-on-surface);
+  background: transparent;
+  cursor: pointer;
+}
+.display-control__panel {
+  position: absolute;
+  inset-inline-end: 0;
+  z-index: 20;
+  display: grid;
+  gap: 0.75rem;
+  min-inline-size: 16rem;
+  margin-block-start: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-large);
+  color: var(--md-sys-color-on-surface);
+  background: var(--md-sys-color-surface-container-high);
+}
+.display-control__panel[hidden] { display: none; }
+.display-control__switch { display: flex; align-items: center; gap: 0.75rem; min-block-size: 44px; cursor: pointer; }
+.display-control__switch input { inline-size: 1.5rem; block-size: 1.5rem; accent-color: var(--md-sys-color-primary); }
