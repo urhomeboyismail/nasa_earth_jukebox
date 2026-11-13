@@ -2,14 +2,23 @@
 // along a row or column. `useExplorer` (useExplorer.ts) holds the state; `ExplorerSurface` is drawn over the image and `ExplorerPanel` sits below it.
 
 import { useEffect, useId, useMemo, useRef, useSyncExternalStore } from 'react'
-import { Button, Notice, Slider } from '../../components'
+import { Button, ButtonGroup, Notice, Slider } from '../../components'
 import type { Visualization } from '../../data'
+import { PatternLayer } from '../../components/PatternLayer'
 import { describeCell } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
+import { useDisplaySettings } from '../../display/useDisplaySettings'
 import { Magnifier } from './Magnifier'
 import { ProbeSwitch } from './ProbeSwitch'
 import type { ExplorerState } from './useExplorer'
+import type { Verbosity } from './whatsHere'
 import './explore.css'
+
+/** IX02: how many words the first "What's here?" gives. */
+const VERBOSITY_OPTIONS: readonly { value: Verbosity; label: string }[] = [
+  { value: 'brief', label: 'Brief' },
+  { value: 'full', label: 'Full' },
+]
 
 // VIS1: three choices about how the map looks. They only change the view, never what is read or sounded. Kept on the device; when
 // storage is blocked they still hold for the visit. Shared by the surface and the panel, which are separate components.
@@ -42,6 +51,7 @@ export function ExplorerSurface({ explorer }: { explorer: ExplorerState }) {
   const instructions = useId()
   const surface = useRef<HTMLDivElement>(null)
   const { on, area, grid, cursor } = explorer
+  const { patterns } = useDisplaySettings().flags
   const [magnifier] = useViewChoice(MAGNIFIER_KEY)
   const [outline] = useViewChoice(OUTLINE_KEY)
   useEffect(() => { if (on) surface.current?.focus() }, [on])
@@ -64,7 +74,9 @@ export function ExplorerSurface({ explorer }: { explorer: ExplorerState }) {
         onPointerUp={explorer.onPointerUp}
         onPointerCancel={explorer.onPointerUp}
         onPointerLeave={explorer.onPointerLeave}
+        onContextMenu={explorer.onContextMenu}
       >
+        {grid && patterns && <PatternLayer grid={grid} categoryIds={explorer.mapping.categories.map(category => category.id)} />}
         {grid && (
           <>
             <div className="explorer__line explorer__line--across" aria-hidden="true" data-testid="crosshair-row" style={{ top: `${((cursor.row + 0.5) / grid.rows) * 100}%` }} />
@@ -85,11 +97,7 @@ export function ExplorerSurface({ explorer }: { explorer: ExplorerState }) {
         )}
         {grid && magnifier && explorer.image && <Magnifier image={explorer.image} cell={cursor} grid={grid} area={area} />}
       </div>
-      <p id={instructions} className="explorer__instructions">
-        Arrow keys move over the map and play each place; Shift with an arrow moves four places. Home and End go to the west and east
-        edges, Page Up and Page Down to the north and south. Space plays the place again. Enter plays the row from west to east, and
-        Shift with Enter plays the column from north to south. L locks the place you are on, so the date slider then plays that one place on each date; L or Escape unlocks. Escape also stops the sound.
-      </p>
+      <p id={instructions} className="explorer__instructions">{explorer.instructions}</p>
     </>
   )
 }
@@ -104,7 +112,8 @@ export function ExplorerPanel({ visualization, explorer }: { visualization: Visu
     () => (grid ? describeCell(visualization, grid, cursor.col, cursor.row, { detail }) : ''),
     [grid, cursor.col, cursor.row, visualization, detail],
   )
-  if (!on) return null
+  const { patterns } = useDisplaySettings().flags
+  if (!on) return patterns ? <p className="explorer__here">Turn on Explore the map to see the patterns.</p> : null
 
   return (
     <div className="explorer__panel">
@@ -112,6 +121,8 @@ export function ExplorerPanel({ visualization, explorer }: { visualization: Visu
       {error && <Notice variant="error">The map could not be read. {error}</Notice>}
       {grid && (
         <>
+          {/* IX02: the answer to "What's here?" stays here until the next one. It is not a live region: the announcer already says it. */}
+          {explorer.whatsHere && <p className="explorer__here">{explorer.whatsHere}</p>}
           <div className="explorer__sliders">
             <Slider
               label="Column, west to east"
@@ -119,7 +130,7 @@ export function ExplorerPanel({ visualization, explorer }: { visualization: Visu
               max={grid.cols - 1}
               value={cursor.col}
               disabled={explorer.locked}
-              onChange={col => explorer.moveTo(col, cursor.row, false)}
+              onChange={col => explorer.moveTo(col, cursor.row, 'slider')}
               describe={() => here}
             />
             <Slider
@@ -128,7 +139,7 @@ export function ExplorerPanel({ visualization, explorer }: { visualization: Visu
               max={grid.rows - 1}
               value={cursor.row}
               disabled={explorer.locked}
-              onChange={row => explorer.moveTo(cursor.col, row, false)}
+              onChange={row => explorer.moveTo(cursor.col, row, 'slider')}
               describe={() => here}
             />
           </div>
@@ -145,6 +156,7 @@ export function ExplorerPanel({ visualization, explorer }: { visualization: Visu
             <Button pressed={explorer.locked} onClick={explorer.locked ? explorer.unlock : explorer.lock}>Lock this place</Button>
             <Button disabled={!explorer.locked} onClick={() => void explorer.playAcrossDates()}>Play this place across the dates</Button>
           </div>
+          <ButtonGroup type="connected" legend="Words for What's here" options={VERBOSITY_OPTIONS} value={explorer.verbosity} onChange={explorer.setVerbosity} />
         </>
       )}
       <ProbeSwitch settings={explorer.probeSettings} />

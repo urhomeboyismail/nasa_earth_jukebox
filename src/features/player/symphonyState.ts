@@ -5,17 +5,18 @@
 // happening (off, on, paused, suspended), so the panel's button and status line are derived from it and not from a second copy.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { FrameFeatures } from '../../analysis/features/types'
 import { LOW_CONFIDENCE, type SequenceSpeed } from '../../analysis/video/clock'
 import type { LiveFrame, SourceStatus } from '../../analysis/video/types'
 import { useLiveSource } from '../../analysis/video/useLiveSource'
 import { SCHEDULE_LOOKAHEAD_S } from '../../audio/ensemble/constants'
-import type { EnsembleStatus } from '../../audio/ensemble/types'
+import type { Ensemble, EnsembleStatus } from '../../audio/ensemble/types'
 import { useEnsemble } from '../../audio/ensemble/useEnsemble'
 import { saveAudioPrefs, useAudioPrefs } from '../../audio/prefs'
 import { useAnnounce } from '../../components'
 import { VOICE_IDS, type DetailLevel, type Visualization, type VoiceId } from '../../data'
 import { DETAIL_VOICES, presetFor, toMusicFrame } from '../../sonify'
-import type { MusicFrame } from '../../sonify'
+import type { MusicFrame, Preset } from '../../sonify'
 
 /** The voices in words, for buttons, captions and announcements. */
 export const VOICE_WORDS: Record<VoiceId, string> = {
@@ -52,7 +53,7 @@ export type Symphony = {
   /** Why the checked frames are used, when they are. */
   reason: string | undefined
   /** The newest reading: the music, the date it was read for and how sure the reading is. null before the first frame and after Stop. */
-  latest: { music: MusicFrame; date: string; confidence: number } | null
+  latest: { music: MusicFrame; features: FrameFeatures; date: string; confidence: number } | null
   /** True when the listener paused; false when the page being hidden did. */
   listenerPaused: boolean
   detail: DetailLevel
@@ -68,6 +69,10 @@ export type Symphony = {
   setSpeed: (speed: SequenceSpeed) => void
   toggleMute: (voice: VoiceId) => void
   toggleSolo: (voice: VoiceId) => void
+  /** Sets every voice's mute and the solo at once (My mix, and undo of a keyboard change). A voice the manifest leaves out stays silent. */
+  setMix: (muted: ReadonlySet<VoiceId>, solo: VoiceId | null) => void
+  /** The ensemble, so a keyboard change can sound its one note. */
+  ensemble: Pick<Ensemble, 'playNotes' | 'status'>
 }
 
 /** One plain sentence on what is being read and how sure the reading is. */
@@ -84,12 +89,14 @@ export function statusText(s: Pick<Symphony, 'ensembleStatus' | 'sourceStatus' |
   return `${reading}${confidence}${s.reason ? ` ${s.reason}` : ''}${low}`
 }
 
-export function useSymphony(visualization: Visualization, video: HTMLVideoElement | null): Symphony {
+/** `artPreset` (art mode, IX12) plays instead of the manifest's preset. It must be the same object between renders, because a new preset is a new ensemble. */
+export function useSymphony(visualization: Visualization, video: HTMLVideoElement | null, artPreset?: Preset | null): Symphony {
   const announce = useAnnounce()
   const spec = visualization.sonification
-  // The listener's preferences (welcome and mixer) choose the style, the bass, the speed and the muted voices; the manifest's preset is the default.
+  // The listener's preferences (welcome and mixer) choose the style, the bass, the speed and the muted voices; the manifest's preset is the default,
+  // and art mode (IX12) plays instead of both.
   const prefs = useAudioPrefs()
-  const preset = presetFor(prefs.style ?? spec?.preset ?? 'major')
+  const preset = artPreset ?? presetFor(prefs.style ?? spec?.preset ?? 'major')
   const allowed: readonly VoiceId[] = spec?.voices ?? VOICE_IDS
   const [detail, setDetailState] = useState<DetailLevel>(spec?.detail ?? 'standard')
   const speed: SequenceSpeed = prefs.speed
@@ -106,7 +113,7 @@ export function useSymphony(visualization: Visualization, video: HTMLVideoElemen
     const music = toMusicFrame(frame.features, preset, previous.current)
     previous.current = music
     ensemble.apply(music, ensemble.now() + SCHEDULE_LOOKAHEAD_S)
-    setLatest({ music, date: frame.date, confidence: frame.confidence })
+    setLatest({ music, features: frame.features, date: frame.date, confidence: frame.confidence })
   }, [ensemble, preset])
 
   const source = useLiveSource({ video, visualization, step: speed, onFrame })
@@ -206,6 +213,16 @@ export function useSymphony(visualization: Visualization, video: HTMLVideoElemen
     setSolo(next)
   }, [ensemble, solo])
 
+  // A recalled mix (My mix, IX06) sets the kept mutes and the solo. The melody's mute is only for this visit, like a click on it; the rest are kept.
+  const setMix = useCallback((nextMuted: ReadonlySet<VoiceId>, nextSolo: VoiceId | null) => {
+    const kept = new Set([...nextMuted].filter(voice => allowed.includes(voice)))
+    saveAudioPrefs({ muted: [...kept].filter(voice => voice !== 'melody') })
+    setMelodyMuted(kept.has('melody'))
+    const soloVoice = nextSolo !== null && allowed.includes(nextSolo) ? nextSolo : null
+    ensemble.solo(soloVoice)
+    setSolo(soloVoice)
+  }, [ensemble, allowed])
+
   const button: ButtonKind = ensembleStatus === 'on' ? 'pause' : ensembleStatus === 'paused' ? 'resume' : ensembleStatus === 'suspended' ? 'sound' : 'play'
 
   return {
@@ -226,5 +243,7 @@ export function useSymphony(visualization: Visualization, video: HTMLVideoElemen
     setSpeed,
     toggleMute,
     toggleSolo,
+    setMix,
+    ensemble,
   }
 }

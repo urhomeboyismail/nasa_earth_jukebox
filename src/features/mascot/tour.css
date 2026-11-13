@@ -1,0 +1,82 @@
+/* The guided tour (docs/tickets/JB05-tour-flight-path.md). Echo, the trail and the ring are decoration and never catch a click or a tap. */
+.tour__stop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.tour__trail { position: absolute; inset: 0; overflow: visible; }
+.tour__trail path {
+  fill: none;
+  stroke: var(--mascot-accent, #7fe7ff);
+  stroke-width: 6;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px var(--mascot-accent, #7fe7ff));
+  stroke-dasharray: 1;
+  opacity: 0;
+}
+
+.tour__ring {
+  position: absolute;
+  box-sizing: border-box;
+  border-radius: 0.5rem;
+  outline: 3px solid var(--mascot-accent, #7fe7ff);
+  outline-offset: 4px;
+}
+
+.tour__echo {
+  position: absolute;
+  left: 0;
+  top: 0;
+  inline-size: 64px;
+  block-size: 64px;
+}
+.tour__echo[data-side='right'] svg { transform: scaleX(-1); }
+
+/* The bar sits above the bottom navigation on a phone and clear of the home indicator. */
+.tour-bar {
+  position: fixed;
+  z-index: 41;
+  inset-inline: 1rem;
+  inset-block-end: calc(1rem + env(safe-area-inset-bottom));
+  max-inline-size: 32rem;
+  margin-inline: auto;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 1rem;
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: var(--md-sys-elevation-level3);
+}
+@media (max-width: 767.98px) {
+  .tour-bar { inset-block-end: calc(var(--bottom-nav-height) + 0.75rem); }
+}
+.tour-bar__step { margin: 0; font-size: 0.875rem; color: var(--md-sys-color-on-surface-variant); }
+.tour-bar__caption { margin: 0.25rem 0 0.75rem; }
+.tour-bar__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+/* Motion only for a listener who has not asked for less. Under reduced motion Echo sits beside the control and there is no trail. */
+@media (prefers-reduced-motion: no-preference) {
+  .tour__echo[data-flying='true'] {
+    offset-path: var(--tour-path);
+    offset-rotate: 0deg;
+    animation: tour-fly var(--tour-flight, 900ms) ease-in-out forwards;
+  }
+  .tour__trail path { animation: tour-trail 1.5s ease-out forwards; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour__trail { display: none; }
+}
+
+@keyframes tour-fly {
+  from { offset-distance: 0%; }
+  to { offset-distance: 100%; }
+}
+/* The trail glows once and fades. It never flashes (WCAG 2.3.1). */
+@keyframes tour-trail {
+  0% { opacity: 0; stroke-dashoffset: 1; }
+  30% { opacity: 0.85; stroke-dashoffset: 0.6; }
+  60% { stroke-dashoffset: 0; }
+  100% { opacity: 0; stroke-dashoffset: 0; }
+}

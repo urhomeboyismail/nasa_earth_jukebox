@@ -5,6 +5,7 @@ import catalog from '../public/data/index.json'
 import fixture from '../public/data/fixture/manifest.json'
 import synthetic from '../public/data/synthetic-ocean/manifest.json'
 import App from './App'
+import { DataError, friendlyDataMessage } from './data'
 import { expectNoA11yViolations } from './test/a11y'
 
 // No sound or microphone in jsdom: the speech player and the recorder are stand-ins (V01).
@@ -14,12 +15,29 @@ vi.mock('./assistant/audio', async importOriginal => ({
   startRecorder: async () => ({ stop: () => {}, setMuted: () => {} }),
 }))
 
+// How often the guide's lazy modules were loaded, and gates that can hold the panel's (I10) and the About page's (VIS3) load.
+const lazyLoads = vi.hoisted(() => ({ audio: 0, panel: 0, panelGate: Promise.resolve(), aboutGate: Promise.resolve() }))
+vi.mock('./VoiceAssistant', async importOriginal => {
+  lazyLoads.panel++
+  await lazyLoads.panelGate
+  return importOriginal()
+})
+vi.mock('./features/about', async importOriginal => {
+  await lazyLoads.aboutGate
+  return importOriginal()
+})
+/** The shared loader (role status) that says `label`. */
+const loader = (label: string) => screen.getByText(label).closest('[role="status"]')
+
 // The voice guide's microphone and speech player need browser audio, which jsdom has not.
-vi.mock('./assistant/audio', () => ({
-  frameLevel: () => 0,
-  startRecorder: async () => ({ stop: () => {}, setMuted: () => {} }),
-  SpeechPlayer: class { busy = false; onIdle = null; resume = async () => {}; play = () => {}; flush = () => {}; close = () => {} },
-}))
+vi.mock('./assistant/audio', () => {
+  lazyLoads.audio++
+  return {
+    frameLevel: () => 0,
+    startRecorder: async () => ({ stop: () => {}, setMuted: () => {} }),
+    SpeechPlayer: class { busy = false; onIdle = null; resume = async () => {}; play = () => {}; flush = () => {}; close = () => {} },
+  }
+})
 
 // The real analysis decodes images, which jsdom cannot do; the Player's own tests cover that path with the same mock.
 vi.mock('./analysis', () => ({
@@ -43,6 +61,48 @@ afterEach(() => vi.unstubAllGlobals())
 
 /** A link in the main navigation. Pages have links of their own (Learn links to Listen), so look only in the nav. */
 const navLink = (name: string) => within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name })
+
+// First in the file on purpose: a module loads once per test file, so only the first test can see it not loaded yet.
+describe('First load (I10)', () => {
+  it('loads the voice panel and its audio code the first time the guide is opened, not before, and says it is loading', async () => {
+    Element.prototype.scrollTo ??= () => {}
+    let release = () => {}
+    lazyLoads.panelGate = new Promise<void>(resolve => { release = resolve })
+    const user = userEvent.setup()
+    render(<App />)
+    await screen.findByText(/Now playing from: Fixture ocean/)
+    expect(lazyLoads).toMatchObject({ panel: 0, audio: 0 })
+    expect(screen.queryByRole('region', { name: 'Voice guide' })).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: 'Voice guide' }))
+    expect(loader('Loading the voice guide…')).toHaveClass('ui-loading')
+    expect(lazyLoads.panel).toBe(1)
+    await waitFor(() => expect(lazyLoads.audio).toBe(1))
+
+    release()
+    expect(await screen.findByRole('region', { name: 'Voice guide' })).toBeInTheDocument()
+    expect(screen.queryByText('Loading the voice guide…')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Start talking' })).toBeInTheDocument()
+  })
+
+  it('shows the demo button at once', () => {
+    render(<App />)
+    expect(screen.getByRole('button', { name: 'Play the demo' })).toBeInTheDocument()
+  })
+
+  it('shows the shared loader while a page loads for the first time (VIS3)', async () => {
+    let release = () => {}
+    lazyLoads.aboutGate = new Promise<void>(resolve => { release = resolve })
+    const user = userEvent.setup()
+    const { container } = render(<App />)
+    await user.click(navLink('About the data'))
+    expect(loader('Loading…')).toHaveClass('ui-loading')
+    await expectNoA11yViolations(container)
+    release()
+    expect(await screen.findByRole('heading', { level: 1, name: 'About the data' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull())
+  })
+})
 
 describe('App shell', () => {
   it('loads the first visualization and shows it on each page', async () => {
@@ -108,10 +168,71 @@ describe('App shell', () => {
   })
 
   it('says so when the data cannot be loaded', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(new Response('', { status: 500 }))))
     render(<App />)
-    expect(await screen.findByRole('alert')).toHaveTextContent('index.json: could not be found (HTTP 500).')
+    expect(await screen.findByRole('alert')).toHaveTextContent('The list of data sets could not be loaded. Reload the page.')
   })
+})
+
+/** Developer words a listener should never read: status codes, file names, folders (I03). */
+const developerWords = /HTTP|index\.json|manifest\.json|public\/data/
+
+describe('Data errors are plain sentences; the detail goes to the console (I03)', () => {
+  let consoleError: ReturnType<typeof vi.spyOn>
+  beforeEach(() => { consoleError = vi.spyOn(console, 'error').mockImplementation(() => {}) })
+  afterEach(() => consoleError.mockRestore())
+
+  it('says the list could not be loaded when it answers with HTTP 500, and logs the detail once', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(new Response('', { status: 500 }))))
+    const { container } = render(<App />)
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('The list of data sets could not be loaded.')
+    expect(alert).toHaveTextContent('Reload the page')
+    expect(document.body).not.toHaveTextContent(developerWords)
+    expect(consoleError).toHaveBeenCalledTimes(1)
+    expect(String(consoleError.mock.calls[0][0])).toContain('index.json: could not be found (HTTP 500).')
+    await expectNoA11yViolations(container)
+  })
+
+  it('says the data set could not be loaded when its manifest is not valid JSON', async () => {
+    vi.stubGlobal('fetch', vi.fn((input: RequestInfo | URL) => Promise.resolve(String(input).endsWith('/data/index.json')
+      ? new Response(JSON.stringify(catalog), { status: 200 })
+      : new Response('{ not json', { status: 200 }))))
+    render(<App />)
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('This data set could not be loaded. Choose another from the list, or reload the page.')
+    expect(document.body).not.toHaveTextContent(developerWords)
+    expect(consoleError).toHaveBeenCalledTimes(1)
+    expect(String(consoleError.mock.calls[0][0])).toContain('fixture/manifest.json: is not valid JSON.')
+  })
+
+  it('shows the list sentence when the list is empty', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(new Response('[]', { status: 200 }))))
+    render(<App />)
+    expect(await screen.findByRole('alert')).toHaveTextContent('The list of data sets could not be loaded. Reload the page.')
+    expect(document.body).not.toHaveTextContent(developerWords)
+    expect(consoleError).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('friendlyDataMessage (I03)', () => {
+  const generic = 'This data set could not be loaded. Choose another from the list, or reload the page.'
+
+  it('gives the list sentence for a failure of the list itself', () => {
+    expect(friendlyDataMessage(new DataError('index.json', 'could not be found (HTTP 404).'))).toBe('The list of data sets could not be loaded. Reload the page.')
+  })
+
+  it('gives the generic sentence for a data set, with no file, status or validation text', () => {
+    const message = friendlyDataMessage(new DataError('fixture/manifest.json', 'frames.0.date: Invalid date (HTTP 404).'))
+    expect(message).toBe(generic)
+    expect(message).not.toMatch(developerWords)
+  })
+
+  it.each([['a string', 'boom'], ['null', null], ['undefined', undefined], ['a plain Error', new Error('index.json: HTTP 500')]])(
+    'gives the generic sentence for %s',
+    (_, error) => expect(friendlyDataMessage(error)).toBe(generic),
+  )
 })
 
 describe('Choosing a data set', () => {
@@ -179,8 +300,9 @@ describe('Choosing a data set', () => {
       const body = url.endsWith('/data/index.json') ? catalog : url.endsWith('/data/fixture/manifest.json') ? fixture : null
       return Promise.resolve(new Response(JSON.stringify(body), { status: body ? 200 : 404 }))
     }))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
     render(<App />)
-    expect(await screen.findByRole('alert')).toHaveTextContent('synthetic-ocean/manifest.json: could not be found (HTTP 404).')
+    expect(await screen.findByRole('alert')).toHaveTextContent('This data set could not be loaded. Choose another from the list, or reload the page.')
     await userEvent.selectOptions(await picker(), 'Fixture ocean')
     expect(await screen.findByText(/Now playing from: Fixture ocean/)).toBeInTheDocument()
     expect(screen.queryByRole('alert')).toBeNull()
@@ -279,7 +401,8 @@ describe('App shell chrome (T116)', () => {
     const toggle = screen.getByRole('button', { name: 'Voice guide' })
     await userEvent.click(toggle)
     expect(toggle).toHaveAttribute('aria-pressed', 'true')
-    await userEvent.click(screen.getByRole('button', { name: 'Close voice guide' }))
+    // The panel loads the first time it is opened (I10).
+    await userEvent.click(await screen.findByRole('button', { name: 'Close voice guide' }))
     expect(toggle).toHaveAttribute('aria-pressed', 'false')
     expect(toggle).toHaveFocus()
   })

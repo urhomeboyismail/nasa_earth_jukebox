@@ -26,7 +26,8 @@
 .home__about { justify-self: start; }
 
 .home a { color: var(--accent-strong); }
-.home a:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 0.25rem; }
+.home a:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: var(--md-sys-shape-corner-extra-small); }
+
 
 /* The crate (blueprint §2.1). Layout is deferred (platform.md): a plain list for now. */
 .crate__filters { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; }

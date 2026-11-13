@@ -6,6 +6,7 @@ import type { FrameAnalysis } from '../../analysis'
 import { Button } from '../../components'
 import type { StoryChapter, Visualization } from '../../data'
 import { describeSequence } from '../../describe'
+import type { Predict } from '../predict/usePredict'
 import './story.css'
 
 type Props = {
@@ -14,11 +15,13 @@ type Props = {
   results: FrameAnalysis[] | null
   /** Plays only these dates (indexes into the frames), then stops. */
   playRange: (from: number, to: number) => void
+  /** IX05: a chapter whose first date has a question gets a Predict button. Left out where there is no question to ask. */
+  predict?: Pick<Predict, 'questionAt' | 'prepare' | 'ask'>
   /** Closes the panel; the caller stops the sound and puts focus back on "Hear the story". */
   onClose: () => void
 }
 
-export function StoryPanel({ visualization, chapters, results, playRange, onClose }: Props) {
+export function StoryPanel({ visualization, chapters, results, playRange, predict, onClose }: Props) {
   const [chapter, setChapter] = useState(0)
   const [ended, setEnded] = useState(false)
   const heading = useRef<HTMLHeadingElement>(null)
@@ -28,6 +31,12 @@ export function StoryPanel({ visualization, chapters, results, playRange, onClos
 
   // Focus goes to the heading when the panel opens and whenever the chapter (or the ending) changes, so a screen reader starts there.
   useEffect(() => { heading.current?.focus() }, [chapter, ended])
+
+  // The question is about the date the chapter starts on.
+  const firstIndex = frames.findIndex(frame => frame.id === current?.fromFrame)
+  const prepare = predict?.prepare
+  useEffect(() => { if (prepare && firstIndex >= 0) prepare(firstIndex) }, [prepare, firstIndex])
+  const canPredict = !ended && firstIndex >= 0 && predict?.questionAt(firstIndex) != null
 
   function playThisPart() {
     const from = frames.findIndex(frame => frame.id === current.fromFrame)
@@ -60,6 +69,7 @@ export function StoryPanel({ visualization, chapters, results, playRange, onClos
       )}
       <div className="story__buttons">
         {!ended && <Button variant="primary" disabled={!results} onClick={playThisPart}>Play this part</Button>}
+        {canPredict && <Button onClick={() => predict?.ask(firstIndex)}>Predict</Button>}
         <Button disabled={chapter === 0 && !ended} onClick={previous}>Previous chapter</Button>
         {!ended && <Button onClick={next}>{last ? 'Finish' : 'Next chapter'}</Button>}
         <Button onClick={onClose}>Close story</Button>

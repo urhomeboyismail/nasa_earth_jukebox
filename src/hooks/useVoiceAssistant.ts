@@ -6,7 +6,7 @@
 // re-validated here, because it arrives from a model over a WebSocket.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { frameLevel, SpeechPlayer, startRecorder, type Recorder } from '../assistant/audio'
+import type { Recorder, SpeechPlayer } from '../assistant/audio'
 import {
   readAnswerLength, readMicConsent, readMicTalk, saveAnswerLength, saveMicConsent, saveMicTalk,
   type AnswerLength, type MicConsent, type MicTalk,
@@ -116,6 +116,23 @@ export const MIC_NOTES = {
   quiet: 'The microphone was turned off after 60 seconds with no speech. Press Mute microphone again to speak.',
 } as const
 
+type AudioModule = typeof import('../assistant/audio')
+/** The guide's speech player, recorder and meter. Not part of the first page: it loads the first time the guide is used. */
+let audioModule: AudioModule | null = null
+let audioLoad: Promise<AudioModule> | null = null
+
+/**
+ * Loads the guide's audio code once (a failed load is tried again next time). The App starts it when the panel opens,
+ * so it has normally arrived before Start is pressed, and the speech player can still be made inside that click.
+ */
+export function loadAssistantAudio(): Promise<AudioModule> {
+  audioLoad ??= import('../assistant/audio').then(
+    loaded => { audioModule = loaded; return loaded },
+    (error: unknown) => { audioLoad = null; throw error },
+  )
+  return audioLoad
+}
+
 export function useVoiceAssistant({ language, page, onAction }: Options) {
   const [status, setStatus] = useState<AssistantStatus>('idle')
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([])
@@ -155,6 +172,8 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
   const quietTimer = useRef<number | undefined>(undefined)
   const limitTimer = useRef<number | undefined>(undefined)
   const wakeTimer = useRef<number | undefined>(undefined)
+  /** Moves on with every teardown, so a start still waiting for the audio code is dropped by Stop, a new start or unmount. */
+  const openAttempt = useRef(0)
   useEffect(() => {
     actionRef.current = onAction
     pageRef.current = page
@@ -249,6 +268,7 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
   }, [transmitting])
 
   const teardown = useCallback(() => {
+    openAttempt.current++
     stopContext.current?.()
     stopContext.current = null
     live.current = false
@@ -286,12 +306,12 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
    * Opens the microphone for the conversation on `ws`. Call from a click: the recorder's AudioContext is made inside the
    * gesture. A refused or missing microphone leaves the conversation open for typing.
    */
-  const startMic = useCallback((ws: WebSocket) => {
+  const startMic = useCallback((ws: WebSocket, audio: AudioModule) => {
     setMicNote('')
     setMicSilent(false)
     let quietFrames = 0
     let heard = false
-    startRecorder(frame => {
+    audio.startRecorder(frame => {
       if (socket.current !== ws || !live.current) return
       // Frames that are not sent are not counted for the meter or the silence warning either.
       if (!transmitting()) { levelRef.current = 0; return }
@@ -299,7 +319,7 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
       // While the guide is audible the listener is not "quiet", so the open mic's 60 seconds wait.
       if (player.current?.busy) { levelRef.current = 0; lastSound.current = Date.now(); return }
       if (ws.readyState === WebSocket.OPEN) ws.send(frame)
-      const peak = frameLevel(frame)
+      const peak = audio.frameLevel(frame)
       levelRef.current = peak
       if (peak > MIC_HEARD_LEVEL) {
         lastSound.current = Date.now()
@@ -318,7 +338,7 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
   }, [transmitting, armQuiet])
 
   // Must be called from a click: browsers only allow audio and microphone after a user gesture.
-  const open = useCallback((withMic: boolean) => {
+  const connect = useCallback((audio: AudioModule, withMic: boolean) => {
     teardown()
     setError('')
     setErrorCode('')
@@ -331,7 +351,7 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
     setMicSilent(false)
     setStatus('connecting')
     // Everything that needs the click's user activation happens before the first await.
-    const speech = new SpeechPlayer()
+    const speech = new audio.SpeechPlayer()
     player.current = speech
     speech.onIdle = () => setStatus(current => current === 'speaking' ? 'listening' : current)
     void speech.resume()
@@ -340,7 +360,7 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
     ws.binaryType = 'arraybuffer'
     socket.current = ws
     wakeTimer.current = window.setTimeout(() => { wakeTimer.current = undefined; setWaking(true) }, WAKING_AFTER_MS)
-    if (withMic) startMic(ws)
+    if (withMic) startMic(ws, audio)
     ws.onopen = () => ws.send(JSON.stringify({ type: 'start', language, page: pageRef.current, detail: answerLengthRef.current }))
     ws.onerror = () => fail(MESSAGES.connect, 'connect')
     ws.onclose = () => {
@@ -407,6 +427,24 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
     }
   }, [language, teardown, fail, addTranscript, forwardContext, record, startMic, armQuiet])
 
+  /**
+   * Starts a conversation, from a click. With the audio code loaded (the usual case) everything happens inside the click.
+   * A click that comes before the code has arrived shows "connecting" and goes on once it is here.
+   */
+  const open = useCallback((withMic: boolean) => {
+    if (audioModule) { connect(audioModule, withMic); return }
+    teardown()
+    const attempt = openAttempt.current
+    setError('')
+    setErrorCode('')
+    setEndedMessage('')
+    setStatus('connecting')
+    loadAssistantAudio().then(
+      audio => { if (openAttempt.current === attempt) connect(audio, withMic) },
+      () => { if (openAttempt.current === attempt) fail(MESSAGES.connect, 'connect') },
+    )
+  }, [connect, teardown, fail])
+
   /** Starts a conversation with the stored choice. With nothing decided, nothing connects: the panel asks first. */
   const start = useCallback(() => {
     if (consent === null) { setConsentAsked(true); return }
@@ -423,7 +461,8 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
     setConsentAsked(false)
     const ws = socket.current
     if (!ws) { open(choice === 'mic'); return }
-    if (choice === 'mic' && !recorder.current) startMic(ws)
+    // A conversation is open, so the audio code has loaded.
+    if (choice === 'mic' && !recorder.current && audioModule) startMic(ws, audioModule)
   }, [open, startMic])
 
   /** Forgets the choice and asks again. Any running microphone stops; a conversation keeps going by text. */

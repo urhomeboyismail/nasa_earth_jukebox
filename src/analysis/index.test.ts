@@ -63,6 +63,66 @@ describe('frame analysis on the main thread', () => {
   })
 })
 
+describe('memory limits', () => {
+  // Distinct images, so each frame is its own cache entry. The date in the name is what the pixel stand-in reads.
+  const many = (count: number) => Array.from({ length: count }, (_, i) => ({ ...frames[i % 3], id: `f${i}`, image: `${frames[i % 3].image}?n=${i}` }))
+
+  const original = readPixels.getMockImplementation() ?? (async () => { throw new Error('no pixels') })
+  afterEach(() => { readPixels.mockReset(); readPixels.mockImplementation(original) })
+
+  it('reads at most 3 frames at once and returns the results in frame order', async () => {
+    const { analyzeAll } = await load()
+    let inFlight = 0
+    let peak = 0
+    readPixels.mockImplementation(async url => {
+      inFlight++
+      peak = Math.max(peak, inFlight)
+      await new Promise(done => setTimeout(done, 5))
+      inFlight--
+      return original(url)
+    })
+    const list = many(10)
+    const results = await analyzeAll(list, region, colorScale, mapping)
+    expect(peak).toBe(3)
+    expect(results.map(result => result.frameId)).toEqual(list.map(frame => frame.id))
+    expect(results.map(result => result.category)).toEqual(list.map((_, i) => ['cold', 'mild', 'hot'][i % 3]))
+  })
+
+  it('stops starting frames after one fails, and rejects', async () => {
+    const { analyzeAll } = await load()
+    readPixels.mockRejectedValue(new Error('network down'))
+    await expect(analyzeAll(many(10), region, colorScale, mapping)).rejects.toThrow('network down')
+    expect(readPixels.mock.calls.length).toBeLessThan(10)
+  })
+
+  it('analyses a frame again once the cache has dropped it', async () => {
+    const { analyzeFrame } = await load()
+    const list = many(130)
+    await analyzeFrame(list[0], region, colorScale, mapping)
+    await analyzeFrame(list[0], region, colorScale, mapping)
+    expect(readPixels).toHaveBeenCalledTimes(1)
+    for (const frame of list.slice(1)) await analyzeFrame(frame, region, colorScale, mapping)
+    expect(readPixels).toHaveBeenCalledTimes(130)
+    await analyzeFrame(list[0], region, colorScale, mapping)
+    expect(readPixels).toHaveBeenCalledTimes(131)
+  })
+
+  it('rejects when the worker answers with the wrong kind of result', async () => {
+    class WrongWorker {
+      onmessage: ((event: MessageEvent<WorkerResponse>) => void) | null = null
+      onerror: (() => void) | null = null
+      postMessage(request: WorkerRequest) {
+        queueMicrotask(() => this.onmessage?.(new MessageEvent('message', { data: { id: request.id, result: { frameId: 'x', cols: 1, rows: 1, area: { x0: 0, y0: 0, x1: 1, y1: 1 }, cells: [] } } })))
+      }
+      terminate() {}
+    }
+    vi.stubGlobal('Worker', WrongWorker)
+    vi.stubGlobal('OffscreenCanvas', class {})
+    const { analyzeFrame } = await load()
+    await expect(analyzeFrame(frames[0], region, colorScale, mapping)).rejects.toThrow('did not return a frame analysis')
+  })
+})
+
 /** A worker that answers like worker.ts does, but in-process. */
 class FakeWorker {
   static instances: FakeWorker[] = []

@@ -2,14 +2,15 @@
 // and sets sensible defaults. Inline, not a modal. Nothing sounds or speaks before a click, and the screen reader path never
 // uses speech: the screen reader is that listener's voice.
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { subscribeContext } from '../../assistant/context'
-import { createSoundEngine, type SoundEngine } from '../../audio'
+import { useSoundEngine } from '../../audio/useSoundEngine'
 import { Button, Slider, useAnnounce } from '../../components'
 import { Echo } from '../../components/Mascot'
 import { playerUpdate, type Visualization } from '../../data'
 import { useDescriptionDetail } from '../../describe/detail'
 import { currentDataParam, hashFor } from '../../route'
+import { resetOnboarding } from '../onboarding/store'
 import { sendPlayerCommand } from '../player/controls'
 import { SoundPrefs } from '../player/SoundPrefs'
 import { CHECK_STEPS, GREETING, NOT_HEARD, PATH_HINTS, PATH_LABELS, VOLUME_QUESTION } from './lines'
@@ -50,14 +51,7 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
   const titleId = useId()
   const checkHeading = useRef<HTMLHeadingElement>(null)
 
-  const engine = useMemo((): SoundEngine | null => {
-    if (!visualization) return null
-    try {
-      return createSoundEngine(visualization.mapping)
-    } catch {
-      return null
-    }
-  }, [visualization])
+  const { engine } = useSoundEngine(visualization?.mapping)
   useEffect(() => () => { checkRun.current += 1; engine?.stop(); hush() }, [engine])
 
   // The sound check opens with focus on its heading, so a keyboard or screen reader user lands on it.
@@ -134,7 +128,7 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
     saveWelcome({ done: true, path, speech: path === 'map', ...(volumeToKeep !== undefined && { volume: volumeToKeep / 100 }) })
     const page = path === 'screen-reader' ? 'learn' : 'listen'
     window.location.hash = hashFor(page, { data: currentDataParam() })
-    if (path === 'play') playWhenReady()
+    if (path === 'play') { resetOnboarding(); playWhenReady() }
   }
 
   function answerYes() {

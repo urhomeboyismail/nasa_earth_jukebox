@@ -7,6 +7,8 @@
   display: grid;
   justify-items: end;
 }
+/* Out of the way while the guided tour runs (JB05). */
+.mascot-dock[hidden] { display: none; }
 @media (max-width: 767.98px) {
   .mascot-dock { inset-block-end: calc(var(--bottom-nav-height) + 0.75rem); }
 }

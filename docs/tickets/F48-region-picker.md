@@ -103,4 +103,27 @@ npx vitest run src/data src/analysis src/features/player src/features/compare sr
 
 ## Result
 
-Not started.
+Done on `feature/F48-region-picker`. Checks, run in `../nasa-c`:
+
+```
+npm run lint         -> exit 0 (oxlint, no warnings)
+npm test             -> Test Files 191 passed (191), Tests 2831 passed (2831)
+npm run build        -> built, exit 0
+npm run check-data   -> exit 0 (src/data and synthetic tests: 15 files, 295 tests passed)
+```
+
+Server tests were not run: neither `server/` nor `src/pages.ts` changed.
+
+What changed:
+- `src/data/regions.ts`: `primaryRegion`, `regionFor` (tests in `regions.test.ts`). All seven `regions[0]` uses go through `primaryRegion` (the five in the ticket, plus `Symphony.tsx` and `Scan.tsx`, added by SN07 and SN08 after the ticket was written). That step is its own commit.
+- Listen: a "Region" `<select>` (native, visible label) when there are two or more regions; `region=<id>` in the address; `usePlayer` takes `{ region }`; Symphony and Scan take a `region` prop (they use it for the outline only). Each mode is keyed by the region, so nothing carries over and no sound starts.
+- Compare: a ready-made comparison is read in `comparison.regionId`; the listener's own dates use the chosen region (same picker). The region name is in the caption when the data set has two or more. Results that belong to another region are ignored, so Play stays off until the region now in use has been read.
+- Listening test, About, Ask: use `primaryRegion`. The test lists only the comparisons in the first region, says how many, and says so and does not start when there are none.
+- Schema: the rule forcing `regionId` to be the first region is removed; "no such region" is kept. `docs/data-sources.md` and `docs/PLAN.md` (one sentence) updated.
+- Analysis cache: keys already include the region id (`src/analysis/index.ts:149`), so no change.
+
+Outside the listed Touches (new or one-line, no other agent's claim): `src/components/RegionPicker.tsx` and `useRegionChoice.ts` (shared by Listen and Compare; styles reuse `.ui-picker`), `Symphony.tsx`, `Scan.tsx`, `docs/PLAN.md`.
+
+Left as the ticket says or as a known limit:
+- Ask's `F-region` sentence keeps its wording: `server/agent_eval/facts.json` copies it. On Listen, Ask's data facts come from the chosen region while that sentence names the first region; fixing it needs `AskPanel.tsx` (hotspot `ask`).
+- Symphony and Scan read the whole picture, so for them the region changes the outline and the caption only.

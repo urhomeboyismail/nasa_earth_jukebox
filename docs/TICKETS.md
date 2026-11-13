@@ -69,9 +69,9 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [SN05](tickets/SN05-manifest-v3-fields.md) | Manifest fields `video`, `sonification`, `legend`, with defaults | M | agent | — | schema, catalogue | done |
 | [SN06](tickets/SN06-live-video-source.md) | Live video source: read each displayed EIC frame as it plays | M | agent | SN01, SN05 | — | done |
 | [SN07](tickets/SN07-symphony-mode.md) | Listen: Symphony mode wired end to end; Detail, mixer, layer captions; Simple mode kept | L | agent | SN01, SN03, SN04, SN06 | player | done |
-| [SN08](tickets/SN08-scan-mode.md) | Scan mode: sweep a frame so shapes become audible | M | agent | SN01, SN03, SN04, SN07 | player | open |
+| [SN08](tickets/SN08-scan-mode.md) | Scan mode: sweep a frame so shapes become audible | M | agent | SN01, SN03, SN04, SN07 | player | done |
 | [SN09](tickets/SN09-explore-v2.md) | Explore v2: continuous tone and slope cue under the cursor or finger | M | agent | SN03, SN04 | explorer | done |
-| [SN10](tickets/SN10-text-equivalents.md) | Text equivalents: event sentences, announcements, hot-spot markers, sound recipe | M | agent | SN01, SN03 | player, about | open |
+| [SN10](tickets/SN10-text-equivalents.md) | Text equivalents: event sentences, announcements, hot-spot markers, sound recipe | M | agent | SN01, SN03 | player, about | done |
 | [SN11](tickets/SN11-learn-v3.md) | Learn v3: one card per voice, played alone on the synthetic sets | M | agent | SN01, SN02, SN03, SN04, SN06 | learn | done |
 | [SN12](tickets/SN12-offline-render-playlist.md) | Offline render: byte-identical WAV, captions file, playlist of every data set | M | agent | SN01, SN03, SN04 | about | done |
 | [SN13](tickets/SN13-one-voice-at-a-time.md) | One voice at a time: real gain ducking under the guide and speech on every page | M | agent | SN04 | voice, engine | done |
@@ -80,18 +80,18 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [IX01](tickets/IX01-input-layer.md) | Input layer and key map: keyboard, touch, mouse and gamepad as one set of actions; 50 ms answer | M | agent | S01, SN03, SN04 | explorer, player | open |
-| [IX02](tickets/IX02-whats-here.md) | "What's here?" on demand; verbosity; Esc stops speech | S | agent | IX01, SN10 | explorer | open |
-| [IX03](tickets/IX03-follow-mode.md) | Follow a hot spot through time | M | agent | SN01, SN04 | player | open |
-| [IX04](tickets/IX04-find-game.md) | Find game: warmest place, the edge, the biggest change, by ear | M | agent | IX01, SN04 | player | open |
-| [IX05](tickets/IX05-predict-then-hear.md) | Predict, then hear: a question before the next frames, then the answer | M | agent | SN01 | player | open |
-| [IX06](tickets/IX06-scrub-and-sculpt.md) | Scrub time with sound; draggable scan line; keyboard mixer; "My mix" | M | agent | SN07, SN08 | player | open |
-| [IX07](tickets/IX07-compare-by-hand.md) | Compare by hand: date A in the left ear, B in the right | S | agent | IX01, SN04 | explorer | open |
-| [IX08](tickets/IX08-mark-share-record.md) | Mark moments, share them, record an exploration as WAV | M | agent | S01, SN12 | player | open |
+| [IX01](tickets/IX01-input-layer.md) | Input layer and key map: keyboard, touch, mouse and gamepad as one set of actions; 50 ms answer | M | agent | S01, SN03, SN04 | explorer, player | done |
+| [IX02](tickets/IX02-whats-here.md) | "What's here?" on demand; verbosity; Esc stops speech | S | agent | IX01, SN10 | explorer | done |
+| [IX03](tickets/IX03-follow-mode.md) | Follow a hot spot through time | M | agent | SN01, SN04 | player | done |
+| [IX04](tickets/IX04-find-game.md) | Find game: warmest place, the edge, the biggest change, by ear | M | agent | IX01, SN04 | player | done |
+| [IX05](tickets/IX05-predict-then-hear.md) | Predict, then hear: a question before the next frames, then the answer | M | agent | SN01 | player | done |
+| [IX06](tickets/IX06-scrub-and-sculpt.md) | Scrub time with sound; draggable scan line; keyboard mixer; "My mix" | M | agent | SN07, SN08 | player | done |
+| [IX07](tickets/IX07-compare-by-hand.md) | Compare by hand: date A in the left ear, B in the right | S | agent | IX01, SN04 | explorer | blocked: needs SN04 two holds |
+| [IX08](tickets/IX08-mark-share-record.md) | Mark moments, share them, record an exploration as WAV | M | agent | S01, SN12 | player | done |
 | [IX09](tickets/IX09-echo-points.md) | Echo points with a sound beacon and asks questions back | M | agent | IX01, G06 | server-assistant, app, voice | open |
-| [IX10](tickets/IX10-haptics-map.md) | Haptics map on the audio clock; gamepad rumble | S | agent | IX01 | explorer, player | open |
-| [IX11](tickets/IX11-interactive-onboarding.md) | Interactive onboarding: the first minute is a game | M | agent | IX04 | player | open |
-| [IX12](tickets/IX12-art-mode.md) | Art mode: your own preset, recorded and exported | M | agent | SN03, SN12 | player | open |
+| [IX10](tickets/IX10-haptics-map.md) | Haptics map on the audio clock; gamepad rumble | S | agent | IX01 | explorer, player | done |
+| [IX11](tickets/IX11-interactive-onboarding.md) | Interactive onboarding: the first minute is a game | M | agent | IX04 | player | done |
+| [IX12](tickets/IX12-art-mode.md) | Art mode: your own preset, recorded and exported | M | agent | SN03, SN12 | player | done |
 
 ### P1: EIC data
 
@@ -112,11 +112,11 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [G04](tickets/G04-voice-on-adk.md) | Voice guide on ADK `run_live`, same browser protocol, behind a switch | L | agent | G01 | server-assistant | done |
 | [H02](tickets/H02-live-parity-check.md) | Live parity check with a billed key | S | 👤 | G04 | — | open |
 | [G05](tickets/G05-adk-default.md) | ADK by default; retire the old bridge | S | agent | G04, H02 | server-assistant | open |
-| [G06](tickets/G06-agent-sees-more.md) | The agent sees facts, the explorer and the music; context schemas and drift test | M | agent | G04, SN03 | server-assistant, player, compare, ask | open |
+| [G06](tickets/G06-agent-sees-more.md) | The agent sees facts, the explorer and the music; context schemas and drift test | M | agent | G04, SN03 | server-assistant, player, compare, ask | done |
 | [G07](tickets/G07-agent-eval-drafter.md) | Agent evaluation (scoring bug fixed) and the offline drafter | M | agent+👤 | G02 | — | blocked: held-out questions |
 | [G08](tickets/G08-jukebox-orchestrator.md) | Jukebox orchestrator: a LangGraph of four ADK agents (supervisor, synthesizer, vision, critic), and its route `POST /api/v1/jukebox/generate` | M | agent | — | — | done |
 | [G09](tickets/G09-jukebox-player.md) | Jukebox player: a React component that plays the orchestrator's `AudioPayload` with Tone.js (Play/Stop) | S | agent | G08 | — | done |
-| [G10](tickets/G10-jukebox-studio.md) | Jukebox studio on `jukebox.html`: narration in time with the sound, instrument timbres, the live route with a demo fallback | M | agent | G08, G09 | — | claimed: C, 2026-11-12 |
+| [G10](tickets/G10-jukebox-studio.md) | Jukebox studio on `jukebox.html`: narration in time with the sound, instrument timbres, the live route with a demo fallback | M | agent | G08, G09 | — | done |
 | [V01](tickets/V01-agent-panel-focus-undo.md) | Agent panel: focus not stolen, "Echo did" with Undo, Alt+E, Stop | M | agent | — | app, voice | done |
 | [V02](tickets/V02-mic-consent-text-only.md) | Mic consent first, text-only mode, push-to-talk, session warning | M | agent | — | app, voice | done |
 | [V03](tickets/V03-voice-client-hygiene.md) | Voice client: parsed messages, quieter status, shared icons | S | agent | — | voice | done |
@@ -125,20 +125,20 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [I03](tickets/I03-friendly-data-errors.md) | Friendly data errors instead of developer messages | S | agent | — | app | claimed: D, 2026-11-12 |
+| [I03](tickets/I03-friendly-data-errors.md) | Friendly data errors instead of developer messages | S | agent | — | app | done |
 | [I04](tickets/I04-zod-boundaries.md) | zod at the boundaries: study client, context data, welcome storage | S | agent | — | — | done |
 | [I05](tickets/I05-server-hardening.md) | Server hardening and missing server tests | M | agent | — | server-assistant | done |
-| [I06](tickets/I06-analysis-memory.md) | Analysis memory: bounded concurrency, cache eviction, dead casts | M | agent | — | player, explorer, compare | open |
-| [I07](tickets/I07-shared-hooks.md) | Shared hooks: sound engine, frame analysis, stored settings | M | agent | I06 | player, compare, learn | open |
+| [I06](tickets/I06-analysis-memory.md) | Analysis memory: bounded concurrency, cache eviction, dead casts | M | agent | — | player, explorer, compare | done |
+| [I07](tickets/I07-shared-hooks.md) | Shared hooks: sound engine, frame analysis, stored settings | M | agent | I06 | player, compare, learn | done |
 | [I09](tickets/I09-compare-cleanup.md) | Compare clean-up | S | agent | — | compare | done |
-| [I10](tickets/I10-first-load.md) | First load: lazy voice panel, demo and v3 pipeline; bundle budget in CI | M | agent | SN07 | app | open |
-| [I11](tickets/I11-lint-ci-rules.md) | Lint and CI rules that enforce `frontend.md`; ruff | S | agent | I04, I06 | — | open |
+| [I10](tickets/I10-first-load.md) | First load: lazy voice panel, demo and v3 pipeline; bundle budget in CI | M | agent | SN07 | app | done |
+| [I11](tickets/I11-lint-ci-rules.md) | Lint and CI rules that enforce `frontend.md`; ruff | S | agent | I04, I06 | — | claimed: D, 2026-11-13 |
 | [I12](tickets/I12-missing-unit-tests.md) | Unit tests for five untested modules | S | agent | — | — | done |
 | [VIS1](tickets/VIS1-low-vision-map-tools.md) | Low-vision map tools: magnifier, big cursor, high-contrast outline, forced colours | M | agent | — | explorer | done |
-| [VIS2](tickets/VIS2-patterns-display-settings.md) | Colour-vision patterns and display settings | M | agent | — | app, explorer | open |
-| [VIS3](tickets/VIS3-design-system-housekeeping.md) | Design-system housekeeping | M | agent | — | app | open |
+| [VIS2](tickets/VIS2-patterns-display-settings.md) | Colour-vision patterns and display settings | M | agent | — | app, explorer | done |
+| [VIS3](tickets/VIS3-design-system-housekeeping.md) | Design-system housekeeping | M | agent | — | app | done |
 | [F42](tickets/F42-spoken-demo-caption.md) | Spoken demo caption; demo fixes | S | agent | — | — | done |
-| [F48](tickets/F48-region-picker.md) | Region picker | M | agent | I06 | player, compare, schema | open |
+| [F48](tickets/F48-region-picker.md) | Region picker | M | agent | I06 | player, compare, schema | done |
 | [AU-UI](tickets/AU-UI-interface-sounds.md) | Interface sounds, quiet and behind a switch | M | agent | SN04, H03 | player, compare, voice | open |
 
 ### P2: Echo as Juke-Bot (the guide)
@@ -152,9 +152,10 @@ Echo, the guide, redrawn as Juke-Bot (helmet visor, headphones, chest screen, ai
 | [JB02](tickets/JB02-scroll-boosters.md) | Scroll-driven air boosters: tilt, thrust and retro-burn | S | agent | JB01 | — | done |
 | [JB03](tickets/JB03-audio-chest.md) | Audio-reactive chest: EQ bars and mini globe from the playing sound | M | agent | JB01 | — | done |
 | [JB04](tickets/JB04-dataset-mascot-theme.md) | Data-set colour themes and trails from the manifest | M | agent | F58 | schema, catalogue | done |
-| [JB05](tickets/JB05-tour-flight-path.md) | Guided tour flight path with a glowing jet trail | L | agent | JB01, JB02 | player | open |
-| [JB06](tickets/JB06-alert-visor.md) | Alert visor on notable data events | S | agent | JB01, SN10 | player | open |
-| [JB07](tickets/JB07-explorer-mirror-legend.md) | Echo mirrors the explorer; the legend becomes playable | M | agent | JB01, SN09, IX02 | explorer | open |
+| [JB05](tickets/JB05-tour-flight-path.md) | Guided tour flight path with a glowing jet trail | L | agent | JB01, JB02 | player | done |
+| [JB06](tickets/JB06-alert-visor.md) | Alert visor on notable data events | S | agent | JB01, SN10 | player | done |
+| [JB07](tickets/JB07-explorer-mirror-legend.md) | Echo mirrors the explorer; the legend becomes playable | M | agent | JB01, SN09, IX02 | explorer | done |
+| [JB08](tickets/JB08-ixia-mascot.md) | Echo wears Ixia: the myt Learning Hub's 3D robot replaces the SVG robot; our voice guide stays | M | agent | — | app, voice | claimed: A, 2026-11-13 |
 
 ### P3: people, evidence and submission
 

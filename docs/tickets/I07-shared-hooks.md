@@ -86,4 +86,18 @@ npx vitest run src/audio src/analysis src/hooks src/features/learn src/features/
 
 ## Result
 
-Not started.
+Run on branch `fix/I07-shared-hooks` (2026-11-13).
+
+```
+npm run lint     -> no warnings or errors
+npm test         -> Test Files 188 passed (188); Tests 2805 passed (2805)
+npm run build    -> tsc -b clean; vite: built in 1.23s
+```
+
+New: `src/hooks/useStoredValue.ts`, `src/audio/useSoundEngine.ts`, `src/analysis/useFrameAnalysis.ts`, each with a test file. Golden tests (`sound-regression`, `change-regression`) pass unchanged.
+
+Migrated: the five engine copies (learn, player, compare, TestMode, Welcome), the three analysis copies (player, compare, TestMode), and the six stored settings (sound style, spatial mode, vibration, description detail, mascot, welcome). Every stored key keeps its name and plain-text value.
+
+**Behaviour change (Step 4):** the comment in `style.ts` and `pan.ts` was wrong, so the behaviour is fixed instead. When storage refuses a write, `useStoredValue` keeps the value in memory, so the choice holds on every page for the visit. A new test in `style.test.ts` covers it. The detail, mascot and welcome settings already did this; they now share one implementation.
+
+**Greps:** `createSoundEngine` now appears only in its definition, its re-export and `useSoundEngine.ts`. `localStorage` still appears in `useStoredValue.ts` and in files outside this ticket's Touches that define their own stores (consent, display settings, art, find, marks, onboarding, listenMode, mySoundMix, and the explorer files, which are the `explorer` hotspot). They can move onto the hook later.

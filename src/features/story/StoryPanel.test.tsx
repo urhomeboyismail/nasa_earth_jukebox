@@ -6,6 +6,7 @@ import type { Visualization } from '../../data'
 import { describeSequence } from '../../describe'
 import { expectNoA11yViolations } from '../../test/a11y'
 import PlayerPage from '../player'
+import { StoryPanel } from './StoryPanel'
 
 // The fixture has four dates (cold, mild, hot, no data). Three chapters over them: two dates, three dates, one date.
 const base = fixture as Visualization
@@ -235,5 +236,39 @@ describe('Story: accessibility', () => {
     await user.click(screen.getByRole('button', { name: 'Finish' }))
     await expectNoA11yViolations(container)
     expect(within(screen.getByRole('region', { name: 'Story' })).getAllByRole('button').length).toBeGreaterThan(1)
+  })
+})
+
+describe('Story: Predict (IX05)', () => {
+  const chapters = visualization.story ?? []
+  const show = (questionAt: (index: number) => { kind: 'size' } | null) => {
+    const predict = { questionAt: vi.fn(questionAt) as never, prepare: vi.fn(), ask: vi.fn() }
+    render(<StoryPanel visualization={visualization} chapters={chapters} results={[]} playRange={vi.fn()} predict={predict} onClose={vi.fn()} />)
+    return predict
+  }
+
+  it('shows a Predict button on a chapter that has a question, and asks about the date the chapter starts on', async () => {
+    vi.useRealTimers()
+    const predict = show(() => ({ kind: 'size' }))
+    expect(predict.prepare).toHaveBeenCalledWith(0)
+    await userEvent.click(screen.getByRole('button', { name: 'Predict' }))
+    expect(predict.ask).toHaveBeenCalledWith(0)
+    await userEvent.click(screen.getByRole('button', { name: 'Next chapter' }))
+    expect(predict.prepare).toHaveBeenCalledWith(1)
+    await userEvent.click(screen.getByRole('button', { name: 'Predict' }))
+    expect(predict.ask).toHaveBeenLastCalledWith(1)
+  })
+
+  it('shows no Predict button on a chapter that has no question', () => {
+    vi.useRealTimers()
+    // Only the second chapter's first date has one.
+    show(index => (index === 1 ? { kind: 'size' } : null))
+    expect(screen.queryByRole('button', { name: 'Predict' })).toBeNull()
+  })
+
+  it('shows none without a predict hook, and none on the closing page', async () => {
+    vi.useRealTimers()
+    render(<StoryPanel visualization={visualization} chapters={chapters} results={[]} playRange={vi.fn()} onClose={vi.fn()} />)
+    expect(screen.queryByRole('button', { name: 'Predict' })).toBeNull()
   })
 })

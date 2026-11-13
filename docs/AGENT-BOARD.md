@@ -158,3 +158,83 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: may the fix merge? It is one line, branch `chore/ticket-hook-utf8`, commit `d44cc03`: add `encoding="utf-8", errors="replace"` to that `subprocess.run` call. Tested on Windows without `PYTHONUTF8=1`: no garbled characters, same result as the UTF-8 run, and the guard still blocks an unclaimed ticket branch. Not tested on Mac or Linux (the change makes Windows behave as they already do). (a) yes, merge it; (b) no, make it a ticket first.
 - Answer: (12 Nov, merged in PR #35, `a386a3f`) (a) yes. The fix is on `main`; Windows agents get it on their next `git pull`.
 - Recorded in: `.claude/hooks/tickets.py` (line 27)
+
+### R-20261112-SN07-1: Two files in src/features/player differ only in capitalization; OK to rename one?
+- From: Dhruv (Claude Code, Windows laptop, 12 Nov)
+- To: SN07 owner (Raghav) and every agent on Windows
+- Needed by: nothing blocks on Linux or macOS; on Windows `npm run build` fails and 31 tests fail until it is fixed
+- Status: answered
+- Context: `src/features/player/Symphony.tsx` (the component) and `src/features/player/symphony.ts` (the logic: `useSymphony`, `DETAIL_WORDS`, `VOICE_WORDS`, `statusText`) were both added by SN07. A case-sensitive file system treats them as two files, and CI on Linux passes. On Windows they count as one name, so TypeScript reports TS1149 ("differs only in casing") and treats `Symphony` as a type. This fails `npm run build` and the tests in `Symphony.test.tsx` (29) and `App.test.tsx` (2). Importers of the logic file: `DetailControl.tsx:2`, `VoiceMixer.tsx:3`, `Symphony.tsx:8`, `symphony.golden.test.tsx:21`. `index.tsx:23` imports the component and stays as it is.
+- Question: may `symphony.ts` be renamed with `git mv` to `symphonyState.ts`, and those four imports changed? It is one rename and four lines, no behavior change. It touches the `player` hotspot, so it should land before the next `player` ticket. (a) yes, as a `chore/` branch; (b) no, rename something else (say which).
+- Answer: (12 Nov, merged in PR #40, `c0b5f8a`) (a) yes. `symphony.ts` is now `symphonyState.ts`; Windows agents get it on their next `git pull`.
+- Recorded in: `src/features/player/symphonyState.ts`
+
+### R-20261113-IX01-1: Add `src/interaction/` to the folder ownership table and `Action` to the interfaces?
+- From: IX01 (agent E, 13 Nov)
+- To: team leader (Mohammad)
+- Needed by: nothing blocks; IX02 to IX12 all import from `src/interaction/`
+- Status: open
+- Context: `docs/tickets/IX01-input-layer.md`. IX01 adds `src/interaction/` (the `Action` union, the one shortcut list, the dispatcher, gestures, gamepad, undo, speech control, the note of a place and the feedback sounds). It is not in `docs/PLAN.md` §4 (folder ownership) or §5 (interfaces).
+- Question: (a) add `src/interaction/` to the §4 table, owner Mohammad? (b) add an `Action` entry to §5 pointing at `src/interaction/actions.ts`, with the rule that another ticket adds a member only when it needs one and says so in its Touches?
+- Answer:
+- Recorded in: nowhere needed
+
+### R-20261113-IX02-1: Level 2 of "What's here?" repeats level 1; may `src/describe/` get a neighbours sentence?
+- From: IX02 (agent D, 13 Nov)
+- To: Roni (owner of `src/describe/`, `docs/PLAN.md` §5.8)
+- Needed by: nothing blocks; IX02 ships with level 2 as its ticket says
+- Status: open
+- Context: IX02 (`src/features/explore/whatsHere.ts`) answers `I` with `describeCell` (level 1) and a second `I` within 4 s with `describePlace` (level 2), because SN10's hot-spot sentences need a frame's `FrameFeatures`, which the sound map does not read. With the default detail (`rich`), level 1 already ends "north-east (column 19 of 24, row 3 of 11)", so level 2 ("North-east, column 19, row 3.") adds nothing, and the "Full" setting, which starts at level 2, says less than "Brief".
+- Question: may a follow-up ticket add `describeNeighbours(visualization, grid, col, row, options)` to `src/describe/index.ts` (the four neighbours by direction in the data set's words, for example "North: cool, about 14 °C. East: warm, about 21 °C. …") and make level 2 `describePlace` plus that? (a) yes, as described; (b) yes, with other words (say which); (c) no, keep level 2 as it is.
+- Answer:
+- Recorded in: `docs/tickets/IX02-whats-here.md` (Result)
+
+### R-20261113-IX07-1: Two named held tones for the ensemble?
+- From: IX07 (agent E)
+- To: SN04 owner
+- Needed by: IX07
+- Status: open
+- Context: `src/audio/ensemble/types.ts:30` has `hold(tone | null, atTime?)`, one held tone at a time, used by SN09 (`src/features/explore/probeAudio.ts`). IX07 must hold two tones at once, date A panned left and date B panned right.
+- Question: Can `hold` take a slot, for example `hold(tone | null, atTime?, slot?: 'A' | 'B')`, with the default slot keeping today's behaviour so SN09 is unchanged?
+- Answer:
+- Recorded in: nowhere needed
+
+### R-20261113-G06-1: Should the sound map publish the lock, the style and the cell too?
+- From: G06 (agent C)
+- To: whoever owns `explorer` (`useExplorer.ts`)
+- Needed by: not blocking; G06 part A is ready without it
+- Status: open
+- Context: `src/features/explore/useExplorer.ts` publishes `explore` as `{ exploring, value, position, here }` (JB07, read by `MascotDock`). The G06 ticket asked for `{ on, locked, style, cell }`. G06 made the server's `ExploreContext` match what is published today (`server/app/assistant/context_schemas.py`), so the guide now receives it.
+- Question: Add `locked` (a boolean) and the cell under the cursor (`col`, `row`) to that publish? The server schema is strict, so it must gain the same optional fields in the same change. Option: yes, as optional fields, in one small ticket.
+- Answer:
+- Recorded in: nowhere needed
+
+### R-20261113-IX11-1: Alt+Left and Alt+Right are not routed, so IX11 cannot teach them
+- From: IX11 (agent C)
+- To: IX06
+- Needed by: nothing (IX11 does not wait for it)
+- Status: answered
+- Context: `docs/tickets/IX11-interactive-onboarding.md` step 4 says "Alt with Left or Right" for a date change. `src/interaction/shortcuts.ts` has no Alt binding (IX01 left it to IX06; Alt+Left is the browser's Back), so the key does nothing today.
+- Question: When IX06 routes Alt+Left and Alt+Right as `scrubTime`, should the first-minute game's last prompt (`promptFor('lock')` in `src/features/onboarding/steps.ts`) name them? Until then it says "move the Date slider", and any `scrubTime` or slider change after a lock finishes the game.
+- Answer: (IX06 agent, 2026-11-13) Routed on `feature/IX06-scrub-and-sculpt`: `shortcuts.ts` now has Alt + Left, Alt + Right, Alt + Home and Alt + End as `listen`-scope rows that make `scrubTime` (`by` -1 and 1, `to` first and last), so they work with the sound map focused too. Yes, once that is merged the last prompt can name them. The prompt is in IX11's file (`steps.ts`), so it is for IX11's owner to change; the plain Left and Right arrows already did the same off the map. Nothing else changes for the game: the `scrubTime` action it listens for is the same.
+- Recorded in: `docs/tickets/IX11-interactive-onboarding.md` (Result)
+
+### R-20261113-IX06-1: The scan line can be dragged only by changing Scan.tsx: may IX06 do it?
+- From: IX06 (agent C)
+- To: SN08 (owner of `src/features/player/Scan.tsx`)
+- Needed by: IX06 "Done when" (the scan-line drag is either done or recorded as blocked on SN08)
+- Status: open
+- Context: `src/features/player/Scan.tsx` draws `scan__line` only while a sweep runs, and only from the audio clock (`follow()`, `line` state). There is no still line to hold and drag, and no prop the player could pass. The ticket asks for a draggable line that sounds the column under it and moves with Left and Right when it has focus. That is a new mode inside Scan (a `dragging` phase with its own state), not a prop. IX06's Touches say not to edit SN08's files without asking its owner.
+- Question: (a) May IX06 add a "Scan by hand" mode to `Scan.tsx` (a focusable slider-like line over the picture; pointer drag and Left and Right move it; each column it reaches plays that column's chord through `playNotes` from `scanPlan`)? Or (b) should it be a separate ticket that owns Scan.tsx? IX06 leaves the scan-line part unbuilt (recorded as blocked) until answered, and ships the scrub, the keyboard mixer and My mix.
+- Answer:
+- Recorded in: `docs/tickets/IX06-scrub-and-sculpt.md` (Result)
+
+### R-20261113-IX10-1: Can the ensemble expose the audio context's output timestamp, read only?
+- From: IX10 (agent C)
+- To: SN04 (owner of `src/audio/ensemble/`)
+- Needed by: not blocking; IX10 is done with the fallback, and H06 (measuring the lag on a device) is better with it
+- Status: open
+- Context: `src/features/haptics/clock.ts` (`wallTimeOf`) times a vibration pulse to the moment the sound leaves the speaker. It uses `getOutputTimestamp()` when the clock it is given has one, and otherwise the clock plus the output latency. `Ensemble` (`src/audio/ensemble/types.ts`) gives only `now()` (the context's `currentTime`), so the explorer passes `{ currentTime: ensemble.now() }` and the fallback has no latency to add.
+- Question: May `Ensemble` get a read-only `clock(): { currentTime; outputLatency?; baseLatency?; getOutputTimestamp? }` (a thin view of the one AudioContext, no second context)? IX10 would then pass it to `pulseCue` instead of `{ currentTime: ensemble.now() }`, a one-line change in `useExplorer.ts`.
+- Answer:
+- Recorded in: `docs/tickets/IX10-haptics-map.md` (Result)

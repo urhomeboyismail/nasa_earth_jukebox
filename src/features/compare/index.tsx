@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { analyzeAll, type ChangeVisualization, type FrameAnalysis } from '../../analysis'
+import { useFrameAnalysis } from '../../analysis/useFrameAnalysis'
 import { hasChange } from '../../analysis/available'
-import { createSoundEngine, type SoundEngine } from '../../audio'
+import { useSoundEngine } from '../../audio/useSoundEngine'
 import { styleFor, useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
 import { useAssistantContext } from '../../assistant/context'
-import { Button, ButtonGroup, Card, LoadingIndicator, Notice } from '../../components'
+import { Button, ButtonGroup, Card, LoadingIndicator, Notice, RegionPicker } from '../../components'
+import { useRegionChoice } from '../../components/useRegionChoice'
 import { useAnnounce } from '../../components/useAnnounce'
-import { higherPhrase, variableWords, type Visualization } from '../../data'
+import { higherPhrase, regionFor, variableWords, type Visualization } from '../../data'
 import { describeFrame } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
 import { dateFormatterFor } from '../../dates'
@@ -42,7 +43,7 @@ function CompareModes({ visualization }: { visualization: Visualization }) {
 }
 
 function Compare({ visualization }: { visualization: Visualization }) {
-  const { frames, comparisons, regions, colorScale, mapping } = visualization
+  const { frames, comparisons, regions, mapping } = visualization
   const words = variableWords(visualization.variable)
   const announce = useAnnounce()
   const changeAvailable = hasChange(visualization)
@@ -53,27 +54,20 @@ function Compare({ visualization }: { visualization: Visualization }) {
   const [customB, setCustomB] = useState(frames[frames.length - 1].id)
   const [answer, setAnswer] = useState<Answer | null>(null)
   const [revealed, setRevealed] = useState(false)
-  const [results, setResults] = useState<FrameAnalysis[] | null>(null)
-  const [analysisError, setAnalysisError] = useState('')
   const [playError, setPlayError] = useState('')
 
-  const { engine, engineError } = useMemo((): { engine: SoundEngine | null; engineError: string } => {
-    try {
-      return { engine: createSoundEngine(mapping), engineError: '' }
-    } catch (error) {
-      return { engine: null, engineError: error instanceof Error ? error.message : String(error) }
-    }
-  }, [mapping])
+  const { engine, engineError } = useSoundEngine(mapping)
 
-  useEffect(() => {
-    let cancelled = false
-    // With a baseline each result also carries its change step. Without one the call is exactly what it was.
-    const done = changeAvailable ? analyzeAll(frames, regions[0], colorScale, mapping, visualization as ChangeVisualization) : analyzeAll(frames, regions[0], colorScale, mapping)
-    done
-      .then(all => { if (!cancelled) setResults(all) })
-      .catch((error: unknown) => { if (!cancelled) setAnalysisError(error instanceof Error ? error.message : String(error)) })
-    return () => { cancelled = true }
-  }, [frames, regions, colorScale, mapping, visualization, changeAvailable])
+  // F48: a ready-made comparison is played in its own region; the listener's own two dates use the region chosen here (region=<id> in the address).
+  const preset = comparisons.find(c => c.id === choice)
+  const [chosenRegion, chooseRegion] = useRegionChoice(visualization)
+  const region = preset ? regionFor(visualization, preset.regionId) : chosenRegion
+
+  // With a baseline each result also carries its change step.
+  const analysis = useFrameAnalysis(visualization, region, { withChange: changeAvailable })
+  const { error: analysisError } = analysis
+  // Until the region in use has been read, the results of the one before are not used.
+  const results = analysis.results?.[0]?.regionId === region.id ? analysis.results : null
 
   const [chosenStyle, setSoundStyle] = useSoundStyle()
   // A remembered "change" is not used for a data set with no baseline.
@@ -90,7 +84,6 @@ function Compare({ visualization }: { visualization: Visualization }) {
   const resultRef = useRef<HTMLDivElement>(null)
   const playRef = useRef<HTMLDivElement>(null)
 
-  const preset = comparisons.find(c => c.id === choice)
   const frameAId = preset ? preset.frameA : customA
   const frameBId = preset ? preset.frameB : customB
   // A ready-made comparison can name a date the data set does not have; the page then says so instead of crashing.
@@ -107,7 +100,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
 
   useAssistantContext(
     'compare',
-    { frameA: frameAId, frameB: frameBId, answered: answer !== null, revealed },
+    { frameA: frameAId, frameB: frameBId, answered: answer !== null, revealed, testInProgress: false },
     revealed ? `comparison_revealed:${preset?.id ?? `${frameAId}_${frameBId}`}` : undefined,
   )
 
@@ -156,7 +149,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
   }
 
   const right = answer !== null && answer === correct
-  const baseline = (visualization as ChangeVisualization).baseline
+  const baseline = (visualization).baseline
   const explanation = !frameA || !frameB ? '' : changeOn
     ? (correct ? `${formatDate(frameA.date)} was ${changeStepLabel(resultA)} and ${formatDate(frameB.date)} was ${changeStepLabel(resultB)}, measured against ${baselineName(baseline)}.` : '')
     : preset?.explanation ??
@@ -196,6 +189,11 @@ function Compare({ visualization }: { visualization: Visualization }) {
 
       {!preset && (
         <div className="compare__dates">
+          <RegionPicker
+            regions={regions}
+            value={chosenRegion.id}
+            onChange={id => { engine?.stop(); chooseRegion(id); setAnswer(null); setRevealed(false); announce(`Region: ${regions.find(r => r.id === id)?.name ?? id}.`) }}
+          />
           {([['a', 'Date A', frameAId], ['b', 'Date B', frameBId]] as const).map(([which, label, value]) => (
             <div key={which} className="compare__choose">
               <label htmlFor={`compare-date-${which}`} className="compare__label">{label}</label>
@@ -221,6 +219,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
       <p className="compare__question">
         {changeOn ? 'Which date is further above its normal?' : (preset?.question ?? `Which date shows ${higherPhrase(words)}?`)}
       </p>
+      {regions.length > 1 && <p className="compare__region">Region: {region.name}</p>}
 
       <div className="compare__play" ref={playRef}>
         <Button variant="primary" disabled={!ready} onClick={() => void playDate('A')}>Play date A</Button>

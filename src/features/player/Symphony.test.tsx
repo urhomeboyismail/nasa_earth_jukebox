@@ -262,9 +262,12 @@ describe('Symphony: what is shown', () => {
     expect(video.muted).toBe(true)
   })
 
-  it('has no video element when the data set has none', () => {
+  it('still gives the source a hidden video element when the data set has none, so Play can read the checked frames', () => {
     const { container } = mount(withV3(plain, { video: undefined }))
-    expect(container.querySelector('video')).toBeNull()
+    const video = container.querySelector('video')!
+    expect(video).toHaveAttribute('aria-hidden', 'true')
+    expect(video).not.toHaveAttribute('src')
+    expect(s.options!.video).toBe(video)
   })
 })
 

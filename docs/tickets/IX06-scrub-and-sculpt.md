@@ -101,4 +101,25 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Built on `feature/IX06-scrub-and-sculpt`, from `main` at the claim. Three of the four parts are done; the scan-line drag is **blocked** (see below).
+
+**Done**
+
+- **Scrub by ear.** `scrub.ts` (pure: `scrubTarget`, `endWords`, `sliceNotes`, `sliceDue`) and `useScrub.ts`. A `scrubTime` step while the dates are not playing and no hot spot is followed changes the date silently (`showDate`), announces the date, pulses the vibration, and plays a 150 ms slice of the target date's music through `ensemble.playNotes(notesOf(frame, 0.15))`. The two dates either side and the two ends are read ahead (SN08's `scanFeatures`), so the slice is called in the same tick as the key. Holding a key moves the date on every repeat and sounds at most 8 slices a second. A step that cannot move says "First date." or "Last date." and makes no sound. While the dates play, or a spot is followed, a step carries on as it did (`chooseDate`). Escape drops a slice still waiting.
+- **Keys.** `shortcuts.ts` has Alt + Left, Alt + Right, Alt + Home and Alt + End as `listen` rows (IX01 left them to this ticket), so they work with the sound map focused. The plain Left and Right arrows off the map do the same, as before.
+- **Keyboard mixer.** `useMixerKeys.ts` handles the `voice` action on the one SN07 mixer (`useSymphony`'s `toggleSolo`, `toggleMute`; `setMix` is new, `ensemble` is now exposed): 1 to 7 solo, Shift + 1 to 7 mute, one 120 ms melody note (a mute a fifth lower, only when the sound is already on), `recordUndo`, and Ctrl+Z through the `undo` action. A voice the level of detail lacks changes nothing and says so. `VoiceMixer` writes each voice's state in words ("melody: solo").
+- **My mix.** `mySoundMix.ts` (zod, `earth-jukebox:my-mix`, unknown voices dropped, broken or blocked storage gives the default mix) and `MyMixControls.tsx` ("Save my mix", "Recall my mix", "Reset the mix"; recall and reset can be undone). The ensemble has no level for a single voice, so a mix is the mutes and the solo; there are no levels to save.
+
+**Blocked: the scan-line drag.** `Scan.tsx` draws its line only while a sweep runs, from the audio clock. There is no still line to hold and drag, and no prop the player could pass: it needs a new "by hand" mode inside SN08's file. The ticket says not to edit SN08's files without asking, so it is posted as `R-20261113-IX06-1` on `docs/AGENT-BOARD.md` and left unbuilt (no partial line). The board entry `R-20261113-IX11-1` (Alt keys) is answered.
+
+**Files outside the ticket's Touches, all small and needed:** `src/interaction/shortcuts.ts` and `shortcuts.test.ts` (the Alt rows; one test said Alt + Left was unbound), `src/features/explore/Explorer.test.tsx` (one test said Alt with an arrow is not handled; it now checks the cursor stays put and the date moves), `symphonyState.ts`, `Symphony.tsx` and `VoiceMixer.tsx` for the mixer (SN07's files, which step 4 of this ticket edits), and `docs/AGENT-BOARD.md`.
+
+**Tests:** `scrub.test.ts`, `useScrub.test.tsx` (the slice in the same tick, 150 ms notes, no timer advanced, the 8 a second limit, the sound started from the press, a stale or escaped slice dropped, carry-on), `mySoundMix.test.ts`, `Mixer.test.tsx` (keys by `code`, state text, the fifth lower, undo, My mix save, recall, reset, a broken store, `expectNoA11yViolations`), `player.test.tsx` (Alt keys step the dates, a step in time plays no old chord and is announced), `shortcuts.test.ts`, `Explorer.test.tsx`.
+
+```
+$ npm run lint        -> oxlint, no warnings, exit 0
+$ npm test            -> Test Files 171 passed (171), Tests 2652 passed (2652)
+$ npm run build       -> built in 1.27s
+```
+
+Note: `src/App.test.tsx` is timing-flaky on this machine under load (a different test in it fails on some runs, on a clean `main` too). It passed in the run above.

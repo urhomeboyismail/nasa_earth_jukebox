@@ -18,6 +18,7 @@ from typing import Any, AsyncIterator, Protocol
 
 from fastapi import WebSocket
 
+from app.assistant.context_schemas import validate_context
 from app.agent.limits import ANNOUNCE_GAP_SECONDS, CONTEXT_KEYS, MAX_AUDIO_FRAME_BYTES, MAX_CONTEXT_BYTES, MAX_TEXT_CHARS
 from app.agent.sink import sink
 from app.assistant.knowledge import PAGES, event_prompt, system_instruction
@@ -140,6 +141,9 @@ class AdkBridge:
             return
         data = event.get("data")
         if data is not None and len(json.dumps(data)) > MAX_CONTEXT_BYTES:
+            return
+        valid, data = validate_context(key, data)
+        if not valid:
             return
         screens = self.live.state.get("screens")
         self.live.state["screens"] = {**(screens if isinstance(screens, dict) else {}), key: data}

@@ -97,4 +97,20 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+**Built:** `src/features/haptics/`: `clock.ts` (`wallTimeOf`, both branches), `patterns.ts` (the one table of shapes: move by rank, missing, edge, lock, mark, and the rumble magnitudes), `pulse.ts` (`schedulePulse`, `pulseCue`, `VIBRATION_LAG_MS = 0`), `pad.ts` (`dual-rumble` per buzz), and tests. `vibration.ts` now takes `patternFor` and the constants from `patterns.ts` and still exports them. `useExplorer.ts` sends move, edge, lock and mark pulses through one `pulse()`, only while the setting is on. `player/index.tsx` shows the one no-vibration line.
+
+**Choices to know about:**
+- The explorer passes `{ currentTime: ensemble.now() }` as the clock, because `Ensemble` has no output timestamp or latency. So only the fallback branch of `wallTimeOf` runs in the app today; the timestamp branch is tested with a stub. Requested as R-20261113-IX10-1 on the board (not blocking).
+- A pulse is timed to the sound's lookahead (`INTERACTIVE_LOOKAHEAD_S`, 20 ms). The locked place played across dates (`playAcrossDates`) comes from the older sound engine, which has no lookahead, so its pulse fires at once.
+- The Listen page's own date-step pulses (`vibrateForDate` in `onStep` in `player/index.tsx`) are left as they are: they already fire from the engine's step callback.
+- The toggle still sits behind `navigator.vibrate`, so a desktop with a gamepad but no vibration shows the note and not the setting; pads rumble only where the setting can be turned on.
+- Unlock has no pulse (the ticket lists move, edge, lock, mark).
+- `VIBRATION_LAG_MS` stays 0 for H06 to measure.
+
+**Checks** (Windows, Node):
+
+```
+npm run lint   -> oxlint, exit 0, no warnings or errors
+npm run build  -> tsc -b && vite build: built, no errors
+npm test       -> Test Files 179 passed (179); Tests 2703 passed (2703)
+```

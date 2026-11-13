@@ -1,15 +1,25 @@
-import { useState, type KeyboardEvent } from 'react'
+import { useMemo, useState, type KeyboardEvent } from 'react'
 import { Button } from '../../components'
+import { useKeyboard } from '../../interaction/useInput'
+import { HotspotMarkers } from '../../components/HotspotMarkers'
+import { hotspotMarkers } from '../../describe/markers'
 import { dateFormatterFor } from '../../dates'
-import type { Frame, Visualization } from '../../data'
+import { primaryRegion, type Frame, type Region, type Visualization } from '../../data'
+import type { Preset } from '../../sonify/types'
 import { DetailControl } from './DetailControl'
 import { LayerCaptions } from './LayerCaptions'
 import { shortcutFor } from './shortcuts'
 import { SoundPrefs } from './SoundPrefs'
-import { statusText, useSymphony, type ButtonKind } from './symphony'
+import { statusText, useSymphony, type ButtonKind } from './symphonyState'
 import { Viewer } from './Viewer'
+import { useEventAnnouncer } from './useEventAnnouncer'
+import { MyMixControls } from './MyMixControls'
+import { useMixerKeys } from './useMixerKeys'
 import { VoiceMixer } from './VoiceMixer'
 import './symphony.css'
+
+/** The keys of the mixer (1 to 7, Shift + 1 to 7) and the undo of a change to it: the sound map's and Listen's parts of the shortcut list. */
+const MIXER_SCOPES = ['map', 'listen'] as const
 
 const BUTTON_LABELS: Record<ButtonKind, string> = { play: 'Play', pause: 'Pause', resume: 'Resume', sound: 'Turn sound on' }
 
@@ -24,17 +34,24 @@ function frameAt(frames: Frame[], date: string): Frame {
   return found
 }
 
-export function Symphony({ visualization }: { visualization: Visualization }) {
+export function Symphony({ visualization, preset, region }: { visualization: Visualization; preset?: Preset | null; region?: Region }) {
   const [video, setVideo] = useState<HTMLVideoElement | null>(null)
-  const symphony = useSymphony(visualization, video)
-  const { frames, regions, source } = visualization
+  const symphony = useSymphony(visualization, video, preset)
+  const features = symphony.latest?.features ?? null
+  useEventAnnouncer(features, visualization)
+  const markers = useMemo(() => (features ? hotspotMarkers(features, visualization) : []), [features, visualization])
+  const { frames, source } = visualization
   const format = dateFormatterFor(frames.map(frame => frame.date))
   const date = symphony.latest?.date ?? frames[0].date
   const frame = frameAt(frames, date)
   const showVideo = symphony.sourceStatus === 'video'
   const idle = symphony.ensembleStatus === 'off'
+  // IX06: the same mixer from the keyboard, with undo.
+  useMixerKeys({ visualization, ...symphony })
+  const onMixerKey = useKeyboard(MIXER_SCOPES)
 
   function onKeyDown(event: KeyboardEvent) {
+    onMixerKey(event)
     if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return
     if (event.key === 'Escape') {
       if (!idle) symphony.stop()
@@ -46,19 +63,19 @@ export function Symphony({ visualization }: { visualization: Visualization }) {
 
   return (
     <section className="player symphony" aria-label="Symphony" onKeyDown={onKeyDown}>
-      <Viewer frame={frame} dateText={format(date)} region={regions[0]} source={source}>
-        {visualization.video && (
-          <video
-            ref={setVideo}
-            className={showVideo ? 'symphony__video' : 'symphony__video symphony__video--hidden'}
-            src={`${import.meta.env.BASE_URL}data/${visualization.id}/${visualization.video.src}`}
-            muted
-            playsInline
-            preload="auto"
-            aria-hidden={showVideo ? undefined : true}
-            aria-label={frame.altText}
-          />
-        )}
+      <Viewer frame={frame} dateText={format(date)} region={region ?? primaryRegion(visualization)} source={source}>
+        {/* Always present, because the live source needs an element to be made. Without a video it has no source, stays hidden, and the source steps the checked frames instead. */}
+        <video
+          ref={setVideo}
+          className={showVideo ? 'symphony__video' : 'symphony__video symphony__video--hidden'}
+          src={visualization.video ? `${import.meta.env.BASE_URL}data/${visualization.id}/${visualization.video.src}` : undefined}
+          muted
+          playsInline
+          preload={visualization.video ? 'auto' : 'none'}
+          aria-hidden={showVideo ? undefined : true}
+          aria-label={showVideo ? frame.altText : undefined}
+        />
+        <HotspotMarkers markers={markers} />
       </Viewer>
 
       <p className="symphony__status">{statusText(symphony)}</p>
@@ -74,10 +91,11 @@ export function Symphony({ visualization }: { visualization: Visualization }) {
 
       <DetailControl detail={symphony.detail} onChange={symphony.setDetail} />
       <VoiceMixer voices={symphony.voices} muted={symphony.muted} solo={symphony.solo} onMute={symphony.toggleMute} onSolo={symphony.toggleSolo} />
+      <MyMixControls voices={symphony.voices} muted={symphony.muted} solo={symphony.solo} setMix={symphony.setMix} />
 
       <SoundPrefs ownPreset={visualization.sonification?.preset ?? 'major'} />
 
-      <p className="player__hint">Keyboard: Space plays or pauses, and Escape stops.</p>
+      <p className="player__hint">Keyboard: Space plays or pauses, and Escape stops. Keys 1 to 7 solo a voice, Shift and 1 to 7 mute it, and Control Z puts the last change back.</p>
     </section>
   )
 }

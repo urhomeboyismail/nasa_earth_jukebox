@@ -1,10 +1,11 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { forgetKeptValues } from '../hooks/useStoredValue'
 import { readSoundStyle, useSoundStyle } from './style'
 
 const KEY = 'earth-jukebox:sound-style'
 
-beforeEach(() => { localStorage.clear() })
+beforeEach(() => { localStorage.clear(); forgetKeptValues() })
 afterEach(() => { vi.restoreAllMocks() })
 
 describe('sound style', () => {
@@ -51,5 +52,17 @@ describe('sound style', () => {
     expect(result.current[0]).toBe('full')
     act(() => result.current[1]('simple'))
     expect(result.current[0]).toBe('simple')
+  })
+})
+
+describe('sound style when storage refuses to write', () => {
+  it('holds on every page for this visit', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked') })
+    const { result } = renderHook(() => useSoundStyle())
+    act(() => result.current[1]('simple'))
+    // A page opened later in the same visit starts from the choice, not the default.
+    expect(readSoundStyle()).toBe('simple')
+    expect(renderHook(() => useSoundStyle()).result.current[0]).toBe('simple')
+    forgetKeptValues()
   })
 })

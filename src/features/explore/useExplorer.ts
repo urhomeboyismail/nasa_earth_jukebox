@@ -1,34 +1,54 @@
 // The sound map's state (docs/PLAN.md §5.6, ticket T81): the cursor, the keys, touch and mouse, and the sweep. Kept apart from the components in
 // Explorer.tsx so that file only exports components (fast refresh).
 
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
 import { analyzeGrid, type FrameGrid } from '../../analysis'
+import { createLru } from '../../analysis/lru'
 import type { SequenceStep, SoundEngine } from '../../audio'
+import { useAssistantContext } from '../../assistant/context'
 import { useEnsemble } from '../../audio/ensemble/useEnsemble'
 import { elevationForPoint, panForPoint } from '../../audio/pan'
 import { presetFor } from '../../sonify/presets'
 import { useAnnounce } from '../../components'
-import type { Frame, MapArea, Visualization } from '../../data'
-import { describeCell, describeCellOverTime, describePlace, describeSweep, edgeMessage, explorerMessage, sweepEndMessage, type Edge } from '../../describe'
+import { variableWords, type Frame, type MapArea, type Visualization } from '../../data'
+import { describeCell, describeCellOverTime, describePlace, describeSweep, explorerMessage, sweepEndMessage } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
-import { shortcutFor } from '../player/shortcuts'
-import { vibrateForDate } from '../player/vibration'
+import { MOVE_GAP_MS, createGapGate } from '../../interaction/budget'
+import { createFeedback, type Place } from '../../interaction/feedback'
+import { recordUndo, undoLast } from '../../interaction/history'
+import { positionOfValue } from '../../interaction/notes'
+import { useActionHandler } from '../../interaction/registry'
+import { listedShortcuts } from '../../interaction/shortcuts'
+import { registerSpeechStopper } from '../../interaction/speech'
+import { useKeyboard, usePointerInput } from '../../interaction/useInput'
+import { addStoredMark, removeStoredMarkLike } from '../marks/store'
+import type { Cue } from '../haptics/patterns'
+import { pulseCue } from '../haptics/pulse'
 import { createProbeAudio, useProbeSettings, type ProbeAudio } from './probeAudio'
+import { VERBOSITY_KEY, nextLevel, parseVerbosity, whatsHereText, type LastQuery, type Verbosity } from './whatsHere'
 
-/** A moved cursor plays at most this often; the latest cell wins. */
-const PLAY_EVERY_MS = 120
-/** The announcement waits for the cursor to rest, so a screen reader is not talking over the sounds. */
-const ANNOUNCE_AFTER_MS = 400
+/** IX02: the stored "Words for What's here". Blocked storage gives "brief", and the choice then holds only while the page is open. */
+function readVerbosity(): Verbosity {
+  try { return parseVerbosity(localStorage.getItem(VERBOSITY_KEY)) } catch { return 'brief' }
+}
+
+function saveVerbosity(verbosity: Verbosity) {
+  try { localStorage.setItem(VERBOSITY_KEY, verbosity) } catch { /* Not kept for next time; it still holds for this visit. */ }
+}
+
 /** One cell of a sweep per step. */
+/** Dates whose map is kept; an older one is read again when it is asked for. */
+const GRID_CACHE_LIMIT = 128
 const SWEEP_STEP_MS = 250
 const CELL_NOTE_MS = 300
 /** One date of a locked place per step when it plays across the dates. */
 const DATE_STEP_MS = 600
-const BIG_STEP = 4
 const WHOLE_MAP: MapArea = { x0: 0, y0: 0, x1: 1, y1: 1 }
 
 type Cursor = { col: number; row: number }
 type Line = 'row' | 'column'
+/** The sound map's keys are the shortcut list's 'map' scope, and Escape, which stops its sound wherever focus is on it. */
+const MAP_SCOPES = ['map', 'anywhere'] as const
 
 type MapRead = { frame: Frame; colorScale: Visualization['colorScale']; mapping: Visualization['mapping']; mapArea: MapArea | undefined; grid: FrameGrid | null; error: string }
 
@@ -66,6 +86,9 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   const preset = presetFor(visualization.sonification?.preset ?? 'major')
   const { ensemble } = useEnsemble(preset, 'full')
   const ownProbe = useMemo(() => createProbeAudio(ensemble, preset), [ensemble, preset])
+  // IX01: the one-note sounds (a move, the edge, lock and unlock, undo) go through the ensemble's playNotes at once, never through a frame.
+  const feedback = useMemo(() => createFeedback(ensemble, preset), [ensemble, preset])
+  const moveGate = useMemo(() => createGapGate(MOVE_GAP_MS), [])
   useEffect(() => () => ownProbe.dispose(), [ownProbe])
   const probe = given !== undefined ? given : probeSettings.tone ? ownProbe : null
 
@@ -84,13 +107,11 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   /** F23: the cursor is locked on one place, and the dates move under it. */
   const [locked, setLocked] = useState(false)
   /** The map of each date, read once: locking and scrubbing ask for the same dates again and again. */
-  const gridCache = useRef(new Map<string, FrameGrid>())
+  const [gridCache] = useState(() => createLru<FrameGrid>(GRID_CACHE_LIMIT))
 
   // Timers and counters that must not cause a render.
   const sweepId = useRef(0)
   const announceTimer = useRef<number | undefined>(undefined)
-  const playTimer = useRef<number | undefined>(undefined)
-  const lastPlayed = useRef(-Infinity)
   const sweepEnd = useRef<number | undefined>(undefined)
   /** True until the first message after turning on, or after the date changed, has been said: that message starts with the date. */
   const needDate = useRef(true)
@@ -101,15 +122,21 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   /** A locked place is playing across the dates. The date moves under it, which must not stop it the way a new date stops a sweep. */
   const scrubbing = useRef(false)
   const cursorRef = useRef(cursor)
+  /** IX02: the answer to the last "What's here?", shown under the map until the next one, and how many words a first question gets. */
+  const [whatsHere, setWhatsHere] = useState('')
+  const [verbosity, setVerbosityState] = useState<Verbosity>(readVerbosity)
+  /** The last question, for the 4 s rule. Escape forgets it, so the next question starts again. */
+  const lastQuery = useRef<LastQuery | null>(null)
+  /** A long press asked a question: lifting that finger must not then say the cell over the answer. */
+  const queriedThisPress = useRef(false)
   /** Sets the cursor everywhere at once, so a second key pressed before the next render still starts from the right cell. */
   const place = useCallback((next: Cursor) => { cursorRef.current = next; setCursor(next) }, [])
 
   const clearTimers = useCallback(() => {
     window.clearTimeout(announceTimer.current)
-    window.clearTimeout(playTimer.current)
     window.clearTimeout(sweepEnd.current)
-    playTimer.current = undefined
-  }, [])
+    moveGate.cancel()
+  }, [moveGate])
 
   const stopSweep = useCallback(() => {
     sweepId.current++
@@ -129,7 +156,7 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
         if (cancelled) return
         setRead({ frame, colorScale, mapping, mapArea, grid: done, error: '' })
         // The first read puts the cursor in the middle; a later date keeps it where it was.
-        gridCache.current.set(`${visualization.id}/${frame.id}`, done)
+        gridCache.set(`${visualization.id}/${frame.id}`, done)
         const now = cursorRef.current
         if (!(placed.current && now.col < done.cols && now.row < done.rows)) {
           place({ col: Math.floor(done.cols / 2), row: Math.floor(done.rows / 2) })
@@ -146,9 +173,15 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
         clearTimers()
       }
     }
-  }, [on, frame, colorScale, mapping, visualization, clearTimers, place, stopSweep])
+  }, [on, frame, colorScale, mapping, visualization, clearTimers, place, stopSweep, gridCache])
 
   useEffect(() => clearTimers, [clearTimers])
+
+  // IX02: Escape (IX01's stopSpeech) also drops a sentence the map was about to say, and the question in progress.
+  useEffect(() => registerSpeechStopper(() => {
+    window.clearTimeout(announceTimer.current)
+    lastQuery.current = null
+  }), [])
 
   const cellAt = useCallback((col: number, row: number) => grid?.cells[row * grid.cols + col], [grid])
   /** The middle of a column as a fraction of the whole image (not just of the map), so the pan matches the picture. */
@@ -169,78 +202,108 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     else announceTimer.current = window.setTimeout(say, delay)
   }, [grid, visualization, announce, detail, formatDate, frame.date])
 
-  /** Sounds a cell now, or after the pause between plays; a newer cell replaces one that is waiting. */
+  /** A cell as the feedback sounds need it: where its value sits on the legend (null = no data), its pan and, in 3D, its height. */
+  const placeOf = useCallback((at: Cursor): Place => {
+    const cell = grid?.cells[at.row * grid.cols + at.col]
+    const position = cell && cell.category !== 'insufficient' && cell.value !== null ? positionOfValue(cell.value, colorScale) : null
+    return { position, pan: panForPoint(centreX(at.col)), elevation: elevationAt(at.row) }
+  }, [grid, colorScale, centreX, elevationAt])
+
+  /** Starts the sound for the first press, which must happen in the press itself (WCAG 1.4.2). A browser with no audio leaves the map silent but working. */
+  const begin = useCallback(() => {
+    probe?.start()
+    if (!probe && ensemble.status() !== 'on') ensemble.start().catch(() => {})
+  }, [ensemble, probe])
+
+  /**
+   * IX10: a pulse for a cue, when the listener has vibration on. It is timed to the audio clock, so it lands with the sound (a phone) and rumbles the pad
+   * the same way. `now` is for a sound that is already playing from another engine, which has no lookahead to wait for.
+   */
+  const pulse = useCallback((cue: Cue, now = false) => {
+    if (!vibrate) return
+    const clock = { currentTime: ensemble.now() }
+    pulseCue(cue, mapping, clock, now ? clock.currentTime : undefined)
+  }, [vibrate, mapping, ensemble])
+
+  /** Sounds a cell now, or at the end of the 50 ms gap if another was sounded just before; the newest cell wins. */
   const soundCell = useCallback((at: Cursor) => {
-    if (!engine || !grid) return
-    window.clearTimeout(playTimer.current)
-    const play = () => {
-      lastPlayed.current = Date.now()
-      playTimer.current = undefined
+    if (!grid) return
+    moveGate.run(() => {
+      feedback.move(placeOf(at))
       const cell = grid.cells[at.row * grid.cols + at.col]
-      if (!cell) return
-      if (cell.category === 'insufficient') engine.playMissing()
-      else engine.playCategory(cell.category, { pan: panForPoint(centreX(at.col)), elevation: elevationAt(at.row), durationMs: CELL_NOTE_MS })
-      if (vibrate) vibrateForDate(cell.category, mapping)
-    }
-    const wait = PLAY_EVERY_MS - (Date.now() - lastPlayed.current)
-    if (wait <= 0) play()
-    else playTimer.current = window.setTimeout(play, wait)
-  }, [engine, grid, centreX, elevationAt, vibrate, mapping])
+      if (cell) pulse({ kind: 'move', category: cell.category })
+    })
+  }, [grid, moveGate, feedback, placeOf, pulse])
 
   /** In a link-opened map, the first press unlocks the audio (it has to happen in the press) and then sounds the cell the cursor is on. */
   const wake = useCallback(() => {
-    if (!needsUnlock.current || !engine) return
+    if (!needsUnlock.current) return
     needsUnlock.current = false
     // With the continuous tone on, the probe sounds the cell once its own sound has started.
-    void engine.unlock().then(() => { if (!probe) soundCell(cursorRef.current) })
-  }, [engine, soundCell, probe])
+    const unlocked = Promise.all([engine?.unlock(), probe ? undefined : ensemble.start()]).catch(() => {})
+    void unlocked.then(() => { if (!probe) soundCell(cursorRef.current) })
+  }, [engine, ensemble, soundCell, probe])
 
   /**
-   * Moves the cursor and plays the cell. `speak` is false for the sliders, which are announced by the screen reader itself. With the continuous
-   * tone on, a pointer holds the tone while it stays and anything else (keys, sliders) holds it briefly; the engine's note is not played.
+   * Moves the cursor and plays the cell: a sound, never a sentence. With the continuous tone on, a pointer holds the tone while it stays and anything
+   * else (keys, sliders) holds it briefly; the one-note sound is not played. A move by key can be taken back (undo).
    */
-  const moveTo = useCallback((col: number, row: number, speak = true, by: 'key' | 'pointer' = 'key') => {
+  const moveTo = useCallback((col: number, row: number, by: 'key' | 'pointer' | 'slider' | 'follow' = 'key') => {
+    // IX03: following a hot spot moves the cursor in silence (the spot's own note is the sound), with no undo step, and also while a new date's map is being read.
+    if (by === 'follow') {
+      if (locked) return
+      place(grid ? { col: Math.min(grid.cols - 1, Math.max(0, col)), row: Math.min(grid.rows - 1, Math.max(0, row)) } : { col, row })
+      return
+    }
     if (!grid || locked) return
     const next = { col: Math.min(grid.cols - 1, Math.max(0, col)), row: Math.min(grid.rows - 1, Math.max(0, row)) }
+    const before = cursorRef.current
     stopSweep()
     place(next)
+    if (by === 'key' && (before.col !== next.col || before.row !== next.row)) {
+      recordUndo('move', () => {
+        place(before)
+        feedback.undo(placeOf(before))
+      })
+    }
     if (probe) {
       if (by === 'pointer') probe.point(next.col, next.row)
       else probe.key(next.col, next.row)
       const cell = grid.cells[next.row * grid.cols + next.col]
-      if (vibrate && cell) vibrateForDate(cell.category, mapping)
+      if (cell) pulse({ kind: 'move', category: cell.category })
     } else {
       soundCell(next)
     }
-    if (speak) announceCell(next, ANNOUNCE_AFTER_MS)
-  }, [grid, locked, stopSweep, place, probe, vibrate, mapping, soundCell, announceCell])
+  }, [grid, locked, stopSweep, place, probe, pulse, soundCell, feedback, placeOf])
 
-  /** A key that pushes against the edge of the map: no sound, and the edge is named once the keys rest, so a held key is not heard as a stall. */
-  const hitEdge = useCallback((edge: Edge) => {
-    stopSweep()
-    window.clearTimeout(announceTimer.current)
-    announceTimer.current = window.setTimeout(() => announce(edgeMessage(edge)), ANNOUNCE_AFTER_MS)
-  }, [stopSweep, announce])
-
-  /** A move by key. Plays and announces the new cell like `moveTo`; if the cursor cannot move, it says which edge instead. */
-  const moveByKey = useCallback((col: number, row: number, edge: Edge) => {
+  /**
+   * A move by key or button. If the cursor cannot move it is the edge of the map, or the place is locked: the edge cue, a sound and not words.
+   * Targets past the map are clamped, so `Infinity` is the far edge.
+   */
+  const moveByKey = useCallback((col: number, row: number) => {
     if (!grid) return
-    if (locked) {
-      announce('Locked on this place. Press L to unlock before moving.')
-      return
-    }
     const at = cursorRef.current
     const target = { col: Math.min(grid.cols - 1, Math.max(0, col)), row: Math.min(grid.rows - 1, Math.max(0, row)) }
-    if (target.col === at.col && target.row === at.row) hitEdge(edge)
-    else moveTo(target.col, target.row)
-  }, [grid, locked, moveTo, hitEdge, announce])
+    if (locked) {
+      stopSweep()
+      feedback.edge(placeOf(at))
+      pulse({ kind: 'edge' })
+      announce('Locked on this place. Press L to unlock before moving.')
+    } else if (target.col === at.col && target.row === at.row) {
+      stopSweep()
+      feedback.edge(placeOf(at))
+      pulse({ kind: 'edge' })
+    } else {
+      moveTo(target.col, target.row)
+    }
+  }, [grid, locked, moveTo, stopSweep, feedback, placeOf, pulse, announce])
 
   /** Plays a row west to east, or a column north to south, one cell at a time, then says what it passed over. */
   const sweep = useCallback((kind: Line) => {
     if (!engine || !grid) return
     stopSweep()
     window.clearTimeout(announceTimer.current)
-    window.clearTimeout(playTimer.current)
+    moveGate.cancel()
     const mine = ++sweepId.current
     const at = cursorRef.current
     const length = kind === 'row' ? grid.cols : grid.rows
@@ -263,7 +326,7 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
         }, SWEEP_STEP_MS)
       }
     }, { tick: false })
-  }, [engine, grid, centreX, elevationAt, stopSweep, place, announce, visualization, detail])
+  }, [engine, grid, centreX, elevationAt, stopSweep, moveGate, place, announce, visualization, detail])
 
   /** Stops the sound of a sweep or cell, keeping the cursor where it is. */
   const stopSound = useCallback(() => {
@@ -276,28 +339,29 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   /** The map of any date, from the cache or read now. */
   const gridFor = useCallback(async (of: Frame) => {
     const key = `${visualization.id}/${of.id}`
-    const known = gridCache.current.get(key)
+    const known = gridCache.get(key)
     if (known) return known
     const made = await analyzeGrid(of, colorScale, mapping, visualization.mapArea)
-    gridCache.current.set(key, made)
+    gridCache.set(key, made)
     return made
-  }, [visualization.id, visualization.mapArea, colorScale, mapping])
+  }, [visualization.id, visualization.mapArea, colorScale, mapping, gridCache])
 
-  /** F23: holds the cursor on this place, so the dates can be heard one after another at the same spot. */
+  /** F23: holds the cursor on this place, so the dates can be heard one after another at the same spot. The lock is a sound, not a sentence. */
   const lock = useCallback(() => {
     if (!grid) return
     stopSweep()
     clearTimers()
     setLocked(true)
-    announce(`Locked on ${describePlace(grid, cursorRef.current.col, cursorRef.current.row)}. Move the date slider, or play across the dates. L or Escape unlocks.`)
-  }, [grid, stopSweep, clearTimers, announce])
+    feedback.lock(placeOf(cursorRef.current))
+    pulse({ kind: 'lock' })
+  }, [grid, stopSweep, clearTimers, feedback, placeOf, pulse])
 
   const unlock = useCallback(() => {
     if (!locked) return
     stopSweep()
     setLocked(false)
-    announce('Unlocked. The arrow keys move over the map again.')
-  }, [locked, stopSweep, announce])
+    feedback.unlock(placeOf(cursorRef.current))
+  }, [locked, stopSweep, feedback, placeOf])
 
   /** Sounds the locked place on one date and says what it was then. The date slider calls this while the place is locked. */
   const playLockedAt = useCallback(async (index: number) => {
@@ -313,16 +377,16 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     engine.stop()
     if (cell.category === 'insufficient') engine.playMissing()
     else engine.playCategory(cell.category, { pan: panForPoint(centreX(at.col)), elevation: elevationAt(at.row), durationMs: CELL_NOTE_MS })
-    if (vibrate && cell.category !== 'insufficient') vibrateForDate(cell.category, mapping)
+    if (cell.category !== 'insufficient') pulse({ kind: 'move', category: cell.category }, true)
     announce(`${formatDate(target.date)}: ${describeCell(visualization, made, at.col, at.row, { detail })}`)
-  }, [frames, engine, locked, stopSweep, gridFor, centreX, elevationAt, vibrate, mapping, announce, formatDate, visualization, detail])
+  }, [frames, engine, locked, stopSweep, gridFor, centreX, elevationAt, pulse, announce, formatDate, visualization, detail])
 
   /** Plays the locked place on every date, one after another, and then says how it changed. */
   const playAcrossDates = useCallback(async () => {
     if (!engine || !locked || !grid) return
     stopSweep()
     window.clearTimeout(announceTimer.current)
-    window.clearTimeout(playTimer.current)
+    moveGate.cancel()
     const mine = ++sweepId.current
     const at = cursorRef.current
     scrubbing.current = true
@@ -355,15 +419,15 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
         }, DATE_STEP_MS)
       }
     }, { tick: false })
-  }, [engine, locked, grid, frames, gridFor, stopSweep, centreX, elevationAt, onDate, announce, formatDate, visualization, detail])
+  }, [engine, locked, grid, frames, gridFor, stopSweep, moveGate, centreX, elevationAt, onDate, announce, formatDate, visualization, detail])
 
   const turnOn = useCallback(() => {
     // The first press has to start the audio, so it is asked for here, in the click.
     void engine?.unlock()
-    probe?.start()
+    begin()
     needsUnlock.current = false
     setOn(true)
-  }, [engine, probe])
+  }, [engine, begin])
 
   /** F40: a link pasted into the open page. Opens the map on that cell, silently. A cell off the map is ignored, and a locked place is released. */
   const openAt = useCallback((at: Cursor) => {
@@ -380,46 +444,95 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     setOn(false)
     setRead(null)
     setLocked(false)
+    setWhatsHere('')
+    lastQuery.current = null
     placed.current = false
     stopSound()
   }, [stopSound])
 
-  /** The keyboard. Every key handled here is also stopped from reaching the player's own shortcuts. */
-  const onKeyDown = useCallback((event: KeyboardEvent) => {
-    if (event.ctrlKey || event.metaKey || event.altKey) return
-    // Which key means what is the list in ../player/shortcuts.ts, which the "Keyboard shortcuts" dialog is drawn from too.
-    const key = shortcutFor(event.key, 'map')
-    if (!grid) {
-      // Before the map has loaded the map's keys still do nothing here, and are kept from the player's shortcuts.
-      if (key) event.preventDefault()
+  const setVerbosity = useCallback((next: Verbosity) => {
+    saveVerbosity(next)
+    setVerbosityState(next)
+  }, [])
+
+  // IX01: every key, tap and gamepad button on the map arrives as an action (src/interaction/). These are the handlers for the ones the map answers.
+  // The handlers run in the press itself, which is also what starts the audio.
+  useActionHandler('move', action => {
+    if (!on) return
+    const { col, row } = cursorRef.current
+    moveByKey(col + action.dx, row + action.dy)
+    wake()
+    begin()
+  })
+  useActionHandler('moveTo', action => {
+    if (!on || !grid) return
+    const { col, row } = cursorRef.current
+    if (action.via === 'pointer') {
+      queriedThisPress.current = false
+      begin()
+      moveTo(action.col ?? col, action.row ?? row, 'pointer')
+      wake()
       return
     }
+    moveByKey(action.col ?? col, action.row ?? row)
+    wake()
+    begin()
+  })
+  useActionHandler('replayPlace', () => {
+    if (!on || !grid) return
     const { col, row } = cursorRef.current
-    const jump = event.shiftKey ? BIG_STEP : 1
-    let handled = true
-    switch (key) {
-      case 'map-west': moveByKey(col - jump, row, 'West'); break
-      case 'map-east': moveByKey(col + jump, row, 'East'); break
-      case 'map-north': moveByKey(col, row - jump, 'North'); break
-      case 'map-south': moveByKey(col, row + jump, 'South'); break
-      case 'edge-west': moveByKey(0, row, 'West'); break
-      case 'edge-east': moveByKey(grid.cols - 1, row, 'East'); break
-      case 'edge-north': moveByKey(col, 0, 'North'); break
-      case 'edge-south': moveByKey(col, grid.rows - 1, 'South'); break
-      case 'replay': moveTo(col, row); break
-      case 'sweep': sweep(event.shiftKey ? 'column' : 'row'); break
-      case 'lock': if (locked) unlock(); else lock(); break
-      case 'stop': if (locked) unlock(); stopSound(); break
-      default: handled = false
-    }
-    if (handled) {
-      event.preventDefault()
-      if (key !== 'stop') {
-        wake()
-        probe?.start()
-      }
-    }
-  }, [grid, locked, lock, unlock, moveByKey, moveTo, sweep, stopSound, wake, probe])
+    moveTo(col, row)
+    wake()
+    begin()
+  })
+  useActionHandler('sweep', action => {
+    if (!on || !grid) return
+    sweep(action.line)
+    wake()
+    begin()
+  })
+  useActionHandler('lock', () => {
+    if (!on || !grid) return
+    if (locked) unlock()
+    else lock()
+    begin()
+  })
+  // Escape stops the sound and whatever is held. It no longer unlocks the place: L does.
+  useActionHandler('stopSpeech', () => {
+    if (on) stopSound()
+  })
+  useActionHandler('undo', () => {
+    if (!on) return
+    undoLast()
+  })
+  // IX08: M marks the date and the cell the cursor is on. One bright note answers at once; the mark is listed as text by the marks panel. Ctrl+Z takes it back.
+  useActionHandler('mark', () => {
+    if (!on || !grid) return
+    const { col, row } = cursorRef.current
+    const mark = { dataId: visualization.id, date: frame.date, col, row, at: new Date().toISOString() }
+    addStoredMark(mark)
+    recordUndo('mark', () => removeStoredMarkLike(mark))
+    feedback.mark()
+    pulse({ kind: 'mark' })
+    wake()
+    begin()
+  })
+  // IX02: I, a long press, a right click or gamepad X. Words, never sound: level 1 says what the place shows, a second question within 4 s where it is.
+  useActionHandler('query', () => {
+    if (!on || !grid) return
+    const now = Date.now()
+    const level = nextLevel(lastQuery.current, now, verbosity)
+    lastQuery.current = { at: now, level }
+    window.clearTimeout(announceTimer.current)
+    queriedThisPress.current = true
+    const { col, row } = cursorRef.current
+    const text = whatsHereText(visualization, grid, col, row, level, detail)
+    setWhatsHere(text)
+    announce(text)
+  })
+
+  /** The keys of the sound map: the 'map' scope of the shortcut list. */
+  const onKeyDown = useKeyboard(MAP_SCOPES)
 
   /** The cell under a pointer, from its place on the surface (which covers just the map area). */
   const cellFromPointer = useCallback((event: PointerEvent<HTMLElement>): Cursor | null => {
@@ -431,41 +544,42 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     return { col: Math.floor(x * grid.cols), row: Math.floor(y * grid.rows) }
   }, [grid])
 
-  const dragging = useRef(false)
-  const onPointerDown = useCallback((event: PointerEvent<HTMLElement>) => {
-    const at = cellFromPointer(event)
-    if (!at) return
-    dragging.current = true
-    event.currentTarget.setPointerCapture?.(event.pointerId)
-    event.currentTarget.focus()
-    probe?.start()
-    moveTo(at.col, at.row, false, 'pointer')
-    wake()
-  }, [cellFromPointer, moveTo, wake, probe])
-  const onPointerMove = useCallback((event: PointerEvent<HTMLElement>) => {
-    // A drag moves the cursor. With the continuous tone on, so does a mouse moving over the map: the tone follows it (once a press has started the sound).
-    if (!dragging.current && !(probe && event.pointerType === 'mouse')) return
-    const at = cellFromPointer(event)
-    const now = cursorRef.current
-    if (at && (at.col !== now.col || at.row !== now.row)) moveTo(at.col, at.row, false, 'pointer')
-  }, [cellFromPointer, moveTo, probe])
-  const onPointerUp = useCallback((event: PointerEvent<HTMLElement>) => {
-    if (!dragging.current) return
-    dragging.current = false
-    event.currentTarget.releasePointerCapture?.(event.pointerId)
-    probe?.leave()
-    announceCell(cursorRef.current, 0)
-  }, [announceCell, probe])
-  /** The pointer left the map: the continuous tone stops. */
-  const onPointerLeave = useCallback(() => {
-    if (!dragging.current) probe?.leave()
-  }, [probe])
+  const pointer = usePointerInput({
+    cellAt: cellFromPointer,
+    hover: probe !== null,
+    onRelease: () => {
+      probe?.leave()
+      if (queriedThisPress.current) queriedThisPress.current = false
+      else announceCell(cursorRef.current, 0)
+    },
+    onLeave: () => probe?.leave(),
+  })
+
+  /** The words for the sound map: its keys from the shortcut list, and the direct-touch hint for VoiceOver and TalkBack. */
+  const words = variableWords(visualization.variable)
+  const instructions = `${listedShortcuts()
+    .filter(shortcut => shortcut.device === 'keyboard' && shortcut.scope === 'map')
+    .map(shortcut => `${shortcut.keys}: ${shortcut.does(words)}${shortcut.note ? ` ${shortcut.note}` : ''}`)
+    .join(' ')} Direct touch: drag to hear each place. Two fingers tap to stop.`
+
+  // JB07: Echo mirrors the explorer. Published on the context bus: whether the map is being explored, the value under the cursor and where it sits
+  // across the legend, and the last "What's here?" sentence. Cleared when the explorer goes away.
+  const cursorValue = on && grid ? (grid.cells[cursor.row * grid.cols + cursor.col]?.value ?? null) : null
+  useAssistantContext('explore', {
+    exploring: on && !!grid,
+    value: cursorValue,
+    position: cursorValue === null ? null : positionOfValue(cursorValue, colorScale),
+    here: on ? whatsHere : '',
+  })
 
   return {
-    on, grid, error, cursor, sweeping, locked, area, image: frame.image, loading: on && !grid && !error,
-    turnOn, turnOff, openAt, moveTo, sweep, stopSound, lock, unlock, playLockedAt, playAcrossDates, onKeyDown, onPointerDown, onPointerMove, onPointerUp,
-    onPointerLeave, cellAt,
+    on, grid, mapping, error, cursor, sweeping, locked, area, image: frame.image, loading: on && !grid && !error,
+    turnOn, turnOff, openAt, moveTo, sweep, stopSound, lock, unlock, playLockedAt, playAcrossDates, onKeyDown, ...pointer, cellAt, instructions,
     /** SN09: the "Continuous tone" and "Slope cue" choices. */
     probeSettings,
+    /** IX02: the last "What's here?" answer, and the "Words for What's here" choice. */
+    whatsHere, verbosity, setVerbosity,
+    /** IX03: the map's ensemble, so a followed hot spot sounds through the same graph (one ensemble per page, not two). */
+    ensemble,
   }
 }

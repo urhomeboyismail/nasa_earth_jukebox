@@ -95,4 +95,20 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+**Built:** `src/features/marks/`: `marks.ts` (add, remove by index, insert, newest 50), `store.ts` (zod, one bad entry dropped alone, a small store), `useMarks.ts`, `record.ts` (the log, pure), `renderRecording.ts` (SN12 render with the recorded schedule), `MarksPanel.tsx`, and tests next to each. `useExplorer.ts` has the `mark` handler (one bright note, Ctrl+Z takes the mark back); `player/index.tsx` mounts the panel.
+
+**Choices to know about:**
+- The copy-link button is per mark ("Copy link to mark …"), built with S01's `momentHash` (the ticket calls it `momentLink`; the file has `momentHash`). No parameter or parser was added. The clipboard-refused fallback is a read-only text field.
+- The recording stops at 170 s (`RENDER_MAX_SECONDS`, the bound SN12 uses), not 180 s: the ensemble refuses a file over 180 s including its 1.5 s tail. The visible text says when it stopped by itself.
+- The render plays the dates heard, at the times heard (one music frame per date, as in SN12). A cursor move is logged but adds no sound, because the offline ensemble has no cell tone to render.
+- A mark is listed as "January 2024, centre, column 13, row 7." Before the map has been read on a visit (after a reload), the compass word is left out: the grid size is not stored in a mark.
+- Removing a mark moves focus to the "Marks" heading and can be undone with Ctrl+Z.
+- `renderSequence.ts` is not edited: its schedule is replaced through its `renderOffline` option. The ensemble render wrapper is a short copy in `renderRecording.ts`.
+
+**Checks** (Windows, Node):
+
+```
+npm run lint   -> oxlint, exit 0, no warnings or errors
+npm run build  -> tsc -b && vite build: built, no errors
+npm test       -> Test Files 175 passed (175); Tests 2681 passed (2681)
+```

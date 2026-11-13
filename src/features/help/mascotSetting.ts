@@ -2,38 +2,23 @@
 // stays either way, because it is the way back. Remembered on this device; storage can be blocked, so the choice is also kept
 // in memory for this visit.
 
-import { useSyncExternalStore } from 'react'
+import { readStored, useStoredValue, writeStoredText } from '../../hooks/useStoredValue'
 
 const KEY = 'earth-jukebox:mascot'
 
-let remembered = true
-const listeners = new Set<() => void>()
+const parseMascotOn = (stored: string) => stored !== 'off'
+/** On is the default, so it is stored as nothing. */
+const serializeMascotOn = (on: boolean) => (on ? null : 'off')
 
 /** True unless the listener turned the mascot off. */
 export function readMascotOn(): boolean {
-  try {
-    return localStorage.getItem(KEY) !== 'off'
-  } catch {
-    return remembered
-  }
+  return readStored(KEY, parseMascotOn, true)
 }
 
 export function setMascotOn(on: boolean) {
-  remembered = on
-  try {
-    if (on) localStorage.removeItem(KEY)
-    else localStorage.setItem(KEY, 'off')
-  } catch {
-    // Not remembered for next time, but the choice still holds for this visit.
-  }
-  listeners.forEach(listener => listener())
-}
-
-function subscribe(listener: () => void) {
-  listeners.add(listener)
-  return () => { listeners.delete(listener) }
+  writeStoredText(KEY, serializeMascotOn(on))
 }
 
 export function useMascotOn(): boolean {
-  return useSyncExternalStore(subscribe, readMascotOn, () => true)
+  return useStoredValue(KEY, parseMascotOn, true, serializeMascotOn)[0]
 }

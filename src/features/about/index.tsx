@@ -1,9 +1,10 @@
 import { Card, Legend } from '../../components'
-import { STYLE_IDS, variableWords, type Visualization } from '../../data'
-import { presetFor } from '../../sonify'
+import { STYLE_IDS, primaryRegion, variableWords, type Visualization } from '../../data'
 import { dateFormatterFor, formatDate } from '../../dates'
+import { presetFor } from '../../sonify'
 import { PlaylistPanel } from '../playlist/PlaylistPanel'
 import type { PageProps } from '../types'
+import { SoundRecipe } from './SoundRecipe'
 import './about.css'
 
 const percent = (fraction: number) => `${Math.round(fraction * 100)}%`
@@ -16,8 +17,8 @@ export default function AboutPage({ visualization }: PageProps) {
 
 /** Everything on this page is read from the visualization's manifest, so it can never disagree with the data. */
 function About({ visualization }: { visualization: Visualization }) {
-  const { variable, source, frames, regions, colorScale, mapping } = visualization
-  const region = regions[0]
+  const { variable, source, frames, colorScale, mapping } = visualization
+  const region = primaryRegion(visualization)
   const dates = frames.map(frame => frame.date).sort()
   const formatFrameDate = dateFormatterFor(dates)
   const missing = frames.filter(frame => frame.note)
@@ -91,6 +92,10 @@ function About({ visualization }: { visualization: Visualization }) {
             </tbody>
           </table>
         </div>
+      </Card>
+
+      <Card title="The sound recipe" headingLevel={2}>
+        <SoundRecipe preset={presetFor(visualization.sonification?.preset ?? 'major')} />
       </Card>
 
       <Card title="What to keep in mind" headingLevel={2}>

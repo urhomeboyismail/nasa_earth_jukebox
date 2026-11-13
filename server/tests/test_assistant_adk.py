@@ -166,13 +166,13 @@ def test_no_action_off_the_listen_page_but_the_audio_still_comes(live):
 def test_player_context_prompts_feedback_once_per_gap(live):
     with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
         _open(ws, "listen")
-        ws.send_json({"type": "context", "key": "player", "data": {"date": "2026-01-01"}, "announce": "playback_finished:1"})
-        ws.send_json({"type": "context", "key": "player", "data": {"date": "2026-01-02"}, "announce": "playback_finished:1"})
+        ws.send_json({"type": "context", "key": "player", "data": {"visualization": "v", "date": "2026-01-01", "region": "r", "category": "hot", "playing": True}, "announce": "playback_finished:1"})
+        ws.send_json({"type": "context", "key": "player", "data": {"visualization": "v", "date": "2026-01-02", "region": "r", "category": "hot", "playing": True}, "announce": "playback_finished:1"})
         ws.send_json({"type": "context", "key": "bogus", "data": {"x": 1}, "announce": "playback_finished:1"})
         ws.send_json({"type": "stop"})
         ws.receive_json()
     assert len(live.texts) == 1 and "get_screen_context" in live.texts[0]
-    assert live.state["screens"] == {"player": {"date": "2026-01-02"}}
+    assert live.state["screens"] == {"player": {"visualization": "v", "date": "2026-01-02", "region": "r", "category": "hot", "playing": True}}
 
 
 def test_not_configured_without_key(monkeypatch):

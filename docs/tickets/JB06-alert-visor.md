@@ -77,4 +77,22 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Built on `main` at b797d4d.
+
+- `src/features/mascot/dataEvents.ts` (new): a small channel for the per-frame events (`publishDataEvents` / `subscribeDataEvents`) and the notable kinds. SN10's kinds `appeared`, `grew` and `shrank` are alerts; `moved`, `gone`, `dropout` and `recovered` are announced but are not alerts.
+- `src/features/mascot/useDataAlerts.ts` (new): offers `{ text: sentence, mood: 'alert' }`, at most one per 5 s; clears after 3 s, or on the next frame without a notable event. Never calls `announce`.
+- `src/features/mascot/MascotDock.tsx`: `useDataAlerts(mascotOn && !voiceOpen)`.
+- `src/features/player/useEventAnnouncer.ts`: the one player edit. It publishes the frame's events, and an empty list when playing stops.
+
+Deviation from the Design: the events are not added to the player's `publishContext` data. SN10 never put them on that bus, and the server's `PlayerContext` is `extra="forbid"` (`server/app/assistant/context_schemas.py`), so an extra field would make the server drop the whole player context, and the voice model would receive events it doesn't need. A separate channel leaves the server and its drift test untouched.
+Not covered: "values outside the baseline" is not an SN10 event kind, so it raises no alert (new anomaly rules are out of scope).
+
+Checks (run in the worktree):
+
+```
+npm run lint   -> no findings
+npm test       -> Test Files 189 passed (189), Tests 2813 passed (2813)
+npm run build  -> built in 2.44s
+```
+
+The first full `npm test` run showed 2 timeouts in `player.test.tsx` under load. That file alone passes (79/79), and the full rerun passed 2813/2813.

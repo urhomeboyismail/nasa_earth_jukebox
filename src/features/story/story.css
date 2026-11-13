@@ -5,10 +5,10 @@
   text-align: left;
   padding: 1rem;
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: var(--md-sys-shape-corner-medium);
 }
 .story__title { margin: 0; font-size: 1.25rem; color: var(--text-h); overflow-wrap: anywhere; }
-.story__title:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 0.25rem; }
+.story__title:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: var(--md-sys-shape-corner-extra-small); }
 /* At least 16 px, a comfortable line length, and long words wrap instead of widening the page. */
 .story__text { margin: 0; font-size: 1rem; line-height: 1.5; max-inline-size: 70ch; overflow-wrap: anywhere; }
 .story__buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }

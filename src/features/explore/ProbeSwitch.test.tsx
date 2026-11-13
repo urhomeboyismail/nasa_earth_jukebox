@@ -28,6 +28,7 @@ vi.mock('../../analysis', () => ({ analyzeGrid }))
 const ensemble = vi.hoisted(() => ({
   hold: vi.fn<(tone: HeldTone | null, atTime?: number) => void>(),
   playDropout: vi.fn(),
+  playNotes: vi.fn(),
   now: vi.fn(() => 0),
   status: vi.fn(() => 'off' as const),
   start: vi.fn(async () => {}),
@@ -72,7 +73,7 @@ beforeEach(() => {
   vi.stubGlobal('jest', { advanceTimersByTime: (ms: number) => vi.advanceTimersByTime(ms) })
   analyzeGrid.mockReset()
   analyzeGrid.mockImplementation(async (frame: { id: string }) => makeGrid(frame.id))
-  for (const fn of [ensemble.hold, ensemble.playDropout, ensemble.start, engine.playCategory, engine.playMissing]) fn.mockClear()
+  for (const fn of [ensemble.hold, ensemble.playDropout, ensemble.playNotes, ensemble.start, engine.playCategory, engine.playMissing]) fn.mockClear()
 })
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); vi.restoreAllMocks(); localStorage.clear() })
 
@@ -83,9 +84,11 @@ describe('the continuous tone in the explorer', () => {
     expect(slopeBox()).toBeDisabled()
     await user.keyboard('{ArrowRight}')
     await tick(200)
-    expect(engine.playCategory).toHaveBeenCalled()
+    expect(ensemble.playNotes).toHaveBeenCalled()
     expect(ensemble.hold).not.toHaveBeenCalled()
-    expect(ensemble.start).not.toHaveBeenCalled()
+    // The first press starts the ensemble, which the one-note sound goes through; the old engine is not used for a move.
+    expect(ensemble.start).toHaveBeenCalled()
+    expect(engine.playCategory).not.toHaveBeenCalled()
   })
 
   it('is on for a data set with a sonification block: a key holds the tone instead of the note, and starts the sound', async () => {

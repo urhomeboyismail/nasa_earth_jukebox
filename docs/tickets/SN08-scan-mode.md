@@ -134,4 +134,30 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Built on `feature/SN08-scan-mode` (agent E, 2026-11-12).
+
+**Files.** New: `src/sonify/scan.ts`, `scan.test.ts`, `__golden__/scan.json`; `src/features/player/Scan.tsx`, `Scan.test.tsx`, `scanFeatures.ts`. Edited: `listenMode.ts` (the `'scan'` value), `index.tsx` (the third choice and its render only).
+
+**Two things outside Touches, for the reviewer.**
+- `src/features/player/listenMode.test.ts` used the string `'scan'` as its example of "a remembered value it does not know". `'scan'` is now a known mode, so that one line became `'karaoke'`. Nothing else in the test changed.
+- The scan line is styled inline in `Scan.tsx` (white, 3 px, a dark outline that survives forced colours), because `symphony.css` is not in Touches. `Scan.tsx` reuses `symphony.css` for the status line and the Listen-as look.
+
+**Decisions where the ticket was silent.**
+- Date: a Date slider (hidden for a one-frame data set), disabled while a scan runs.
+- Focus: pressing Scan disables it, so focus moves to Stop scan and returns to Scan when the scan ends; Escape works from anywhere (a document listener while a scan runs), not only inside the panel.
+- A scan in which every column is a dropout does not sweep: one dropout cue, and the words "Not enough data to scan this date." (status line and announcement). Some columns missing: the sweep plays and each missing column plays the cue.
+- A natural end leaves the ensemble on so the last notes ring out; only Stop, Escape or the browser pausing the sound call `ensemble.stop()`.
+- The line is placed inside `mapArea`, because the grid covers the map area, not the whole picture.
+
+**Checks.**
+
+```
+npm run lint   -> oxlint, no findings
+npm run build  -> built in 1.94s
+npm test       -> Test Files 1 failed | 132 passed (133); Tests 1 failed | 2233 passed (2234)
+```
+The one failure is `src/App.test.tsx > App shell > loads the first visualization and shows it on each page` (`expect(element).toBeEnabled()`). It fails the same way on a clean `main` (checked with my changes stashed), so it is not from this ticket. `player.test.tsx`, `change.test.tsx`, `vibration.test.tsx` and the Symphony tests pass unchanged. (`MascotDock.test.tsx` timed out once under full-suite load and passes on its own and on the next full run.)
+
+New tests: 17 in `scan.test.ts` (plan, pan, determinism, golden for the fixture and `synthetic-storm` frame 0) and 25 in `Scan.test.tsx` (no sound before a click, one chord per column at `start + atMs`, dropout columns, line at column 31 at 2.5 s, reduced motion, start and end announced once and nothing per column, Stop and Escape, focus, hidden page, axe, the third radio in the Listen page, and `scanFeatures` caching).
+
+**Manual check (step 5): done by the team lead (13 Nov 2026).** Listen, Scan, on a checked frame: it works as intended. No further notes were written down.

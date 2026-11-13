@@ -1,14 +1,27 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAssistantContext } from '../../assistant/context'
-import { Button, Legend, LoadingIndicator, Notice, Slider, useAnnounce } from '../../components'
-import type { ChangeVisualization } from '../../analysis'
-import { higherPhrase, variableWords, type Visualization } from '../../data'
+import { Button, Legend, LoadingIndicator, Notice, RegionPicker, Slider, useAnnounce } from '../../components'
+import { useRegionChoice } from '../../components/useRegionChoice'
+import { higherPhrase, variableWords, type Region, type Visualization } from '../../data'
 import { describeChange } from '../../describe'
 import { Description } from '../../describe/Description'
 import { useDescriptionDetail } from '../../describe/detail'
+import { stopSpeech } from '../../interaction/speech'
+import { useActionHandler } from '../../interaction/registry'
+import { useGamepad, useKeyboard } from '../../interaction/useInput'
+import { ArtPanel } from '../art/ArtPanel'
+import { useArt } from '../art/useArt'
 import { AskPanel } from '../ask/AskPanel'
 import { ExplorerPanel, ExplorerSurface } from '../explore/Explorer'
 import { useExplorer } from '../explore/useExplorer'
+import { useFollow } from '../follow/useFollow'
+import { FindPanel } from '../find/FindPanel'
+import { useFindGame } from '../find/useFindGame'
+import { MarksPanel } from '../marks/MarksPanel'
+import { OnboardingPanel } from '../onboarding/OnboardingPanel'
+import { useOnboarding } from '../onboarding/useOnboarding'
+import { PredictPanel } from '../predict/PredictPanel'
+import { usePredict } from '../predict/usePredict'
 import { StoryPanel } from '../story/StoryPanel'
 import type { PageProps } from '../types'
 import './player.css'
@@ -16,10 +29,11 @@ import { usePlayer, type Speed } from './usePlayer'
 import { useVibrationSetting, vibrateForDate } from './vibration'
 import { DataTable } from './DataTable'
 import { momentHash, readMoment, useMomentLink } from './momentLink'
-import { shortcutFor } from './shortcuts'
 import { ShortcutsDialog } from './ShortcutsDialog'
 import { Viewer } from './Viewer'
 import { useListenMode, type ListenMode } from './listenMode'
+import { Scan } from './Scan'
+import { useScrub } from './useScrub'
 import { Symphony } from './Symphony'
 
 const SPEEDS: { id: Speed; label: string }[] = [
@@ -28,18 +42,8 @@ const SPEEDS: { id: Speed; label: string }[] = [
   { id: 'fast', label: 'Fast' },
 ]
 
-/** Where Space and the arrow keys already mean something, so the shortcuts keep out. */
-const isEditable = (target: EventTarget) => target instanceof HTMLElement && target.isContentEditable
-const isField = (target: EventTarget) => target instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
-/** Where typing letters is the point: a text box, a text area, a menu. A radio button or slider is not, so T still works there. */
-const isTyping = (target: EventTarget) =>
-  target instanceof HTMLElement &&
-  (['TEXTAREA', 'SELECT'].includes(target.tagName) || (target instanceof HTMLInputElement && !['radio', 'checkbox', 'range', 'button'].includes(target.type)))
-/** Space presses these natively. A range input is not here: Space does nothing on it, so the shortcut may use it. */
-const spaceActivates = (target: EventTarget) =>
-  target instanceof HTMLElement &&
-  (['BUTTON', 'A', 'SUMMARY', 'TEXTAREA', 'SELECT'].includes(target.tagName) ||
-    (target instanceof HTMLInputElement && target.type !== 'range'))
+/** Anywhere on Listen: the 'listen' and 'anywhere' scopes of the shortcut list (src/interaction/shortcuts.ts). */
+const LISTEN_SCOPES = ['listen', 'anywhere'] as const
 
 export default function PlayerPage({ visualization }: PageProps) {
   if (!visualization) return <p>Loading the data…</p>
@@ -51,14 +55,25 @@ export default function PlayerPage({ visualization }: PageProps) {
 const MODES: { id: ListenMode; label: string; says: string }[] = [
   { id: 'symphony', label: 'Symphony mode', says: 'Symphony mode. Press Play to start.' },
   { id: 'simple', label: 'Simple mode', says: 'Simple mode. Press Play to start.' },
+  { id: 'scan', label: 'Scan', says: 'Scan. Press Scan from the west edge to start.' },
 ]
 
 /** Symphony reads each frame as it is shown and plays the ensemble; Simple is the player that plays one note a date. Only the one chosen is on the page. */
 function ListenPage({ visualization }: { visualization: Visualization }) {
   const [mode, setMode] = useListenMode(visualization)
   const announce = useAnnounce()
+  // IX12: art mode's preset plays in Symphony mode; it is null (the manifest's preset) while art mode is off.
+  const art = useArt(visualization)
+  // F48: the region is in the address (region=<id>). Each mode starts afresh for a new region (the key), so no sound carries over and none starts by itself.
+  const [region, chooseRegion] = useRegionChoice(visualization)
+  const shown = { visualization, region }
   return (
     <>
+      <RegionPicker
+        regions={visualization.regions}
+        value={region.id}
+        onChange={id => { chooseRegion(id); announce(`Region: ${visualization.regions.find(r => r.id === id)?.name ?? id}.`) }}
+      />
       <fieldset className="symphony__mode">
         <legend>Listen as</legend>
         {MODES.map(({ id, label, says }) => (
@@ -68,12 +83,13 @@ function ListenPage({ visualization }: { visualization: Visualization }) {
           </label>
         ))}
       </fieldset>
-      {mode === 'symphony' ? <Symphony visualization={visualization} /> : <Player visualization={visualization} />}
+      {mode === 'symphony' ? <Symphony key={region.id} {...shown} preset={art.preset} /> : mode === 'scan' ? <Scan key={region.id} {...shown} /> : <Player key={region.id} {...shown} />}
+      {mode === 'symphony' && <ArtPanel art={art} />}
     </>
   )
 }
 
-function Player({ visualization }: { visualization: Visualization }) {
+function Player({ visualization, region }: { visualization: Visualization; region: Region }) {
   const vibration = useVibrationSetting()
   const announce = useAnnounce()
   const { frames, source } = visualization
@@ -83,7 +99,7 @@ function Player({ visualization }: { visualization: Visualization }) {
   // A pulse each time the player lands on a date, while playing or when one date is chosen. Not on page load.
   const player = usePlayer(visualization, (_index, category) => {
     if (vibration.enabled) vibrateForDate(category, visualization.mapping)
-  }, linked)
+  }, linked, { region })
   const words = variableWords(visualization.variable)
   const frame = frames[player.index]
   const playing = player.status === 'playing'
@@ -91,6 +107,18 @@ function Player({ visualization }: { visualization: Visualization }) {
   // The data table is built only while it is open: a closed <details> still keeps its content in the page.
   const [tableOpen, setTableOpen] = useState(false)
   const explorer = useExplorer({ visualization, frame, engine: player.engine, vibrate: vibration.enabled, frames, formatDate: player.formatDate, onDate: player.showDate, start: linked.cell })
+  // IX03: H follows a hot spot through the dates on the sound map. It stops when the map goes off (Play, the story, the toggle).
+  const follow = useFollow({ visualization, explorer, frames, index: player.index, showDate: player.showDate })
+  // IX04: F (or the button) starts the find game on the sound map's date.
+  const find = useFindGame({ visualization, frame, explorer })
+  // IX05: a question about the next two dates, answered before they play. The story's chapters use the same hook.
+  const predict = usePredict({ visualization, index: player.index, ensemble: explorer.ensemble, halt: player.halt, showDate: player.showDate })
+  // IX11: the first-minute game listens to the same actions, and to the find game's first target found.
+  const onboarding = useOnboarding({ visualization, explorer, findStatus: find.game.status })
+  /** A date chosen by the listener: a followed spot is heard there and the dates play on from it; otherwise the date plays as usual. */
+  const chooseDate = (i: number) => {
+    if (follow.isFollowing()) { player.showDate(i); follow.showFollowedDate(i) } else player.goTo(i)
+  }
 
   // F40: the address follows the date, the cell (once the map has been read) and the style, and a link opened on this page is applied.
   const { halt, showDate, applyLinkedStyle } = player
@@ -169,33 +197,36 @@ function Player({ visualization }: { visualization: Visualization }) {
     player.finished ? `playback_finished:${visualization.id}` : undefined,
   )
 
-  // Shortcuts work while focus is anywhere in the player, but never take over a text box, a button or a field's own keys.
-  // Which key means what is the list in ./shortcuts.ts, which the "Keyboard shortcuts" dialog is drawn from too.
+  // IX01: every key, button and gesture is an action (src/interaction/). The player answers the ones about the dates, the trace, the help and speech.
+  // Which key means what is the list in src/interaction/shortcuts.ts, which the "Keyboard shortcuts" dialog is drawn from too.
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
-  function onKeyDown(event: KeyboardEvent) {
-    if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || isEditable(event.target)) return
-    const key = shortcutFor(event.key, 'player')
-    if (key === 'play' && !spaceActivates(event.target)) {
-      event.preventDefault()
-      if (playing) player.pause()
-      else player.play()
-    } else if (key === 'trace' && player.style === 'change' && !isTyping(event.target)) {
-      // "Trace the warm edge", from anywhere in the player, the sound map included (it does not use this key).
-      event.preventDefault()
-      void player.traceWarmEdge()
-    } else if (key === 'stop-trace' && player.tracing) {
-      player.stopTrace()
-    } else if (key === 'help' && !isTyping(event.target)) {
-      event.preventDefault()
-      setShortcutsOpen(true)
-    } else if (key === 'next' && !isField(event.target)) {
-      event.preventDefault()
-      player.goTo(player.index + 1)
-    } else if (key === 'previous' && !isField(event.target)) {
-      event.preventDefault()
-      player.goTo(player.index - 1)
-    }
-  }
+  const onKeyDown = useKeyboard(LISTEN_SCOPES)
+  useGamepad()
+  useActionHandler('transport', () => {
+    if (playing) player.pause()
+    else player.play()
+  })
+  // IX06: a step in time sounds a 150 ms slice of the date it lands on. While the dates play, or a hot spot is followed, a step carries on as it did.
+  useScrub({
+    visualization,
+    index: player.index,
+    ensemble: explorer.ensemble,
+    carryOn: () => playing || follow.isFollowing(),
+    chooseDate,
+    showDate: player.showDate,
+    formatDate: player.formatDate,
+    onStep: i => { if (vibration.enabled) vibrateForDate(player.categoryAt(i), visualization.mapping) },
+  })
+  useActionHandler('trace', () => {
+    // "Trace the warm edge", from the sound map, in the change style.
+    if (player.style === 'change') void player.traceWarmEdge()
+  })
+  useActionHandler('openShortcuts', () => setShortcutsOpen(true))
+  // Escape stops what this app is saying, and the trace if it is playing. The sound map stops its own sound in its own handler.
+  useActionHandler('stopSpeech', () => {
+    stopSpeech()
+    if (player.tracing) player.stopTrace()
+  })
 
   return (
     <>
@@ -204,10 +235,16 @@ function Player({ visualization }: { visualization: Visualization }) {
         <ExplorerSurface explorer={explorer} />
       </Viewer>
       <ExplorerPanel visualization={visualization} explorer={explorer} />
+      {/* IX03: what follow is doing. Not a live region: losing the spot is said through the speech gate. */}
+      {follow.text && <p className="player__follow">{follow.text}</p>}
+      <FindPanel find={find} />
+      <PredictPanel predict={predict} index={player.index} />
+      <OnboardingPanel onboarding={onboarding} />
+      <MarksPanel visualization={visualization} index={player.index} cursor={moment.cell} grid={explorer.grid} formatDate={player.formatDate} style={player.style} />
 
       {player.results && <Description visualization={visualization} results={player.results} index={player.index} />}
       {player.style === 'change' && player.score && (
-        <p className="player__change">{describeChange(visualization as ChangeVisualization, player.score, { detail })}</p>
+        <p className="player__change">{describeChange(visualization, player.score, { detail })}</p>
       )}
 
       {player.results && (
@@ -240,11 +277,11 @@ function Player({ visualization }: { visualization: Visualization }) {
         </div>
       )}
       {storyOpen && (
-        <StoryPanel visualization={visualization} chapters={chapters} results={player.results} playRange={player.playRange} onClose={closeStory} />
+        <StoryPanel visualization={visualization} chapters={chapters} results={player.results} playRange={player.playRange} predict={predict} onClose={closeStory} />
       )}
 
       <div className="player__controls" role="group" aria-label="Playback">
-        <Button variant="primary" disabled={!player.ready} onClick={playing ? player.pause : player.play}>
+        <Button variant="primary" data-tour="play" disabled={!player.ready} onClick={playing ? player.pause : player.play}>
           {playing ? 'Pause' : player.status === 'paused' ? 'Resume' : 'Play'}
         </Button>
         <Button disabled={!player.ready} onClick={player.stop}>Stop</Button>
@@ -252,7 +289,7 @@ function Player({ visualization }: { visualization: Visualization }) {
         <Button disabled={!player.ready} onClick={() => void player.hearBothWays()}>Hear this date both ways</Button>
         <Button disabled={!player.ready} onClick={() => void player.hearWhatIsHidden()}>What the sound hides</Button>
         <Button disabled={!player.ready} onClick={() => void player.testSound()}>Test sound</Button>
-        <Button disabled={!player.ready || storyOpen} pressed={exploring} onClick={toggleExplorer}>Explore the map</Button>
+        <Button data-tour="explore" disabled={!player.ready || storyOpen} pressed={exploring} onClick={toggleExplorer}>Explore the map</Button>
       </div>
 
       <div className="player__slider">
@@ -263,11 +300,13 @@ function Player({ visualization }: { visualization: Visualization }) {
           value={player.index}
           disabled={!player.ready}
           onChange={i => {
+            // The slider is not an action, so the first-minute game is told of the date change here.
+            onboarding.record({ type: 'scrubTime', by: i - player.index })
             // A locked place is heard on the new date, not the whole map.
             if (explorer.locked) {
               player.showDate(i)
               void explorer.playLockedAt(i)
-            } else player.goTo(i)
+            } else chooseDate(i)
           }}
           describe={i => player.ready ? player.describeDate(i) : player.formatDate(frames[i].date)}
         />
@@ -320,6 +359,7 @@ function Player({ visualization }: { visualization: Visualization }) {
               Trace the {words.edge}
             </Button>
             <span>Plays each line of change on this date as a sound that moves across the map. Press T, or Escape to stop.</span>
+            {player.scoreProblem && <Notice variant="error">The change for this date could not be read, so there is nothing to trace. {player.scoreProblem}</Notice>}
           </>
         )}
         <Button pressed={player.spatial === '3d'} onClick={() => player.setSpatial(player.spatial === '3d' ? 'stereo' : '3d')}>
@@ -331,6 +371,9 @@ function Player({ visualization }: { visualization: Visualization }) {
         </Button>
       </div>
 
+      {!vibration.supported && (
+        <p className="player__vibration">Vibration is not available in this browser, for example on iPhone and iPad. The sound is the same.</p>
+      )}
       {vibration.supported && (
         <div className="player__vibration">
           <Button pressed={vibration.enabled} onClick={() => vibration.setEnabled(!vibration.enabled)}>Vibration</Button>

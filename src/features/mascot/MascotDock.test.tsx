@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixtureManifest from '../../../public/data/fixture/manifest.json'
 import oceanManifest from '../../../public/data/synthetic-ocean/manifest.json'
 import { publishContext } from '../../assistant/context'
+import { publishDataEvents } from './dataEvents'
 import { AnnouncerProvider } from '../../components'
 import type { Visualization } from '../../data'
 import { visualizationSchema } from '../../data/schema'
@@ -48,9 +49,21 @@ afterEach(() => {
   vi.useRealTimers()
   setMascotOn(true)
   publishContext('player', null)
+  publishContext('explore', null)
 })
 
 describe('the dock', () => {
+  it('shows the alert symbol when the music has a notable event, keeps the sentence for the bubble, and says nothing aloud', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<Dock />)
+    act(() => publishDataEvents([{ kind: 'appeared', sentence: 'A new warm area appeared in the north-east.' }]))
+    expect(face(container)).toBe('alert')
+    expect(liveText()).toBe('')
+    await user.click(echoButton('Echo, your guide, has a tip'))
+    expect(screen.getByRole('region', { name: 'Echo, your guide' })).toHaveTextContent('A new warm area appeared in the north-east.')
+    await expectNoA11yViolations(container)
+  })
+
   it('is a button named for Echo, closed to begin with', () => {
     render(<Dock />)
     expect(echoButton()).toHaveAttribute('aria-expanded', 'false')
@@ -101,18 +114,15 @@ describe('the dock', () => {
     expect(screen.queryByRole('region', { name: 'Echo, your guide' })).not.toBeInTheDocument()
   })
 
-  it('offers Show me around only when the tour is given', async () => {
+  it('offers Show me around, starts the tour, and tells the page', async () => {
     const user = userEvent.setup()
-    const { unmount } = render(<Dock />)
-    await user.click(echoButton())
-    expect(screen.queryByRole('button', { name: 'Show me around' })).not.toBeInTheDocument()
-    unmount()
-
     const onTour = vi.fn()
     render(<Dock onTour={onTour} />)
     await user.click(echoButton())
     await user.click(screen.getByRole('button', { name: 'Show me around' }))
     expect(onTour).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('region', { name: 'Guided tour' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Stop tour' }))
   })
 
   it('turns Echo off, remembers it, and says how to bring Echo back', async () => {
@@ -276,5 +286,60 @@ describe("Echo's look follows the open data set (JB04)", () => {
     expect(dock(container)).toHaveAttribute('data-trail', 'sparks')
     rerender(<Dock visualization={null} />)
     expect(dock(container).style.getPropertyValue('--mascot-accent')).toBe('')
+  })
+})
+
+describe('Echo mirrors the sound map (JB07)', () => {
+  const exploring = (position: number, here = '') => ({ exploring: true, value: position * 30, position, here })
+
+  it('searches while the map is explored and goes back to its usual face after', () => {
+    const { container } = render(<Dock />)
+    expect(face(container)).toBe('happy')
+    act(() => publishContext('explore', exploring(0.5)))
+    expect(face(container)).toBe('searching')
+    act(() => publishContext('explore', { exploring: false, value: null, position: null, here: '' }))
+    expect(face(container)).toBe('happy')
+    act(() => publishContext('explore', exploring(0.5)))
+    act(() => publishContext('explore', null))
+    expect(face(container)).toBe('happy')
+  })
+
+  it('knows the map is being explored when it mounts after that began', () => {
+    publishContext('explore', exploring(0.2))
+    const { container } = render(<Dock />)
+    expect(face(container)).toBe('searching')
+  })
+
+  it('moves one bar of the chest with the value under the cursor', () => {
+    const { container } = render(<Dock />)
+    const resting = container.innerHTML
+    act(() => publishContext('explore', exploring(0)))
+    const low = container.innerHTML
+    act(() => publishContext('explore', exploring(1)))
+    const high = container.innerHTML
+    expect(low).not.toBe(resting)
+    expect(high).not.toBe(low)
+    act(() => publishContext('explore', exploring(0)))
+    expect(container.innerHTML).toBe(low)
+  })
+
+  it("shows the latest What's here sentence when the bubble is opened, and the usual tip when it is not exploring", async () => {
+    const user = userEvent.setup()
+    render(<Dock />)
+    act(() => publishContext('explore', exploring(0.5, 'Warm water, 21 °C, near the west edge.')))
+    await user.click(echoButton())
+    expect(screen.getByRole('region', { name: 'Echo, your guide' })).toHaveTextContent('Warm water, 21 °C, near the west edge.')
+    await user.click(echoButton())
+    act(() => publishContext('explore', null))
+    await user.click(echoButton())
+    expect(screen.getByRole('region', { name: 'Echo, your guide' })).toHaveTextContent(TIPS.listen)
+  })
+
+  it('makes no sound or speech of its own when the cursor moves', () => {
+    render(<Dock />)
+    const before = liveText()
+    act(() => publishContext('explore', exploring(0.3)))
+    act(() => publishContext('explore', exploring(0.9)))
+    expect(liveText()).toBe(before)
   })
 })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_STEPS, midiToFrequency, parseAudioPayload, stepSeconds, totalSeconds, trackSteps } from './payload'
+import { captionTimes, MAX_STEPS, midiToFrequency, parseAudioPayload, parseVisionPayload, stepSeconds, timbreOf, totalSeconds, trackSteps, type AudioPayload } from './payload'
 
 const track = { instrument: 'marimba', pitch_range: [48, 72], volume_curve: [0.2, 0.8] }
 const payload = { base_bpm: 90, tracks: [track] }
@@ -81,5 +81,61 @@ describe('timing', () => {
     const parsed = parseAudioPayload(two)!
     expect(stepSeconds(parsed)).toBe(0.25)
     expect(totalSeconds(parsed)).toBe(2)
+  })
+})
+
+describe('parseVisionPayload', () => {
+  const description = { timestamp_sec: 1, alt_text: 'Pale water.', intensity_level: 'low' }
+
+  it('takes a vision payload, and the whole answer of the route', () => {
+    expect(parseVisionPayload({ descriptions: [description] })).toEqual({ descriptions: [description] })
+    expect(parseVisionPayload({ audio: payload, vision: { descriptions: [description] } })).toEqual({ descriptions: [description] })
+  })
+
+  it.each([
+    ['nothing', null],
+    ['an answer with no vision', { audio: payload, vision: null }],
+    ['no list', { descriptions: 'x' }],
+    ['an unknown intensity', { descriptions: [{ ...description, intensity_level: 'loud' }] }],
+    ['a negative time', { descriptions: [{ ...description, timestamp_sec: -1 }] }],
+    ['empty text', { descriptions: [{ ...description, alt_text: '' }] }],
+  ])('rejects %s', (_name, value) => {
+    expect(parseVisionPayload(value)).toBeNull()
+  })
+})
+
+describe('captionTimes', () => {
+  // 90 bpm: a step is 1/3 s. Three steps: the last one starts at 2/3 s.
+  const short: AudioPayload = { base_bpm: 90, tracks: [{ instrument: 'marimba', pitch_range: [48, 72], volume_curve: [0.2, 0.5, 0.8] }] }
+  const at = (timestamp_sec: number, alt_text = 'x') => ({ timestamp_sec, alt_text, intensity_level: 'low' as const })
+
+  it('keeps the times that fit, in time order', () => {
+    const times = captionTimes({ descriptions: [at(0.5, 'b'), at(0, 'a')] }, short)
+    expect(times.map(c => [c.alt_text, c.at])).toEqual([['a', 0], ['b', 0.5]])
+  })
+
+  it('scales every time by one factor when the latest is after the last step', () => {
+    const times = captionTimes({ descriptions: [at(1), at(4), at(2)] }, short)
+    expect(times.map(c => c.at)).toEqual([expect.closeTo(1 / 6), expect.closeTo(2 / 6), expect.closeTo(2 / 3)])
+  })
+
+  it('gives nothing for no descriptions, and is the same each time', () => {
+    expect(captionTimes({ descriptions: [] }, short)).toEqual([])
+    const vision = { descriptions: [at(3), at(1)] }
+    expect(captionTimes(vision, short)).toEqual(captionTimes(vision, short))
+  })
+})
+
+describe('timbreOf', () => {
+  it.each([
+    ['Bass', 'bass'],
+    ['sub BASS guitar', 'bass'],
+    ['Low Drone', 'bass'],
+    ['Warm Pad', 'pad'],
+    ['AMBIENT texture', 'pad'],
+    ['marimba', 'lead'],
+    ['', 'lead'],
+  ])('%s is a %s', (name, timbre) => {
+    expect(timbreOf(name)).toBe(timbre)
   })
 })

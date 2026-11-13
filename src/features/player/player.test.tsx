@@ -1,14 +1,18 @@
-import { act, render, screen, within } from '@testing-library/react'
+import { act, cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
+import motionManifest from '../../../public/data/synthetic-motion/manifest.json'
+import { visualizationSchema } from '../../data/schema'
 import { subscribeContext, type ContextUpdate } from '../../assistant/context'
 import { variableWords, type Visualization } from '../../data'
 import { expectNoA11yViolations } from '../../test/a11y'
 import { elevationFor, panFor } from '../../audio/pan'
 import { sendPlayerCommand } from './controls'
-import { keyName, SHORTCUTS } from './shortcuts'
+import { dispatch } from '../../interaction/registry'
+import { listedShortcuts } from '../../interaction/shortcuts'
 import PlayerPage from '.'
+import { resetOnboarding, saveOnboardingDone } from '../onboarding/store'
 import { AnnouncerProvider } from '../../components'
 
 const visualization = fixture as Visualization
@@ -74,7 +78,22 @@ const fake = vi.hoisted(() => {
 vi.mock('../../audio', () => ({ createSoundEngine: () => fake }))
 
 const analyzeAll = vi.hoisted(() => vi.fn())
-vi.mock('../../analysis', () => ({ analyzeAll }))
+// IX03: the sound map reads a grid of each date, and its ensemble is a recording stand-in (as in Explorer.test.tsx).
+const analyzeGrid = vi.hoisted(() => vi.fn())
+vi.mock('../../analysis', () => ({ analyzeAll, analyzeGrid }))
+const ensemble = vi.hoisted(() => ({
+  hold: vi.fn(), playNotes: vi.fn(), playDropout: vi.fn(), now: vi.fn(() => 0), status: vi.fn(() => 'on' as const), start: vi.fn(async () => {}), setDetail: vi.fn(),
+}))
+vi.mock('../../audio/ensemble/useEnsemble', () => ({ useEnsemble: () => ({ ensemble, status: 'on', start: ensemble.start }) }))
+// Following a hot spot reads each date's picture; here from the files on disk (jsdom cannot decode an image).
+vi.mock('../../analysis/video/input', async importOriginal => {
+  const { readFileSync } = await import('node:fs')
+  const { decodePng } = await import('../../analysis/png')
+  return {
+    ...(await importOriginal<typeof import('../../analysis/video/input')>()),
+    defaultLoadPixels: async (url: string) => decodePng(readFileSync(`public/data/synthetic-motion/${url}`)),
+  }
+})
 
 const analysis = () => visualization.frames.map((frame, i) => ({ frameId: frame.id, regionId: 'centre', sampled: 9, valid: 9, category: CATEGORIES[i] }))
 
@@ -372,6 +391,41 @@ describe('Player: keyboard', () => {
     expect(screen.getByRole('slider', { name: 'Date' })).toHaveValue('0')
   })
 
+  it('a step in time while the dates are not playing changes the date and says it, and does not play the chord of the date as well (IX06)', async () => {
+    const { user } = await renderReady()
+    screen.getByRole('button', { name: 'Stop' }).focus()
+    await user.keyboard('{ArrowRight}')
+    await tick(0)
+    expect(screen.getByRole('slider', { name: 'Date' })).toHaveValue('1')
+    // The slice (a few notes of the date's music) is the sound; it goes through the ensemble, not the sound engine's one-date chord.
+    expect(fake.sequences).toHaveLength(0)
+    expect(liveText()).toContain('July 2024')
+    // At the end, a step that cannot move says so and changes nothing.
+    await jumpTo(3)
+    await user.keyboard('{ArrowRight}')
+    await tick(0)
+    expect(liveText()).toBe('Last date.')
+    expect(screen.getByRole('slider', { name: 'Date' })).toHaveValue('3')
+  })
+
+  it('Alt with Left, Right, Home and End steps through the dates (IX06)', async () => {
+    const { user } = await renderReady()
+    screen.getByRole('button', { name: 'Stop' }).focus()
+    const date = () => screen.getByRole('slider', { name: 'Date' })
+    await user.keyboard('{Alt>}{ArrowRight}{/Alt}')
+    await tick(0)
+    expect(date()).toHaveValue('1')
+    await user.keyboard('{Alt>}{End}{/Alt}')
+    await tick(0)
+    expect(date()).toHaveValue('3')
+    await user.keyboard('{Alt>}{ArrowLeft}{/Alt}')
+    await tick(0)
+    expect(date()).toHaveValue('2')
+    await user.keyboard('{Alt>}{Home}{/Alt}')
+    await tick(0)
+    expect(date()).toHaveValue('0')
+  })
+
   it('does not take Space from a focused button, which should press it once', async () => {
     const { user } = await renderReady()
     screen.getByRole('button', { name: 'Stop' }).focus()
@@ -420,7 +474,8 @@ describe('Player: the voice guide', () => {
     await tick(4000)
     expect(updates.filter(u => u.announce === 'playback_finished:fixture')).toHaveLength(1)
     unmount()
-    expect(updates.at(-1)).toMatchObject({ key: 'player', data: null })
+    // The Ask panel on this page publishes the facts too (G06), so look at the player's own last update.
+    expect(updates.filter(u => u.key === 'player').at(-1)).toMatchObject({ data: null })
     unsubscribe()
   })
 
@@ -879,10 +934,12 @@ describe('Player: the keyboard shortcuts dialog (F41)', () => {
     expect(within(dialog()).getByRole('heading', { name: 'Keyboard shortcuts' })).toHaveFocus()
   })
 
-  it('opens with the question mark from anywhere in the player', async () => {
+  it('opens when the sound map asks for it (the question mark is a map key, IX01), and not from a question mark anywhere else', async () => {
     const { user } = await renderReady()
     screen.getByRole('button', { name: 'Stop' }).focus()
     await user.keyboard('?')
+    expect(screen.queryByRole('dialog')).toBeNull()
+    act(() => { dispatch({ type: 'openShortcuts' }) })
     expect(dialog()).toBeInTheDocument()
   })
 
@@ -895,30 +952,26 @@ describe('Player: the keyboard shortcuts dialog (F41)', () => {
     expect(box).toHaveValue('why?')
   })
 
-  it('lists the same keys as the list the handlers read, one row each, in two tables', async () => {
+  it('lists the same keys as the list the input layer reads, one row each, in four tables', async () => {
     const { user } = await renderReady()
     await user.click(opener())
     const words = variableWords(visualization.variable)
     const tables = within(dialog()).getAllByRole('table')
-    expect(tables).toHaveLength(2)
-    for (const [i, scope] of (['player', 'map'] as const).entries()) {
-      const rows = within(tables[i]).getAllByRole('row').slice(1)
-      const expected = SHORTCUTS.filter(shortcut => shortcut.scope === scope)
-      expect(rows).toHaveLength(expected.length)
-      expected.forEach((shortcut, r) => {
-        const [keys, does] = within(rows[r]).getAllByRole('cell')
-        expect(keys).toHaveTextContent(shortcut.keys.map(keyName).join(' or '))
-        expect(does).toHaveTextContent(shortcut.does(words))
-      })
+    expect(tables).toHaveLength(4)
+    const rows = tables.flatMap(table => within(table).getAllByRole('row').slice(1))
+    const expected = listedShortcuts()
+    expect(rows).toHaveLength(expected.length)
+    for (const shortcut of expected) {
+      const row = rows.find(candidate => within(candidate).getAllByRole('cell')[0].textContent === shortcut.keys && within(candidate).getAllByRole('cell')[1].textContent?.startsWith(shortcut.does(words)))
+      expect(row, shortcut.id).toBeDefined()
     }
   })
 
-  it('says which keys work only in the player or on the map', async () => {
+  it('says which keys work only on the sound map, and names the four tables', async () => {
     const { user } = await renderReady()
     await user.click(opener())
-    expect(dialog()).toHaveTextContent('work only while focus is in the player or on the sound map')
-    expect(within(dialog()).getByRole('table', { name: /Anywhere in the player/ })).toBeInTheDocument()
-    expect(within(dialog()).getByRole('table', { name: /On the sound map/ })).toBeInTheDocument()
+    expect(dialog()).toHaveTextContent('work only while the sound map has focus')
+    for (const name of [/Anywhere on Listen/, /On the sound map/, /Touch and mouse/, /Gamepad/]) expect(within(dialog()).getByRole('table', { name })).toBeInTheDocument()
   })
 
   it('closes with Escape and gives focus back to the button', async () => {
@@ -931,12 +984,10 @@ describe('Player: the keyboard shortcuts dialog (F41)', () => {
 
   it('closes with its Close button and gives focus back to what had it', async () => {
     const { user } = await renderReady()
-    const stop = screen.getByRole('button', { name: 'Stop' })
-    stop.focus()
-    await user.keyboard('?')
+    await user.click(opener())
     await user.click(within(dialog()).getByRole('button', { name: 'Close' }))
     expect(screen.queryByRole('dialog')).toBeNull()
-    expect(stop).toHaveFocus()
+    expect(opener()).toHaveFocus()
   })
 
   it('does not play or move the date while it is open', async () => {
@@ -1033,5 +1084,163 @@ describe('Player: how often the live region changes (T93)', () => {
     } finally {
       localStorage.clear()
     }
+  })
+})
+
+describe('Player: following a hot spot (IX03)', () => {
+  const motion = visualizationSchema.parse(motionManifest)
+  const COLS = 24
+  const ROWS = 12
+  const motionGrid = (frameId: string) => ({ frameId, cols: COLS, rows: ROWS, area: { x0: 0, y0: 0, x1: 1, y1: 1 }, cells: Array.from({ length: COLS * ROWS }, () => ({ value: 14, category: 'mild' })) })
+
+  beforeEach(() => {
+    localStorage.setItem('earth-jukebox:listen-mode', 'simple')
+    analyzeAll.mockImplementation(async () => motion.frames.map(frame => ({ frameId: frame.id, regionId: 'open-sea', sampled: 9, valid: 9, category: 'mild' })))
+    analyzeGrid.mockReset()
+    analyzeGrid.mockImplementation(async (frame: { id: string }) => motionGrid(frame.id))
+    ensemble.playNotes.mockClear()
+  })
+  afterEach(() => localStorage.clear())
+
+  it('follows a hot spot with H on the sound map, steps the dates with its note, and stops when Play takes the sound back', async () => {
+    const user = setup()
+    const { container } = render(<PlayerPage visualization={motion} />, { wrapper: AnnouncerProvider })
+    await tick(0)
+    await user.click(screen.getByRole('button', { name: 'Explore the map' }))
+    await tick(0)
+    const date = () => screen.getByRole('slider', { name: 'Date' })
+    expect(date()).toHaveValue('0')
+    await user.keyboard('h')
+    await vi.waitFor(() => expect(screen.getByText(/^Following hot spot h\d+\.$/)).toBeInTheDocument())
+    expect(ensemble.playNotes).toHaveBeenCalledTimes(1)
+    await tick(600)
+    expect(date()).toHaveValue('1')
+    expect(ensemble.playNotes).toHaveBeenCalledTimes(2)
+    // The shortcut list names the keys now that something handles them.
+    expect(listedShortcuts().map(shortcut => shortcut.keys)).toEqual(expect.arrayContaining(['H', '[', ']']))
+    vi.useRealTimers()
+    await expectNoA11yViolations(container)
+    vi.useFakeTimers({ shouldAdvanceTime: false })
+
+    await user.click(screen.getByRole('button', { name: 'Play' }))
+    await tick(0)
+    expect(screen.queryByText(/^Following hot spot/)).toBeNull()
+    const notes = ensemble.playNotes.mock.calls.length
+    await tick(600 * 3)
+    expect(ensemble.playNotes).toHaveBeenCalledTimes(notes)
+  })
+
+  it('shows the find game under the sound map, and F starts it on the date on screen (IX04)', async () => {
+    const user = setup()
+    render(<PlayerPage visualization={motion} />, { wrapper: AnnouncerProvider })
+    await tick(0)
+    expect(screen.queryByRole('group', { name: 'Find game' })).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Explore the map' }))
+    await tick(0)
+    expect(screen.getByRole('button', { name: 'Start the find game' })).toBeInTheDocument()
+    await user.keyboard('f')
+    await vi.waitFor(() => expect(screen.getByText(/^Find the .+ place\. Target 1 of 1\. Time 0:00\.$/)).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: 'Stop the find game' })).toHaveAttribute('aria-pressed', 'true')
+    await user.keyboard('{Escape}')
+    expect(screen.getByRole('button', { name: 'Start the find game' })).toBeInTheDocument()
+  })
+})
+
+describe('Player: the first-minute game (IX11)', () => {
+  beforeEach(() => {
+    resetOnboarding()
+    localStorage.clear()
+    analyzeGrid.mockReset()
+    analyzeGrid.mockImplementation(async (frame: { id: string }) => ({ frameId: frame.id, cols: 24, rows: 12, area: { x0: 0, y0: 0, x1: 1, y1: 1 }, cells: Array.from({ length: 24 * 12 }, () => ({ value: 14, category: 'mild' })) }))
+  })
+  afterEach(() => { resetOnboarding(); localStorage.clear() })
+
+  it('offers the game on a first visit, takes its first step from the arrow keys on the sound map, and has no accessibility violations', async () => {
+    const { user, container } = await renderReady()
+    const game = screen.getByRole('group', { name: 'First-minute game' })
+    expect(within(game).getByText('Step 1 of 4')).toBeInTheDocument()
+    expect(within(game).getByText('First, press Explore the map to turn on the sound map.')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Explore the map' }))
+    await tick(0)
+    expect(within(game).queryByText(/^First, press Explore the map/)).toBeNull()
+    await user.keyboard('{ArrowRight}{ArrowRight}{ArrowRight}')
+    expect(within(game).getByText('Step 2 of 4')).toBeInTheDocument()
+    vi.useRealTimers() // axe waits on real timers
+    await expectNoA11yViolations(container)
+  })
+
+  it('hides on Skip and comes back from the restart button', async () => {
+    const { user } = await renderReady()
+    await user.click(screen.getByRole('button', { name: 'Skip' }))
+    expect(screen.queryByRole('group', { name: 'First-minute game' })).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Play the first-minute game' }))
+    expect(screen.getByRole('group', { name: 'First-minute game' })).toBeInTheDocument()
+  })
+
+  it('is not offered on its own once it was done or skipped', async () => {
+    saveOnboardingDone()
+    await renderReady()
+    expect(screen.queryByRole('group', { name: 'First-minute game' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Play the first-minute game' })).toBeInTheDocument()
+  })
+})
+
+// F48: a data set with two or more regions lets the listener choose one. The choice is in the address, and no sound starts by itself.
+describe('Player: region picker', () => {
+  const twoRegions: Visualization = {
+    ...visualization,
+    regions: [...visualization.regions, { id: 'north', name: 'Northern ocean', description: 'A strip along the top.', points: [{ x: 0.2, y: 0.1 }, { x: 0.8, y: 0.1 }] }],
+  }
+  const lastRegionAnalysed = () => analyzeAll.mock.calls.at(-1)?.[1]?.id
+  const renderTwo = async (hash = '#listen') => {
+    window.location.hash = hash
+    const user = setup()
+    render(<PlayerPage visualization={twoRegions} />, { wrapper: AnnouncerProvider })
+    await tick(0)
+    return user
+  }
+  afterEach(() => { window.location.hash = '' })
+
+  it('is not there when the data set has one region', async () => {
+    await renderReady()
+    expect(screen.queryByRole('combobox', { name: 'Region' })).toBeNull()
+  })
+
+  it('starts on the first region, and lists every region by name', async () => {
+    await renderTwo()
+    const picker = screen.getByRole('combobox', { name: 'Region' })
+    expect(picker).toHaveValue('centre')
+    expect(within(picker).getAllByRole('option').map(o => o.textContent)).toEqual(['Central ocean', 'Northern ocean'])
+    expect(lastRegionAnalysed()).toBe('centre')
+    expect(screen.getByText('Region: Central ocean')).toBeInTheDocument()
+  })
+
+  it('puts the choice in the address, reads that region, and plays nothing', async () => {
+    const user = await renderTwo()
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Region' }), 'north')
+    await tick(0)
+    expect(window.location.hash).toBe('#listen?region=north')
+    expect(lastRegionAnalysed()).toBe('north')
+    expect(screen.getByText('Region: Northern ocean')).toBeInTheDocument()
+    expect(fake.sequences).toHaveLength(0)
+    expect(liveText()).toBe('Region: Northern ocean.')
+  })
+
+  it('opens on the region a link names, and on the first when the link names one that does not exist', async () => {
+    await renderTwo('#listen?region=north')
+    expect(screen.getByRole('combobox', { name: 'Region' })).toHaveValue('north')
+    expect(lastRegionAnalysed()).toBe('north')
+    cleanup()
+    await renderTwo('#listen?region=nowhere')
+    expect(screen.getByRole('combobox', { name: 'Region' })).toHaveValue('centre')
+    expect(lastRegionAnalysed()).toBe('centre')
+  })
+
+  it('has no accessibility violations with the picker shown', async () => {
+    window.location.hash = '#listen'
+    const { container } = render(<PlayerPage visualization={twoRegions} />, { wrapper: AnnouncerProvider })
+    await tick(0)
+    vi.useRealTimers() // axe waits on real timers
+    await expectNoA11yViolations(container)
   })
 })

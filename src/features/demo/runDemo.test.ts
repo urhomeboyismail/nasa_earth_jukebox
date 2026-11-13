@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { runDemo, type DemoDeps } from './runDemo'
-import { DEMO_STEPS } from './script'
+import { DEMO_STEPS, TOUR_STEPS } from './script'
 
 function deps(over: Partial<DemoDeps> = {}) {
   const log: string[] = []
@@ -69,5 +69,65 @@ describe('runDemo', () => {
     expect(await runDemo(DEMO_STEPS, all, controller.signal)).toBe(false)
     expect(log).not.toContain('play')
     expect(log.some(entry => entry.startsWith('sleep'))).toBe(false)
+  })
+  it('asks one question and waits for the answer before the next step (IX05)', async () => {
+    const answered: Array<() => void> = []
+    const { log, all } = deps({ predictAndWait: () => new Promise<void>(resolve => { log.push('predict'); answered.push(resolve) }) })
+    const run = runDemo(DEMO_STEPS, all, new AbortController().signal)
+    await vi.waitFor(() => expect(log).toContain('predict'))
+    const asked = log.length
+    await Promise.resolve()
+    // Nothing after the question until it is answered.
+    expect(log).toHaveLength(asked)
+    expect(log.filter(entry => entry === 'predict')).toHaveLength(1)
+    answered[0]()
+    expect(await run).toBe(true)
+    const names = DEMO_STEPS.map(step => step.page)
+    expect(log.filter(entry => entry.startsWith('go:'))).toEqual(names.map(page => `go:${page}`))
+    expect(log.indexOf('predict')).toBeLessThan(log.lastIndexOf('go:compare'))
+  })
+
+  it('only holds on the question step when the page has no player to ask (IX05)', async () => {
+    const { log, all } = deps()
+    await runDemo(DEMO_STEPS.filter(step => step.predict), all, new AbortController().signal)
+    expect(log.some(entry => entry.startsWith('sleep'))).toBe(true)
+    expect(log).not.toContain('predict')
+  })
+
+  it('has one question step, and it names no data set or value (IX05)', () => {
+    const steps = DEMO_STEPS.filter(step => step.predict)
+    expect(steps).toHaveLength(1)
+    expect(steps[0].say).not.toMatch(/warm|cold|hot|temperature|mauritius|ocean|sea ice|°C/i)
+  })
+
+  it('points at the target of each step once, in order, and at nothing at the end (JB05)', async () => {
+    const { all } = deps()
+    const pointAt = vi.fn(async (_selector: string | null) => {})
+    expect(await runDemo(TOUR_STEPS, { ...all, pointAt }, new AbortController().signal)).toBe(true)
+    expect(pointAt.mock.calls.map(call => call[0])).toEqual([...TOUR_STEPS.map(step => step.target), null])
+  })
+
+  it('does not point when the step has no target, and works with no pointAt at all', async () => {
+    const { all } = deps()
+    const pointAt = vi.fn(async (_selector: string | null) => {})
+    await runDemo([{ page: 'home', say: 'Hello.', holdMs: 1 }], { ...all, pointAt }, new AbortController().signal)
+    expect(pointAt.mock.calls.map(call => call[0])).toEqual([null, null])
+    expect(await runDemo([{ page: 'home', say: 'Hello.', target: '#x' }], all, new AbortController().signal)).toBe(true)
+  })
+
+  it('stops after pointing when aborted, and still clears the pointer', async () => {
+    const { log, all } = deps()
+    const controller = new AbortController()
+    const pointAt = vi.fn(async (selector: string | null) => { if (selector) controller.abort() })
+    expect(await runDemo(TOUR_STEPS, { ...all, pointAt }, controller.signal)).toBe(false)
+    expect(pointAt.mock.calls.map(call => call[0])).toEqual([TOUR_STEPS[0].target, null])
+    expect(log.filter(entry => entry.startsWith('sleep'))).toEqual([])
+  })
+
+  it('has tour captions that name no data set, and each step has a target (JB05)', () => {
+    for (const step of TOUR_STEPS) {
+      expect(step.target).toMatch(/^\[data-tour="[a-z-]+"\]$/)
+      expect(step.say).not.toMatch(/warm|cold|hot|temperature|mauritius|ocean|sea ice|°C/i)
+    }
   })
 })

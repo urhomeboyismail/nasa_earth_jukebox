@@ -1,5 +1,5 @@
 import { DETAIL_LEVELS, type DetailLevel } from '../../data'
-import { DETAIL_WORDS } from './symphony'
+import { DETAIL_WORDS } from './symphonyState'
 
 type Props = { detail: DetailLevel; onChange: (level: DetailLevel) => void }
 

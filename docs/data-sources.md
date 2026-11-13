@@ -55,13 +55,13 @@ Start from `scripts/templates/manifest.template.json`. Every `TODO` is something
 | `colorScale.stops` | converter, from `legend.json` | Read off the colour bar, in order of value, each stop's colour exactly as in the image |
 | `colorScale.noData` | person | Colours of land, labels and missing pixels; none may lie within `maxColorDistance` of the legend line |
 | `colorScale.maxColorDistance` | person | Start at 40; lower it if land is read as a value |
-| `regions` (`id`, `name`, `description`, `points`) | person (the converter writes 30 starting `points`) | `points` are fractions 0 to 1 of the image, over water the legend colours; the first region is the one Compare and the listening test use |
+| `regions` (`id`, `name`, `description`, `points`) | person (the converter writes 30 starting `points`) | `points` are fractions 0 to 1 of the image, over water the legend colours; the first region is the primary one: the listening test, About and Ask use it, and Listen and Compare start on it. A listener can choose another region on Listen (`#listen?region=<id>`) and for their own two dates on Compare (F48) |
 | `frames` (`id`, `date`, `image`, `width`, `height`) | converter | From the file names and the PNG header; frames in date order, one per date |
 | `frames[].altText`, `frames[].note` | person | Describe the picture; `note` only for a frame with missing data |
 | `mapping.scale`, `tick`, `missingCue` | template | Leave as in the template: missing data is always the noise hiss |
 | `mapping.minValidFraction` | template | 0.5 unless there is a reason |
 | `mapping.categories` | converter, then person | The converter splits the legend's span into five equal ranges; a person checks them. Five, coolest first, each starting where the one before ends, covering the legend's lowest to highest value; notes C4 E4 G4 C5 E5 |
-| `comparisons` | person | Checked against the NASA source (T85 step 5). `regionId` must be the first region's until T98 |
+| `comparisons` | person | Checked against the NASA source (T85 step 5). `regionId` must name a region of the data set, any of them (F48): Compare plays the comparison in that region. The listening test shows only the comparisons in the first region, so keep at least one there |
 | `mapArea` | converter or person | The map without legend bar or titles, as fractions 0 to 1 |
 | `story` | person | Optional chapters; each runs forward in time |
 | `baseline`, `mapping.changeSteps`, `mapping.contourLevels`, `frames[].baselineImage` | converter (`--baseline-*`), then person | v2, optional, all three of the first together or none (see "Baselines" below). `changeSteps` are five steps of change from normal, most below first, each starting where the one before ends, with a note C3 to C4 rising step by step; `contourLevels` are the fixed changes to trace, lowest first, notes C3 to C6 |
@@ -276,3 +276,13 @@ Sea surface temperature around Mauritius, twenty 10-day maps from 23 January to 
 - NASA's data use guidance, that data from NASA-led missions are licensed as Creative Commons Zero (CC0) unless marked with a restriction or licence, from https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance.
 
 **Checks (T85 step 5):** (1) the PO.DAAC page states no licence of its own, so the CC0 licence rests on NASA's general data use guidance above; the CC0 line was confirmed by the team on 9 Nov 2026; (2) the PO.DAAC suggested citation ("JPL MUR MEaSUREs Project. 2015. ...", DOI 10.5067/GHGMR-4FJ04) was read on the live PO.DAAC page in a browser on 9 Nov 2026 (Citation tab) and is now in `source.credit`; the "accessed" date is the day the pictures were fetched (`retrievedOn`). (3) still to check by a person: the numbers and sentences in the story and comparisons, against the pictures.
+
+## Font: Atkinson Hyperlegible (VIS2)
+
+The "Easier reading font" display setting. Served from this site (`public/fonts/`), no CDN, and requested only when the setting is on.
+
+- **Source:** the Fontsource build of the Google Fonts release, npm package `@fontsource/atkinson-hyperlegible`, https://www.npmjs.com/package/@fontsource/atkinson-hyperlegible, **version 5.3.0**, files `atkinson-hyperlegible-latin-400-normal.woff2` and `atkinson-hyperlegible-latin-700-normal.woff2` (Latin subset). The typeface is by the Braille Institute of America.
+- **Files and SHA-256:**
+  - `public/fonts/AtkinsonHyperlegible-Regular.woff2`, 17,208 bytes, SHA-256 `d64ba838ef5472bba248620ec4fd8b5aa7cf0db2908e0bb230600caf279ba7bc`
+  - `public/fonts/AtkinsonHyperlegible-Bold.woff2`, 17,524 bytes, SHA-256 `140e2bd25a7315c8a062508391426b0d8c3297400c947b8d847be28f73a199f0`
+- **Licence:** the licence text in the package (`LICENSE`, copied to `public/fonts/OFL-AtkinsonHyperlegible.txt`) says: "This Font Software is licensed under the SIL Open Font License, Version 1.1", with the copyright line "Copyright 2020 Braille Institute of America, Inc." The package metadata says `OFL-1.1`.

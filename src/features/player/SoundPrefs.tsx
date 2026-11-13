@@ -5,7 +5,7 @@ import { Button, Slider, useAnnounce } from '../../components'
 import { STYLE_IDS, VOICE_IDS, type PresetId, type VoiceId } from '../../data'
 import { presetFor } from '../../sonify'
 import { playSample } from './soundSample'
-import { VOICE_WORDS } from './symphony'
+import { VOICE_WORDS } from './symphonyState'
 
 const SPEEDS: { id: AudioPrefs['speed']; label: string }[] = [
   { id: 'slow', label: 'Slow' },

@@ -1,16 +1,16 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ComponentType, type CSSProperties, type MouseEvent } from 'react'
-import VoiceAssistant from './VoiceAssistant'
-import { AnnouncerProvider, DatasetPicker, Notice } from './components'
+import { AnnouncerProvider, DatasetPicker, LoadingIndicator, Notice } from './components'
 import { Icon, type IconName } from './components/Icon'
 import { Sonny } from './components/Mascot'
-import { loadCatalog, loadVisualization, type CatalogEntry, type Visualization } from './data'
+import { DataError, friendlyDataMessage, loadCatalog, loadVisualization, type CatalogEntry, type Visualization } from './data'
+import { DisplayButton, DisplaySettingsProvider } from './display/DisplaySettings'
 import { DemoControl } from './features/demo/DemoControl'
 import { HelpButton } from './features/help/HelpButton'
 import HomePage from './features/home'
 import type { PageProps } from './features/types'
 import { noteGuidePlaybackCommand, useDucking } from './assistant/ducking'
 import { sendPlayerCommand } from './features/player/controls'
-import { useVoiceAssistant, type AssistantAction } from './hooks/useVoiceAssistant'
+import { loadAssistantAudio, useVoiceAssistant, type AssistantAction } from './hooks/useVoiceAssistant'
 import { MascotGuideProvider } from './features/mascot/MascotGuideProvider'
 import { pages, type Page } from './pages'
 import { currentDataParam, hashFor, parseHash } from './route'
@@ -24,6 +24,12 @@ const LearnPage = lazy(() => import('./features/learn'))
 const PlayerPage = lazy(() => import('./features/player'))
 // Echo's corner widget is not needed to read the page, so it loads after it.
 const MascotDock = lazy(() => import('./features/mascot/MascotDock'))
+// The voice panel loads the first time the guide is opened. The guide's audio code starts loading with it, so it is
+// there by the time Start is pressed. If it fails here, Start loads it again and says so.
+const VoiceAssistant = lazy(() => {
+  loadAssistantAudio().catch(() => {})
+  return import('./VoiceAssistant')
+})
 
 const pageComponents: Record<Page, ComponentType<PageProps>> = {
   home: HomePage,
@@ -50,7 +56,11 @@ function goTo(page: Page) {
   window.location.hash = hashFor(page, { data: currentDataParam() })
 }
 
-const messageOf = (error: unknown) => (error instanceof Error ? error.message : String(error))
+/** A load failure: the detail (file, status, validation) goes to the console, and the listener reads a plain sentence. */
+function failureOf(id: string | null, error: unknown) {
+  console.error(error)
+  return { id, message: friendlyDataMessage(error) }
+}
 
 function App() {
   const [route, setRoute] = useState(() => parseHash(window.location.hash))
@@ -84,10 +94,10 @@ function App() {
     let cancelled = false
     loadCatalog()
       .then(list => {
-        if (!list.length) throw new Error('No visualizations are listed in public/data/index.json.')
+        if (!list.length) throw new DataError('index.json', 'lists no visualizations.')
         if (!cancelled) setCatalog(list)
       })
-      .catch((error: unknown) => { if (!cancelled) setFailure({ id: null, message: messageOf(error) }) })
+      .catch((error: unknown) => { if (!cancelled) setFailure(failureOf(null, error)) })
     return () => { cancelled = true }
   }, [])
 
@@ -108,7 +118,7 @@ function App() {
     let cancelled = false
     loadVisualization(dataId)
       .then(next => { if (!cancelled) setLoaded(next) })
-      .catch((error: unknown) => { if (!cancelled) setFailure({ id: dataId, message: messageOf(error) }) })
+      .catch((error: unknown) => { if (!cancelled) setFailure(failureOf(dataId, error)) })
     return () => { cancelled = true }
   }, [dataId])
 
@@ -191,6 +201,7 @@ function App() {
 
   return (
     <AnnouncerProvider>
+      <DisplaySettingsProvider>
       <MascotGuideProvider>
         {/* The hash holds the page, so the skip link moves focus itself instead of jumping to an anchor. */}
         <a className="app-skip" href={hashFor(page, { data: linkData })} onClick={event => { event.preventDefault(); heading.current?.focus() }}>
@@ -228,6 +239,7 @@ function App() {
               })}
             </ul>
           </nav>
+          <DisplayButton />
           <button ref={guideToggle} type="button" className="app-guide-toggle" aria-pressed={assistantOpen}
             aria-keyshortcuts="Alt+E" onClick={toggleGuide}>
             <Sonny size={32} className="app-guide-toggle__mascot" />
@@ -247,13 +259,17 @@ function App() {
             <DatasetPicker catalog={catalog} value={dataId} onChange={id => { window.location.hash = hashFor(page, { data: id }) }} />
           )}
           {dataMissing && <Notice>The data set “{requestedData}” was not found, so this shows “{catalog?.[0].title}” instead.</Notice>}
-          {loadError && <Notice variant="error">The data could not be loaded. {loadError}</Notice>}
-          <Suspense fallback={<p role="status" className="app-loading">Loading…</p>}>
+          {loadError && <Notice variant="error">{loadError}</Notice>}
+          <Suspense fallback={<div className="app-loading"><LoadingIndicator label="Loading…" /></div>}>
             <CurrentPage visualization={visualization} testMode={testMode} />
           </Suspense>
         </main>
 
-        {assistantOpen && <VoiceAssistant assistant={assistant} onClose={closeAssistant} />}
+        {assistantOpen && (
+          <Suspense fallback={<div className="app-loading"><LoadingIndicator label="Loading the voice guide…" /></div>}>
+            <VoiceAssistant assistant={assistant} onClose={closeAssistant} />
+          </Suspense>
+        )}
 
         {/* Echo, bottom right on every page. The key closes its bubble when the page changes. */}
         <Suspense fallback={null}>
@@ -261,6 +277,7 @@ function App() {
             onTalk={() => setAssistantOpen(true)} />
         </Suspense>
       </MascotGuideProvider>
+      </DisplaySettingsProvider>
     </AnnouncerProvider>
   )
 }

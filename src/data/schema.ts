@@ -192,11 +192,8 @@ export const visualizationSchema = z
     data.comparisons.forEach((c, i) => {
       if (!frameIds.has(c.frameA)) problem(['comparisons', i, 'frameA'], `there is no frame "${c.frameA}"`)
       if (!frameIds.has(c.frameB)) problem(['comparisons', i, 'frameB'], `there is no frame "${c.frameB}"`)
+      // Compare plays a comparison in its own region (F48); the listening test only uses those in the first region.
       if (!regionIds.has(c.regionId)) problem(['comparisons', i, 'regionId'], `there is no region "${c.regionId}"`)
-      // Compare and the listening test analyse regions[0] only (until T98), so a comparison elsewhere would play the wrong place.
-      else if (c.regionId !== data.regions[0].id) {
-        problem(['comparisons', i, 'regionId'], `is "${c.regionId}" but must be "${data.regions[0].id}", the first region, because Compare and the listening test use the first region only`)
-      }
     })
 
     const dateOf = new Map(data.frames.map(f => [f.id, f.date]))

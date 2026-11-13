@@ -2,15 +2,17 @@
 // date is the whole job: every change of date goes through here.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { analyzeAll, analyzeChange, type ChangeVisualization, type Contour, type FrameAnalysis, type Score } from '../../analysis'
+import { analyzeChange, type Contour, type FrameAnalysis, type Score } from '../../analysis'
 import { hasChange } from '../../analysis/available'
-import { createSoundEngine, type SequenceStep, type SoundEngine } from '../../audio'
+import { useFrameAnalysis } from '../../analysis/useFrameAnalysis'
+import type { SequenceStep } from '../../audio'
 import { coarseCategory, hiddenChanges } from '../../audio/coarse'
 import { elevationFor, panFor, useSpatialMode } from '../../audio/pan'
 import { styleFor, useSoundStyle, type SoundStyle } from '../../audio/style'
+import { useSoundEngine } from '../../audio/useSoundEngine'
 import { voicingFor } from '../../audio/voicing'
 import { useAnnounce } from '../../components/useAnnounce'
-import { variableWords, type Region, type SoundMapping, type Visualization } from '../../data'
+import { primaryRegion, variableWords, type Region, type SoundMapping, type Visualization } from '../../data'
 import { dateFormatterFor } from '../../dates'
 import { categoryChanged, describeContour, describeHidden, playerDateLine, playerStopLine, withUnit, type DateParts, type StopKind } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
@@ -52,15 +54,15 @@ export function usePlayer(
   onDate?: (index: number, category: string | null) => void,
   /** F40: where a link opened the page. Both are already checked against this data set; null means "as usual". */
   start?: { index: number | null; style: SoundStyle | null },
+  /** F48: the region the listener chose. Without it, the primary region. */
+  options: { region?: Region } = {},
 ) {
-  const { frames, regions, colorScale, mapping } = visualization
-  const region = regions[0]
+  const { frames, mapping } = visualization
+  const region = options.region ?? primaryRegion(visualization)
   const announce = useAnnounce()
   const [detail] = useDescriptionDetail()
   const formatDate = useMemo(() => dateFormatterFor(frames.map(frame => frame.date)), [frames])
 
-  const [results, setResults] = useState<FrameAnalysis[] | null>(null)
-  const [analysisError, setAnalysisError] = useState('')
   const [index, setIndex] = useState(start?.index ?? 0)
   const [status, setStatus] = useState<Status>('idle')
   const [speed, setSpeedState] = useState<Speed>('normal')
@@ -80,13 +82,7 @@ export function usePlayer(
   /** True while "Trace the warm edge" is playing its lines. */
   const [tracing, setTracing] = useState(false)
 
-  const { engine, engineError } = useMemo((): { engine: SoundEngine | null; engineError: string } => {
-    try {
-      return { engine: createSoundEngine(mapping), engineError: '' }
-    } catch (error) {
-      return { engine: null, engineError: error instanceof Error ? error.message : String(error) }
-    }
-  }, [mapping])
+  const { engine, engineError } = useSoundEngine(mapping)
 
   // The sound style (full, simple or change) is set on the engine whenever it or the style changes.
   useEffect(() => { engine?.setStyle(style) }, [engine, style])
@@ -94,28 +90,29 @@ export function usePlayer(
   useEffect(() => { engine?.setSpatial(spatial) }, [engine, spatial])
 
   // Analyze every frame once, when the page opens. The page remounts for another visualization, so nothing is stale.
-  useEffect(() => {
-    let cancelled = false
-    // With a baseline each result also carries its change step. Without one the call is exactly what it was.
-    const done = changeAvailable ? analyzeAll(frames, region, colorScale, mapping, visualization as ChangeVisualization) : analyzeAll(frames, region, colorScale, mapping)
-    done
-      .then(all => { if (!cancelled) setResults(all) })
-      .catch((error: unknown) => { if (!cancelled) setAnalysisError(error instanceof Error ? error.message : String(error)) })
-    return () => { cancelled = true }
-  }, [frames, region, colorScale, mapping, visualization, changeAvailable])
+  const { results, error: analysisError } = useFrameAnalysis(visualization, region, { withChange: changeAvailable })
 
   // The change score of the date on screen (change style only): its contours decide whether "Trace the warm edge" can be used.
   const [scored, setScore] = useState<Score | null>(null)
+  /** Why this date has no score, in words. Empty when it has one, or has not been asked for yet. */
+  const [scoreError, setScoreError] = useState<{ frameId: string; reason: string } | null>(null)
   // A score for another date, or one kept from before the style changed, is not this date's.
   const score = changeOn && scored?.frameId === frames[index].id ? scored : null
+  const scoreProblem = changeOn && !score && scoreError?.frameId === frames[index].id ? scoreError.reason : ''
   useEffect(() => {
     if (!changeOn) return
     let cancelled = false
-    analyzeChange(frames[index], visualization as ChangeVisualization)
-      .then(done => { if (!cancelled) setScore(done) })
-      .catch(() => { /* No score for this date: the trace button stays disabled. */ })
+    analyzeChange(frames[index], visualization)
+      .then(done => { if (!cancelled) { setScoreError(null); setScore(done) } })
+      .catch((error: unknown) => {
+        // No score for this date: the trace button stays disabled, and the page says why.
+        if (cancelled) return
+        const reason = error instanceof Error ? error.message : String(error)
+        setScoreError({ frameId: frames[index].id, reason })
+        announce(`The change for this date could not be read. ${reason}`)
+      })
     return () => { cancelled = true }
-  }, [changeOn, frames, index, visualization])
+  }, [changeOn, frames, index, visualization, announce])
 
   // Preload the next image so stepping forward never waits.
   useEffect(() => {
@@ -249,7 +246,7 @@ export function usePlayer(
     onDateRef.current?.(i, results[i].category)
     // Alone, a date has no earlier note to slide from or to jump from, so it gets the chord only.
     const { pad } = voicingFor(results, i, mapping)
-    const { changeStep, medianChange } = changeOn ? results[i] : ({} as Partial<FrameAnalysis>)
+    const { changeStep, medianChange } = changeOn ? results[i] : { changeStep: undefined, medianChange: undefined }
     engine.playSequence([{
       category: results[i].category, atMs: 0, pan: panFor(region), elevation: elevationFor(region), ...(pad && { pad }),
       ...(changeStep && { changeStep, ...(medianChange !== undefined && { medianChange }) }),
@@ -333,7 +330,7 @@ export function usePlayer(
       engine.traceContour(line, point => {
         if (mine !== run.current || point !== line.points.length - 1) return
         // The last point has sounded: say the line in words, then go on to the next one.
-        announce(describeContour(visualization as ChangeVisualization, line, { detail }))
+        announce(describeContour(visualization, line, { detail }))
         endTimer.current = window.setTimeout(() => next(k + 1), TRACE_GAP_MS)
       })
     }
@@ -514,7 +511,7 @@ export function usePlayer(
   }), [frames])
 
   return {
-    engine, region, results, index, status, speed, volume, finished, ready, style, setStyle, applyLinkedStyle, changeAvailable, score, tracing, traceWarmEdge, stopTrace, spatial, setSpatial, downloading, downloadError,
+    engine, region, results, index, status, speed, volume, finished, ready, style, setStyle, applyLinkedStyle, changeAvailable, score, scoreProblem, tracing, traceWarmEdge, stopTrace, spatial, setSpatial, downloading, downloadError,
     error: engineError || analysisError,
     loading: !engineError && !analysisError && !results,
     play, pause, stop, replay, goTo, showDate, halt, playRange, download, setSpeed, setVolume, testSound, hearLegend, hearBothWays, hearWhatIsHidden,

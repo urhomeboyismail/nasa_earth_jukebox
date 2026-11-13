@@ -99,4 +99,21 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+**Built** (`src/features/art/`): `presets.ts` (the four editable fields, `applyChoice`, which refuses any other field or an out-of-range value), `schema.ts` (zod: the preset file and the stored list, strict), `store.ts` (at most 10 named presets under `earth-jukebox:art-presets`, a corrupt list gives none), `useArt.ts`, `ArtPanel.tsx`, and a test next to each (`mapping.test.ts` is the proof that the data mapping does not change). `src/features/player/index.tsx` mounts the panel in Symphony mode and passes the chosen preset down.
+
+**Edits outside Touches** (each one small, and needed because the names the ticket points to did not exist):
+- `src/features/player/Symphony.tsx` and `symphonyState.ts`: SN07 had no preset input, so `Symphony` takes an optional `preset` prop and `useSymphony` an optional third argument (`artPreset ?? presetFor(...)`). With none given, nothing changes.
+- `src/features/playlist/renderSequence.ts`: `RenderDeps` gains an optional `preset`, used instead of the manifest's. Test added in `renderSequence.test.ts`.
+- New `src/features/player/artMode.test.tsx` (the page-level test), next to `player.test.tsx`, which is large.
+
+**Known limit:** a new preset is a new ensemble (`useEnsemble` makes one per preset, SN04), so changing a slider while the Symphony plays stops it and the listener presses Play again. The panel says so in a sentence. Keeping it playing needs a change in `src/audio/ensemble/` (SN04), which this ticket may not edit. Not tried in a real browser: the ensemble, the real offline render and the download were tested through the fakes only.
+
+**Checks** (Windows, Node, final run):
+
+```
+npm run lint   -> oxlint, exit 0, no warnings or errors
+npm run build  -> tsc -b && vite build: built, no errors
+npm test       -> Test Files 185 passed (185); Tests 2786 passed (2786)
+```
+
+(After that full run, one lint warning in `ArtPanel.test.tsx` was fixed; lint, `tsc -b` and the art, player-art and playlist tests were re-run and pass.)

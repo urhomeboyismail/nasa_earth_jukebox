@@ -1,26 +1,28 @@
 // The Earth Jukebox mascot (docs/design/mascot-concepts.html): Echo, drawn as Juke-Bot, a small robot who listens to Earth.
 // Echo is the full body that stands beside the voice guide; Sonny is the helmet head in a badge, for small places.
 // Both are decoration (aria-hidden): the voice guide and the places that show Echo say its state in text.
-// Expression, motion and the chest bars are props (mascotTypes.ts); the colours are --mascot-* variables with fallbacks.
+// Expression, motion and the chest bars are props (mascotTypes.ts); the colours are the --mascot-* tokens.
 import { useId, type CSSProperties } from 'react'
 import './mascot.css'
 import { clamp01, expressionForPose, RESTING_LEVELS, type EchoProps, type MascotExpression } from './mascotTypes'
 
 export type { EchoProps, MascotExpression, MascotMotion, MascotPose } from './mascotTypes'
 
-/** Each colour is a variable with today's value as the fallback, so JB04 can recolour the accent per data set. */
+/** Each colour is a token from src/styles/tokens.css (the generator writes them), so JB04 can recolour the accent per data set. */
 const C = {
-  shell: 'var(--mascot-shell, #ffffff)',
-  shellShade: 'var(--mascot-shell-shade, #dce3eb)',
-  visor: 'var(--mascot-visor, #0f2233)',
-  accent: 'var(--mascot-accent, #802cc9)',
-  accentSoft: 'var(--mascot-accent-soft, #c384ff)',
-  glow: 'var(--mascot-glow, #7fe7ff)',
-  ocean: 'var(--mascot-ocean, #1f5f8a)',
-  land: 'var(--mascot-land, #4f9b74)',
-  flame: 'var(--mascot-flame, #ffb347)',
-  alert: 'var(--mascot-alert, #ff9a3c)',
-  trail: 'var(--mascot-trail, #7fe7ff)',
+  shell: 'var(--mascot-shell)',
+  shellShade: 'var(--mascot-shell-shade)',
+  visor: 'var(--mascot-visor)',
+  highlight: 'var(--mascot-highlight)',
+  shadow: 'var(--mascot-shadow)',
+  accent: 'var(--mascot-accent)',
+  accentSoft: 'var(--mascot-accent-soft)',
+  glow: 'var(--mascot-glow)',
+  ocean: 'var(--mascot-ocean)',
+  land: 'var(--mascot-land)',
+  flame: 'var(--mascot-flame)',
+  alert: 'var(--mascot-alert)',
+  trail: 'var(--mascot-trail)',
 }
 
 const safeId = (id: string) => id.replace(/[^a-zA-Z0-9_-]/g, '')
@@ -119,7 +121,7 @@ export function Echo({ pose = 'idle', expression, motion = 'idle', thrust = 0.7,
           <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
       </defs>
-      <ellipse cx="100" cy="234" rx="46" ry="6" fill="#000" opacity=".15" />
+      <ellipse cx="100" cy="234" rx="46" ry="6" fill={C.shadow} opacity=".15" />
       <g className="mascot__body">
         {/* Boots: chunky, with a nozzle. The flames show only while boosting or in a retro burn. */}
         {[84, 116].map(x => (
@@ -160,7 +162,7 @@ export function Echo({ pose = 'idle', expression, motion = 'idle', thrust = 0.7,
         <rect x="44" y="30" width="112" height="90" rx="38" fill={`url(#g${id})`} stroke={C.shellShade} strokeWidth="3" />
         <rect x="56" y="46" width="88" height="62" rx="28" fill={C.visor} />
         <Earth clip={`v${id}`} cx={116} cy={132} r={38} />
-        <path d="M66 62 Q72 54 88 53" stroke="#fff" strokeWidth="4" strokeLinecap="round" fill="none" opacity=".35" />
+        <path d="M66 62 Q72 54 88 53" stroke={C.highlight} strokeWidth="4" strokeLinecap="round" fill="none" opacity=".35" />
         <g transform="translate(100 78)" filter={glowFilter}><VisorFace expression={look} /></g>
         {/* Headphones: a band and two ear cups with LEDs, lit while listening. */}
         <path d="M40 78 A60 56 0 0 1 160 78" stroke={C.accent} strokeWidth="8" strokeLinecap="round" fill="none" />

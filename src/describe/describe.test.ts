@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import fixture from '../../public/data/fixture/manifest.json'
 import globe from '../../public/data/synthetic-globe/manifest.json'
-import type { ChangeVisualization, Contour, FrameAnalysis, FrameGrid, GridCell, Score } from '../analysis'
+import type { Contour, FrameAnalysis, FrameGrid, GridCell, Score } from '../analysis'
 import { analyzePixels, gridFromPixels } from '../analysis/analyze'
 import { decodePng } from '../analysis/png'
 import type { CategoryId, Visualization } from '../data'
@@ -302,9 +302,9 @@ const changeSteps = [
   { id: 'much-above', label: 'Much above normal', range: [2, Infinity] as [number, number], note: 'C4' },
 ]
 const contourLevels = [{ value: 1, note: 'C5' }, { value: 2, note: 'G5' }]
-type Baseline = NonNullable<ChangeVisualization['baseline']>
-const withBaseline = (baseline: Baseline): ChangeVisualization =>
-  ({ ...(visualization as unknown as ChangeVisualization), baseline, mapping: { ...visualization.mapping, changeSteps, contourLevels } })
+type Baseline = NonNullable<Visualization['baseline']>
+const withBaseline = (baseline: Baseline): Visualization =>
+  ({ ...(visualization as unknown as Visualization), baseline, mapping: { ...visualization.mapping, changeSteps, contourLevels } })
 const climatology = withBaseline({ kind: 'climatology', label: 'the 1991 to 2020 average', noiseFloor: 0.2 })
 const referenceDate = withBaseline({ kind: 'reference-date', frameId: frames[0].id, label: 'January 2024', noiseFloor: 0.2 })
 const anomalyProduct = withBaseline({ kind: 'anomaly-product' })
@@ -358,7 +358,7 @@ describe('describeChange', () => {
   })
 
   it('says there is nothing to describe for a data set with no baseline', () => {
-    expect(describeChange(visualization as unknown as ChangeVisualization, score())).toMatch(/no baseline/)
+    expect(describeChange(visualization as unknown as Visualization, score())).toMatch(/no baseline/)
   })
 
   it('is the same for the same input', () => {
