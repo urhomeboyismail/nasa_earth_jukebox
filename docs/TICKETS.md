@@ -132,7 +132,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [I07](tickets/I07-shared-hooks.md) | Shared hooks: sound engine, frame analysis, stored settings | M | agent | I06 | player, compare, learn | done |
 | [I09](tickets/I09-compare-cleanup.md) | Compare clean-up | S | agent | — | compare | done |
 | [I10](tickets/I10-first-load.md) | First load: lazy voice panel, demo and v3 pipeline; bundle budget in CI | M | agent | SN07 | app | done |
-| [I11](tickets/I11-lint-ci-rules.md) | Lint and CI rules that enforce `frontend.md`; ruff | S | agent | I04, I06 | — | ready: chore/I11-lint-ci-rules |
+| [I11](tickets/I11-lint-ci-rules.md) | Lint and CI rules that enforce `frontend.md`; ruff | S | agent | I04, I06 | — | done |
 | [I12](tickets/I12-missing-unit-tests.md) | Unit tests for five untested modules | S | agent | — | — | done |
 | [VIS1](tickets/VIS1-low-vision-map-tools.md) | Low-vision map tools: magnifier, big cursor, high-contrast outline, forced colours | M | agent | — | explorer | done |
 | [VIS2](tickets/VIS2-patterns-display-settings.md) | Colour-vision patterns and display settings | M | agent | — | app, explorer | done |

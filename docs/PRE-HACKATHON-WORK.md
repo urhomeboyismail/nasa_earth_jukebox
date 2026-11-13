@@ -108,6 +108,7 @@ Add one line per piece of work, newest last.
 | 13 Nov | JB06 Alert visor: a new, growing or shrinking hot spot (SN10's events) puts Echo's visor in its alert symbol for 3 s, at most once every 5 s, with the event's sentence waiting in the bubble; no speech or sound, SN10 still announces | `feature/JB06-alert-visor` |
 | 13 Nov | F48 Region picker: a data set with two or more regions shows a "Region" choice on Listen (`region=<id>` in the address); Compare plays each ready-made comparison in its own region and the listener's own dates in the chosen one; the listening test, About and Ask keep the first region and the test says how many pairs it has; the schema no longer forces `regionId` to be the first region | `feature/F48-region-picker` |
 | 13 Nov | UI/UX blueprint: five music styles, sound preferences in the welcome and mixer, the crate with save for offline, Compare "Two data sets" (`pairsWith`) | `feature/uiux-blueprint` |
+| 13 Nov | I11 Lint and CI rules: oxlint fails on `any`, type casts other than `as const`, `setState` in an effect and non-component exports from component files (tests, helpers and scripts exempt; three hotspot casts listed in the ticket); CI runs `npm run check-data` and `ruff check` (`server/ruff.toml`). The `!` rule is off: 30 in app code | `chore/I11-lint-ci-rules` (#66) |
 
 ## Outside resources used
 
