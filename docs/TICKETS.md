@@ -131,7 +131,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [I06](tickets/I06-analysis-memory.md) | Analysis memory: bounded concurrency, cache eviction, dead casts | M | agent | — | player, explorer, compare | open |
 | [I07](tickets/I07-shared-hooks.md) | Shared hooks: sound engine, frame analysis, stored settings | M | agent | I06 | player, compare, learn | open |
 | [I09](tickets/I09-compare-cleanup.md) | Compare clean-up | S | agent | — | compare | done |
-| [I10](tickets/I10-first-load.md) | First load: lazy voice panel, demo and v3 pipeline; bundle budget in CI | M | agent | SN07 | app | open |
+| [I10](tickets/I10-first-load.md) | First load: lazy voice panel, demo and v3 pipeline; bundle budget in CI | M | agent | SN07 | app | claimed: D, 2026-11-13 |
 | [I11](tickets/I11-lint-ci-rules.md) | Lint and CI rules that enforce `frontend.md`; ruff | S | agent | I04, I06 | — | open |
 | [I12](tickets/I12-missing-unit-tests.md) | Unit tests for five untested modules | S | agent | — | — | done |
 | [VIS1](tickets/VIS1-low-vision-map-tools.md) | Low-vision map tools: magnifier, big cursor, high-contrast outline, forced colours | M | agent | — | explorer | done |
