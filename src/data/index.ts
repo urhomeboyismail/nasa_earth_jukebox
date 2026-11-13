@@ -21,6 +21,17 @@ export class DataError extends Error {
   }
 }
 
+const CATALOG_FILE = 'index.json'
+
+/**
+ * The sentence a listener reads when data cannot be loaded. It never names a file, a status code or a validation
+ * message: those stay in `DataError` for the console and the check script.
+ */
+export function friendlyDataMessage(error: unknown): string {
+  if (error instanceof DataError && error.file === CATALOG_FILE) return 'The list of data sets could not be loaded. Reload the page.'
+  return 'This data set could not be loaded. Choose another from the list, or reload the page.'
+}
+
 const dataUrl = (path: string) => `${import.meta.env.BASE_URL}data/${path}`
 
 async function fetchJson(path: string): Promise<unknown> {
@@ -39,10 +50,10 @@ async function fetchJson(path: string): Promise<unknown> {
 }
 
 export async function loadCatalog(): Promise<CatalogEntry[]> {
-  const catalog = await fetchJson('index.json')
-  if (!Array.isArray(catalog)) throw new DataError('index.json', 'must be a list of visualizations.')
+  const catalog = await fetchJson(CATALOG_FILE)
+  if (!Array.isArray(catalog)) throw new DataError(CATALOG_FILE, 'must be a list of visualizations.')
   const parsed = catalogSchema.safeParse(catalog)
-  if (!parsed.success) throw new DataError('index.json', describeIssues(parsed.error))
+  if (!parsed.success) throw new DataError(CATALOG_FILE, describeIssues(parsed.error))
   return parsed.data
 }
 
