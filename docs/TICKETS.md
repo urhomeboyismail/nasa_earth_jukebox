@@ -87,7 +87,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [IX05](tickets/IX05-predict-then-hear.md) | Predict, then hear: a question before the next frames, then the answer | M | agent | SN01 | player | done |
 | [IX06](tickets/IX06-scrub-and-sculpt.md) | Scrub time with sound; draggable scan line; keyboard mixer; "My mix" | M | agent | SN07, SN08 | player | done |
 | [IX07](tickets/IX07-compare-by-hand.md) | Compare by hand: date A in the left ear, B in the right | S | agent | IX01, SN04 | explorer | blocked: needs SN04 two holds |
-| [IX08](tickets/IX08-mark-share-record.md) | Mark moments, share them, record an exploration as WAV | M | agent | S01, SN12 | player | open |
+| [IX08](tickets/IX08-mark-share-record.md) | Mark moments, share them, record an exploration as WAV | M | agent | S01, SN12 | player | claimed: C, 2026-11-13 |
 | [IX09](tickets/IX09-echo-points.md) | Echo points with a sound beacon and asks questions back | M | agent | IX01, G06 | server-assistant, app, voice | open |
 | [IX10](tickets/IX10-haptics-map.md) | Haptics map on the audio clock; gamepad rumble | S | agent | IX01 | explorer, player | open |
 | [IX11](tickets/IX11-interactive-onboarding.md) | Interactive onboarding: the first minute is a game | M | agent | IX04 | player | done |
