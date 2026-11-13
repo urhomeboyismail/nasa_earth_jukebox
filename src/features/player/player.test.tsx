@@ -1,4 +1,4 @@
-import { act, render, screen, within } from '@testing-library/react'
+import { act, cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
@@ -1182,5 +1182,65 @@ describe('Player: the first-minute game (IX11)', () => {
     await renderReady()
     expect(screen.queryByRole('group', { name: 'First-minute game' })).toBeNull()
     expect(screen.getByRole('button', { name: 'Play the first-minute game' })).toBeInTheDocument()
+  })
+})
+
+// F48: a data set with two or more regions lets the listener choose one. The choice is in the address, and no sound starts by itself.
+describe('Player: region picker', () => {
+  const twoRegions: Visualization = {
+    ...visualization,
+    regions: [...visualization.regions, { id: 'north', name: 'Northern ocean', description: 'A strip along the top.', points: [{ x: 0.2, y: 0.1 }, { x: 0.8, y: 0.1 }] }],
+  }
+  const lastRegionAnalysed = () => analyzeAll.mock.calls.at(-1)?.[1]?.id
+  const renderTwo = async (hash = '#listen') => {
+    window.location.hash = hash
+    const user = setup()
+    render(<PlayerPage visualization={twoRegions} />, { wrapper: AnnouncerProvider })
+    await tick(0)
+    return user
+  }
+  afterEach(() => { window.location.hash = '' })
+
+  it('is not there when the data set has one region', async () => {
+    await renderReady()
+    expect(screen.queryByRole('combobox', { name: 'Region' })).toBeNull()
+  })
+
+  it('starts on the first region, and lists every region by name', async () => {
+    await renderTwo()
+    const picker = screen.getByRole('combobox', { name: 'Region' })
+    expect(picker).toHaveValue('centre')
+    expect(within(picker).getAllByRole('option').map(o => o.textContent)).toEqual(['Central ocean', 'Northern ocean'])
+    expect(lastRegionAnalysed()).toBe('centre')
+    expect(screen.getByText('Region: Central ocean')).toBeInTheDocument()
+  })
+
+  it('puts the choice in the address, reads that region, and plays nothing', async () => {
+    const user = await renderTwo()
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Region' }), 'north')
+    await tick(0)
+    expect(window.location.hash).toBe('#listen?region=north')
+    expect(lastRegionAnalysed()).toBe('north')
+    expect(screen.getByText('Region: Northern ocean')).toBeInTheDocument()
+    expect(fake.sequences).toHaveLength(0)
+    expect(liveText()).toBe('Region: Northern ocean.')
+  })
+
+  it('opens on the region a link names, and on the first when the link names one that does not exist', async () => {
+    await renderTwo('#listen?region=north')
+    expect(screen.getByRole('combobox', { name: 'Region' })).toHaveValue('north')
+    expect(lastRegionAnalysed()).toBe('north')
+    cleanup()
+    await renderTwo('#listen?region=nowhere')
+    expect(screen.getByRole('combobox', { name: 'Region' })).toHaveValue('centre')
+    expect(lastRegionAnalysed()).toBe('centre')
+  })
+
+  it('has no accessibility violations with the picker shown', async () => {
+    window.location.hash = '#listen'
+    const { container } = render(<PlayerPage visualization={twoRegions} />, { wrapper: AnnouncerProvider })
+    await tick(0)
+    vi.useRealTimers() // axe waits on real timers
+    await expectNoA11yViolations(container)
   })
 })

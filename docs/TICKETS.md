@@ -138,7 +138,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [VIS2](tickets/VIS2-patterns-display-settings.md) | Colour-vision patterns and display settings | M | agent | — | app, explorer | done |
 | [VIS3](tickets/VIS3-design-system-housekeeping.md) | Design-system housekeeping | M | agent | — | app | done |
 | [F42](tickets/F42-spoken-demo-caption.md) | Spoken demo caption; demo fixes | S | agent | — | — | done |
-| [F48](tickets/F48-region-picker.md) | Region picker | M | agent | I06 | player, compare, schema | claimed: C, 2026-11-13 |
+| [F48](tickets/F48-region-picker.md) | Region picker | M | agent | I06 | player, compare, schema | ready: feature/F48-region-picker |
 | [AU-UI](tickets/AU-UI-interface-sounds.md) | Interface sounds, quiet and behind a switch | M | agent | SN04, H03 | player, compare, voice | open |
 
 ### P2: Echo as Juke-Bot (the guide)

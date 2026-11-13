@@ -5,9 +5,10 @@ import { useSoundEngine } from '../../audio/useSoundEngine'
 import { styleFor, useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
 import { useAssistantContext } from '../../assistant/context'
-import { Button, Card, LoadingIndicator, Notice } from '../../components'
+import { Button, Card, LoadingIndicator, Notice, RegionPicker } from '../../components'
+import { useRegionChoice } from '../../components/useRegionChoice'
 import { useAnnounce } from '../../components/useAnnounce'
-import { higherPhrase, primaryRegion, variableWords, type Visualization } from '../../data'
+import { higherPhrase, regionFor, variableWords, type Visualization } from '../../data'
 import { describeFrame } from '../../describe'
 import { useDescriptionDetail } from '../../describe/detail'
 import { dateFormatterFor } from '../../dates'
@@ -29,7 +30,7 @@ export default function ComparePage({ visualization, testMode = false }: PagePro
 }
 
 function Compare({ visualization }: { visualization: Visualization }) {
-  const { frames, comparisons, mapping } = visualization
+  const { frames, comparisons, regions, mapping } = visualization
   const words = variableWords(visualization.variable)
   const announce = useAnnounce()
   const changeAvailable = hasChange(visualization)
@@ -44,8 +45,16 @@ function Compare({ visualization }: { visualization: Visualization }) {
 
   const { engine, engineError } = useSoundEngine(mapping)
 
+  // F48: a ready-made comparison is played in its own region; the listener's own two dates use the region chosen here (region=<id> in the address).
+  const preset = comparisons.find(c => c.id === choice)
+  const [chosenRegion, chooseRegion] = useRegionChoice(visualization)
+  const region = preset ? regionFor(visualization, preset.regionId) : chosenRegion
+
   // With a baseline each result also carries its change step.
-  const { results, error: analysisError } = useFrameAnalysis(visualization, primaryRegion(visualization), { withChange: changeAvailable })
+  const analysis = useFrameAnalysis(visualization, region, { withChange: changeAvailable })
+  const { error: analysisError } = analysis
+  // Until the region in use has been read, the results of the one before are not used.
+  const results = analysis.results?.[0]?.regionId === region.id ? analysis.results : null
 
   const [chosenStyle, setSoundStyle] = useSoundStyle()
   // A remembered "change" is not used for a data set with no baseline.
@@ -62,7 +71,6 @@ function Compare({ visualization }: { visualization: Visualization }) {
   const resultRef = useRef<HTMLDivElement>(null)
   const playRef = useRef<HTMLDivElement>(null)
 
-  const preset = comparisons.find(c => c.id === choice)
   const frameAId = preset ? preset.frameA : customA
   const frameBId = preset ? preset.frameB : customB
   // A ready-made comparison can name a date the data set does not have; the page then says so instead of crashing.
@@ -168,6 +176,11 @@ function Compare({ visualization }: { visualization: Visualization }) {
 
       {!preset && (
         <div className="compare__dates">
+          <RegionPicker
+            regions={regions}
+            value={chosenRegion.id}
+            onChange={id => { engine?.stop(); chooseRegion(id); setAnswer(null); setRevealed(false); announce(`Region: ${regions.find(r => r.id === id)?.name ?? id}.`) }}
+          />
           {([['a', 'Date A', frameAId], ['b', 'Date B', frameBId]] as const).map(([which, label, value]) => (
             <div key={which} className="compare__choose">
               <label htmlFor={`compare-date-${which}`} className="compare__label">{label}</label>
@@ -193,6 +206,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
       <p className="compare__question">
         {changeOn ? 'Which date is further above its normal?' : (preset?.question ?? `Which date shows ${higherPhrase(words)}?`)}
       </p>
+      {regions.length > 1 && <p className="compare__region">Region: {region.name}</p>}
 
       <div className="compare__play" ref={playRef}>
         <Button variant="primary" disabled={!ready} onClick={() => void playDate('A')}>Play date A</Button>

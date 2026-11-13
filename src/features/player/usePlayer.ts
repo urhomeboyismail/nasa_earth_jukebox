@@ -54,9 +54,11 @@ export function usePlayer(
   onDate?: (index: number, category: string | null) => void,
   /** F40: where a link opened the page. Both are already checked against this data set; null means "as usual". */
   start?: { index: number | null; style: SoundStyle | null },
+  /** F48: the region the listener chose. Without it, the primary region. */
+  options: { region?: Region } = {},
 ) {
   const { frames, mapping } = visualization
-  const region = primaryRegion(visualization)
+  const region = options.region ?? primaryRegion(visualization)
   const announce = useAnnounce()
   const [detail] = useDescriptionDetail()
   const formatDate = useMemo(() => dateFormatterFor(frames.map(frame => frame.date)), [frames])
