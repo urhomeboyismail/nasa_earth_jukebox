@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { publishContext } from '../../assistant/context'
 import { expectNoA11yViolations } from '../../test/a11y'
 import { onPlayerCommand, type PlayerCommand } from '../player/controls'
+import { onPredictRequest, reportPredictDone } from '../predict/bus'
 import { DemoControl } from './DemoControl'
 import * as speech from '../welcome/speak'
 import * as welcome from '../welcome/storage'
@@ -48,12 +49,34 @@ describe('DemoControl', () => {
     expect(commands).toEqual([])
     act(() => publishContext('player', { playing: false }, 'playback_finished:fixture'))
     await tick(0)
+    // The question step: no player is mounted here to ask it, so the tour gives up on it after five seconds.
+    expect(window.location.hash).toBe('#listen')
+    await tick(5000)
     expect(window.location.hash).toBe('#compare')
     await tick(7000)
     await tick(7000)
     await tick(4000)
     expect(caption()).toBe('The demo has finished.')
     expect(screen.getByRole('button', { name: 'Play the demo' })).toBeInTheDocument()
+  })
+
+  it('waits for the question to be answered before it moves on (IX05)', async () => {
+    const user = userEvent.setup({ delay: null })
+    const stopListening = onPredictRequest(() => {})
+    render(<DemoControl />)
+    await user.click(screen.getByRole('button', { name: 'Play the demo' }))
+    await tick(14000)
+    act(() => publishContext('player', { playing: true }))
+    act(() => publishContext('player', { playing: false }, 'playback_finished:fixture'))
+    await tick(0)
+    expect(window.location.hash).toBe('#listen')
+    // A player has the question: the tour holds past the usual give-up time.
+    await tick(30000)
+    expect(window.location.hash).toBe('#listen')
+    act(() => reportPredictDone())
+    await tick(0)
+    expect(window.location.hash).toBe('#compare')
+    stopListening()
   })
 
   it('stops with the button, or Escape, and stops the sound', async () => {

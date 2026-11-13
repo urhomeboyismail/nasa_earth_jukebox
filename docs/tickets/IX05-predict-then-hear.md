@@ -96,4 +96,22 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Built on `feature/IX05-predict-then-hear`, from `main` at the claim.
+
+- `src/features/predict/judge.ts`: `questionsFor(now, later)`, `answerFor(question, now, later)`, `revealText`. Pure over `FrameFeatures`. The question is about the largest warm (`high`) spot that SN01 tracks to the date two steps later. Size: more than ±10% of the cells is bigger or smaller, otherwise the same. Direction: the longer axis of the centroid's move in cells, and "it stays put" when it moved one cell or less. No tracked spot at both ends gives no question.
+- `usePredict.ts`: reads the date and the two after it in order with `extractFeatures(…, previous)` (so the hot-spot ids follow the same spot), keeps the answer in memory, and picks the question by `index % questions.length` (nothing random). Predict halts playback and sounds the date as the question (`playNotes(notesOf(…, 1.5))`). The choice plays the next two dates at 0 and 800 ms, then two rising notes (right) or two falling notes (wrong) at 1600 ms, with "You said bigger. It got bigger." announced once. Escape (`stopSpeech`) or "Stop the question" cancels the sound and the timers.
+- `PredictPanel.tsx`, `predict.css`: Predict button, the question and its choices as buttons, the answer line after the reveal. The answer is not in the DOM before it.
+- Story: `StoryPanel.tsx` takes an optional `predict` and shows "Predict" on a chapter whose first date has a question.
+- Demo: `script.ts` has one `predict` step on Listen; `runDemo.ts` waits for `predictAndWait` (optional, holds if absent); `DemoControl.tsx` asks the player through `predict/bus.ts` until a player takes it (gives up after 5 s with no player, waits up to 45 s for the answer).
+- Mount: `player/index.tsx`, three lines (the hook, the panel, the story prop). The queue row lists the `player` hotspot.
+- Files outside the ticket's Touches, both small and needed for the demo step: `src/features/demo/DemoControl.tsx` and `src/features/demo/DemoControl.test.tsx` (the second one because the tour now has a question step).
+
+Tests: `judge.test.ts` (table tests), `synthetic.test.ts` (real extractor on painted scenes and on the SN02 `synthetic-storm` set: growing, shrinking, steady, moving, lost spot, the storm's direction from the drawn centres), `PredictPanel.test.tsx` (choices only after Predict, answer text absent before the choice, `playNotes` at 0 and 800 ms, rising and falling answer notes, Escape, demo request, `expectNoA11yViolations` before, while asking and after the reveal), `StoryPanel.test.tsx` (button shown and not shown), `runDemo.test.ts` and `DemoControl.test.tsx` (the question step waits).
+
+```
+$ npm run lint        -> oxlint, no warnings, exit 0
+$ npm test            -> Test Files 167 passed (167), Tests 2610 passed (2610)
+$ npm run build       -> built in 1.33s
+```
+
+Note: `src/App.test.tsx` is timing-flaky on this machine under load (a different test in it fails on some runs). It fails the same way on a clean `main`, so it is not from this ticket. It passed in the full runs above.

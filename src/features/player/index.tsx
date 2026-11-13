@@ -16,6 +16,8 @@ import { FindPanel } from '../find/FindPanel'
 import { useFindGame } from '../find/useFindGame'
 import { OnboardingPanel } from '../onboarding/OnboardingPanel'
 import { useOnboarding } from '../onboarding/useOnboarding'
+import { PredictPanel } from '../predict/PredictPanel'
+import { usePredict } from '../predict/usePredict'
 import { StoryPanel } from '../story/StoryPanel'
 import type { PageProps } from '../types'
 import './player.css'
@@ -93,6 +95,8 @@ function Player({ visualization }: { visualization: Visualization }) {
   const follow = useFollow({ visualization, explorer, frames, index: player.index, showDate: player.showDate })
   // IX04: F (or the button) starts the find game on the sound map's date.
   const find = useFindGame({ visualization, frame, explorer })
+  // IX05: a question about the next two dates, answered before they play. The story's chapters use the same hook.
+  const predict = usePredict({ visualization, index: player.index, ensemble: explorer.ensemble, halt: player.halt, showDate: player.showDate })
   // IX11: the first-minute game listens to the same actions, and to the find game's first target found.
   const onboarding = useOnboarding({ visualization, explorer, findStatus: find.game.status })
   /** A date chosen by the listener: a followed spot is heard there and the dates play on from it; otherwise the date plays as usual. */
@@ -211,6 +215,7 @@ function Player({ visualization }: { visualization: Visualization }) {
       {/* IX03: what follow is doing. Not a live region: losing the spot is said through the speech gate. */}
       {follow.text && <p className="player__follow">{follow.text}</p>}
       <FindPanel find={find} />
+      <PredictPanel predict={predict} index={player.index} />
       <OnboardingPanel onboarding={onboarding} />
 
       {player.results && <Description visualization={visualization} results={player.results} index={player.index} />}
@@ -248,7 +253,7 @@ function Player({ visualization }: { visualization: Visualization }) {
         </div>
       )}
       {storyOpen && (
-        <StoryPanel visualization={visualization} chapters={chapters} results={player.results} playRange={player.playRange} onClose={closeStory} />
+        <StoryPanel visualization={visualization} chapters={chapters} results={player.results} playRange={player.playRange} predict={predict} onClose={closeStory} />
       )}
 
       <div className="player__controls" role="group" aria-label="Playback">

@@ -8,12 +8,17 @@ import { hush, speak } from '../welcome/speak'
 import { readWelcome } from '../welcome/storage'
 import { useMascotOn } from '../help/mascotSetting'
 import { sendPlayerCommand } from '../player/controls'
+import { onPredictDone, requestPredict } from '../predict/bus'
 import { runDemo, type DemoDeps } from './runDemo'
 import { DEMO_STEPS } from './script'
 import './demo.css'
 
 /** Longest the demo waits for the dates to finish, so a sound that never starts cannot hold the tour. */
 const PLAY_TIMEOUT_MS = 60_000
+/** Longest the demo waits for a question to be answered, so a listener who walks away cannot hold the tour. */
+const PREDICT_TIMEOUT_MS = 45_000
+/** Longest the demo waits for a player to take the request. */
+const PREDICT_START_MS = 5_000
 /** The page loads on first visit and the sounds are prepared after it opens, so "play" is sent again until it takes. */
 const RETRY_MS = 600
 /** Longest the demo waits for one caption to be spoken, so a voice that never ends cannot hold the tour. */
@@ -53,6 +58,21 @@ const playAndWait: DemoDeps['playAndWait'] = (signal) =>
     if (signal.aborted) finish()
   })
 
+/** Asks the player for one question and waits until it is answered or stopped, or until it times out. The page loads on first visit, so the request is sent again until a player takes it. */
+const predictAndWait: DemoDeps['predictAndWait'] = (signal) =>
+  new Promise(resolve => {
+    const finish = () => { unsubscribe(); window.clearInterval(retry); window.clearTimeout(limit); window.clearTimeout(giveUp); signal.removeEventListener('abort', finish); resolve() }
+    const unsubscribe = onPredictDone(finish)
+    const limit = window.setTimeout(finish, PREDICT_TIMEOUT_MS)
+    // With no player to ask, the step ends rather than holding the tour.
+    const giveUp = window.setTimeout(finish, PREDICT_START_MS)
+    const ask = () => { if (requestPredict()) { window.clearInterval(retry); window.clearTimeout(giveUp) } }
+    const retry = window.setInterval(ask, RETRY_MS)
+    signal.addEventListener('abort', finish)
+    if (signal.aborted) finish()
+    else ask()
+  })
+
 /** A button that plays a scripted tour of the app, with a caption that says what it is doing. Escape or the same button stops it. */
 export function DemoControl() {
   const [running, setRunning] = useState(false)
@@ -77,6 +97,7 @@ export function DemoControl() {
       goTo: page => { window.location.hash = hashFor(page, { data: currentDataParam() }) },
       say: setCaption,
       playAndWait,
+      predictAndWait,
       sleep,
       speakCaption: aloud && !screenReader ? speakCaption : undefined,
     }, controller.signal)
