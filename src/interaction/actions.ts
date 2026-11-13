@@ -30,6 +30,8 @@ export type Action =
   | { type: 'follow'; step: 'toggle' | 'next' | 'previous' }
   /** F (IX04). */
   | { type: 'find'; command: 'start' | 'stop' | 'toggle' }
+  /** E, or the voice guide (IX09): a sound beacon at a hot spot's id or a compass place. No target (the E key) is the next place in the offline order. */
+  | { type: 'point'; target?: string }
   /** Hold A or B (IX07). */
   | { type: 'compareHold'; side: 'A' | 'B'; held: boolean }
   /** Shift+A, Shift+B (IX07). */

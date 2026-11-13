@@ -70,6 +70,25 @@ describe('toAssistantAction', () => {
     expect(toAssistantAction({ action: 'player' })).toBeNull()
     expect(toAssistantAction({})).toBeNull()
   })
+
+  describe('point (IX09)', () => {
+    afterEach(() => publishContext('explore', null))
+
+    it.each(['north-west', 'north', 'north-east', 'west', 'centre', 'east', 'south-west', 'south', 'south-east'])('accepts the compass place %s', target => {
+      expect(toAssistantAction({ action: 'point', target })).toEqual({ action: 'point', target })
+    })
+
+    it('accepts a hot spot id only when the sound map reported it', () => {
+      expect(toAssistantAction({ action: 'point', target: 'h1' })).toBeNull()
+      publishContext('explore', { exploring: true, hotspots: [{ id: 'h1', place: 'north-east' }, { id: 'h4', place: 'centre' }] })
+      expect(toAssistantAction({ action: 'point', target: 'h4' })).toEqual({ action: 'point', target: 'h4' })
+      expect(toAssistantAction({ action: 'point', target: 'h2' })).toBeNull()
+    })
+
+    it.each([undefined, null, 3, '', 'North-East', 'up', 'h1; delete', ['centre'], { target: 'centre' }])('drops the target %j', target => {
+      expect(toAssistantAction({ action: 'point', target })).toBeNull()
+    })
+  })
 })
 
 function resetRig() {
@@ -152,6 +171,17 @@ describe('useVoiceAssistant (V01)', () => {
     expect(result.current.actions[0].label).toBe('Went to 15 July 2024')
     act(() => result.current.undo())
     expect(onAction).toHaveBeenLastCalledWith({ action: 'player', command: { setDate: '2024-03-01' } })
+  })
+
+  it('passes an accepted point on, with nothing to undo, and drops an unknown target (IX09)', async () => {
+    const { result, onAction } = await connect('listen')
+    await server({ type: 'action', action: 'point', target: 'north-east' })
+    expect(onAction).toHaveBeenLastCalledWith({ action: 'point', target: 'north-east' })
+    expect(result.current.actions[0]).toMatchObject({ label: 'Pointed at north-east', inverse: null })
+    onAction.mockClear()
+    await server({ type: 'action', action: 'point', target: 'h9' })
+    expect(onAction).not.toHaveBeenCalled()
+    expect(result.current.actions).toHaveLength(1)
   })
 
   it('keeps the last 10 entries, newest last', async () => {

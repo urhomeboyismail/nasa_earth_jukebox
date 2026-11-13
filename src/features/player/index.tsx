@@ -19,6 +19,7 @@ import { FindPanel } from '../find/FindPanel'
 import { useFindGame } from '../find/useFindGame'
 import { MarksPanel } from '../marks/MarksPanel'
 import { OnboardingPanel } from '../onboarding/OnboardingPanel'
+import { useEcho } from '../point/useEcho'
 import { useOnboarding } from '../onboarding/useOnboarding'
 import { PredictPanel } from '../predict/PredictPanel'
 import { usePredict } from '../predict/usePredict'
@@ -111,6 +112,8 @@ function Player({ visualization, region }: { visualization: Visualization; regio
   const follow = useFollow({ visualization, explorer, frames, index: player.index, showDate: player.showDate })
   // IX04: F (or the button) starts the find game on the sound map's date.
   const find = useFindGame({ visualization, frame, explorer })
+  // IX09: E, or the voice guide, points at a place on the sound map with a beacon.
+  const echo = useEcho({ visualization, frame, explorer })
   // IX05: a question about the next two dates, answered before they play. The story's chapters use the same hook.
   const predict = usePredict({ visualization, index: player.index, ensemble: explorer.ensemble, halt: player.halt, showDate: player.showDate })
   // IX11: the first-minute game listens to the same actions, and to the find game's first target found.
@@ -237,6 +240,8 @@ function Player({ visualization, region }: { visualization: Visualization; regio
       <ExplorerPanel visualization={visualization} explorer={explorer} />
       {/* IX03: what follow is doing. Not a live region: losing the spot is said through the speech gate. */}
       {follow.text && <p className="player__follow">{follow.text}</p>}
+      {/* IX09: where Echo pointed. Not a live region: E announces it once, and for a voice point the guide says it. */}
+      {echo.text && <p className="player__follow">{echo.text}</p>}
       <FindPanel find={find} />
       <PredictPanel predict={predict} index={player.index} />
       <OnboardingPanel onboarding={onboarding} />

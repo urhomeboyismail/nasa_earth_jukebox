@@ -6,7 +6,7 @@
 | **Size** | M (about a day) |
 | **Who** | agent |
 | **Needs** | IX01, G06 |
-| **Hotspots** | server-assistant, app, voice |
+| **Hotspots** | server-assistant, app, voice, player |
 | **Branch** | `feature/IX09-echo-points` |
 
 
@@ -112,7 +112,59 @@ npm run lint && npm test && npm run build
 - A scripted offline question (questions come from the voice guide only).
 - Pointing at any pixel, or at a place in another data set.
 - Changes to the voice protocol, the model or the Gemini bridge (G04, G05).
+- **Voice points at a hot spot**, waiting on board R-20261113-IX09-1 (to G06). Both checks already read a `hotspots` list of `{ id }` from the explore context: the server in `point_targets` (`server/app/assistant/tools.py`), the browser in `pointTargets` (`src/hooks/useVoiceAssistant.ts`). G06's `ExploreContext` has no such field and forbids extra keys, so today the list is always empty and only the nine compass places pass. To finish: add the field to the two context schemas, and publish `echo.hotspots` (the ids `useEcho` resolves against, so the two always agree) from the screen G06's owner picks. `useEcho` already returns them.
+- **The ADK agent** (`server/app/agent/tools.py`) has its own fixed list of five tools and no `point_to`, so on the ADK path the guide cannot point. `system_instruction` leaves the point_to line out when `page_label` is given (the ADK path) so that agent is not told about a tool it lacks. G05 (ADK by default) should add a `point_to` wrapper there and drop that default.
 
 ## Result
 
-Not started.
+Done 2026-11-13, agent D, branch `feature/IX09-echo-points`. Voice points at a hot spot wait on the board (Out of scope); everything else in "Done when" is in.
+
+**What it does**
+- `E` on the sound map points at the date's hot spots by size, largest first, then the centre, and wraps (`offlineOrder`, `nextOffline`). The cursor moves in silence (`moveTo(…, 'follow')`, as IX03), three pings play 300 ms apart (the first at once, the other two on timers that Escape cancels), each panned by `panForPoint(x)` and raised by `elevationForPoint(y)`, at the spot's note (`noteForPosition(peakPosition)`) or, for a compass place, the cell's value. A line says where: "Pointing at the largest warm area, north-east." with the data set's own band word (SN10's `bandWord`) and compass name (`sectorOf`). `E` announces it once.
+- The voice guide's `point_to(target)` (bridge path) checks the target against what the browser reported plus the nine compass places, only on Listen, and returns `{ action: "point", target }`. The browser checks it again and `App.tsx` dispatches the same `point` action as `E`. A voice point is not announced, because the guide says it.
+- A sound map that is off says "Turn on the sound map to hear where that is."; a locked place says to press L first; an unknown target does nothing.
+- The frame's hot spots are read once per date while the sound map is on, so `E` answers at once.
+
+**Files outside Touches**, each needed for the above:
+- `src/hooks/voiceMessages.ts`: the server-message schema stripped `target`, so a point never reached the allow-list. One field added.
+- `src/features/point/places.ts` (new): the nine compass places on their own, so the allow-list (in the entry chunk) imports nothing else.
+- `src/App.test.tsx`: one case, a point from the guide reaches `dispatch`.
+- `src/features/player/index.tsx` is in Touches but in the `player` hotspot, which the queue row did not list; I added `player` to the row on main (`1e7ed83`).
+
+**Design choices**
+- The `point` action's `target` is optional: `E` sends none (a key's `match` cannot know the next target), and the hook picks the next place in the offline order. The voice guide always names one.
+- No `player.test.tsx` change: the player now only mounts `useEcho` and shows its line, and publishing the hot spots waits on the board.
+
+**Checks**
+
+On this laptop the suite runs with `--pool=forks --maxWorkers=1` for memory. Main currently has `src/features/compare/Fusion.tsx` and `fusion.ts` side by side (UI/UX blueprint, `1e53f2b`). Windows cannot tell them apart, so `import './Fusion'` loads `fusion.ts` here: the type check, `vite build` and `Fusion.test.tsx` fail on this laptop and pass on Linux. IX09 changes nothing under `src/features/compare/` or `src/sonify/`. The bundle below was built with that one import pointed at `./Fusion.tsx` for the build only, then restored with git. Also on main: `src/sonify/fuse.ts` has two `as VoiceId[]` casts that I11's lint rule rejects (I11 and the blueprint were merged at the same time), so `npm run lint` fails there on main too. Both are left for their owner (they are not IX09's files).
+
+```
+$ npm run lint
+src/sonify/fuse.ts:31:20: error typescript(consistent-type-assertions): Do not use any type assertions. …
+src/sonify/fuse.ts:39:23: error typescript(consistent-type-assertions): Do not use any type assertions. …
+(nothing else: 0 problems in any other file)
+
+$ npx tsc -b
+the only errors are the Fusion/fusion casing above (TS2305, TS1149, TS1261); 0 others
+
+$ npm test   (npx vitest run --pool=forks --maxWorkers=1)
+ Test Files  1 failed | 197 passed (198)
+      Tests  4 failed | 2893 passed (2897)
+ FAIL  src/features/compare/Fusion.test.tsx (4 tests): Element type is invalid … got: undefined  (the casing issue above)
+
+$ npx vite build   (with the Fusion import pointed at ./Fusion.tsx, then reverted)
+dist/assets/index-BYZJX6zd.js             253.21 kB │ gzip: 81.28 kB
+✓ built in 768ms
+
+$ npm run check-bundle
+index-BYZJX6zd.js: 80409 bytes gzip (78.5 KB), within the budget of 84362 bytes (82.4 KB).
+
+$ cd server && .venv/Scripts/ruff.exe check app tests
+All checks passed!
+
+$ cd server && .venv/Scripts/python.exe -m pytest -q
+344 passed, 2 skipped in 13.49s
+```
+
+New tests: `targets.test.ts` (9), `beacon.test.ts` (3), `useEcho.test.tsx` (14, on SN02's motion set and the fixture), 20 new cases in `useVoiceAssistant.test.ts` (9 compass places, a reported id, 9 dropped targets, and the whole hook), 1 in `App.test.tsx`, and 23 new server cases (`point_to` with a reported id, an unknown id, every compass place with no context, an id with none reported, four wrong argument types, four pages that are not Listen, the action over the socket, the instruction line on the bridge and not on ADK, and the compass list against `src/features/point/places.ts`).

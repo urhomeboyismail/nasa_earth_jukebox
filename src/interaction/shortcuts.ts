@@ -24,7 +24,7 @@ export type ShortcutId =
   | 'edge-west' | 'edge-east' | 'edge-north' | 'edge-south'
   | 'replay' | 'sweep' | 'lock'
   | 'scrub-left' | 'scrub-right' | 'scrub-home' | 'scrub-end'
-  | 'query' | 'mark' | 'find' | 'follow-toggle' | 'follow-previous' | 'follow-next' | 'voice-solo' | 'voice-mute'
+  | 'query' | 'mark' | 'find' | 'point' | 'follow-toggle' | 'follow-previous' | 'follow-next' | 'voice-solo' | 'voice-mute'
   | `touch-${string}` | `pad-${string}`
 
 export type Shortcut = {
@@ -89,6 +89,8 @@ export const SHORTCUTS: readonly Shortcut[] = [
   // Routed now, handled and listed by the tickets that own them.
   { id: 'mark', keys: 'M', device: 'keyboard', scope: 'map', does: () => 'Mark this moment.', listed: false, match: input => (isLetter(input, 'm') ? { type: 'mark' } : null) },
   { id: 'find', keys: 'F', device: 'keyboard', scope: 'map', does: () => 'Start or stop the find game.', match: input => (isLetter(input, 'f') ? { type: 'find', command: 'toggle' } : null) },
+  // IX09 (src/features/point/useEcho.ts). The voice guide points with the same action, naming its target.
+  { id: 'point', keys: 'E', device: 'keyboard', scope: 'map', does: () => 'Point at the next hot spot, largest first, then the centre, with three notes from that place.', match: input => (isLetter(input, 'e') ? { type: 'point' } : null) },
   { id: 'follow-toggle', keys: 'H', device: 'keyboard', scope: 'map', does: () => 'Follow a hot spot through time.', match: input => (isLetter(input, 'h') ? { type: 'follow', step: 'toggle' } : null) },
   { id: 'follow-previous', keys: '[', device: 'keyboard', scope: 'map', does: () => 'Follow the previous hot spot.', match: input => (noModifier(input) && input.key === '[' ? { type: 'follow', step: 'previous' } : null) },
   { id: 'follow-next', keys: ']', device: 'keyboard', scope: 'map', does: () => 'Follow the next hot spot.', match: input => (noModifier(input) && input.key === ']' ? { type: 'follow', step: 'next' } : null) },

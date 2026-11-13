@@ -10,6 +10,7 @@ import HomePage from './features/home'
 import type { PageProps } from './features/types'
 import { noteGuidePlaybackCommand, useDucking } from './assistant/ducking'
 import { sendPlayerCommand } from './features/player/controls'
+import { dispatch } from './interaction/registry'
 import { loadAssistantAudio, useVoiceAssistant, type AssistantAction } from './hooks/useVoiceAssistant'
 import { MascotGuideProvider } from './features/mascot/MascotGuideProvider'
 import { pages, type Page } from './pages'
@@ -154,6 +155,9 @@ function App() {
       // Only when the page will change; otherwise no page effect would clear the flag.
       guideNavigated.current = action.page !== parseHash(window.location.hash).page
       goTo(action.page)
+    } else if (action.action === 'point') {
+      // IX09: the same action as the E key, through the same dispatcher. With no sound map open, nothing handles it.
+      dispatch({ type: 'point', target: action.target })
     } else {
       noteGuidePlaybackCommand(action.command)
       sendPlayerCommand(action.command)

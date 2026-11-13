@@ -13,6 +13,8 @@ from app.assistant.knowledge import PAGE_IDS, PAGES
 
 PLAYBACK_COMMANDS = ["play", "pause", "stop", "replay", "next", "previous"]
 _ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+#: Places on the sound map the guide can always point at (IX09): the nine thirds of the map. The browser has the same list (src/features/point/targets.ts).
+COMPASS_PLACES = ["north-west", "north", "north-east", "west", "centre", "east", "south-west", "south", "south-east"]
 
 _PAGE_PARAM = {"type": "string", "enum": PAGE_IDS, "description": "Page id: " + ", ".join(
     f"{pid} = {p['title']}" for pid, p in PAGES.items())}
@@ -52,6 +54,15 @@ def tools() -> list:
                          "the sound map (whether it is on, the value under the cursor)."),
             parameters_json_schema={"type": "object", "properties": {}},
         ),
+        types.FunctionDeclaration(
+            name="point_to",
+            description=("Point at a place on the Listen page's sound map with a sound beacon: three short notes from that place. "
+                         "Give a hot spot's id from get_screen_context (the sound map's \"hotspots\"), or one of the compass "
+                         "places " + ", ".join(COMPASS_PLACES) + ". Only works on the Listen page."),
+            parameters_json_schema={"type": "object", "properties": {
+                "target": {"type": "string", "description": "A hot spot id such as h1, or a compass place such as north-east."}},
+                "required": ["target"]},
+        ),
     ]
     return [types.Tool(function_declarations=declarations)]
 
@@ -77,6 +88,15 @@ def _is_real_date(value: str) -> bool:
     return True
 
 
+def point_targets(state: SessionState) -> list[str]:
+    """What the guide may point at now: the hot spots the sound map reported (their ids), then the compass places.
+    The sound map's context has no hot spots until G06's schema carries them (board R-20261113-IX09-1); until then, only the compass places."""
+    explore = state.screens.get("explore")
+    spots = explore.get("hotspots") if isinstance(explore, dict) else None
+    ids = [spot["id"] for spot in spots if isinstance(spot, dict) and isinstance(spot.get("id"), str)] if isinstance(spots, list) else []
+    return [*ids, *COMPASS_PLACES]
+
+
 def run_tool(name: str, args: dict | None, state: SessionState) -> ToolResult:
     args = args or {}
     page = args.get("page")
@@ -86,7 +106,7 @@ def run_tool(name: str, args: dict | None, state: SessionState) -> ToolResult:
         return ToolResult({"ok": True, "now_on": PAGES[page]["title"]}, {"action": "navigate", "page": page})
     if name == "explain_section":
         return ToolResult({"page": page, **PAGES[page]})
-    if name in ("control_playback", "set_date"):
+    if name in ("control_playback", "set_date", "point_to"):
         # The player only exists on the Listen page, so say so instead of reporting a command that goes nowhere.
         if state.page != "listen":
             return ToolResult({"error": "The player is on the Listen page. Use navigate_to to take the user there first."})
@@ -95,6 +115,13 @@ def run_tool(name: str, args: dict | None, state: SessionState) -> ToolResult:
             if command not in PLAYBACK_COMMANDS:
                 return ToolResult({"error": f"Unknown command. Valid commands: {', '.join(PLAYBACK_COMMANDS)}"})
             return ToolResult({"ok": True, "command": command}, {"action": "player", "command": command})
+        if name == "point_to":
+            # Read only: the target must be one the browser reported, or a compass place. The browser checks it again.
+            target = args.get("target")
+            valid = point_targets(state)
+            if not isinstance(target, str) or target not in valid:
+                return ToolResult({"error": f"Unknown target. Valid targets: {', '.join(valid)}"})
+            return ToolResult({"ok": True, "target": target}, {"action": "point", "target": target})
         day = args.get("date")
         if not isinstance(day, str) or not _ISO_DATE.match(day) or not _is_real_date(day):
             return ToolResult({"error": "The date must be written YYYY-MM-DD, for example 2024-07-15."})
