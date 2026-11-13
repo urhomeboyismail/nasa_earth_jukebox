@@ -6,12 +6,15 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { expectNoA11yViolations } from './test/a11y'
 import { installFakeAudioContext } from './test/fakes'
 import VoiceAssistant from './VoiceAssistant'
-import { useVoiceAssistant } from './hooks/useVoiceAssistant'
+import { loadAssistantAudio, useVoiceAssistant } from './hooks/useVoiceAssistant'
 
 type Assistant = ReturnType<typeof useVoiceAssistant>
 
 // jsdom has no layout, so elements have no scrollTo; the panel calls it to follow the conversation.
 beforeAll(() => { Element.prototype.scrollTo ??= () => {} })
+// The App starts loading the guide's audio code when the panel opens (I10), so it is there before Start is pressed. These
+// tests render the panel without the App, so they load it here; otherwise the first Start waits for it and a check can run first.
+beforeAll(() => loadAssistantAudio())
 
 // The defaults are a decided open mic, as the guide was before V02, so the older cases keep their meaning.
 function fakeAssistant(overrides: Partial<Assistant> = {}): Assistant {
