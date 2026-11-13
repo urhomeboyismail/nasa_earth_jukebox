@@ -194,6 +194,15 @@ describe('Trace the warm edge', () => {
     expect(document.querySelector('[aria-live="polite"]')?.textContent).toContain('A +1 °C line runs from the north-west to the centre')
   })
 
+  it('keeps the button disabled and says why when the change cannot be read', async () => {
+    analyzeChange.mockRejectedValue(new Error('The reference frame ref-1 does not exist.'))
+    const { container, button } = await inChangeStyle(false)
+    expect(button).toBeDisabled()
+    expect(await screen.findByText(/nothing to trace. The reference frame ref-1 does not exist./)).toBeInTheDocument()
+    await waitFor(() => expect(document.querySelector('[aria-live="polite"]')?.textContent).toContain('The reference frame ref-1 does not exist.'))
+    await expectNoA11yViolations(container)
+  })
+
   it('traces every picked line in turn', async () => {
     contours = [NW_TO_CENTRE, SOUTH]
     const { user, button } = await inChangeStyle()

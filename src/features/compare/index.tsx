@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { analyzeAll, type ChangeVisualization, type FrameAnalysis } from '../../analysis'
+import { analyzeAll, type FrameAnalysis } from '../../analysis'
 import { hasChange } from '../../analysis/available'
 import { createSoundEngine, type SoundEngine } from '../../audio'
 import { styleFor, useSoundStyle } from '../../audio/style'
@@ -55,7 +55,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
   useEffect(() => {
     let cancelled = false
     // With a baseline each result also carries its change step. Without one the call is exactly what it was.
-    const done = changeAvailable ? analyzeAll(frames, regions[0], colorScale, mapping, visualization as ChangeVisualization) : analyzeAll(frames, regions[0], colorScale, mapping)
+    const done = changeAvailable ? analyzeAll(frames, regions[0], colorScale, mapping, visualization) : analyzeAll(frames, regions[0], colorScale, mapping)
     done
       .then(all => { if (!cancelled) setResults(all) })
       .catch((error: unknown) => { if (!cancelled) setAnalysisError(error instanceof Error ? error.message : String(error)) })
@@ -143,7 +143,7 @@ function Compare({ visualization }: { visualization: Visualization }) {
   }
 
   const right = answer !== null && answer === correct
-  const baseline = (visualization as ChangeVisualization).baseline
+  const baseline = (visualization).baseline
   const explanation = !frameA || !frameB ? '' : changeOn
     ? (correct ? `${formatDate(frameA.date)} was ${changeStepLabel(resultA)} and ${formatDate(frameB.date)} was ${changeStepLabel(resultB)}, measured against ${baselineName(baseline)}.` : '')
     : preset?.explanation ??

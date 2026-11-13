@@ -4,7 +4,8 @@
 //    product or a climatology; nothing else is ever called an anomaly.
 //  - Places are compass sectors of the map, never sea or country names: the rules do not know them.
 
-import type { ChangeVisualization, Contour, Score } from '../analysis'
+import type { Visualization } from '../data'
+import type { Contour, Score } from '../analysis'
 import { dateFormatterFor } from '../dates'
 import type { DescribeOptions } from '.'
 
@@ -24,7 +25,7 @@ const stepWords = (id: string) => id.replace(/[-_]+/g, ' ').trim().toLowerCase()
 const upperFirst = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
 
 /** What the change is measured against, in words that fit the kind of baseline. */
-function basisOf(visualization: ChangeVisualization): { lead: (value: string) => string; against: string } | null {
+function basisOf(visualization: Visualization): { lead: (value: string) => string; against: string } | null {
   const { baseline } = visualization
   if (!baseline) return null
   if (baseline.kind === 'reference-date') {
@@ -41,7 +42,7 @@ function basisOf(visualization: ChangeVisualization): { lead: (value: string) =>
  * How far the whole map is from its baseline: "Above normal: +0.8 °C compared with the 1991 to 2020 August average."
  * A single reference date reads "Change since March 2020: +0.8 °C (above)." Concise leaves out the share of the map.
  */
-export function describeChange(visualization: ChangeVisualization, score: Score, options: DescribeOptions = {}): string {
+export function describeChange(visualization: Visualization, score: Score, options: DescribeOptions = {}): string {
   const basis = basisOf(visualization)
   if (!basis) return 'This data set has no baseline, so there is no change to describe.'
   const { change } = score
@@ -94,7 +95,7 @@ function widthWords(contour: Contour): string {
  * One contour line: "A +1 °C line runs from the north-west to the centre, about a third of the map wide."
  * A closed line "circles" a sector. A line that stops at a place with no data says so in the rich level.
  */
-export function describeContour(visualization: ChangeVisualization, contour: Contour, options: DescribeOptions = {}): string {
+export function describeContour(visualization: Visualization, contour: Contour, options: DescribeOptions = {}): string {
   const unit = visualization.variable.unit
   const level = signedValue(contour.level, unit)
   const { points } = contour
