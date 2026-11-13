@@ -83,7 +83,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [IX01](tickets/IX01-input-layer.md) | Input layer and key map: keyboard, touch, mouse and gamepad as one set of actions; 50 ms answer | M | agent | S01, SN03, SN04 | explorer, player | done |
 | [IX02](tickets/IX02-whats-here.md) | "What's here?" on demand; verbosity; Esc stops speech | S | agent | IX01, SN10 | explorer | done |
 | [IX03](tickets/IX03-follow-mode.md) | Follow a hot spot through time | M | agent | SN01, SN04 | player | done |
-| [IX04](tickets/IX04-find-game.md) | Find game: warmest place, the edge, the biggest change, by ear | M | agent | IX01, SN04 | player | claimed: D, 2026-11-13 |
+| [IX04](tickets/IX04-find-game.md) | Find game: warmest place, the edge, the biggest change, by ear | M | agent | IX01, SN04 | player | ready: feature/IX04-find-game |
 | [IX05](tickets/IX05-predict-then-hear.md) | Predict, then hear: a question before the next frames, then the answer | M | agent | SN01 | player | open |
 | [IX06](tickets/IX06-scrub-and-sculpt.md) | Scrub time with sound; draggable scan line; keyboard mixer; "My mix" | M | agent | SN07, SN08 | player | open |
 | [IX07](tickets/IX07-compare-by-hand.md) | Compare by hand: date A in the left ear, B in the right | S | agent | IX01, SN04 | explorer | blocked: needs SN04 two holds |
