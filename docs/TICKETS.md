@@ -128,7 +128,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [I03](tickets/I03-friendly-data-errors.md) | Friendly data errors instead of developer messages | S | agent | — | app | done |
 | [I04](tickets/I04-zod-boundaries.md) | zod at the boundaries: study client, context data, welcome storage | S | agent | — | — | done |
 | [I05](tickets/I05-server-hardening.md) | Server hardening and missing server tests | M | agent | — | server-assistant | done |
-| [I06](tickets/I06-analysis-memory.md) | Analysis memory: bounded concurrency, cache eviction, dead casts | M | agent | — | player, explorer, compare | ready: fix/I06-analysis-memory |
+| [I06](tickets/I06-analysis-memory.md) | Analysis memory: bounded concurrency, cache eviction, dead casts | M | agent | — | player, explorer, compare | done |
 | [I07](tickets/I07-shared-hooks.md) | Shared hooks: sound engine, frame analysis, stored settings | M | agent | I06 | player, compare, learn | open |
 | [I09](tickets/I09-compare-cleanup.md) | Compare clean-up | S | agent | — | compare | done |
 | [I10](tickets/I10-first-load.md) | First load: lazy voice panel, demo and v3 pipeline; bundle budget in CI | M | agent | SN07 | app | done |
