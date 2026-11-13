@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { RENDER_SAMPLE_RATE, RENDER_TAIL_SECONDS } from '../../sonify/schedule'
-import { renderSequence } from './renderSequence'
-import { bytesOf, depsFor, manifestOf, sha256Hex } from './testKit'
+import { PRESETS } from '../../sonify'
+import type { Preset } from '../../sonify/types'
+import { applyChoice } from '../art/presets'
+import { renderSequence, type RenderDeps } from './renderSequence'
+import { bytesOf, depsFor, manifestOf, sha256Hex, sineRender } from './testKit'
 
 describe('renderSequence', () => {
   const fixture = manifestOf('fixture')
@@ -12,6 +15,19 @@ describe('renderSequence', () => {
     expect(await sha256Hex(first.wav)).toBe(await sha256Hex(second.wav))
     expect(first.vtt).toBe(second.vtt)
     expect(first.sidecar).toBe(second.sidecar)
+  })
+
+  it('renders with a preset it is given (art mode, IX12), keeping the captions and the same bytes for the same preset', async () => {
+    const seen: Preset[] = []
+    const withPreset = (preset: Preset): RenderDeps => ({ ...depsFor('fixture'), preset, renderOffline: async (schedule, options, used) => { seen.push(used); return sineRender(schedule, options, used) } })
+    const art = applyChoice(PRESETS.major, { tonic: 1, scale: 'dorian', bpm: 100, brightness: 0.9 })
+    const first = await renderSequence(fixture, withPreset(art))
+    const second = await renderSequence(fixture, withPreset(art))
+    const plain = await renderSequence(fixture, depsFor('fixture'))
+    expect(seen).toEqual([art, art])
+    expect(await sha256Hex(first.wav)).toBe(await sha256Hex(second.wav))
+    expect(await sha256Hex(first.wav)).not.toBe(await sha256Hex(plain.wav))
+    expect(JSON.parse(first.sidecar).frames.map((f: { frameId: string }) => f.frameId)).toEqual(JSON.parse(plain.sidecar).frames.map((f: { frameId: string }) => f.frameId))
   })
 
   it('writes a 16-bit stereo WAV at 44100 Hz with one sample per channel for the whole schedule', async () => {

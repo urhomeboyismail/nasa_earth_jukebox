@@ -15,7 +15,7 @@ import { useEnsemble } from '../../audio/ensemble/useEnsemble'
 import { useAnnounce } from '../../components'
 import { VOICE_IDS, type DetailLevel, type Visualization, type VoiceId } from '../../data'
 import { DETAIL_VOICES, presetFor, toMusicFrame } from '../../sonify'
-import type { MusicFrame } from '../../sonify'
+import type { MusicFrame, Preset } from '../../sonify'
 
 /** The voices in words, for buttons, captions and announcements. */
 export const VOICE_WORDS: Record<VoiceId, string> = {
@@ -88,10 +88,11 @@ export function statusText(s: Pick<Symphony, 'ensembleStatus' | 'sourceStatus' |
   return `${reading}${confidence}${s.reason ? ` ${s.reason}` : ''}${low}`
 }
 
-export function useSymphony(visualization: Visualization, video: HTMLVideoElement | null): Symphony {
+/** `artPreset` (art mode, IX12) plays instead of the manifest's preset. It must be the same object between renders, because a new preset is a new ensemble. */
+export function useSymphony(visualization: Visualization, video: HTMLVideoElement | null, artPreset?: Preset | null): Symphony {
   const announce = useAnnounce()
   const spec = visualization.sonification
-  const preset = presetFor(spec?.preset ?? 'major')
+  const preset = artPreset ?? presetFor(spec?.preset ?? 'major')
   const allowed: readonly VoiceId[] = spec?.voices ?? VOICE_IDS
   const [detail, setDetailState] = useState<DetailLevel>(spec?.detail ?? 'standard')
   const [speed, setSpeedState] = useState<SequenceSpeed>('normal')

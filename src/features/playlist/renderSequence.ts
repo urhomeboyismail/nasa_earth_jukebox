@@ -25,6 +25,8 @@ export type RenderDeps = {
   loadPixels?: (url: string) => Promise<Pixels>
   /** Renders the schedule to two channels. Default: the ensemble's own offline render. */
   renderOffline?: RenderOffline
+  /** Renders with this preset instead of the one the manifest names (art mode, ticket IX12). The ruleset and the mapping are the same either way. */
+  preset?: Preset
 }
 
 export type RenderOutput = {
@@ -56,7 +58,7 @@ export async function renderSequence(visualization: Visualization, deps: RenderD
   const renderOffline = deps.renderOffline ?? ensembleRender
   const frames = [...visualization.frames].sort((a, b) => a.date.localeCompare(b.date))
   if (frames.length === 0) throw new Error('This data set has no frames to render.')
-  const preset = presetFor(visualization.sonification?.preset ?? 'major')
+  const preset = deps.preset ?? presetFor(visualization.sonification?.preset ?? 'major')
 
   // 1 and 2. Features, then music, one frame after another so each carries the last one's state.
   const allFeatures: FrameFeatures[] = []
