@@ -13,6 +13,8 @@ export type DemoStep = {
   predict?: true
   /** How long to stay on the page (milliseconds) when it does not play. */
   holdMs?: number
+  /** A CSS selector, e.g. '[data-tour="play"]'. When set, Echo flies there and points at it (JB05). */
+  target?: string
 }
 
 export const DEMO_STEPS: DemoStep[] = [
@@ -23,4 +25,11 @@ export const DEMO_STEPS: DemoStep[] = [
   { page: 'compare', say: 'Then compare two dates by ear, and say which one shows the change.', holdMs: 7000 },
   { page: 'about', say: 'The About page gives the source, the method and the limits, so you know what the sound can and cannot tell you.', holdMs: 7000 },
   { page: 'home', say: 'That is the tour. Everything you heard works with a keyboard and a screen reader.', holdMs: 4000 },
+]
+
+/** The guided tour (JB05): Echo flies to each control in turn and points at it. Each step waits for Next. The words name no data set. */
+export const TOUR_STEPS: DemoStep[] = [
+  { page: 'listen', say: 'This is where you choose the data set. Each one has its own sounds, and its own source and credit.', target: '[data-tour="dataset-picker"]' },
+  { page: 'listen', say: 'Play starts the dates one after another. Press it again to pause.', target: '[data-tour="play"]' },
+  { page: 'listen', say: 'Explore the map lets you point at places on the picture and hear what is there.', target: '[data-tour="explore"]' },
 ]

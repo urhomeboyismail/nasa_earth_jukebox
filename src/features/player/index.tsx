@@ -281,7 +281,7 @@ function Player({ visualization, region }: { visualization: Visualization; regio
       )}
 
       <div className="player__controls" role="group" aria-label="Playback">
-        <Button variant="primary" disabled={!player.ready} onClick={playing ? player.pause : player.play}>
+        <Button variant="primary" data-tour="play" disabled={!player.ready} onClick={playing ? player.pause : player.play}>
           {playing ? 'Pause' : player.status === 'paused' ? 'Resume' : 'Play'}
         </Button>
         <Button disabled={!player.ready} onClick={player.stop}>Stop</Button>
@@ -289,7 +289,7 @@ function Player({ visualization, region }: { visualization: Visualization; regio
         <Button disabled={!player.ready} onClick={() => void player.hearBothWays()}>Hear this date both ways</Button>
         <Button disabled={!player.ready} onClick={() => void player.hearWhatIsHidden()}>What the sound hides</Button>
         <Button disabled={!player.ready} onClick={() => void player.testSound()}>Test sound</Button>
-        <Button disabled={!player.ready || storyOpen} pressed={exploring} onClick={toggleExplorer}>Explore the map</Button>
+        <Button data-tour="explore" disabled={!player.ready || storyOpen} pressed={exploring} onClick={toggleExplorer}>Explore the map</Button>
       </div>
 
       <div className="player__slider">

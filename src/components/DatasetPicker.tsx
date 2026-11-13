@@ -13,7 +13,7 @@ export function DatasetPicker({ catalog, value, onChange }: Props) {
   const id = useId()
   const current = catalog.find(entry => entry.id === value)
   return (
-    <div className="ui-picker">
+    <div className="ui-picker" data-tour="dataset-picker">
       <label htmlFor={id} className="ui-picker__label">Data set</label>
       <select id={id} value={value} onChange={event => onChange(event.target.value)} aria-describedby={current ? `${id}-summary` : undefined}>
         {catalog.map(entry => <option key={entry.id} value={entry.id}>{entry.title}</option>)}

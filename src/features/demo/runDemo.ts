@@ -14,16 +14,30 @@ export type DemoDeps = {
   sleep: (ms: number, signal: AbortSignal) => Promise<void>
   /** Speaks the caption and resolves when the speech has ended. Left out when the listener has not asked for the demo to be read aloud. */
   speakCaption?: (text: string) => Promise<void>
+  /** The guided tour (JB05): Echo flies to the element the selector names and points at it, and this resolves when it has arrived. Called with null when there is nothing to point at, and at the end. Left out where nothing points. */
+  pointAt?: (selector: string | null) => Promise<void>
 }
 
 /** Resolves true when the tour reached its end, false when it was stopped. */
 export async function runDemo(steps: DemoStep[], deps: DemoDeps, signal: AbortSignal): Promise<boolean> {
+  try {
+    return await runSteps(steps, deps, signal)
+  } finally {
+    await deps.pointAt?.(null)
+  }
+}
+
+async function runSteps(steps: DemoStep[], deps: DemoDeps, signal: AbortSignal): Promise<boolean> {
   for (const step of steps) {
     if (signal.aborted) return false
     deps.goTo(step.page)
     deps.say(step.say)
     if (deps.speakCaption) {
       await deps.speakCaption(step.say)
+      if (signal.aborted) return false
+    }
+    if (deps.pointAt) {
+      await deps.pointAt(step.target ?? null)
       if (signal.aborted) return false
     }
     if (step.play) await deps.playAndWait(signal)

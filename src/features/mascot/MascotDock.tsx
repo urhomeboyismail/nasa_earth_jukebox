@@ -21,6 +21,8 @@ import { placeBubble } from './placeBubble'
 import { useDataAlerts } from './useDataAlerts'
 import { useFaceState } from './useFaceState'
 import { useLevels } from './useLevels'
+import { startTour, stopTour, useTour } from './tour'
+import { TourLayer } from './TourOverlay'
 import { useMascotGuide, useMascotGuideState } from './useMascotGuide'
 import { useScrollVelocity } from './useScrollVelocity'
 import './mascot-dock.css'
@@ -34,7 +36,7 @@ type Props = {
   voiceOpen: boolean
   /** Opens the voice guide. */
   onTalk: () => void
-  /** Starts the tour (JB05). Without it, "Show me around" is not shown. */
+  /** Called when the guided tour starts (JB05). The dock runs the tour itself, so this is only a hook for the page. */
   onTour?: () => void
   /** The open data set: its manifest colours Echo and picks the trail (JB04). Null or left out while loading: Echo keeps its own colours. */
   visualization?: Pick<Visualization, 'colorScale' | 'mascot'> | null
@@ -89,6 +91,7 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
   useDataAlerts(mascotOn && !voiceOpen)
   const chest = useLevels(mascotOn && !voiceOpen && face.playing && !face.hidden)
   const boost = useScrollVelocity()
+  const touring = useTour().active
   const [open, setOpen] = useState(false)
   /** The text in the bubble, fixed when it opened (a tip that waited is cleared then, so the button stops saying it has one). */
   const [shown, setShown] = useState('')
@@ -100,6 +103,9 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
 
   // The voice panel took over: the bubble closes (state adjusted while rendering, not in an effect).
   if (voiceOpen && open) setOpen(false)
+
+  // The voice guide and the tour do not share the screen: opening the guide stops the tour.
+  useEffect(() => { if (voiceOpen) stopTour() }, [voiceOpen])
 
   const expression = expressionFor({ loading: loading || explore.exploring, voice, playing: face.playing, tipMood: tip?.mood, idleMs: face.idleMs, hidden: face.hidden })
   const name = tip ? `${MASCOT_NAME}, your guide, has a tip` : `${MASCOT_NAME}, your guide`
@@ -146,7 +152,7 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
     return () => document.removeEventListener('keydown', onKey)
   }, [hint])
 
-  if (!mascotOn || voiceOpen) return null
+  if (!mascotOn || voiceOpen) return <TourLayer />
 
   const theme = visualization ? mascotTheme(visualization) : null
 
@@ -177,6 +183,7 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
 
   function tour() {
     setOpen(false)
+    startTour(announce)
     onTour?.()
   }
 
@@ -188,6 +195,7 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
   }
 
   return (
+    <>
     <div
       className="mascot-dock"
       style={theme ? themeStyle(theme.accent) : undefined}
@@ -197,13 +205,14 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
       onPointerLeave={() => setHint(false)}
       onFocus={() => setHint(true)}
       onBlur={() => setHint(false)}
+      hidden={touring}
     >
       {open && (
         <section id={panelId} ref={panel} className="mascot-speech-bubble" aria-label={`${MASCOT_NAME}, your guide`}>
           <p>{shown}</p>
           <div className="mascot-speech-bubble__actions">
             <Button variant="primary" onClick={talk}>Talk to {MASCOT_NAME}</Button>
-            {onTour && <Button onClick={tour}>Show me around</Button>}
+            <Button onClick={tour}>Show me around</Button>
             <Button variant="text" onClick={turnOff}>Turn {MASCOT_NAME} off</Button>
           </div>
         </section>
@@ -214,5 +223,7 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
         {tip && <span className="mascot-dock__tip-dot" aria-hidden="true" />}
       </button>
     </div>
+    <TourLayer />
+    </>
   )
 }
