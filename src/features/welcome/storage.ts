@@ -2,8 +2,8 @@
 // speak and the volume picked in the sound check. Storage can be blocked (private windows), so every access is guarded and
 // the choice is also kept in memory for this visit.
 
-import { useSyncExternalStore } from 'react'
 import { storedWelcome } from '../../data'
+import { readStoredText, useStoredValue, writeStoredText } from '../../hooks/useStoredValue'
 
 export type WelcomePath = 'screen-reader' | 'map' | 'play'
 
@@ -19,9 +19,6 @@ export type WelcomeChoice = {
 export const WELCOME_KEY = 'earth-jukebox:welcome'
 
 const NOT_DONE: WelcomeChoice = { done: false, speech: false }
-
-let remembered: WelcomeChoice = NOT_DONE
-const listeners = new Set<() => void>()
 
 /** Reads the stored text into a choice, trusting nothing in it. */
 function parse(text: string | null): WelcomeChoice | null {
@@ -39,52 +36,25 @@ function parse(text: string | null): WelcomeChoice | null {
   return { done, speech, ...(path && { path }), ...(volume !== undefined && { volume }) }
 }
 
-/** The remembered choice, or "not done". Returns the same object until something changes, so it can feed a store. */
-let lastText: string | null | undefined
-let lastChoice: WelcomeChoice = NOT_DONE
+/** The remembered choice, or "not done". */
 export function readWelcome(): WelcomeChoice {
-  let text: string | null
-  try {
-    text = localStorage.getItem(WELCOME_KEY)
-  } catch {
-    return remembered
-  }
-  if (text !== lastText) {
-    lastText = text
-    lastChoice = parse(text) ?? NOT_DONE
-  }
-  return lastChoice
+  return parse(readStoredText(WELCOME_KEY)) ?? NOT_DONE
 }
 
 /** Merges `change` into the remembered choice. */
 export function saveWelcome(change: Partial<WelcomeChoice>) {
-  remembered = { ...readWelcome(), ...change }
-  try {
-    localStorage.setItem(WELCOME_KEY, JSON.stringify(remembered))
-  } catch {
-    // Not remembered for next time, but the choice still holds for this visit.
-  }
-  listeners.forEach(listener => listener())
+  writeStoredText(WELCOME_KEY, JSON.stringify({ ...readWelcome(), ...change }))
 }
 
 /** Forgets the choice, so the welcome shows again (F37 T2 uses this for "Show the welcome again"). */
 export function resetWelcome() {
-  remembered = NOT_DONE
-  try {
-    localStorage.removeItem(WELCOME_KEY)
-  } catch {
-    // Nothing stored that could be removed.
-  }
-  listeners.forEach(listener => listener())
+  writeStoredText(WELCOME_KEY, null)
 }
 
-function subscribe(listener: () => void) {
-  listeners.add(listener)
-  return () => { listeners.delete(listener) }
-}
+const parseChoice = (text: string): WelcomeChoice => parse(text) ?? NOT_DONE
 
 export function useWelcome(): WelcomeChoice {
-  return useSyncExternalStore(subscribe, readWelcome, () => NOT_DONE)
+  return useStoredValue(WELCOME_KEY, parseChoice, NOT_DONE)[0]
 }
 
 /** The volume chosen in the sound check, for the player to start at. */

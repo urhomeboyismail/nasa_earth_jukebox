@@ -2,12 +2,14 @@
 // date is the whole job: every change of date goes through here.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { analyzeAll, analyzeChange, type Contour, type FrameAnalysis, type Score } from '../../analysis'
+import { analyzeChange, type Contour, type FrameAnalysis, type Score } from '../../analysis'
 import { hasChange } from '../../analysis/available'
-import { createSoundEngine, type SequenceStep, type SoundEngine } from '../../audio'
+import { useFrameAnalysis } from '../../analysis/useFrameAnalysis'
+import type { SequenceStep } from '../../audio'
 import { coarseCategory, hiddenChanges } from '../../audio/coarse'
 import { elevationFor, panFor, useSpatialMode } from '../../audio/pan'
 import { styleFor, useSoundStyle, type SoundStyle } from '../../audio/style'
+import { useSoundEngine } from '../../audio/useSoundEngine'
 import { voicingFor } from '../../audio/voicing'
 import { useAnnounce } from '../../components/useAnnounce'
 import { variableWords, type Region, type SoundMapping, type Visualization } from '../../data'
@@ -53,14 +55,12 @@ export function usePlayer(
   /** F40: where a link opened the page. Both are already checked against this data set; null means "as usual". */
   start?: { index: number | null; style: SoundStyle | null },
 ) {
-  const { frames, regions, colorScale, mapping } = visualization
+  const { frames, regions, mapping } = visualization
   const region = regions[0]
   const announce = useAnnounce()
   const [detail] = useDescriptionDetail()
   const formatDate = useMemo(() => dateFormatterFor(frames.map(frame => frame.date)), [frames])
 
-  const [results, setResults] = useState<FrameAnalysis[] | null>(null)
-  const [analysisError, setAnalysisError] = useState('')
   const [index, setIndex] = useState(start?.index ?? 0)
   const [status, setStatus] = useState<Status>('idle')
   const [speed, setSpeedState] = useState<Speed>('normal')
@@ -80,13 +80,7 @@ export function usePlayer(
   /** True while "Trace the warm edge" is playing its lines. */
   const [tracing, setTracing] = useState(false)
 
-  const { engine, engineError } = useMemo((): { engine: SoundEngine | null; engineError: string } => {
-    try {
-      return { engine: createSoundEngine(mapping), engineError: '' }
-    } catch (error) {
-      return { engine: null, engineError: error instanceof Error ? error.message : String(error) }
-    }
-  }, [mapping])
+  const { engine, engineError } = useSoundEngine(mapping)
 
   // The sound style (full, simple or change) is set on the engine whenever it or the style changes.
   useEffect(() => { engine?.setStyle(style) }, [engine, style])
@@ -94,15 +88,7 @@ export function usePlayer(
   useEffect(() => { engine?.setSpatial(spatial) }, [engine, spatial])
 
   // Analyze every frame once, when the page opens. The page remounts for another visualization, so nothing is stale.
-  useEffect(() => {
-    let cancelled = false
-    // With a baseline each result also carries its change step. Without one the call is exactly what it was.
-    const done = changeAvailable ? analyzeAll(frames, region, colorScale, mapping, visualization) : analyzeAll(frames, region, colorScale, mapping)
-    done
-      .then(all => { if (!cancelled) setResults(all) })
-      .catch((error: unknown) => { if (!cancelled) setAnalysisError(error instanceof Error ? error.message : String(error)) })
-    return () => { cancelled = true }
-  }, [frames, region, colorScale, mapping, visualization, changeAvailable])
+  const { results, error: analysisError } = useFrameAnalysis(visualization, region, { withChange: changeAvailable })
 
   // The change score of the date on screen (change style only): its contours decide whether "Trace the warm edge" can be used.
   const [scored, setScore] = useState<Score | null>(null)
