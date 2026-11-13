@@ -3,7 +3,7 @@ import VoiceAssistant from './VoiceAssistant'
 import { AnnouncerProvider, DatasetPicker, Notice } from './components'
 import { Icon, type IconName } from './components/Icon'
 import { Sonny } from './components/Mascot'
-import { loadCatalog, loadVisualization, type CatalogEntry, type Visualization } from './data'
+import { DataError, friendlyDataMessage, loadCatalog, loadVisualization, type CatalogEntry, type Visualization } from './data'
 import { DemoControl } from './features/demo/DemoControl'
 import { HelpButton } from './features/help/HelpButton'
 import HomePage from './features/home'
@@ -50,7 +50,11 @@ function goTo(page: Page) {
   window.location.hash = hashFor(page, { data: currentDataParam() })
 }
 
-const messageOf = (error: unknown) => (error instanceof Error ? error.message : String(error))
+/** A load failure: the detail (file, status, validation) goes to the console, and the listener reads a plain sentence. */
+function failureOf(id: string | null, error: unknown) {
+  console.error(error)
+  return { id, message: friendlyDataMessage(error) }
+}
 
 function App() {
   const [route, setRoute] = useState(() => parseHash(window.location.hash))
@@ -84,10 +88,10 @@ function App() {
     let cancelled = false
     loadCatalog()
       .then(list => {
-        if (!list.length) throw new Error('No visualizations are listed in public/data/index.json.')
+        if (!list.length) throw new DataError('index.json', 'lists no visualizations.')
         if (!cancelled) setCatalog(list)
       })
-      .catch((error: unknown) => { if (!cancelled) setFailure({ id: null, message: messageOf(error) }) })
+      .catch((error: unknown) => { if (!cancelled) setFailure(failureOf(null, error)) })
     return () => { cancelled = true }
   }, [])
 
@@ -108,7 +112,7 @@ function App() {
     let cancelled = false
     loadVisualization(dataId)
       .then(next => { if (!cancelled) setLoaded(next) })
-      .catch((error: unknown) => { if (!cancelled) setFailure({ id: dataId, message: messageOf(error) }) })
+      .catch((error: unknown) => { if (!cancelled) setFailure(failureOf(dataId, error)) })
     return () => { cancelled = true }
   }, [dataId])
 
@@ -247,7 +251,7 @@ function App() {
             <DatasetPicker catalog={catalog} value={dataId} onChange={id => { window.location.hash = hashFor(page, { data: id }) }} />
           )}
           {dataMissing && <Notice>The data set “{requestedData}” was not found, so this shows “{catalog?.[0].title}” instead.</Notice>}
-          {loadError && <Notice variant="error">The data could not be loaded. {loadError}</Notice>}
+          {loadError && <Notice variant="error">{loadError}</Notice>}
           <Suspense fallback={<p role="status" className="app-loading">Loading…</p>}>
             <CurrentPage visualization={visualization} testMode={testMode} />
           </Suspense>

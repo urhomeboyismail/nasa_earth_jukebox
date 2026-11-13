@@ -5,6 +5,7 @@ import catalog from '../public/data/index.json'
 import fixture from '../public/data/fixture/manifest.json'
 import synthetic from '../public/data/synthetic-ocean/manifest.json'
 import App from './App'
+import { DataError, friendlyDataMessage } from './data'
 import { expectNoA11yViolations } from './test/a11y'
 
 // No sound or microphone in jsdom: the speech player and the recorder are stand-ins (V01).
@@ -108,10 +109,71 @@ describe('App shell', () => {
   })
 
   it('says so when the data cannot be loaded', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(new Response('', { status: 500 }))))
     render(<App />)
-    expect(await screen.findByRole('alert')).toHaveTextContent('index.json: could not be found (HTTP 500).')
+    expect(await screen.findByRole('alert')).toHaveTextContent('The list of data sets could not be loaded. Reload the page.')
   })
+})
+
+/** Developer words a listener should never read: status codes, file names, folders (I03). */
+const developerWords = /HTTP|index\.json|manifest\.json|public\/data/
+
+describe('Data errors are plain sentences; the detail goes to the console (I03)', () => {
+  let consoleError: ReturnType<typeof vi.spyOn>
+  beforeEach(() => { consoleError = vi.spyOn(console, 'error').mockImplementation(() => {}) })
+  afterEach(() => consoleError.mockRestore())
+
+  it('says the list could not be loaded when it answers with HTTP 500, and logs the detail once', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(new Response('', { status: 500 }))))
+    const { container } = render(<App />)
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('The list of data sets could not be loaded.')
+    expect(alert).toHaveTextContent('Reload the page')
+    expect(document.body).not.toHaveTextContent(developerWords)
+    expect(consoleError).toHaveBeenCalledTimes(1)
+    expect(String(consoleError.mock.calls[0][0])).toContain('index.json: could not be found (HTTP 500).')
+    await expectNoA11yViolations(container)
+  })
+
+  it('says the data set could not be loaded when its manifest is not valid JSON', async () => {
+    vi.stubGlobal('fetch', vi.fn((input: RequestInfo | URL) => Promise.resolve(String(input).endsWith('/data/index.json')
+      ? new Response(JSON.stringify(catalog), { status: 200 })
+      : new Response('{ not json', { status: 200 }))))
+    render(<App />)
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('This data set could not be loaded. Choose another from the list, or reload the page.')
+    expect(document.body).not.toHaveTextContent(developerWords)
+    expect(consoleError).toHaveBeenCalledTimes(1)
+    expect(String(consoleError.mock.calls[0][0])).toContain('fixture/manifest.json: is not valid JSON.')
+  })
+
+  it('shows the list sentence when the list is empty', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(new Response('[]', { status: 200 }))))
+    render(<App />)
+    expect(await screen.findByRole('alert')).toHaveTextContent('The list of data sets could not be loaded. Reload the page.')
+    expect(document.body).not.toHaveTextContent(developerWords)
+    expect(consoleError).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('friendlyDataMessage (I03)', () => {
+  const generic = 'This data set could not be loaded. Choose another from the list, or reload the page.'
+
+  it('gives the list sentence for a failure of the list itself', () => {
+    expect(friendlyDataMessage(new DataError('index.json', 'could not be found (HTTP 404).'))).toBe('The list of data sets could not be loaded. Reload the page.')
+  })
+
+  it('gives the generic sentence for a data set, with no file, status or validation text', () => {
+    const message = friendlyDataMessage(new DataError('fixture/manifest.json', 'frames.0.date: Invalid date (HTTP 404).'))
+    expect(message).toBe(generic)
+    expect(message).not.toMatch(developerWords)
+  })
+
+  it.each([['a string', 'boom'], ['null', null], ['undefined', undefined], ['a plain Error', new Error('index.json: HTTP 500')]])(
+    'gives the generic sentence for %s',
+    (_, error) => expect(friendlyDataMessage(error)).toBe(generic),
+  )
 })
 
 describe('Choosing a data set', () => {
@@ -179,8 +241,9 @@ describe('Choosing a data set', () => {
       const body = url.endsWith('/data/index.json') ? catalog : url.endsWith('/data/fixture/manifest.json') ? fixture : null
       return Promise.resolve(new Response(JSON.stringify(body), { status: body ? 200 : 404 }))
     }))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
     render(<App />)
-    expect(await screen.findByRole('alert')).toHaveTextContent('synthetic-ocean/manifest.json: could not be found (HTTP 404).')
+    expect(await screen.findByRole('alert')).toHaveTextContent('This data set could not be loaded. Choose another from the list, or reload the page.')
     await userEvent.selectOptions(await picker(), 'Fixture ocean')
     expect(await screen.findByText(/Now playing from: Fixture ocean/)).toBeInTheDocument()
     expect(screen.queryByRole('alert')).toBeNull()
