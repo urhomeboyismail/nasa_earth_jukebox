@@ -185,4 +185,4 @@ npm test       -> Test Files 141 passed (141); Tests 2282 passed (2282) (after m
 ```
 New tests: events (moved east three cells, appeared, gone, grew, shrank, dropout and recovered, fixed order, the data set's own words, bright and dark, no stray numbers), limiter (four in a second give one, the 4 s gap, the ninth in a minute, the 30 s repeat, dropped not queued, user answers always made, backwards clock), markers, recipe, `HotspotMarkers` (list, still rings, axe), `SoundRecipe` (table roles, axe), `useEventAnnouncer`, and a golden file over the fixture and `synthetic-storm`.
 
-**Manual check: not done.** No listener or speakers in this session. To do by a person: `npm run dev`, Listen, Symphony on `synthetic-storm`, Play: rings should appear on the hot spot and "The hot area moved east." should be announced by a screen reader no more than once every 4 s.
+**Manual check: done by the team lead (13 Nov 2026).** Symphony on the branch with the no-video fix (PR #43): it plays and works as intended. No further notes were written down.
