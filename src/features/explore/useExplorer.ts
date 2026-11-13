@@ -22,7 +22,8 @@ import { listedShortcuts } from '../../interaction/shortcuts'
 import { registerSpeechStopper } from '../../interaction/speech'
 import { useKeyboard, usePointerInput } from '../../interaction/useInput'
 import { addStoredMark, removeStoredMarkLike } from '../marks/store'
-import { vibrateForDate } from '../player/vibration'
+import type { Cue } from '../haptics/patterns'
+import { pulseCue } from '../haptics/pulse'
 import { createProbeAudio, useProbeSettings, type ProbeAudio } from './probeAudio'
 import { VERBOSITY_KEY, nextLevel, parseVerbosity, whatsHereText, type LastQuery, type Verbosity } from './whatsHere'
 
@@ -214,15 +215,25 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     if (!probe && ensemble.status() !== 'on') ensemble.start().catch(() => {})
   }, [ensemble, probe])
 
+  /**
+   * IX10: a pulse for a cue, when the listener has vibration on. It is timed to the audio clock, so it lands with the sound (a phone) and rumbles the pad
+   * the same way. `now` is for a sound that is already playing from another engine, which has no lookahead to wait for.
+   */
+  const pulse = useCallback((cue: Cue, now = false) => {
+    if (!vibrate) return
+    const clock = { currentTime: ensemble.now() }
+    pulseCue(cue, mapping, clock, now ? clock.currentTime : undefined)
+  }, [vibrate, mapping, ensemble])
+
   /** Sounds a cell now, or at the end of the 50 ms gap if another was sounded just before; the newest cell wins. */
   const soundCell = useCallback((at: Cursor) => {
     if (!grid) return
     moveGate.run(() => {
       feedback.move(placeOf(at))
       const cell = grid.cells[at.row * grid.cols + at.col]
-      if (vibrate && cell) vibrateForDate(cell.category, mapping)
+      if (cell) pulse({ kind: 'move', category: cell.category })
     })
-  }, [grid, moveGate, feedback, placeOf, vibrate, mapping])
+  }, [grid, moveGate, feedback, placeOf, pulse])
 
   /** In a link-opened map, the first press unlocks the audio (it has to happen in the press) and then sounds the cell the cursor is on. */
   const wake = useCallback(() => {
@@ -259,11 +270,11 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
       if (by === 'pointer') probe.point(next.col, next.row)
       else probe.key(next.col, next.row)
       const cell = grid.cells[next.row * grid.cols + next.col]
-      if (vibrate && cell) vibrateForDate(cell.category, mapping)
+      if (cell) pulse({ kind: 'move', category: cell.category })
     } else {
       soundCell(next)
     }
-  }, [grid, locked, stopSweep, place, probe, vibrate, mapping, soundCell, feedback, placeOf])
+  }, [grid, locked, stopSweep, place, probe, pulse, soundCell, feedback, placeOf])
 
   /**
    * A move by key or button. If the cursor cannot move it is the edge of the map, or the place is locked: the edge cue, a sound and not words.
@@ -276,14 +287,16 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     if (locked) {
       stopSweep()
       feedback.edge(placeOf(at))
+      pulse({ kind: 'edge' })
       announce('Locked on this place. Press L to unlock before moving.')
     } else if (target.col === at.col && target.row === at.row) {
       stopSweep()
       feedback.edge(placeOf(at))
+      pulse({ kind: 'edge' })
     } else {
       moveTo(target.col, target.row)
     }
-  }, [grid, locked, moveTo, stopSweep, feedback, placeOf, announce])
+  }, [grid, locked, moveTo, stopSweep, feedback, placeOf, pulse, announce])
 
   /** Plays a row west to east, or a column north to south, one cell at a time, then says what it passed over. */
   const sweep = useCallback((kind: Line) => {
@@ -340,7 +353,8 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     clearTimers()
     setLocked(true)
     feedback.lock(placeOf(cursorRef.current))
-  }, [grid, stopSweep, clearTimers, feedback, placeOf])
+    pulse({ kind: 'lock' })
+  }, [grid, stopSweep, clearTimers, feedback, placeOf, pulse])
 
   const unlock = useCallback(() => {
     if (!locked) return
@@ -363,9 +377,9 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     engine.stop()
     if (cell.category === 'insufficient') engine.playMissing()
     else engine.playCategory(cell.category, { pan: panForPoint(centreX(at.col)), elevation: elevationAt(at.row), durationMs: CELL_NOTE_MS })
-    if (vibrate && cell.category !== 'insufficient') vibrateForDate(cell.category, mapping)
+    if (cell.category !== 'insufficient') pulse({ kind: 'move', category: cell.category }, true)
     announce(`${formatDate(target.date)}: ${describeCell(visualization, made, at.col, at.row, { detail })}`)
-  }, [frames, engine, locked, stopSweep, gridFor, centreX, elevationAt, vibrate, mapping, announce, formatDate, visualization, detail])
+  }, [frames, engine, locked, stopSweep, gridFor, centreX, elevationAt, pulse, announce, formatDate, visualization, detail])
 
   /** Plays the locked place on every date, one after another, and then says how it changed. */
   const playAcrossDates = useCallback(async () => {
@@ -499,6 +513,7 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     addStoredMark(mark)
     recordUndo('mark', () => removeStoredMarkLike(mark))
     feedback.mark()
+    pulse({ kind: 'mark' })
     wake()
     begin()
   })

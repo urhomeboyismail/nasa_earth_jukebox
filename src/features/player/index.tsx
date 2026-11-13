@@ -357,6 +357,9 @@ function Player({ visualization }: { visualization: Visualization }) {
         </Button>
       </div>
 
+      {!vibration.supported && (
+        <p className="player__vibration">Vibration is not available in this browser, for example on iPhone and iPad. The sound is the same.</p>
+      )}
       {vibration.supported && (
         <div className="player__vibration">
           <Button pressed={vibration.enabled} onClick={() => vibration.setEnabled(!vibration.enabled)}>Vibration</Button>
