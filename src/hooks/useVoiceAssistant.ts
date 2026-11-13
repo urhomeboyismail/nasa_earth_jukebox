@@ -2,8 +2,9 @@
 // Ported from the FinAssist voice assistant.
 //
 // The server holds the Gemini session and runs every tool. The only things it can ask this
-// page to do are navigate to a page and send a playback command to the player. Every action is
-// re-validated here, because it arrives from a model over a WebSocket.
+// page to do are navigate to a page, send a playback command to the player, and point at a
+// place on the sound map (IX09). Every action is re-validated here, because it arrives from a
+// model over a WebSocket.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Recorder, SpeechPlayer } from '../assistant/audio'
@@ -12,14 +13,16 @@ import {
   type AnswerLength, type MicConsent, type MicTalk,
 } from '../assistant/consent'
 import { currentContext, subscribeContext, type ContextUpdate } from '../assistant/context'
+import { z } from 'zod'
 import { socketUrl } from '../config'
 import type { PlayerCommand } from '../features/player/controls'
+import { COMPASS_PLACES } from '../features/point/places'
 import { isPage, pages, type Page } from '../pages'
 import { isIsoDate, parseServerMessage, playerCommandSchema } from './voiceMessages'
 
 export type AssistantStatus = 'idle' | 'connecting' | 'listening' | 'speaking' | 'ended' | 'error'
 export type TranscriptEntry = { id: number; role: 'user' | 'assistant'; text: string }
-export type AssistantAction = { action: 'navigate'; page: Page } | { action: 'player'; command: PlayerCommand }
+export type AssistantAction = { action: 'navigate'; page: Page } | { action: 'player'; command: PlayerCommand } | { action: 'point'; target: string }
 
 const PLAYER_WORDS = ['play', 'pause', 'stop', 'replay', 'next', 'previous'] as const
 
@@ -29,6 +32,15 @@ function toPlayerCommand(value: unknown): PlayerCommand | null {
   return parsed.success ? parsed.data : null
 }
 
+/** The hot spots the sound map last reported to the guide, when its context carries them (board R-20261113-IX09-1). */
+const reportedSpots = z.object({ hotspots: z.array(z.object({ id: z.string() })) })
+
+/** What the guide may point at now (IX09): the reported hot-spot ids, and the nine compass places. */
+function pointTargets(): string[] {
+  const parsed = reportedSpots.safeParse(currentContext().find(item => item.key === 'explore')?.data)
+  return [...(parsed.success ? parsed.data.hotspots.map(spot => spot.id) : []), ...COMPASS_PLACES]
+}
+
 /** The action in a server message, or null when it is unknown or unusable. Never guesses. */
 export function toAssistantAction(message: Record<string, unknown>): AssistantAction | null {
   if (message.action === 'navigate' && typeof message.page === 'string' && isPage(message.page)) return { action: 'navigate', page: message.page }
@@ -36,6 +48,8 @@ export function toAssistantAction(message: Record<string, unknown>): AssistantAc
     const command = toPlayerCommand(message.command)
     if (command) return { action: 'player', command }
   }
+  const { target } = message
+  if (message.action === 'point' && typeof target === 'string' && pointTargets().includes(target)) return { action: 'point', target }
   return null
 }
 
@@ -57,6 +71,8 @@ function describeAction(action: AssistantAction, before: string): { label: strin
     const title = pages.find(item => item.id === action.page)?.title ?? action.page
     return { label: `Opened ${title}`, inverse: before !== action.page && isPage(before) ? { action: 'navigate', page: before } : null }
   }
+  // A beacon changes nothing, so there is nothing to undo.
+  if (action.action === 'point') return { label: `Pointed at ${action.target}`, inverse: null }
   const { command } = action
   if (typeof command === 'object') {
     const previous = currentContext().find(item => item.key === 'player')?.data

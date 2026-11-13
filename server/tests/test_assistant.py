@@ -11,7 +11,7 @@ from pydantic import SecretStr
 
 from app.api import assistant as assistant_api
 from app.assistant.knowledge import PAGE_IDS
-from app.assistant.tools import SessionState, run_tool, tools
+from app.assistant.tools import COMPASS_PLACES, SessionState, run_tool, tools
 from app.config import settings
 from app.main import app
 
@@ -137,7 +137,7 @@ def test_player_context_prompts_feedback(fake_session):
 
 def test_tool_declarations_build():
     names = [d.name for d in tools()[0].function_declarations]
-    assert names == ["navigate_to", "explain_section", "control_playback", "set_date", "get_screen_context"]
+    assert names == ["navigate_to", "explain_section", "control_playback", "set_date", "get_screen_context", "point_to"]
 
 
 LISTEN = SessionState(page="listen")
@@ -236,6 +236,73 @@ def test_the_guide_is_told_about_the_playback_tools():
     assert "control_playback" in text and "set_date" in text
 
 
+# IX09: point_to points at a place on the sound map with a beacon. It only reads the context and returns an allow-listed action.
+SPOTS = {"exploring": True, "hotspots": [{"id": "h1", "place": "north-east"}, {"id": "h3", "place": "centre"}]}
+
+
+def test_point_to_a_reported_hot_spot_returns_a_point_action():
+    result = run_tool("point_to", {"target": "h3"}, SessionState(page="listen", screens={"explore": SPOTS}))
+    assert result.client_action == {"action": "point", "target": "h3"}
+    assert result.response == {"ok": True, "target": "h3"}
+
+
+def test_point_to_an_unknown_hot_spot_is_an_error_with_the_valid_list():
+    result = run_tool("point_to", {"target": "h9"}, SessionState(page="listen", screens={"explore": SPOTS}))
+    assert result.client_action is None
+    assert result.response["error"].startswith("Unknown target. Valid targets: h1, h3, north-west")
+
+
+@pytest.mark.parametrize("place", COMPASS_PLACES)
+def test_point_to_a_compass_place_works_with_no_hot_spots_reported(place):
+    result = run_tool("point_to", {"target": place}, LISTEN)
+    assert result.client_action == {"action": "point", "target": place}
+
+
+def test_point_to_a_hot_spot_id_is_refused_when_none_were_reported():
+    # Until the sound map's context carries its hot spots (board R-20261113-IX09-1), an id cannot be checked, so it is refused.
+    result = run_tool("point_to", {"target": "h1"}, SessionState(page="listen", screens={"explore": {"exploring": True}}))
+    assert result.client_action is None
+
+
+@pytest.mark.parametrize("args", [{"target": 3}, {"target": None}, {"target": ["h1"]}, {}])
+def test_point_to_checks_the_argument_type(args):
+    result = run_tool("point_to", args, LISTEN)
+    assert result.client_action is None
+    assert "Unknown target" in result.response["error"]
+
+
+@pytest.mark.parametrize("page", ["home", "learn", "compare", "about"])
+def test_point_to_only_works_on_the_listen_page(page):
+    result = run_tool("point_to", {"target": "centre"}, SessionState(page=page))
+    assert result.client_action is None
+    assert "Listen page" in result.response["error"]
+
+
+def test_a_point_action_reaches_the_browser(fake_session):
+    fake_session.call = ("point_to", {"target": "north-east"})
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        ws.send_json({"type": "start", "language": "en", "page": "listen"})
+        assert ws.receive_json() == {"type": "ready"}
+        _ask(ws, "Where is the warmest place?")
+        assert ws.receive_json() == {"type": "action", "action": "point", "target": "north-east"}
+        ws.send_json({"type": "stop"})
+
+
+def test_the_compass_places_match_the_browser():
+    source = (REPO_ROOT / "src" / "features" / "point" / "places.ts").read_text(encoding="utf-8")
+    listed = re.search(r"export const COMPASS_PLACES = \[([^\]]*)\] as const", source)
+    assert listed, "COMPASS_PLACES not found in src/features/point/places.ts"
+    assert re.findall(r"'([^']+)'", listed.group(1)) == COMPASS_PLACES
+
+
+def test_the_bridge_guide_is_told_to_point_and_ask_but_not_the_adk_guide():
+    from app.assistant.knowledge import system_instruction
+    line = "When the listener asks where something is, call point_to, then ask one short question about that place."
+    assert line in system_instruction("Earth Jukebox", "en", "listen")
+    # The ADK agent has no point_to yet (app/agent/tools.py), so its instruction must not offer it.
+    assert "point_to" not in system_instruction("Earth Jukebox", "en", "listen", page_label="{page_title}")
+
+
 def test_the_guide_speaks_as_the_mascot_and_keeps_its_rules():
     from app.assistant.knowledge import PERSONA_NAME, system_instruction
     from app.assistant.tools import tools
@@ -245,8 +312,8 @@ def test_the_guide_speaks_as_the_mascot_and_keeps_its_rules():
     assert "robot" in text and "a program and not a person" in text
     assert "astronaut" not in text
     assert "Rules you must never break" in text and "never play sound yourself" in text
-    # The persona changes how the guide sounds, not what it can do: the same five tools.
-    assert len(tools()[0].function_declarations) == 5
+    # The persona changes how the guide sounds, not what it can do: the same six tools.
+    assert len(tools()[0].function_declarations) == 6
 
 
 def test_the_persona_name_matches_the_frontend():

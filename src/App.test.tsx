@@ -6,6 +6,7 @@ import fixture from '../public/data/fixture/manifest.json'
 import synthetic from '../public/data/synthetic-ocean/manifest.json'
 import App from './App'
 import { DataError, friendlyDataMessage } from './data'
+import { addActionHandler } from './interaction/registry'
 import { expectNoA11yViolations } from './test/a11y'
 
 // No sound or microphone in jsdom: the speech player and the recorder are stand-ins (V01).
@@ -492,6 +493,17 @@ describe('The voice guide moves the app without moving focus (V01)', () => {
     await screen.findByRole('heading', { level: 1, name: 'Listen' })
     await user.click(navLink('About the data'))
     expect(await screen.findByRole('heading', { level: 1, name: 'About the data' })).toHaveFocus()
+  })
+
+  it('hands a point from the guide to the dispatcher, as the E key does (IX09)', async () => {
+    const pointed = vi.fn()
+    const remove = addActionHandler('point', pointed)
+    await talk()
+    await server({ type: 'action', action: 'point', target: 'centre' })
+    expect(pointed).toHaveBeenCalledWith({ type: 'point', target: 'centre' })
+    await server({ type: 'action', action: 'point', target: 'nowhere' }) // not on the allow-list: dropped
+    expect(pointed).toHaveBeenCalledTimes(1)
+    remove()
   })
 
   it('does not leave a stale flag when the guide "opens" the page already showing', async () => {

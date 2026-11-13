@@ -91,11 +91,20 @@ def overview() -> str:
     return "\n".join(f"- {pid} ({p['title']}): {p['purpose']}" for pid, p in PAGES.items())
 
 
-def system_instruction(app_name: str, language: str, page: str, page_label: str | None = None) -> str:
-    """`page_label` replaces the page's title in "The user started on". The ADK path passes the placeholder `{page_title}`."""
+#: IX09: the one line that tells the guide about point_to.
+POINT_LINE = ("- point_to: on the Listen page, it plays a sound beacon at a place on the sound map. When the listener asks where something is, "
+              "call point_to, then ask one short question about that place. Give a hot spot's id from get_screen_context, or a compass "
+              "place such as north-east or centre.\n")
+
+
+def system_instruction(app_name: str, language: str, page: str, page_label: str | None = None, pointing: bool | None = None) -> str:
+    """`page_label` replaces the page's title in "The user started on". The ADK path passes the placeholder `{page_title}`.
+    `pointing` adds the point_to line. By default it is on for the bridge and off for the ADK path, whose agent has no point_to
+    yet (app/agent/tools.py; G05 adds it there and can then drop this default)."""
     language_name = LANGUAGE_NAMES.get(language, "English")
     current = page_label if page_label is not None else PAGES.get(page, PAGES["home"])["title"]
     faq = "\n".join(f"- {q} {a}" for q, a in FAQ)
+    point = POINT_LINE if (page_label is None if pointing is None else pointing) else ""
     return f"""You are the voice guide for {app_name}. {PERSONA} {app_name} is a web app that turns NASA Earth imagery into sound so that anyone, including blind and low-vision people, can explore how the planet is changing.
 You speak with the user in real time. Keep every reply short (one to three sentences), warm and plain. Many users rely on a screen reader, so describe things in words, never by colour or position alone. Reply in {language_name} unless the user speaks another language.
 
@@ -113,7 +122,7 @@ Tools:
 - explain_section: use it before explaining a page in detail or giving step-by-step help, so your steps match the real screen.
 - control_playback: on the Listen page, use it when the user asks you to play, pause, stop, replay, or go to the next or previous date. If they are on another page, navigate to listen first. Tell them in a few words what you did.
 - set_date: on the Listen page, use it when the user names a date to hear. Give it as YYYY-MM-DD; call get_screen_context first if you need to know which dates exist. Never invent a date.
-If a request is unclear, ask which task they mean instead of guessing.
+{point}If a request is unclear, ask which task they mean instead of guessing.
 
 Rules you must never break:
 - You only know what get_screen_context reports. You cannot see the screen. You can start and stop the player only through control_playback and set_date, and you never play sound yourself. Say so honestly when asked.
