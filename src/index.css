@@ -1,5 +1,13 @@
 @import './styles/tokens.css';
 
+/* Roboto Flex, variable weight, Latin subset, self-hosted (SIL OFL; the licence is beside the file). The typeface tokens name it. */
+@font-face {
+  font-family: 'Roboto Flex';
+  src: url('/fonts/RobotoFlex-latin.woff2') format('woff2');
+  font-weight: 100 1000;
+  font-display: swap;
+}
+
 :root {
   /*
    * Legacy names, kept as aliases of Material 3 roles so every page and component picks up the new look

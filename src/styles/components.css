@@ -29,9 +29,9 @@
   --ui-inverse-on-surface: var(--md-sys-color-inverse-on-surface, var(--bg));
   --ui-outline: var(--md-sys-color-outline, var(--accent-border));
   --ui-outline-variant: var(--md-sys-color-outline-variant, var(--border));
-  /* Material has no warning role. These are the tone-90 and tone-10 amber of a custom color; dark mode swaps them. */
-  --ui-warning-container: var(--md-sys-color-warning-container, #ffddb3);
-  --ui-on-warning-container: var(--md-sys-color-on-warning-container, #2a1800);
+  /* Material has no warning role: tokens.css has a fixed amber pair (tone 90 and tone 10), which dark mode swaps. */
+  --ui-warning-container: var(--md-sys-color-warning-container);
+  --ui-on-warning-container: var(--md-sys-color-on-warning-container);
 
   --ui-corner-extra-small: var(--md-sys-shape-corner-extra-small, 4px);
   --ui-corner-small: var(--md-sys-shape-corner-small, 8px);
@@ -56,13 +56,6 @@
   --ui-focus-ring: 3px solid var(--focus);
   --ui-target: var(--control-size, 48px);
   --ui-label-font: 500 1rem / 1.25 var(--md-ref-typeface-plain, inherit);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ui-warning-container: var(--md-sys-color-warning-container, #624000);
-    --ui-on-warning-container: var(--md-sys-color-on-warning-container, #ffddb3);
-  }
 }
 
 .ui-visually-hidden {
@@ -330,9 +323,9 @@
 .ui-slider input[type='range']::-webkit-slider-runnable-track { height: 16px; border-radius: var(--ui-corner-small); background: var(--ui-track); }
 .ui-slider input[type='range']::-moz-range-track { height: 16px; border-radius: var(--ui-corner-small); background: var(--ui-track); }
 .ui-slider input[type='range']::-webkit-slider-thumb {
-  appearance: none; width: 4px; height: 44px; margin-top: -14px; border: 0; border-radius: 2px; background: var(--ui-primary);
+  appearance: none; width: 4px; height: 44px; margin-top: -14px; border: 0; border-radius: var(--ui-corner-full); background: var(--ui-primary);
 }
-.ui-slider input[type='range']::-moz-range-thumb { width: 4px; height: 44px; border: 0; border-radius: 2px; background: var(--ui-primary); }
+.ui-slider input[type='range']::-moz-range-thumb { width: 4px; height: 44px; border: 0; border-radius: var(--ui-corner-full); background: var(--ui-primary); }
 .ui-slider input[type='range']:disabled { cursor: not-allowed; opacity: 0.38; }
 .ui-slider input[type='range']:focus-visible { outline: var(--ui-focus-ring); outline-offset: 2px; }
 
@@ -399,14 +392,14 @@
   color: var(--text-h);
   background: var(--bg);
   border: 1px solid var(--accent-border);
-  border-radius: 0.75rem;
+  border-radius: var(--ui-corner-medium);
 }
 .ui-picker select:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 .ui-picker__summary { margin: 0; color: var(--text); }
 
 /* Legend: the colour key. A bar, a sentence, and a grid of categories that fills the row without a breakpoint. */
 .ui-legend { display: grid; gap: 0.75rem; }
-.ui-legend__bar { block-size: 1rem; border: 1px solid var(--text); border-radius: 999px; }
+.ui-legend__bar { block-size: 1rem; border: 1px solid var(--text); border-radius: var(--ui-corner-full); }
 .ui-legend__summary { margin: 0; }
 .ui-legend__list {
   margin: 0;
@@ -417,7 +410,7 @@
   grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr));
 }
 .ui-legend__list li { display: flex; align-items: center; gap: 0.5rem; min-inline-size: 0; overflow-wrap: anywhere; }
-.ui-legend__swatch { flex: none; inline-size: 1.5rem; block-size: 1.5rem; border: 1px solid var(--text); border-radius: 0.25rem; }
+.ui-legend__swatch { flex: none; inline-size: 1.5rem; block-size: 1.5rem; border: 1px solid var(--text); border-radius: var(--ui-corner-extra-small); }
 
 .ui-notice__icon { flex: none; width: 24px; height: 24px; fill: currentColor; }
 .ui-notice__text { flex: 1 1 12rem; min-width: 0; padding-block: 0.125rem; }

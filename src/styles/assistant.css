@@ -71,7 +71,7 @@
   display: flex; flex-direction: column; gap: 8px;
 }
 .voice-assistant__hint { color: var(--ui-on-surface-variant); font-size: 1rem; }
-.voice-assistant__line { max-width: 85%; padding: 10px 14px; border-radius: 20px; overflow-wrap: anywhere; }
+.voice-assistant__line { max-width: 85%; padding: 10px 14px; border-radius: var(--md-sys-shape-corner-large-increased); overflow-wrap: anywhere; }
 .voice-assistant__line--user {
   align-self: flex-end; border-end-end-radius: 6px;
   color: var(--ui-on-primary-container); background: var(--ui-primary-container);

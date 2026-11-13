@@ -26,4 +26,4 @@
 .home__about { justify-self: start; }
 
 .home a { color: var(--accent-strong); }
-.home a:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 0.25rem; }
+.home a:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: var(--md-sys-shape-corner-extra-small); }

@@ -3,7 +3,7 @@
   display: grid;
   gap: 0.75rem;
   padding: 1rem;
-  border-radius: 1.5rem;
+  border-radius: var(--md-sys-shape-corner-extra-large);
   background: var(--ui-surface-container-highest);
   color: var(--ui-on-surface-variant);
   text-align: left;
@@ -15,7 +15,7 @@
 .welcome__talk p, .welcome__talk h2, .welcome__talk h3 { margin: 0; }
 .welcome__title { font-size: 1.5rem; }
 .welcome__step-title { font-size: 1.25rem; }
-.welcome__step-title:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 0.25rem; }
+.welcome__step-title:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: var(--md-sys-shape-corner-extra-small); }
 .welcome__paths { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
 .welcome__paths li { display: grid; gap: 0.25rem; justify-items: start; }
 .welcome__paths .ui-button { max-inline-size: 100%; white-space: normal; text-align: left; }
