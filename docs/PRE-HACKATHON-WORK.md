@@ -80,6 +80,7 @@ Add one line per piece of work, newest last.
 | 12 Nov | G02 Grounded Ask endpoint on ADK: `POST /api/v1/agent/ask` returns fact IDs only, off unless `AGENT_ENABLED` | `feature/G02-agent-ask-endpoint` (PR #28) |
 | 13 Nov | SN08 Scan mode: a checked frame swept west to east in 64 columns as chords, with a scan line, Stop and Escape, and a dropout cue | `feature/SN08-scan-mode` |
 | 13 Nov | SN10 Text equivalents: event sentences between frames, rate-limited announcements, hot-spot markers on the picture and the sound-recipe table on About | `feature/SN10-text-equivalents` |
+| 13 Nov | IX01 Input layer and key map: every key, touch, mouse and gamepad action becomes one action; moves are sounds with a 50 ms answer; one list of keys | `feature/IX01-input-layer` |
 | 12 Nov | JB03 Audio-reactive chest: Echo's EQ bars and mini globe follow the real sound through an analyser on Tone's output (listen only, nothing loads or plays); once a second under reduced motion | `feature/JB03-audio-chest` |
 | 12 Nov | JB02 Scroll-driven air boosters: Echo leans and fires its boots in proportion to scroll speed, with a retro-burn after a fast stop; nothing moves under reduced motion | `feature/JB02-scroll-boosters` |
 | 12 Nov | Voice client: checked server messages, quieter status line, shared icons (V03) | `feature/V03-voice-client-hygiene` (#34) |
