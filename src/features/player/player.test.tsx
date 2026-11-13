@@ -7,7 +7,8 @@ import { variableWords, type Visualization } from '../../data'
 import { expectNoA11yViolations } from '../../test/a11y'
 import { elevationFor, panFor } from '../../audio/pan'
 import { sendPlayerCommand } from './controls'
-import { keyName, SHORTCUTS } from './shortcuts'
+import { dispatch } from '../../interaction/registry'
+import { listedShortcuts } from '../../interaction/shortcuts'
 import PlayerPage from '.'
 import { AnnouncerProvider } from '../../components'
 
@@ -879,10 +880,12 @@ describe('Player: the keyboard shortcuts dialog (F41)', () => {
     expect(within(dialog()).getByRole('heading', { name: 'Keyboard shortcuts' })).toHaveFocus()
   })
 
-  it('opens with the question mark from anywhere in the player', async () => {
+  it('opens when the sound map asks for it (the question mark is a map key, IX01), and not from a question mark anywhere else', async () => {
     const { user } = await renderReady()
     screen.getByRole('button', { name: 'Stop' }).focus()
     await user.keyboard('?')
+    expect(screen.queryByRole('dialog')).toBeNull()
+    act(() => { dispatch({ type: 'openShortcuts' }) })
     expect(dialog()).toBeInTheDocument()
   })
 
@@ -895,30 +898,26 @@ describe('Player: the keyboard shortcuts dialog (F41)', () => {
     expect(box).toHaveValue('why?')
   })
 
-  it('lists the same keys as the list the handlers read, one row each, in two tables', async () => {
+  it('lists the same keys as the list the input layer reads, one row each, in four tables', async () => {
     const { user } = await renderReady()
     await user.click(opener())
     const words = variableWords(visualization.variable)
     const tables = within(dialog()).getAllByRole('table')
-    expect(tables).toHaveLength(2)
-    for (const [i, scope] of (['player', 'map'] as const).entries()) {
-      const rows = within(tables[i]).getAllByRole('row').slice(1)
-      const expected = SHORTCUTS.filter(shortcut => shortcut.scope === scope)
-      expect(rows).toHaveLength(expected.length)
-      expected.forEach((shortcut, r) => {
-        const [keys, does] = within(rows[r]).getAllByRole('cell')
-        expect(keys).toHaveTextContent(shortcut.keys.map(keyName).join(' or '))
-        expect(does).toHaveTextContent(shortcut.does(words))
-      })
+    expect(tables).toHaveLength(4)
+    const rows = tables.flatMap(table => within(table).getAllByRole('row').slice(1))
+    const expected = listedShortcuts()
+    expect(rows).toHaveLength(expected.length)
+    for (const shortcut of expected) {
+      const row = rows.find(candidate => within(candidate).getAllByRole('cell')[0].textContent === shortcut.keys && within(candidate).getAllByRole('cell')[1].textContent?.startsWith(shortcut.does(words)))
+      expect(row, shortcut.id).toBeDefined()
     }
   })
 
-  it('says which keys work only in the player or on the map', async () => {
+  it('says which keys work only on the sound map, and names the four tables', async () => {
     const { user } = await renderReady()
     await user.click(opener())
-    expect(dialog()).toHaveTextContent('work only while focus is in the player or on the sound map')
-    expect(within(dialog()).getByRole('table', { name: /Anywhere in the player/ })).toBeInTheDocument()
-    expect(within(dialog()).getByRole('table', { name: /On the sound map/ })).toBeInTheDocument()
+    expect(dialog()).toHaveTextContent('work only while the sound map has focus')
+    for (const name of [/Anywhere on Listen/, /On the sound map/, /Touch and mouse/, /Gamepad/]) expect(within(dialog()).getByRole('table', { name })).toBeInTheDocument()
   })
 
   it('closes with Escape and gives focus back to the button', async () => {
@@ -931,12 +930,10 @@ describe('Player: the keyboard shortcuts dialog (F41)', () => {
 
   it('closes with its Close button and gives focus back to what had it', async () => {
     const { user } = await renderReady()
-    const stop = screen.getByRole('button', { name: 'Stop' })
-    stop.focus()
-    await user.keyboard('?')
+    await user.click(opener())
     await user.click(within(dialog()).getByRole('button', { name: 'Close' }))
     expect(screen.queryByRole('dialog')).toBeNull()
-    expect(stop).toHaveFocus()
+    expect(opener()).toHaveFocus()
   })
 
   it('does not play or move the date while it is open', async () => {

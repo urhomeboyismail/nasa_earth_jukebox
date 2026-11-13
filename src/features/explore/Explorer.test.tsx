@@ -4,6 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
 import type { FrameGrid } from '../../analysis'
 import { elevationForPoint, panForPoint } from '../../audio/pan'
+import type { ActionType } from '../../interaction/actions'
+import { noteForPosition, positionOfValue } from '../../interaction/notes'
+import { resetUndo } from '../../interaction/history'
+import { addActionHandler } from '../../interaction/registry'
+import { PRESETS } from '../../sonify/presets'
 import type { Visualization } from '../../data'
 import { describeCell, describeSweep, explorerMessage, sweepEndMessage } from '../../describe'
 import { expectNoA11yViolations } from '../../test/a11y'
@@ -31,6 +36,18 @@ const engine = vi.hoisted(() => ({
 }))
 vi.mock('../../audio', () => ({ createSoundEngine: () => engine }))
 
+// IX01: a move, the edge, lock and unlock and undo are notes of the ensemble, sounded at once. The ensemble is a recording stand-in.
+const ensemble = vi.hoisted(() => ({
+  hold: vi.fn(),
+  playNotes: vi.fn(),
+  playDropout: vi.fn(),
+  now: vi.fn(() => 0),
+  status: vi.fn(() => 'off' as const),
+  start: vi.fn(async () => {}),
+  setDetail: vi.fn(),
+}))
+vi.mock('../../audio/ensemble/useEnsemble', () => ({ useEnsemble: () => ({ ensemble, status: 'off', start: ensemble.start }) }))
+
 const analyzeAll = vi.hoisted(() => vi.fn())
 const analyzeGrid = vi.hoisted(() => vi.fn())
 vi.mock('../../analysis', () => ({ analyzeAll, analyzeGrid }))
@@ -49,6 +66,14 @@ function makeGrid(frameId: string): FrameGrid {
   return { frameId, cols: COLS, rows: ROWS, area: { x0: 0, y0: 0, x1: 1, y1: 1 }, cells }
 }
 const cellOf = (grid: FrameGrid, col: number, row: number) => grid.cells[row * COLS + col]
+/** The note a place makes: its value across the legend, in the data set's key (the fixture has no preset, so major). */
+const noteOf = (col: number, row: number) => noteForPosition(positionOfValue(cellOf(grid, col, row).value!, visualization.colorScale), PRESETS.major)
+/** What the ensemble was asked to play, one entry per playNotes call (the notes of that call). */
+const played = () => ensemble.playNotes.mock.calls.map(([notes]) => notes as { midi: number; seconds: number; level: number; pan: number; elevation?: number }[])
+/** Records the actions of one kind that the input layer dispatches. Returns the way to stop recording. */
+const dispatchSpy = (type: ActionType, log: string[]) => addActionHandler(type, () => { log.push(type) })
+/** Every sound the ensemble was asked for: notes and dropout cues. */
+const soundsHeard = () => ensemble.playNotes.mock.calls.length + ensemble.playDropout.mock.calls.length
 const grid = makeGrid('f')
 
 const tick = (ms: number) => act(async () => { await vi.advanceTimersByTimeAsync(ms) })
@@ -60,6 +85,8 @@ beforeEach(() => {
   vi.useFakeTimers({ shouldAdvanceTime: false })
   vi.stubGlobal('jest', { advanceTimersByTime: (ms: number) => vi.advanceTimersByTime(ms) })
   Object.values(engine).forEach(fn => fn.mockClear())
+  Object.values(ensemble).forEach(fn => fn.mockClear())
+  resetUndo()
   analyzeAll.mockReset()
   analyzeAll.mockImplementation(async () =>
     visualization.frames.map((frame, i) => ({ frameId: frame.id, regionId: 'centre', sampled: 9, valid: 9, category: CATEGORIES[i] })))
@@ -121,7 +148,9 @@ describe('Explorer: turning it on and off', () => {
     expect(element).toHaveAttribute('tabindex', '0')
     expect(element).toHaveAttribute('aria-roledescription', 'sound map')
     const instructions = document.getElementById(element.getAttribute('aria-describedby')!)!
-    expect(instructions).toHaveTextContent(/Arrow keys move over the map/)
+    expect(instructions).toHaveTextContent(/Left arrow: Move one place west and play it/)
+    expect(instructions).toHaveTextContent(/R: Play this place again/)
+    expect(instructions).toHaveTextContent(/Direct touch: drag to hear each place/)
     expect(instructions).toBeVisible()
   })
 
@@ -170,14 +199,12 @@ describe('Explorer: the keyboard', () => {
     const { user } = await exploring()
     const before = dateSlider().getAttribute('aria-valuetext')
     await user.keyboard('{ArrowRight}')
-    const next = cellOf(grid, START.col + 1, START.row)
-    expect(engine.playCategory).toHaveBeenCalledTimes(1)
-    const [category, options] = engine.playCategory.mock.calls[0]
-    expect(category).toBe(next.category)
-    expect(options).toEqual({ pan: panForPoint((START.col + 1.5) / COLS), elevation: heightOf(START.row), durationMs: 300 })
+    expect(ensemble.playNotes).toHaveBeenCalledTimes(1)
+    expect(played()[0]).toEqual([{ midi: noteOf(START.col + 1, START.row), level: 0.5, seconds: 0.12, pan: panForPoint((START.col + 1.5) / COLS), elevation: heightOf(START.row) }])
+    expect(engine.playCategory).not.toHaveBeenCalled()
     await tick(200)
     await user.keyboard('{ArrowRight}')
-    expect(engine.playCategory.mock.calls[1][1].pan).toBeGreaterThan(options.pan)
+    expect(played()[1][0].pan).toBeGreaterThan(played()[0][0].pan)
     expect(dateSlider().getAttribute('aria-valuetext')).toBe(before)
     expect(dateSlider()).toHaveValue('0')
   })
@@ -206,36 +233,94 @@ describe('Explorer: the keyboard', () => {
     expect(row()).toHaveValue(String(ROWS - 1))
   })
 
-  it('plays the missing-data sound for a cell without data', async () => {
+  it('plays the seeded dropout cue for a cell without data, and no note', async () => {
     const { user } = await exploring()
     await user.keyboard('{End}')
-    expect(engine.playMissing).toHaveBeenCalledTimes(1)
-    expect(engine.playCategory).not.toHaveBeenCalled()
+    expect(ensemble.playDropout).toHaveBeenCalledTimes(1)
+    expect(ensemble.playNotes).not.toHaveBeenCalled()
+    expect(engine.playMissing).not.toHaveBeenCalled()
   })
 
-  it('plays the cell again with Space', async () => {
+  it('plays the cell again with R', async () => {
     const { user } = await exploring()
-    await user.keyboard(' ')
+    await user.keyboard('r')
     await tick(200)
-    await user.keyboard(' ')
-    expect(engine.playCategory).toHaveBeenCalledTimes(2)
-    expect(engine.playCategory.mock.calls[1]).toEqual(engine.playCategory.mock.calls[0])
+    await user.keyboard('r')
+    expect(ensemble.playNotes).toHaveBeenCalledTimes(2)
+    expect(played()[1]).toEqual(played()[0])
   })
 
-  it('does not play more often than every 120 ms, and the latest cell wins', async () => {
+  it('plays the first move at once, then no more often than every 50 ms, and the latest cell wins', async () => {
     const { user } = await exploring()
     await user.keyboard('{ArrowRight}{ArrowRight}{ArrowRight}')
-    expect(engine.playCategory).toHaveBeenCalledTimes(1)
-    await tick(150)
-    expect(engine.playCategory).toHaveBeenCalledTimes(2)
-    expect(engine.playCategory.mock.calls[1][1].pan).toBe(panForPoint((START.col + 3.5) / COLS))
+    expect(ensemble.playNotes).toHaveBeenCalledTimes(1)
+    await tick(60)
+    expect(ensemble.playNotes).toHaveBeenCalledTimes(2)
+    expect(played()[1][0].pan).toBe(panForPoint((START.col + 3.5) / COLS))
+    expect(played()[1][0].midi).toBe(noteOf(START.col + 3, START.row))
   })
 
-  it('keeps the player shortcuts out: Space does not play the dates', async () => {
+  it('makes the first sound of a key press before any timer runs (the 50 ms answer)', async () => {
+    const { user } = await exploring()
+    await user.keyboard('{ArrowRight}')
+    expect(ensemble.playNotes).toHaveBeenCalledTimes(1)
+  })
+
+  it('plays the last of eight moves within 50 ms of the last press, and the first at once (the latency budget)', async () => {
+    const { user } = await exploring()
+    await user.keyboard('{ArrowRight}'.repeat(8))
+    expect(ensemble.playNotes).toHaveBeenCalledTimes(1)
+    await tick(49)
+    expect(ensemble.playNotes).toHaveBeenCalledTimes(1)
+    await tick(1)
+    expect(ensemble.playNotes).toHaveBeenCalledTimes(2)
+    expect(played()[1][0].midi).toBe(noteOf(START.col + 8, START.row))
+  })
+
+  it('takes back the last moves with Ctrl+Z, one at a time, with a quiet note of the place it returns to', async () => {
+    const { user } = await exploring()
+    const column = () => screen.getByRole('slider', { name: 'Column, west to east' })
+    await user.keyboard('{ArrowRight}')
+    await tick(100)
+    await user.keyboard('{ArrowRight}')
+    expect(column()).toHaveValue(String(START.col + 2))
+    ensemble.playNotes.mockClear()
+    await user.keyboard('{Control>}z{/Control}')
+    expect(column()).toHaveValue(String(START.col + 1))
+    expect(played()).toEqual([[expect.objectContaining({ midi: noteOf(START.col + 1, START.row), level: 0.3, seconds: 0.12 })]])
+    await user.keyboard('{Control>}z{/Control}')
+    expect(column()).toHaveValue(String(START.col))
+    expect(liveText()).toBe('')
+  })
+
+  it('does nothing for Ctrl+Z when nothing has been moved', async () => {
+    const { user } = await exploring()
+    await user.keyboard('{Control>}z{/Control}')
+    expect(soundsHeard()).toBe(0)
+  })
+
+  it('stops the sound once for Escape, and leaves a locked place locked', async () => {
+    const { user } = await exploring()
+    await user.keyboard('l')
+    engine.stop.mockClear()
+    await user.keyboard('{Escape}')
+    expect(engine.stop).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('button', { name: 'Lock this place' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('says nothing when the cursor moves: a move is a sound, not a sentence', async () => {
+    const { user } = await exploring()
+    await user.keyboard('{ArrowRight}{ArrowDown}{Home}')
+    await tick(2000)
+    expect(liveText()).toBe('')
+  })
+
+  it('lets Space play and pause the dates, as it does everywhere on Listen', async () => {
     const { user } = await exploring()
     await user.keyboard(' ')
-    expect(engine.playSequence).not.toHaveBeenCalled()
-    expect(screen.queryByRole('button', { name: 'Pause' })).toBeNull()
+    await tick(0)
+    expect(engine.playSequence).toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Pause' })).toBeInTheDocument()
   })
 
   it('stops the sound on Escape and lets other keys through', async () => {
@@ -251,7 +336,7 @@ describe('Explorer: the keyboard', () => {
 describe('Explorer: keys at the edges', () => {
   const column = () => screen.getByRole('slider', { name: 'Column, west to east' }) as HTMLInputElement
   const row = () => screen.getByRole('slider', { name: 'Row, north to south' }) as HTMLInputElement
-  const sounds = () => engine.playCategory.mock.calls.length + engine.playMissing.mock.calls.length
+  const sounds = () => soundsHeard()
   const place = () => [Number(column().value), Number(row().value)]
 
   it('lands on the edge when a Shift jump would go past it', async () => {
@@ -285,63 +370,65 @@ describe('Explorer: keys at the edges', () => {
   })
 
   it.each([
-    { key: '{ArrowLeft}', start: '{Home}', word: 'West' },
-    { key: '{ArrowRight}', start: '{End}', word: 'East' },
-    { key: '{ArrowUp}', start: '{PageUp}', word: 'North' },
-    { key: '{ArrowDown}', start: '{PageDown}', word: 'South' },
-    { key: '{Home}', start: '{Home}', word: 'West' },
-    { key: '{End}', start: '{End}', word: 'East' },
-    { key: '{PageUp}', start: '{PageUp}', word: 'North' },
-    { key: '{PageDown}', start: '{PageDown}', word: 'South' },
-  ])('says "$word edge." after 400 ms, and plays nothing, when $key is pressed at the edge', async ({ key, start, word }) => {
+    { key: '{ArrowLeft}', start: '{Home}' },
+    { key: '{ArrowRight}', start: '{End}' },
+    { key: '{ArrowUp}', start: '{PageUp}' },
+    { key: '{ArrowDown}', start: '{PageDown}' },
+    { key: '{Home}', start: '{Home}' },
+    { key: '{End}', start: '{End}' },
+    { key: '{PageUp}', start: '{PageUp}' },
+    { key: '{PageDown}', start: '{PageDown}' },
+  ])('plays the edge cue, two 60 ms notes an octave apart, and says nothing, when $key is pressed at the edge', async ({ key, start }) => {
     const { user } = await exploring()
     await user.keyboard(start)
     await tick(500)
-    const played = sounds()
+    ensemble.playNotes.mockClear()
+    ensemble.playDropout.mockClear()
+    const at = place()
     const before = liveText()
     await user.keyboard(key)
-    expect(sounds()).toBe(played)
-    await tick(399)
-    expect(liveText()).toBe(before)
-    await tick(1)
-    expect(liveText()).toBe(`${word} edge.`)
+    // At the east edge the cell has no data, and the cue then uses the middle of the range: still two notes.
+    const calls = played()
+    expect(calls).toHaveLength(2)
+    const [first, second] = calls.map(call => call[0])
+    expect(first.seconds).toBe(0.06)
+    expect(second.seconds).toBe(0.06)
+    expect(first.midi - second.midi).toBe(12)
+    expect(ensemble.playNotes.mock.calls[1][1]).toBeGreaterThan(0)
     await tick(1000)
-    expect(sounds()).toBe(played)
+    expect(liveText()).toBe(before)
+    expect(place()).toEqual(at)
+    expect(engine.playCategory).not.toHaveBeenCalled()
   })
 
-  it('says the edge once for a held key, and does not play again', async () => {
+  it('plays the edge cue for each press at the edge, never moves, and never speaks', async () => {
     const { user } = await exploring()
     await user.keyboard('{Home}')
     await tick(500)
-    const played = sounds()
+    ensemble.playNotes.mockClear()
     await user.keyboard('{ArrowLeft}{ArrowLeft}{ArrowLeft}')
-    await tick(130)
-    await user.keyboard('{ArrowLeft}')
-    await tick(399)
-    expect(liveText()).not.toBe('West edge.')
-    await tick(1)
-    expect(liveText()).toBe('West edge.')
-    expect(sounds()).toBe(played)
+    expect(ensemble.playNotes).toHaveBeenCalledTimes(6)
     expect(column()).toHaveValue('0')
+    await tick(1000)
+    expect(liveText()).toBe('')
   })
 
-  it('says the cell, not an edge, when the move reached the edge', async () => {
+  it('plays the cell, not the edge cue, when the move reached the edge', async () => {
     const { user } = await exploring()
     await user.keyboard('{Home}{ArrowRight}')
     await tick(130)
+    ensemble.playNotes.mockClear()
     await user.keyboard('{ArrowLeft}')
-    await tick(400)
-    expect(liveText()).toBe(first(describeCell(visualization, grid, 0, START.row)))
+    expect(played()).toEqual([[expect.objectContaining({ midi: noteOf(0, START.row), seconds: 0.12 })]])
   })
 
-  it('still plays the cell again with Space at an edge', async () => {
+  it('still plays the cell again with R at an edge', async () => {
     const { user } = await exploring()
     await user.keyboard('{Home}')
     await tick(200)
-    await user.keyboard(' ')
-    expect(engine.playCategory).toHaveBeenCalledTimes(2)
-    await tick(400)
-    expect(liveText()).toBe(first(describeCell(visualization, grid, 0, START.row)))
+    ensemble.playNotes.mockClear()
+    await user.keyboard('r')
+    expect(played()).toEqual([[expect.objectContaining({ midi: noteOf(0, START.row), seconds: 0.12 })]])
   })
 
   it('does nothing, and throws nothing, for keys pressed before the map has loaded', async () => {
@@ -353,7 +440,7 @@ describe('Explorer: keys at the edges', () => {
     expect(surface()).toHaveFocus()
     await tick(1000)
     const sequences = engine.playSequence.mock.calls.length
-    for (const key of ['{ArrowLeft}', '{ArrowDown}', '{Home}', '{End}', '{PageUp}', '{PageDown}', ' ', '{Enter}', '{Escape}']) {
+    for (const key of ['{ArrowLeft}', '{ArrowDown}', '{Home}', '{End}', '{PageUp}', '{PageDown}', 'r', '{Enter}', '{Escape}']) {
       await user.keyboard(key)
     }
     await tick(1000)
@@ -468,7 +555,7 @@ describe('Explorer: sliders for phones and screen readers', () => {
   it('moves the same cursor and plays the cell when a slider is moved', async () => {
     await exploring()
     fireEvent.change(screen.getByRole('slider', { name: 'Column, west to east' }), { target: { value: '3' } })
-    expect(engine.playCategory).toHaveBeenCalledWith('cold', { pan: panForPoint(3.5 / COLS), elevation: heightOf(START.row), durationMs: 300 })
+    expect(played()[0]).toEqual([{ midi: noteOf(3, START.row), level: 0.5, seconds: 0.12, pan: panForPoint(3.5 / COLS), elevation: heightOf(START.row) }])
     expect(screen.getByRole('slider', { name: 'Row, north to south' })).toHaveAttribute('aria-valuetext', describeCell(visualization, grid, 3, START.row))
     // The slider is read by the screen reader itself, so the live region does not say it a second time.
     await tick(500)
@@ -482,54 +569,63 @@ describe('Explorer: sliders for phones and screen readers', () => {
   })
 })
 
+/** jsdom has no layout, so the surface is given a size: 240 × 120 px, ten pixels to a cell. */
+function sizedSurface() {
+  vi.spyOn(surface(), 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, right: 240, bottom: 120, width: 240, height: 120, x: 0, y: 0, toJSON: () => ({}) })
+}
+/** A finger put down on a cell and lifted again: the one way left to hear a cell in words (a move is a sound, IX01). */
+function touchCell(col: number, row: number) {
+  const at = { clientX: col * 10 + 5, clientY: row * 10 + 5, pointerId: 1 }
+  fireEvent.pointerDown(surface(), at)
+  fireEvent.pointerUp(surface(), at)
+}
+
 describe('Explorer: announcements', () => {
-  it('says the cell 400 ms after the last move, and only the last one', async () => {
-    const { user } = await exploring()
-    await user.keyboard('{ArrowRight}')
-    await tick(200)
-    await user.keyboard('{ArrowRight}')
-    await tick(399)
+  it('says the cell once, when the finger is lifted, and not for the cells passed over', async () => {
+    await exploring()
+    sizedSurface()
+    const at = (col: number) => ({ clientX: col * 10 + 5, clientY: START.row * 10 + 5, pointerId: 1 })
+    fireEvent.pointerDown(surface(), at(START.col))
+    fireEvent.pointerMove(surface(), at(START.col + 1))
+    fireEvent.pointerMove(surface(), at(START.col + 2))
+    await tick(1000)
     expect(liveText()).toBe('')
-    await tick(1)
+    fireEvent.pointerUp(surface(), at(START.col + 2))
     expect(liveText()).toBe(first(describeCell(visualization, grid, START.col + 2, START.row)))
   })
 
-  it('puts the date in the first message only, and leaves it out of later moves', async () => {
-    const { user } = await exploring()
-    await user.keyboard('{ArrowRight}')
-    await tick(400)
+  it('puts the date in the first message only, and leaves it out of later ones', async () => {
+    await exploring()
+    sizedSurface()
+    touchCell(START.col + 1, START.row)
     expect(liveText()).toBe(first(describeCell(visualization, grid, START.col + 1, START.row)))
-    await user.keyboard('{ArrowRight}')
-    await tick(400)
+    touchCell(START.col + 2, START.row)
     expect(liveText()).toBe(describeCell(visualization, grid, START.col + 2, START.row))
     expect(liveText()).not.toContain('January')
   })
 
   it('puts the date back in the first message after the date changes, and after turning the explorer off and on', async () => {
     const { user } = await exploring()
-    await user.keyboard('{ArrowRight}')
-    await tick(400)
+    sizedSurface()
+    touchCell(START.col + 1, START.row)
     fireEvent.change(dateSlider(), { target: { value: '1' } })
     await tick(0)
-    await user.click(surface())
-    await user.keyboard('{ArrowRight}')
-    await tick(400)
+    touchCell(START.col + 2, START.row)
     expect(liveText()).toBe(explorerMessage(describeCell(visualization, grid, START.col + 2, START.row), 'rich', 'July 2024'))
-    await user.keyboard('{ArrowRight}')
-    await tick(400)
+    touchCell(START.col + 3, START.row)
     expect(liveText()).not.toContain('July')
     await user.click(screen.getByRole('button', { name: 'Explore the map' }))
     await user.click(screen.getByRole('button', { name: 'Explore the map' }))
     await tick(0)
-    await user.keyboard('{ArrowRight}')
-    await tick(400)
+    sizedSurface()
+    touchCell(START.col + 1, START.row)
     expect(liveText()).toMatch(/^July 2024\. /)
   })
 
   it('says a cell without data in words', async () => {
-    const { user } = await exploring()
-    await user.keyboard('{End}')
-    await tick(400)
+    await exploring()
+    sizedSurface()
+    touchCell(COLS - 1, START.row)
     expect(liveText()).toMatch(/^January 2024\. Not enough data \(land, cloud or labels\)/)
   })
 })
@@ -537,10 +633,10 @@ describe('Explorer: announcements', () => {
 describe('Explorer: concise or rich announcements', () => {
   it('says the short form of the cell, and of the sliders, when the listener chose concise', async () => {
     localStorage.setItem('earth-jukebox:detail', 'concise')
-    const { user } = await exploring()
+    await exploring()
     expect(screen.getByRole('slider', { name: 'Column, west to east' })).toHaveAttribute('aria-valuetext', describeCell(visualization, grid, START.col, START.row, { detail: 'concise' }))
-    await user.keyboard('{ArrowRight}')
-    await tick(400)
+    sizedSurface()
+    touchCell(START.col + 1, START.row)
     expect(liveText()).toBe(first(describeCell(visualization, grid, START.col + 1, START.row, { detail: 'concise' })))
     expect(liveText()).not.toContain('column')
     expect(liveText().length).toBeLessThanOrEqual(60)
@@ -568,10 +664,10 @@ describe('Explorer: pointer and touch', () => {
     await exploring()
     sized()
     fireEvent.pointerDown(surface(), { clientX: 5, clientY: 5, pointerId: 1 })
-    expect(engine.playCategory).toHaveBeenLastCalledWith('cold', { pan: panForPoint(0.5 / COLS), elevation: heightOf(0), durationMs: 300 })
+    expect(played().at(-1)).toEqual([{ midi: noteOf(0, 0), level: 0.5, seconds: 0.12, pan: panForPoint(0.5 / COLS), elevation: heightOf(0) }])
     await tick(200)
     fireEvent.pointerMove(surface(), { clientX: 175, clientY: 5, pointerId: 1 })
-    expect(engine.playCategory).toHaveBeenLastCalledWith(cellOf(grid, 17, 0).category, { pan: panForPoint(17.5 / COLS), elevation: heightOf(0), durationMs: 300 })
+    expect(played().at(-1)).toEqual([{ midi: noteOf(17, 0), level: 0.5, seconds: 0.12, pan: panForPoint(17.5 / COLS), elevation: heightOf(0) }])
     expect(liveText()).toBe('')
     fireEvent.pointerUp(surface(), { clientX: 175, clientY: 5, pointerId: 1 })
     expect(liveText()).toBe(first(describeCell(visualization, grid, 17, 0)))
@@ -594,7 +690,7 @@ describe('Explorer: pointer and touch', () => {
     await exploring()
     sized()
     fireEvent.pointerMove(surface(), { clientX: 50, clientY: 50, pointerId: 1 })
-    expect(engine.playCategory).not.toHaveBeenCalled()
+    expect(soundsHeard()).toBe(0)
   })
 
   it('does not play twice for movement inside the same cell', async () => {
@@ -603,7 +699,27 @@ describe('Explorer: pointer and touch', () => {
     fireEvent.pointerDown(surface(), { clientX: 5, clientY: 5, pointerId: 1 })
     await tick(200)
     fireEvent.pointerMove(surface(), { clientX: 8, clientY: 8, pointerId: 1 })
-    expect(engine.playCategory).toHaveBeenCalledTimes(1)
+    expect(ensemble.playNotes).toHaveBeenCalledTimes(1)
+  })
+
+  it('asks a question on a long press and on a right click, and stops on a two-finger tap (IX01)', async () => {
+    await exploring()
+    sized()
+    const asked: string[] = []
+    const off = [dispatchSpy('query', asked), dispatchSpy('stopSpeech', asked)]
+    fireEvent.pointerDown(surface(), { clientX: 5, clientY: 5, pointerId: 1 })
+    await tick(500)
+    fireEvent.pointerUp(surface(), { pointerId: 1 })
+    expect(asked).toEqual(['query'])
+    fireEvent.contextMenu(surface())
+    expect(asked).toEqual(['query', 'query'])
+    fireEvent.pointerDown(surface(), { clientX: 5, clientY: 5, pointerId: 1 })
+    fireEvent.pointerDown(surface(), { clientX: 55, clientY: 5, pointerId: 2 })
+    await tick(100)
+    fireEvent.pointerUp(surface(), { pointerId: 1 })
+    fireEvent.pointerUp(surface(), { pointerId: 2 })
+    expect(asked).toEqual(['query', 'query', 'stopSpeech'])
+    off.forEach(stop => stop())
   })
 })
 
@@ -634,28 +750,43 @@ describe('Explorer: failure and vibration', () => {
 })
 
 describe('Explorer: time travel (F23)', () => {
-  it('locks the place with L, says where, and ignores the arrow keys until it is unlocked', async () => {
+  it('locks the place with L as a sound, and plays the edge cue instead of moving until it is unlocked', async () => {
     const { user } = await exploring()
     await user.keyboard('l')
-    expect(liveText()).toBe('Locked on centre, column 13, row 7. Move the date slider, or play across the dates. L or Escape unlocks.')
+    // The lock is a sound: the note of the place and the fifth above it together, not a sentence.
+    expect(played()).toHaveLength(1)
+    expect(played()[0]).toHaveLength(2)
+    expect(played()[0][1].midi).toBeGreaterThan(played()[0][0].midi)
+    expect(played()[0][0].seconds).toBe(0.25)
+    expect(liveText()).toBe('')
     expect(screen.getByRole('button', { name: 'Lock this place' })).toHaveAttribute('aria-pressed', 'true')
-    engine.playCategory.mockClear()
+    ensemble.playNotes.mockClear()
     await user.keyboard('{ArrowRight}')
     await tick(500)
-    expect(engine.playCategory).not.toHaveBeenCalled()
+    expect(played()).toHaveLength(2)
+    expect(played().every(call => call[0].seconds === 0.06)).toBe(true)
     expect(liveText()).toBe('Locked on this place. Press L to unlock before moving.')
+    expect(screen.getByRole('slider', { name: 'Column, west to east' })).toHaveValue(String(START.col))
+    ensemble.playNotes.mockClear()
     await user.keyboard('l')
-    expect(liveText()).toBe('Unlocked. The arrow keys move over the map again.')
+    // Unlocked: the fifth, then the note.
+    expect(played()).toHaveLength(2)
+    expect(played()[0][0].midi).toBeGreaterThan(played()[1][0].midi)
+    expect(screen.getByRole('button', { name: 'Lock this place' })).toHaveAttribute('aria-pressed', 'false')
+    ensemble.playNotes.mockClear()
     await user.keyboard('{ArrowRight}')
-    expect(engine.playCategory).toHaveBeenCalledTimes(1)
+    expect(played()).toHaveLength(1)
+    expect(played()[0][0].seconds).toBe(0.12)
   })
 
-  it('unlocks with Escape and with the button, which works without a keyboard', async () => {
+  it('unlocks with L and with the button, which works without a keyboard, and Escape no longer unlocks', async () => {
     const { user } = await exploring()
     await user.click(screen.getByRole('button', { name: 'Lock this place' }))
     expect(screen.getByRole('button', { name: 'Lock this place' })).toHaveAttribute('aria-pressed', 'true')
     act(() => surface().focus())
     await user.keyboard('{Escape}')
+    expect(screen.getByRole('button', { name: 'Lock this place' })).toHaveAttribute('aria-pressed', 'true')
+    await user.keyboard('l')
     expect(screen.getByRole('button', { name: 'Lock this place' })).toHaveAttribute('aria-pressed', 'false')
     await user.click(screen.getByRole('button', { name: 'Lock this place' }))
     await user.click(screen.getByRole('button', { name: 'Lock this place' }))
@@ -709,7 +840,8 @@ describe('Explorer: time travel (F23)', () => {
     await user.keyboard('l')
     act(() => onStep(3))
     await tick(1000)
-    expect(liveText()).toBe('Unlocked. The arrow keys move over the map again.')
+    // Stopped: the run's summary is never said, and unlocking is a sound.
+    expect(liveText()).toBe('')
   })
 
   it('has no accessibility violations while locked', async () => {
@@ -755,8 +887,8 @@ describe('Explorer: opened by a link (F40)', () => {
     await tick(300)
     expect(engine.unlock).toHaveBeenCalledTimes(1)
     expect(column()).toBe('6')
-    // Column 6 of 22 readable columns is the second of five bands: "cool".
-    expect(engine.playCategory).toHaveBeenCalledWith('cool', expect.anything())
+    // Column 6 of 22 readable columns is the second of five bands: "cool". It sounds as the note of that place.
+    expect(played().flat().some(note => note.midi === noteOf(6, 3))).toBe(true)
     // Later presses do not unlock again.
     await user.keyboard('{ArrowRight}')
     await tick(300)
@@ -890,13 +1022,13 @@ describe('Explorer: low-vision map tools (VIS1)', () => {
   it('reads the map and sounds the place the same with the tools on as off', async () => {
     async function run(toolsOn: boolean) {
       analyzeGrid.mockClear()
-      engine.playCategory.mockClear()
+      ensemble.playNotes.mockClear()
       const { user, unmount } = await exploring()
       if (toolsOn) { await user.click(magnifier()); await user.click(outline()) }
       surface().focus()
       await user.keyboard('{ArrowRight}')
       await tick(300)
-      const seen = { reads: analyzeGrid.mock.calls.map(call => call.slice(0, 4)), sounds: engine.playCategory.mock.calls.map(call => call[0]) }
+      const seen = { reads: analyzeGrid.mock.calls.map(call => call.slice(0, 4)), sounds: played().map(call => call[0].midi) }
       unmount()
       localStorage.clear()
       return seen
