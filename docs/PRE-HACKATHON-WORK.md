@@ -96,6 +96,7 @@ Add one line per piece of work, newest last.
 | 13 Nov | I06 Analysis memory: `analyzeAll` reads at most 3 frames at once, every analysis cache and the explorer's grid cache is a 128-entry LRU, worker results are checked by kind, `ChangeFrame` and `ChangeVisualization` are gone, and a failed change score is shown and announced instead of swallowed | `fix/I06-analysis-memory` (#54) |
 | 13 Nov | VIS2 Colour-vision patterns and display settings: a Display button with an easier reading font (Atkinson Hyperlegible, self-hosted), a yellow-and-cyan-on-black high-contrast scheme and six stroke-only patterns over the sound map and in the legend; kept on the device, announced, the sound and the grid read unchanged | `feature/VIS2-patterns-display-settings` (#50) |
 | 13 Nov | JB07 Echo mirrors the sound map (searching visor, a chest bar that follows the value, the "What's here?" sentence in the bubble) and the legend is playable: focus or click a category to hear its tone and its label, range and pitch direction | `feature/JB07-explorer-mirror-legend` |
+| 13 Nov | G06 The voice guide sees the facts and the sound map: checked context schemas, `set_date` refuses dates the data set lacks, a drift test for the context keys, and `testInProgress` during the listening test | `feature/G06-agent-sees-more` (#55) |
 
 ## Outside resources used
 
