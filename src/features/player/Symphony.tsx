@@ -52,18 +52,17 @@ export function Symphony({ visualization }: { visualization: Visualization }) {
   return (
     <section className="player symphony" aria-label="Symphony" onKeyDown={onKeyDown}>
       <Viewer frame={frame} dateText={format(date)} region={regions[0]} source={source}>
-        {visualization.video && (
-          <video
-            ref={setVideo}
-            className={showVideo ? 'symphony__video' : 'symphony__video symphony__video--hidden'}
-            src={`${import.meta.env.BASE_URL}data/${visualization.id}/${visualization.video.src}`}
-            muted
-            playsInline
-            preload="auto"
-            aria-hidden={showVideo ? undefined : true}
-            aria-label={frame.altText}
-          />
-        )}
+        {/* Always present, because the live source needs an element to be made. Without a video it has no source, stays hidden, and the source steps the checked frames instead. */}
+        <video
+          ref={setVideo}
+          className={showVideo ? 'symphony__video' : 'symphony__video symphony__video--hidden'}
+          src={visualization.video ? `${import.meta.env.BASE_URL}data/${visualization.id}/${visualization.video.src}` : undefined}
+          muted
+          playsInline
+          preload={visualization.video ? 'auto' : 'none'}
+          aria-hidden={showVideo ? undefined : true}
+          aria-label={showVideo ? frame.altText : undefined}
+        />
       </Viewer>
 
       <p className="symphony__status">{statusText(symphony)}</p>
