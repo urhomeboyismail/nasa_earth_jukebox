@@ -9,6 +9,8 @@ export type DemoStep = {
   say: string
   /** Play the dates on this page and wait for them to finish. */
   play?: true
+  /** Ask one question about the next two dates and wait for the answer (IX05). */
+  predict?: true
   /** How long to stay on the page (milliseconds) when it does not play. */
   holdMs?: number
 }
@@ -17,6 +19,7 @@ export const DEMO_STEPS: DemoStep[] = [
   { page: 'home', say: 'Welcome to the Earth Jukebox. It turns NASA Earth imagery into sound, so you can follow change over time by ear.', holdMs: 7000 },
   { page: 'learn', say: 'First, the sounds. Each step from the lowest category to the highest has its own note, and a change from normal has its own bed of sound.', holdMs: 7000 },
   { page: 'listen', say: 'Now listen. The dates play one after another; a rising sound means a higher value, and a bell marks a big jump.', play: true },
+  { page: 'listen', say: 'Now you try. Before the next two dates play, say what will happen to the strongest area. Then hear the answer.', predict: true },
   { page: 'compare', say: 'Then compare two dates by ear, and say which one shows the change.', holdMs: 7000 },
   { page: 'about', say: 'The About page gives the source, the method and the limits, so you know what the sound can and cannot tell you.', holdMs: 7000 },
   { page: 'home', say: 'That is the tour. Everything you heard works with a keyboard and a screen reader.', holdMs: 4000 },

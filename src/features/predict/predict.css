@@ -1,0 +1,13 @@
+/* The Predict panel sits under the sound map: a button, then the question and its choices, then the answer line. */
+.predict {
+  display: grid;
+  gap: 0.75rem;
+  text-align: left;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--md-sys-shape-corner-medium);
+}
+.predict__question, .predict__line { margin: 0; font-size: 1rem; line-height: 1.5; max-inline-size: 70ch; overflow-wrap: anywhere; }
+.predict__question { color: var(--text-h); }
+.predict__choices { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.predict__choices .ui-button { flex: 1 1 9rem; }
