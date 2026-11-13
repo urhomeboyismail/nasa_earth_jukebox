@@ -1,28 +1,17 @@
 // A short pulse at each date on phones that support it (Android Chrome), longer for warmer categories.
-// Off by default. On browsers without navigator.vibrate it does nothing, and the setting is not shown.
+// Off by default. On browsers without navigator.vibrate it does nothing, the setting is not shown and the player says why in one line (IX10).
 
 import { useCallback, useState } from 'react'
 import type { CategoryId, SoundMapping } from '../../data'
+import { patternFor } from '../haptics/patterns'
 
 const STORAGE_KEY = 'earth-jukebox:vibration'
 
-export const MIN_PULSE_MS = 30
-export const MAX_PULSE_MS = 120
-/** Missing data is two quick taps, so it feels different from every category. */
-export const MISSING_PATTERN = [25, 60, 25]
+// The shapes of the pulses are in src/features/haptics/patterns.ts (IX10); they are exported from here too, for the callers that already import them.
+export { MAX_PULSE_MS, MIN_PULSE_MS, MISSING_PATTERN, patternFor } from '../haptics/patterns'
 
 export function isVibrationSupported(): boolean {
   return typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function'
-}
-
-/** The pattern for a category: the coolest gets the shortest pulse and the warmest the longest. */
-export function patternFor(category: CategoryId | 'insufficient', mapping: SoundMapping): number[] {
-  if (category === 'insufficient') return MISSING_PATTERN
-  const rank = mapping.categories.findIndex(c => c.id === category)
-  if (rank < 0) return []
-  const last = mapping.categories.length - 1
-  const share = last === 0 ? 0 : rank / last
-  return [Math.round(MIN_PULSE_MS + share * (MAX_PULSE_MS - MIN_PULSE_MS))]
 }
 
 /** Vibrates for a date. Returns whether it asked the phone to vibrate. */
