@@ -103,4 +103,73 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Built by agent D on `feature/IX04-find-game`, 13 Nov 2026, from `main` at `5599da7`.
+
+**What changed**
+
+- `src/features/find/targets.ts` (pure):
+  - `targetsFor(features, cols, rows, area)` gives `highest`, `edge` and `spot` on the sound map's grid. Highest is the first cell, row by row, with the largest readable value. Edge is the middle point of `edges.strongest`. Spot is the centroid of the largest hot spot. Each goes through `cellOfFraction`.
+  - `levelTargets` gives level 1 = highest; 2 = highest, edge; 3 = highest, edge, spot. A target the frame lacks is left out.
+  - `distanceTo` (Chebyshev), and `FOUND_WITHIN = 1`.
+- `pulse.ts`: `pulseIntervalMs(d)`, 1200 ms at 12 cells or more, 120 ms at 1 or less, linear in between. Pulse level 0.15, 80 ms.
+- `score.ts`: `targetScore = max(0, round(1000 − 5·moves − 10·seconds))`, and `clock`.
+- `store.ts`: `earth-jukebox:find` as `{ best: { "<dataId>:<level>": { score, seconds } } }`, read through zod. Broken or blocked storage gives an empty record. The best is kept: a higher score, or the same score in less time.
+- `useFindGame.ts`:
+  - **Starting:** `F` (IX01 `find`), gamepad Menu or the button starts a game on the date on screen. It reads that one frame's features, as SN12 does, with no other date needed.
+  - **Pulse:** plays at the cursor (`noteForPosition`, or `playDropout` on a place with no data), sooner as it nears the target.
+  - **Found:** within one cell, it plays the target's note, then the top of the melody range (`markNote`, about 600 ms). It announces "Found the highest place in 3 moves and 3 seconds: 955 points." once, and the next target starts after 800 ms. At the end the total is kept as the best for that data set and level.
+  - **Stopping:** `F` again, Escape, or the sound map going off.
+- `FindPanel.tsx`: "Start the find game" / "Stop the find game", the Level radio group (disabled during a game), the line (target, target n of m, clock; not a live region) and the best kept. Mounted under the explorer panel in `src/features/player/index.tsx`, with the hook: two lines and an import.
+- **Outside Touches, as IX01 asks** (`shortcuts.ts:4`): `F` and gamepad Menu are now listed. `shortcuts.test.ts` moves them from "later" to listed.
+
+**Where the build differs from the ticket**
+
+- **A move is any change of the cursor**, seen while rendering (React's "adjust state when a prop changes"). That's not the explorer's move actions, because the sound map's two sliders (the screen-reader path) call `moveTo` directly and dispatch no action: a slider user could not have found anything. The clock is read only in effects and timers, which keep the times in refs, so nothing impure runs in render. There's no `setState` in an effect.
+- **No change places exist.** SN01's `change` is a `ChangeSummary`, a step and shares, with no places. So level 3's third target is always the ticket's fallback, the largest hot spot. It is named "the largest hot spot", not "the biggest change", so the words match what it is.
+- **The words are the data set's:** "the `words.highest` place" and "the `words.edge`" (`variableWords`). The code says `highest`, not "warmest" (I02, phases.md).
+- **`useExplorer.ts` is unchanged.** `cursor`, `grid`, `area` and IX03's `ensemble` were already exposed.
+- A sweep or a followed hot spot moves the cursor too, so it counts as moves, and it can land on a target. That's left as it is: the listener started the sweep or the follow.
+- Player hotspot: `src/features/player/index.tsx` gets the mount only. No other player ticket is claimed while this one is.
+
+**Tests:**
+
+- `targets.test.ts` (10): on the SN02 motion set the highest place is inside a warm patch, and with no change layer the spot is the largest hot spot. Also: unreadable cells are skipped and the first equal highest is taken; empty frames; the edge's middle point; the map area; the levels; the distance.
+- `pulse.test.ts` (8): 1200 ms at 12 cells and above, 120 ms at 1 and below, linear and falling.
+- `score.test.ts` (10): the formula, the floor at 0, the clock.
+- `store.test.ts` (10): round trip, five corrupt records ignored, the best kept, data sets and levels apart, blocked storage.
+- `FindPanel.test.tsx` (8), with fake timers and a fake ensemble:
+  - The first target is the highest place, and the first pulse comes with the press.
+  - More pulses in 2 s when closer.
+  - Within one cell it plays the success once and announces once, the next state comes after 800 ms, the best is kept and survives a remount.
+  - Moves and seconds count in the score.
+  - Level 2 asks for the edge next.
+  - `F` toggles and Escape stops, with no more pulses.
+  - It ends with the sound map.
+  - No a11y violations during a game.
+- `player.test.tsx` (1): on Listen with the sound map on, the panel is there and `F` starts a game on the SN02 date; Escape stops it.
+
+**Checks.** On this laptop the default `npm test` (8 vmThreads workers) runs out of memory (about 650 MB free), so the suite ran as `npx vitest run --pool=forks --maxWorkers=1`. Same tests, one process.
+
+```
+$ npm run lint
+> moon-heist@0.0.0 lint
+> oxlint
+(exit 0, no warnings)
+
+$ npx vitest run --pool=forks --maxWorkers=1
+ Test Files  160 passed (160)
+      Tests  2520 passed (2520)
+   Duration  2838.25s (environment 90%, tests 5%, import 3%, setup 2%)
+
+$ npm run build
+✓ built in 778ms
+
+$ npm run check-bundle
+index-C1C6oaDG.js: 80664 bytes gzip (78.8 KB), within the budget of 84362 bytes (82.4 KB).
+
+$ npx vitest run src/features/find src/features/player src/features/explore src/features/follow src/interaction --pool=forks --maxWorkers=1
+ Test Files  31 passed (31)
+      Tests  454 passed (454)
+```
+
+**Not checked here:** real speakers (whether 0.15 is soft enough next to the map's own move note, how the pulse feels), and the difficulty of each level on real data, which H03 decides.

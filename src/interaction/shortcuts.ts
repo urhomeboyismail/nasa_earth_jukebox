@@ -78,7 +78,7 @@ export const SHORTCUTS: readonly Shortcut[] = [
   { id: 'query', keys: 'I', device: 'keyboard', scope: 'map', does: () => 'Ask what is here.', match: input => (isLetter(input, 'i') ? { type: 'query' } : null) },
   // Routed now, handled and listed by the tickets that own them.
   { id: 'mark', keys: 'M', device: 'keyboard', scope: 'map', does: () => 'Mark this moment.', listed: false, match: input => (isLetter(input, 'm') ? { type: 'mark' } : null) },
-  { id: 'find', keys: 'F', device: 'keyboard', scope: 'map', does: () => 'Start or stop the find game.', listed: false, match: input => (isLetter(input, 'f') ? { type: 'find', command: 'toggle' } : null) },
+  { id: 'find', keys: 'F', device: 'keyboard', scope: 'map', does: () => 'Start or stop the find game.', match: input => (isLetter(input, 'f') ? { type: 'find', command: 'toggle' } : null) },
   { id: 'follow-toggle', keys: 'H', device: 'keyboard', scope: 'map', does: () => 'Follow a hot spot through time.', match: input => (isLetter(input, 'h') ? { type: 'follow', step: 'toggle' } : null) },
   { id: 'follow-previous', keys: '[', device: 'keyboard', scope: 'map', does: () => 'Follow the previous hot spot.', match: input => (noModifier(input) && input.key === '[' ? { type: 'follow', step: 'previous' } : null) },
   { id: 'follow-next', keys: ']', device: 'keyboard', scope: 'map', does: () => 'Follow the next hot spot.', match: input => (noModifier(input) && input.key === ']' ? { type: 'follow', step: 'next' } : null) },
@@ -107,7 +107,7 @@ export const SHORTCUTS: readonly Shortcut[] = [
   { id: 'pad-stick', keys: 'Left stick', device: 'gamepad', scope: 'map', does: () => `Move over the map, ${STICK_CELLS_PER_S} places a second.`, match: never },
   ...GAMEPAD_BINDINGS.map((binding): Shortcut => ({
     id: `pad-${binding.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`, keys: binding.name, device: 'gamepad', scope: 'listen', does: () => binding.does, match: never,
-    listed: ['move', 'scrubTime', 'transport', 'stopSpeech', 'lock', 'replayPlace', 'undo', 'query', 'follow'].includes(binding.press.type),
+    listed: ['move', 'scrubTime', 'transport', 'stopSpeech', 'lock', 'replayPlace', 'undo', 'query', 'follow', 'find'].includes(binding.press.type),
   })),
 ]
 
