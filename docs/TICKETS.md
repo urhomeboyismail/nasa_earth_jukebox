@@ -91,7 +91,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [IX09](tickets/IX09-echo-points.md) | Echo points with a sound beacon and asks questions back | M | agent | IX01, G06 | server-assistant, app, voice | open |
 | [IX10](tickets/IX10-haptics-map.md) | Haptics map on the audio clock; gamepad rumble | S | agent | IX01 | explorer, player | done |
 | [IX11](tickets/IX11-interactive-onboarding.md) | Interactive onboarding: the first minute is a game | M | agent | IX04 | player | done |
-| [IX12](tickets/IX12-art-mode.md) | Art mode: your own preset, recorded and exported | M | agent | SN03, SN12 | player | claimed: C, 2026-11-13 |
+| [IX12](tickets/IX12-art-mode.md) | Art mode: your own preset, recorded and exported | M | agent | SN03, SN12 | player | ready: feature/IX12-art-mode |
 
 ### P1: EIC data
 

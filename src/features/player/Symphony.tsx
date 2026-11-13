@@ -5,6 +5,7 @@ import { HotspotMarkers } from '../../components/HotspotMarkers'
 import { hotspotMarkers } from '../../describe/markers'
 import { dateFormatterFor } from '../../dates'
 import type { Frame, Visualization } from '../../data'
+import type { Preset } from '../../sonify/types'
 import { DetailControl } from './DetailControl'
 import { LayerCaptions } from './LayerCaptions'
 import { shortcutFor } from './shortcuts'
@@ -38,9 +39,9 @@ function frameAt(frames: Frame[], date: string): Frame {
   return found
 }
 
-export function Symphony({ visualization }: { visualization: Visualization }) {
+export function Symphony({ visualization, preset }: { visualization: Visualization; preset?: Preset | null }) {
   const [video, setVideo] = useState<HTMLVideoElement | null>(null)
-  const symphony = useSymphony(visualization, video)
+  const symphony = useSymphony(visualization, video, preset)
   const features = symphony.latest?.features ?? null
   useEventAnnouncer(features, visualization)
   const markers = useMemo(() => (features ? hotspotMarkers(features, visualization) : []), [features, visualization])

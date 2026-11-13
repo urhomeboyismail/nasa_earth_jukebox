@@ -8,6 +8,8 @@ import { useDescriptionDetail } from '../../describe/detail'
 import { stopSpeech } from '../../interaction/speech'
 import { useActionHandler } from '../../interaction/registry'
 import { useGamepad, useKeyboard } from '../../interaction/useInput'
+import { ArtPanel } from '../art/ArtPanel'
+import { useArt } from '../art/useArt'
 import { AskPanel } from '../ask/AskPanel'
 import { ExplorerPanel, ExplorerSurface } from '../explore/Explorer'
 import { useExplorer } from '../explore/useExplorer'
@@ -59,6 +61,8 @@ const MODES: { id: ListenMode; label: string; says: string }[] = [
 function ListenPage({ visualization }: { visualization: Visualization }) {
   const [mode, setMode] = useListenMode(visualization)
   const announce = useAnnounce()
+  // IX12: art mode's preset plays in Symphony mode; it is null (the manifest's preset) while art mode is off.
+  const art = useArt(visualization)
   return (
     <>
       <fieldset className="symphony__mode">
@@ -70,7 +74,8 @@ function ListenPage({ visualization }: { visualization: Visualization }) {
           </label>
         ))}
       </fieldset>
-      {mode === 'symphony' ? <Symphony visualization={visualization} /> : mode === 'scan' ? <Scan visualization={visualization} /> : <Player visualization={visualization} />}
+      {mode === 'symphony' ? <Symphony visualization={visualization} preset={art.preset} /> : mode === 'scan' ? <Scan visualization={visualization} /> : <Player visualization={visualization} />}
+      {mode === 'symphony' && <ArtPanel art={art} />}
     </>
   )
 }
