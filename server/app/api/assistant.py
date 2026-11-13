@@ -219,6 +219,7 @@ async def assistant_live(ws: WebSocket) -> None:
     global _active
     origin = ws.headers.get("origin")
     if (origin or settings.origin_required) and origin not in settings.cors_origin_list:
+        logger.warning("voice assistant refused origin %r; allowed: %s (set CORS_ORIGINS to add it)", origin, settings.cors_origins)
         await ws.close(code=1008)
         return
     await ws.accept()
