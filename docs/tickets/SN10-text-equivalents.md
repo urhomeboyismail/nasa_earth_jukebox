@@ -180,8 +180,8 @@ Built on `feature/SN10-text-equivalents` (agent E, 2026-11-13).
 
 ```
 npm run lint   -> exit 0, no findings
-npm run build  -> built in 1.85s
-npm test       -> Test Files 141 passed (141); Tests 2273 passed (2273)
+npm run build  -> built in 956ms
+npm test       -> Test Files 141 passed (141); Tests 2282 passed (2282) (after merging main, which has the Symphony no-video fix, PR #43)
 ```
 New tests: events (moved east three cells, appeared, gone, grew, shrank, dropout and recovered, fixed order, the data set's own words, bright and dark, no stray numbers), limiter (four in a second give one, the 4 s gap, the ninth in a minute, the 30 s repeat, dropped not queued, user answers always made, backwards clock), markers, recipe, `HotspotMarkers` (list, still rings, axe), `SoundRecipe` (table roles, axe), `useEventAnnouncer`, and a golden file over the fixture and `synthetic-storm`.
 
