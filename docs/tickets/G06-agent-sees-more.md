@@ -163,4 +163,26 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Built on `feature/G06-agent-sees-more` (part A). Part B (music) is left out; see "Differences from the ticket".
+
+**What changed**
+- `server/app/assistant/context_schemas.py` (new): strict Pydantic models (`extra="forbid"`, no type coercion) for `player`, `compare` (with `testInProgress`), `facts` and `explore`; `CONTEXT_SCHEMAS`; `validate_context`.
+- `CONTEXT_KEYS` is now `frozenset(CONTEXT_SCHEMAS)`. Both bridges (`server/app/agent/voice.py`, `server/app/api/assistant.py`) store only a validated payload; an invalid one leaves the old value and is logged at DEBUG with the key only.
+- `run_tool("set_date")` refuses a date missing from `facts.knownDates` (`"That date is not in this data set."`, no action). Without a `facts` payload it behaves as before.
+- `get_screen_context` description and one instruction line in `knowledge.py` now mention the facts and the sound map.
+- Browser: `ContextKey` gains `"facts"`. `AskPanel` publishes `facts` (`knownDates` and `{id, kind, text}`; text cut to 400 characters to fit the schema). `Compare` publishes `testInProgress: false`. `TestMode` publishes `compare` with `testInProgress: true` from the first screen until the thank-you, with empty frames (no dates, no answers).
+- Tests: `server/tests/test_context_schemas.py`, `test_context_drift.py` (new); two existing server tests now send a valid `player` payload; browser tests added in `ask.test.tsx`, `test-mode.test.tsx`; `compare.test.tsx` and `player.test.tsx` adjusted for the new keys.
+
+**Differences from the ticket**
+- **`explore` already exists (JB07).** `useExplorer.ts` publishes `explore` as `{ exploring, value, position, here }`, which the mascot reads (`MascotDock`). The server dropped it, because `CONTEXT_KEYS` had only `player` and `compare`. The ticket's `{ on, locked, style, cell }` would break Echo, and `useExplorer.ts` is outside Touches (hotspot `explorer`). So `ExploreContext` describes the shape the browser already sends, and the guide now receives it. `locked`, `style` and `cell` are not published; posted as R-20261113-G06-1 on the board. Ticket test 7 (exact keys `on, locked, style, cell`) is therefore not written.
+- **Part B (music) is not built.** SN03 is done, but nothing in the player builds a `MusicFrame` for the screen, so there is nothing to publish from the places this ticket may touch.
+- **Listening test.** `testInProgress` is published from `TestMode.tsx` (same hotspot as `compare/index.tsx`, because the test renders instead of `Compare`).
+
+**Checks** (run in `../nasa-c`)
+```
+npm run lint            0 warnings, 0 errors
+npm test                Test Files 161 passed (161); Tests 2532 passed (2532)
+npm run build           built in 1.43s
+server: pytest -q       321 passed, 2 skipped
+```
+One earlier full run showed 4 failures under load; the one caused by this change (`player.test.tsx` expected the player's clear to be the last update, but the Ask panel's `facts` clear now comes after it) is fixed, and the rerun was clean.

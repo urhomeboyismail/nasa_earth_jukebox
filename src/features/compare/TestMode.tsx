@@ -7,6 +7,7 @@ import { analyzeAll, type FrameAnalysis } from '../../analysis'
 import { createSoundEngine, type SoundEngine } from '../../audio'
 import { useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
+import { useAssistantContext } from '../../assistant/context'
 import { Button, Card, Notice } from '../../components'
 import { variableWords, type Comparison, type Visualization } from '../../data'
 import { dateFormatterFor } from '../../dates'
@@ -47,6 +48,9 @@ export default function TestMode({ visualization, client: given }: { visualizati
   const [screenReader, setScreenReader] = useState(false)
   const [showImages, setShowImages] = useState(false)
   const [index, setIndex] = useState(0)
+  // G06: the voice guide is told a test is open, from the first screen until the thank-you, so it does not help with the questions.
+  // It gets no dates and no answers: the frames are empty on purpose.
+  useAssistantContext('compare', { frameA: '', frameB: '', answered: false, revealed: false, testInProgress: step !== 'thanks' })
 
   // Sound: the same engine and analysis as the Compare page.
   const { engine, engineError } = useMemo((): { engine: SoundEngine | null; engineError: string } => {

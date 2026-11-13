@@ -128,7 +128,7 @@ def test_player_context_prompts_feedback(fake_session):
     with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
         ws.send_json({"type": "start", "language": "en", "page": "listen"})
         assert ws.receive_json() == {"type": "ready"}
-        ws.send_json({"type": "context", "key": "player", "data": {"date": "2026-01-01"}, "announce": "playback_finished:1"})
+        ws.send_json({"type": "context", "key": "player", "data": {"visualization": "v", "date": "2026-01-01", "region": "r", "category": "hot", "playing": True}, "announce": "playback_finished:1"})
         ws.send_json({"type": "context", "key": "bogus", "data": {"x": 1}, "announce": "playback_finished:1"})
         ws.send_json({"type": "stop"})
         ws.receive_json()
