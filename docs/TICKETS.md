@@ -80,7 +80,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [IX01](tickets/IX01-input-layer.md) | Input layer and key map: keyboard, touch, mouse and gamepad as one set of actions; 50 ms answer | M | agent | S01, SN03, SN04 | explorer, player | claimed: E, 2026-11-13 |
+| [IX01](tickets/IX01-input-layer.md) | Input layer and key map: keyboard, touch, mouse and gamepad as one set of actions; 50 ms answer | M | agent | S01, SN03, SN04 | explorer, player | ready: feature/IX01-input-layer |
 | [IX02](tickets/IX02-whats-here.md) | "What's here?" on demand; verbosity; Esc stops speech | S | agent | IX01, SN10 | explorer | open |
 | [IX03](tickets/IX03-follow-mode.md) | Follow a hot spot through time | M | agent | SN01, SN04 | player | open |
 | [IX04](tickets/IX04-find-game.md) | Find game: warmest place, the edge, the biggest change, by ear | M | agent | IX01, SN04 | player | open |

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAssistantContext } from '../../assistant/context'
 import { Button, Legend, LoadingIndicator, Notice, Slider, useAnnounce } from '../../components'
 import type { ChangeVisualization } from '../../analysis'
@@ -6,6 +6,9 @@ import { higherPhrase, variableWords, type Visualization } from '../../data'
 import { describeChange } from '../../describe'
 import { Description } from '../../describe/Description'
 import { useDescriptionDetail } from '../../describe/detail'
+import { stopSpeech } from '../../interaction/speech'
+import { useActionHandler } from '../../interaction/registry'
+import { useGamepad, useKeyboard } from '../../interaction/useInput'
 import { AskPanel } from '../ask/AskPanel'
 import { ExplorerPanel, ExplorerSurface } from '../explore/Explorer'
 import { useExplorer } from '../explore/useExplorer'
@@ -16,7 +19,6 @@ import { usePlayer, type Speed } from './usePlayer'
 import { useVibrationSetting, vibrateForDate } from './vibration'
 import { DataTable } from './DataTable'
 import { momentHash, readMoment, useMomentLink } from './momentLink'
-import { shortcutFor } from './shortcuts'
 import { ShortcutsDialog } from './ShortcutsDialog'
 import { Viewer } from './Viewer'
 import { useListenMode, type ListenMode } from './listenMode'
@@ -29,18 +31,8 @@ const SPEEDS: { id: Speed; label: string }[] = [
   { id: 'fast', label: 'Fast' },
 ]
 
-/** Where Space and the arrow keys already mean something, so the shortcuts keep out. */
-const isEditable = (target: EventTarget) => target instanceof HTMLElement && target.isContentEditable
-const isField = (target: EventTarget) => target instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
-/** Where typing letters is the point: a text box, a text area, a menu. A radio button or slider is not, so T still works there. */
-const isTyping = (target: EventTarget) =>
-  target instanceof HTMLElement &&
-  (['TEXTAREA', 'SELECT'].includes(target.tagName) || (target instanceof HTMLInputElement && !['radio', 'checkbox', 'range', 'button'].includes(target.type)))
-/** Space presses these natively. A range input is not here: Space does nothing on it, so the shortcut may use it. */
-const spaceActivates = (target: EventTarget) =>
-  target instanceof HTMLElement &&
-  (['BUTTON', 'A', 'SUMMARY', 'TEXTAREA', 'SELECT'].includes(target.tagName) ||
-    (target instanceof HTMLInputElement && target.type !== 'range'))
+/** Anywhere on Listen: the 'listen' and 'anywhere' scopes of the shortcut list (src/interaction/shortcuts.ts). */
+const LISTEN_SCOPES = ['listen', 'anywhere'] as const
 
 export default function PlayerPage({ visualization }: PageProps) {
   if (!visualization) return <p>Loading the data…</p>
@@ -171,33 +163,29 @@ function Player({ visualization }: { visualization: Visualization }) {
     player.finished ? `playback_finished:${visualization.id}` : undefined,
   )
 
-  // Shortcuts work while focus is anywhere in the player, but never take over a text box, a button or a field's own keys.
-  // Which key means what is the list in ./shortcuts.ts, which the "Keyboard shortcuts" dialog is drawn from too.
+  // IX01: every key, button and gesture is an action (src/interaction/). The player answers the ones about the dates, the trace, the help and speech.
+  // Which key means what is the list in src/interaction/shortcuts.ts, which the "Keyboard shortcuts" dialog is drawn from too.
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
-  function onKeyDown(event: KeyboardEvent) {
-    if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || isEditable(event.target)) return
-    const key = shortcutFor(event.key, 'player')
-    if (key === 'play' && !spaceActivates(event.target)) {
-      event.preventDefault()
-      if (playing) player.pause()
-      else player.play()
-    } else if (key === 'trace' && player.style === 'change' && !isTyping(event.target)) {
-      // "Trace the warm edge", from anywhere in the player, the sound map included (it does not use this key).
-      event.preventDefault()
-      void player.traceWarmEdge()
-    } else if (key === 'stop-trace' && player.tracing) {
-      player.stopTrace()
-    } else if (key === 'help' && !isTyping(event.target)) {
-      event.preventDefault()
-      setShortcutsOpen(true)
-    } else if (key === 'next' && !isField(event.target)) {
-      event.preventDefault()
-      player.goTo(player.index + 1)
-    } else if (key === 'previous' && !isField(event.target)) {
-      event.preventDefault()
-      player.goTo(player.index - 1)
-    }
-  }
+  const onKeyDown = useKeyboard(LISTEN_SCOPES)
+  useGamepad()
+  useActionHandler('transport', () => {
+    if (playing) player.pause()
+    else player.play()
+  })
+  useActionHandler('scrubTime', action => {
+    if ('by' in action) player.goTo(player.index + action.by)
+    else player.goTo(action.to === 'first' ? 0 : frames.length - 1)
+  })
+  useActionHandler('trace', () => {
+    // "Trace the warm edge", from the sound map, in the change style.
+    if (player.style === 'change') void player.traceWarmEdge()
+  })
+  useActionHandler('openShortcuts', () => setShortcutsOpen(true))
+  // Escape stops what this app is saying, and the trace if it is playing. The sound map stops its own sound in its own handler.
+  useActionHandler('stopSpeech', () => {
+    stopSpeech()
+    if (player.tracing) player.stopTrace()
+  })
 
   return (
     <>

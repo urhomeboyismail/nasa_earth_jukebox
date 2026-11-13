@@ -168,3 +168,13 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: may `symphony.ts` be renamed with `git mv` to `symphonyState.ts`, and those four imports changed? It is one rename and four lines, no behavior change. It touches the `player` hotspot, so it should land before the next `player` ticket. (a) yes, as a `chore/` branch; (b) no, rename something else (say which).
 - Answer: (12 Nov, merged in PR #40, `c0b5f8a`) (a) yes. `symphony.ts` is now `symphonyState.ts`; Windows agents get it on their next `git pull`.
 - Recorded in: `src/features/player/symphonyState.ts`
+
+### R-20261113-IX01-1: Add `src/interaction/` to the folder ownership table and `Action` to the interfaces?
+- From: IX01 (agent E, 13 Nov)
+- To: team leader (Mohammad)
+- Needed by: nothing blocks; IX02 to IX12 all import from `src/interaction/`
+- Status: open
+- Context: `docs/tickets/IX01-input-layer.md`. IX01 adds `src/interaction/` (the `Action` union, the one shortcut list, the dispatcher, gestures, gamepad, undo, speech control, the note of a place and the feedback sounds). It is not in `docs/PLAN.md` §4 (folder ownership) or §5 (interfaces).
+- Question: (a) add `src/interaction/` to the §4 table, owner Mohammad? (b) add an `Action` entry to §5 pointing at `src/interaction/actions.ts`, with the rule that another ticket adds a member only when it needs one and says so in its Touches?
+- Answer:
+- Recorded in: nowhere needed

@@ -247,4 +247,34 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Built on `feature/IX01-input-layer` (agent E, 2026-11-13).
+
+**Files.** New, in `src/interaction/` (each with a test beside it): `actions.ts`, `keys.ts`, `shortcuts.ts`, `gestures.ts`, `gamepad.ts`, `registry.ts`, `useInput.ts`, `history.ts`, `speech.ts`, `notes.ts`, `feedback.ts`, `budget.ts`. Edited: `src/features/explore/useExplorer.ts`, `Explorer.tsx`, `Explorer.test.tsx`, `ProbeSwitch.test.tsx`; `src/features/player/index.tsx`, `player.test.tsx`, `change.test.tsx`, `ShortcutsDialog.tsx`, `shortcuts.ts` (now a re-export of the new list); `docs/AGENT-BOARD.md` (the PLAN request). Deleted: `src/features/player/shortcuts.test.ts` (S01's; its checks moved to `src/interaction/shortcuts.test.ts`, including "the handlers name no key").
+
+**Outside Touches, for the reviewer.**
+- `src/features/explore/ProbeSwitch.test.tsx` and `src/features/player/change.test.tsx` assert the old behaviour (one-note sound through the old engine; T from anywhere). Both updated to the new behaviour.
+- `Symphony.tsx` is untouched: it still calls `shortcutFor(event.key, 'player')`, which `src/interaction/shortcuts.ts` keeps (name-only lookup, `'player'` = Listen). `Scan.tsx` has its own Escape handler and is untouched.
+- The queue lists only the `explorer` hotspot; this ticket also edits `player/index.tsx`, as its Touches says. No other player ticket was running.
+
+**Decisions where the ticket was silent or in conflict.**
+- **Which shortcut rows are shown.** The keys of later tickets (I, M, F, H, `[`, `]`, 1 to 7) are routed (`SHORTCUTS` rows with `listed: false`: they make their `Action`), but are not shown in the dialog or the map's instructions, nor are the gamepad buttons nothing handles yet (X, Y, LB, RB, LT, RT, Menu). Otherwise the dialog would claim keys that do nothing. Each later ticket flips `listed` when it adds its handler. Alt+Left and Alt+Right (IX06) and hold-A/B (IX07, needs key-up) are not routed: Alt+Left is the browser's Back, and nothing handles them.
+- **`shortcutFor` stays.** S01's lookup is kept (Symphony uses it), so the new `Shortcut` keeps S01's `does(words)` function (the trace line says "warm edge" in the data set's words) and `note`; `keys` is now the text shown (`'Shift + Left arrow'`) and `match(KeyInput)` makes the action. `Scope` is `map | listen | anywhere`.
+- **Edge keys.** The source cannot know the cursor, so Home, End, Page Up and Page Down are `moveTo` with only a `col` or a `row` (`Infinity` = the far edge, clamped by the map). `moveTo` also has an optional `via: 'pointer'`, so a finger never plays the edge cue. Both are small additions to the ticket's `Action` union.
+- **One key press, one dispatch.** Escape is not stopped (a dialog still closes on it), so it bubbles from the map to the Listen section; `useKeyboard` remembers the events it has answered. A key whose action nothing handles is not stopped either.
+- **Pointer.** The explorer's press and drag now go through the gesture machine and `moveTo`; movement inside one cell is dropped in `usePointerInput`, as before. A long press and a right click make `query`, a two-finger tap makes `stopSpeech`; nothing handles `query` yet (IX02). On a touch screen the long press' context menu is not a second `query`.
+- **Words that stay.** Lifting the finger still says the cell (rest-gated, caused by the listener) and the sliders still read it; IX02 owns "What's here?". Locked + a move key plays the edge cue and keeps the one live-region line "Locked on this place. Press L to unlock before moving." The lock and unlock sentences are gone (sounds only); `describePlace` is kept.
+- **Direct-touch hint.** The map's description says "Direct touch: drag to hear each place. Two fingers tap to stop." The ticket's "Long press for what's here" is left out until IX02 makes it true. Not confirmed on a real VoiceOver or TalkBack (H08).
+- **Sounds.** The one-note sounds go through the explorer's own ensemble: its first press starts it (`ensemble.start()`, a failure is swallowed so a browser with no audio still works). With SN09's continuous tone on, a move is the tone as before. Sweeps, the locked place across the dates and the sliders' date follow still use the old engine.
+- **T and ?.** They are map keys now (WCAG 2.1.4), so T no longer traces and ? no longer opens the dialog from elsewhere on Listen; the Trace button and the "Keyboard shortcuts" button remain. Space is play and pause everywhere on Listen, R replays a place, and Escape no longer unlocks.
+- **Undo.** Moves by key are recorded (up to 50); Ctrl+Z or Cmd+Z puts the cursor back and plays the quiet `undo` note. Lock, solo, mute, marks and follow record their own in their tickets.
+
+**Checks.**
+
+```
+npm run lint   -> exit 0, no findings
+npm run build  -> built in 526ms
+npm test       -> Test Files 150 passed (150); Tests 2361 passed (2361)
+```
+New tests: 79 in `src/interaction/` (the table of keys, gestures, gamepad, registry, undo, speech gate and stoppers, the 50 ms gap gate, notes, the feedback sounds, and 9 for `useKeyboard` and `useGamepad`), and in `Explorer.test.tsx`: the first sound of a press before any timer, eight moves giving the first at once and the last 50 ms later, no speech on a move, the edge cue for every key at an edge, R, Space, Escape, lock and unlock as sounds, undo, long press, right click and the two-finger tap.
+
+**Manual check: not done.** No speakers or listener here. To do by a person: `npm run dev`, Listen in Simple mode, Explore the map (a data set with no `sonification` block, so the one-note sound is used), then arrow keys, R, L, Escape, Ctrl+Z and a drag. Gamepad and touch gestures are tested only through their pure parts and the pointer events; a real pad and a real touch screen are not tried.

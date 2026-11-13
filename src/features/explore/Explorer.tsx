@@ -64,6 +64,7 @@ export function ExplorerSurface({ explorer }: { explorer: ExplorerState }) {
         onPointerUp={explorer.onPointerUp}
         onPointerCancel={explorer.onPointerUp}
         onPointerLeave={explorer.onPointerLeave}
+        onContextMenu={explorer.onContextMenu}
       >
         {grid && (
           <>
@@ -85,11 +86,7 @@ export function ExplorerSurface({ explorer }: { explorer: ExplorerState }) {
         )}
         {grid && magnifier && explorer.image && <Magnifier image={explorer.image} cell={cursor} grid={grid} area={area} />}
       </div>
-      <p id={instructions} className="explorer__instructions">
-        Arrow keys move over the map and play each place; Shift with an arrow moves four places. Home and End go to the west and east
-        edges, Page Up and Page Down to the north and south. Space plays the place again. Enter plays the row from west to east, and
-        Shift with Enter plays the column from north to south. L locks the place you are on, so the date slider then plays that one place on each date; L or Escape unlocks. Escape also stops the sound.
-      </p>
+      <p id={instructions} className="explorer__instructions">{explorer.instructions}</p>
     </>
   )
 }
@@ -119,7 +116,7 @@ export function ExplorerPanel({ visualization, explorer }: { visualization: Visu
               max={grid.cols - 1}
               value={cursor.col}
               disabled={explorer.locked}
-              onChange={col => explorer.moveTo(col, cursor.row, false)}
+              onChange={col => explorer.moveTo(col, cursor.row, 'slider')}
               describe={() => here}
             />
             <Slider
@@ -128,7 +125,7 @@ export function ExplorerPanel({ visualization, explorer }: { visualization: Visu
               max={grid.rows - 1}
               value={cursor.row}
               disabled={explorer.locked}
-              onChange={row => explorer.moveTo(cursor.col, row, false)}
+              onChange={row => explorer.moveTo(cursor.col, row, 'slider')}
               describe={() => here}
             />
           </div>

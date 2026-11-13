@@ -1,12 +1,13 @@
 // The "change" sound style in Listen (ticket T115): the sound control, the change steps on the steps played, and "Trace the warm edge".
 // A data set with no baseline must be exactly as it was, so most of this checks what does NOT happen there.
 
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
 import type { Contour, Score } from '../../analysis'
 import type { Visualization } from '../../data'
+import { dispatch } from '../../interaction/registry'
 import { expectNoA11yViolations } from '../../test/a11y'
 import { subscribeContext, type ContextUpdate } from '../../assistant/context'
 import PlayerPage from '.'
@@ -201,17 +202,23 @@ describe('Trace the warm edge', () => {
     expect(engine.traced).toEqual([NW_TO_CENTRE, SOUTH])
   })
 
-  it('is started by the T key', async () => {
-    const { user } = await inChangeStyle()
-    await user.keyboard('t')
+  it('is started by the trace action, which T makes on the sound map (IX01)', async () => {
+    await inChangeStyle()
+    act(() => { dispatch({ type: 'trace' }) })
     await waitFor(() => expect(engine.traceContour).toHaveBeenCalledTimes(1))
   })
 
-  it('is disabled when the date has no contour, and T says so instead of playing', async () => {
-    contours = []
-    const { user, button } = await inChangeStyle(false)
-    expect(button).toBeDisabled()
+  it('does not start on a T pressed outside the sound map: a single letter works only there (WCAG 2.1.4)', async () => {
+    const { user } = await inChangeStyle()
     await user.keyboard('t')
+    expect(engine.traceContour).not.toHaveBeenCalled()
+  })
+
+  it('is disabled when the date has no contour, and a trace says so instead of playing', async () => {
+    contours = []
+    const { button } = await inChangeStyle(false)
+    expect(button).toBeDisabled()
+    act(() => { dispatch({ type: 'trace' }) })
     await waitFor(() => expect(document.querySelector('[aria-live="polite"]')?.textContent).toContain('There is no warm edge on this date.'))
     expect(engine.traceContour).not.toHaveBeenCalled()
   })
