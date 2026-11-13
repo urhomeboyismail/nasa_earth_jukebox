@@ -152,7 +152,7 @@ Echo, the guide, redrawn as Juke-Bot (helmet visor, headphones, chest screen, ai
 | [JB02](tickets/JB02-scroll-boosters.md) | Scroll-driven air boosters: tilt, thrust and retro-burn | S | agent | JB01 | — | done |
 | [JB03](tickets/JB03-audio-chest.md) | Audio-reactive chest: EQ bars and mini globe from the playing sound | M | agent | JB01 | — | done |
 | [JB04](tickets/JB04-dataset-mascot-theme.md) | Data-set colour themes and trails from the manifest | M | agent | F58 | schema, catalogue | done |
-| [JB05](tickets/JB05-tour-flight-path.md) | Guided tour flight path with a glowing jet trail | L | agent | JB01, JB02 | player | ready: feature/JB05-tour-flight-path |
+| [JB05](tickets/JB05-tour-flight-path.md) | Guided tour flight path with a glowing jet trail | L | agent | JB01, JB02 | player | done |
 | [JB06](tickets/JB06-alert-visor.md) | Alert visor on notable data events | S | agent | JB01, SN10 | player | done |
 | [JB07](tickets/JB07-explorer-mirror-legend.md) | Echo mirrors the explorer; the legend becomes playable | M | agent | JB01, SN09, IX02 | explorer | done |
 | [JB08](tickets/JB08-ixia-mascot.md) | Echo wears Ixia: the myt Learning Hub's 3D robot replaces the SVG robot; our voice guide stays | M | agent | — | app, voice | claimed: A, 2026-11-13 |
