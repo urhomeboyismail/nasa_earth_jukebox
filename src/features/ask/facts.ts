@@ -2,7 +2,7 @@
 // data always gives the same words, and no number is typed in by hand. No model is involved.
 
 import type { FrameAnalysis } from '../../analysis'
-import type { Visualization } from '../../data'
+import { primaryRegion, type Visualization } from '../../data'
 import { dateFormatterFor } from '../../dates'
 
 export type Fact = {
@@ -16,7 +16,8 @@ const round = (value: number) => value.toFixed(1)
 const signed = (value: number) => `${value > 0 ? '+' : ''}${round(value)}`
 
 export function buildFacts(visualization: Visualization, results: FrameAnalysis[]): Fact[] {
-  const { frames, variable, regions, source } = visualization
+  const { frames, variable, source } = visualization
+  const region = primaryRegion(visualization)
   const unit = variable.unit ? ` ${variable.unit}` : ''
   const name = variable.name.toLowerCase()
   const when = dateFormatterFor(frames.map(frame => frame.date))
@@ -57,7 +58,7 @@ export function buildFacts(visualization: Visualization, results: FrameAnalysis[
       ? `There is not enough data for ${missing.join(', ')}. That is a gap in the source, not a zero.`
       : 'Every date has enough data to read.',
   })
-  facts.push({ id: 'F-region', kind: 'text', text: `The sound is made from ${regions[0].name}. ${regions[0].description}` })
+  facts.push({ id: 'F-region', kind: 'text', text: `The sound is made from ${region.name}. ${region.description}` })
   facts.push({ id: 'F-source', kind: 'text', text: `The images come from ${source.name}. ${source.credit}.` })
   facts.push({
     id: 'F-method', kind: 'text',

@@ -11,7 +11,7 @@ import { useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
 import { useAssistantContext } from '../../assistant/context'
 import { Button, Card, Notice } from '../../components'
-import { variableWords, type Comparison, type Visualization } from '../../data'
+import { primaryRegion, variableWords, type Comparison, type Visualization } from '../../data'
 import { dateFormatterFor } from '../../dates'
 import { StudyClient, type Participant, type StudyStatus } from './studyClient'
 
@@ -35,7 +35,10 @@ const CONFIDENCE = [
 ]
 
 export default function TestMode({ visualization, client: given }: { visualization: Visualization; client?: StudyClient }) {
-  const { comparisons, regions, mapping } = visualization
+  const { mapping } = visualization
+  // F48: the test always uses the primary region, and only the comparisons made in it. A comparison in another region is left out.
+  const primary = primaryRegion(visualization)
+  const comparisons = useMemo(() => visualization.comparisons.filter(c => c.regionId === primary.id), [visualization.comparisons, primary.id])
   const words = variableWords(visualization.variable)
   const client = useMemo(() => given ?? new StudyClient(), [given])
   const [status, setStatus] = useState<StudyStatus>(() => client.status)
@@ -56,7 +59,7 @@ export default function TestMode({ visualization, client: given }: { visualizati
 
   // Sound: the same engine and analysis as the Compare page.
   const { engine, engineError } = useSoundEngine(mapping)
-  const { results, error: analysisError } = useFrameAnalysis(visualization, regions[0])
+  const { results, error: analysisError } = useFrameAnalysis(visualization, primary)
   const [soundStyle] = useSoundStyle()
   // The listening test plays full or simple only, until the 13 Nov decision on the "change" style (docs/PLAN.md §6.2).
   useEffect(() => { engine?.setStyle(soundStyle === 'change' ? 'full' : soundStyle) }, [engine, soundStyle])
@@ -82,6 +85,15 @@ export default function TestMode({ visualization, client: given }: { visualizati
     else setStep('thanks')
   }
 
+  if (comparisons.length === 0) {
+    return (
+      <div className="test">
+        <p className="test__badge">Listening test</p>
+        <Notice>This data set has no comparisons for the listening test in {primary.name}, the region the test uses, so the test cannot start.</Notice>
+      </div>
+    )
+  }
+
   return (
     <div className="test">
       <p className="test__badge">Listening test</p>
@@ -91,6 +103,7 @@ export default function TestMode({ visualization, client: given }: { visualizati
         <form onSubmit={(event: FormEvent) => { event.preventDefault(); setStep('about') }} className="test__form">
           <h2 ref={heading} tabIndex={-1}>Before you start</h2>
           <p>We are testing whether people can hear changes in NASA Earth data by sound alone. You will listen to pairs of dates and say which one is {words.higher}. It takes about {Math.max(2, comparisons.length * 2)} minutes.</p>
+          <p>There {comparisons.length === 1 ? 'is 1 pair' : `are ${comparisons.length} pairs`} to listen to, all in {primary.name}.</p>
           <ul className="test__list">
             <li>We keep your answers and how long you took. We do not ask for your name or email, and we do not store your IP address.</li>
             <li>It tests the app, not you. There are no wrong ways to find it hard, and we want to hear if you do.</li>

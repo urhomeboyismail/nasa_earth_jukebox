@@ -55,13 +55,13 @@ Start from `scripts/templates/manifest.template.json`. Every `TODO` is something
 | `colorScale.stops` | converter, from `legend.json` | Read off the colour bar, in order of value, each stop's colour exactly as in the image |
 | `colorScale.noData` | person | Colours of land, labels and missing pixels; none may lie within `maxColorDistance` of the legend line |
 | `colorScale.maxColorDistance` | person | Start at 40; lower it if land is read as a value |
-| `regions` (`id`, `name`, `description`, `points`) | person (the converter writes 30 starting `points`) | `points` are fractions 0 to 1 of the image, over water the legend colours; the first region is the one Compare and the listening test use |
+| `regions` (`id`, `name`, `description`, `points`) | person (the converter writes 30 starting `points`) | `points` are fractions 0 to 1 of the image, over water the legend colours; the first region is the primary one: the listening test, About and Ask use it, and Listen and Compare start on it. A listener can choose another region on Listen (`#listen?region=<id>`) and for their own two dates on Compare (F48) |
 | `frames` (`id`, `date`, `image`, `width`, `height`) | converter | From the file names and the PNG header; frames in date order, one per date |
 | `frames[].altText`, `frames[].note` | person | Describe the picture; `note` only for a frame with missing data |
 | `mapping.scale`, `tick`, `missingCue` | template | Leave as in the template: missing data is always the noise hiss |
 | `mapping.minValidFraction` | template | 0.5 unless there is a reason |
 | `mapping.categories` | converter, then person | The converter splits the legend's span into five equal ranges; a person checks them. Five, coolest first, each starting where the one before ends, covering the legend's lowest to highest value; notes C4 E4 G4 C5 E5 |
-| `comparisons` | person | Checked against the NASA source (T85 step 5). `regionId` must be the first region's until T98 |
+| `comparisons` | person | Checked against the NASA source (T85 step 5). `regionId` must name a region of the data set, any of them (F48): Compare plays the comparison in that region. The listening test shows only the comparisons in the first region, so keep at least one there |
 | `mapArea` | converter or person | The map without legend bar or titles, as fractions 0 to 1 |
 | `story` | person | Optional chapters; each runs forward in time |
 | `baseline`, `mapping.changeSteps`, `mapping.contourLevels`, `frames[].baselineImage` | converter (`--baseline-*`), then person | v2, optional, all three of the first together or none (see "Baselines" below). `changeSteps` are five steps of change from normal, most below first, each starting where the one before ends, with a note C3 to C4 rising step by step; `contourLevels` are the fixed changes to trace, lowest first, notes C3 to C6 |

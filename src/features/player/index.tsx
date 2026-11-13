@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAssistantContext } from '../../assistant/context'
-import { Button, Legend, LoadingIndicator, Notice, Slider, useAnnounce } from '../../components'
-import { higherPhrase, variableWords, type Visualization } from '../../data'
+import { Button, Legend, LoadingIndicator, Notice, RegionPicker, Slider, useAnnounce } from '../../components'
+import { useRegionChoice } from '../../components/useRegionChoice'
+import { higherPhrase, variableWords, type Region, type Visualization } from '../../data'
 import { describeChange } from '../../describe'
 import { Description } from '../../describe/Description'
 import { useDescriptionDetail } from '../../describe/detail'
@@ -63,8 +64,16 @@ function ListenPage({ visualization }: { visualization: Visualization }) {
   const announce = useAnnounce()
   // IX12: art mode's preset plays in Symphony mode; it is null (the manifest's preset) while art mode is off.
   const art = useArt(visualization)
+  // F48: the region is in the address (region=<id>). Each mode starts afresh for a new region (the key), so no sound carries over and none starts by itself.
+  const [region, chooseRegion] = useRegionChoice(visualization)
+  const shown = { visualization, region }
   return (
     <>
+      <RegionPicker
+        regions={visualization.regions}
+        value={region.id}
+        onChange={id => { chooseRegion(id); announce(`Region: ${visualization.regions.find(r => r.id === id)?.name ?? id}.`) }}
+      />
       <fieldset className="symphony__mode">
         <legend>Listen as</legend>
         {MODES.map(({ id, label, says }) => (
@@ -74,13 +83,13 @@ function ListenPage({ visualization }: { visualization: Visualization }) {
           </label>
         ))}
       </fieldset>
-      {mode === 'symphony' ? <Symphony visualization={visualization} preset={art.preset} /> : mode === 'scan' ? <Scan visualization={visualization} /> : <Player visualization={visualization} />}
+      {mode === 'symphony' ? <Symphony key={region.id} {...shown} preset={art.preset} /> : mode === 'scan' ? <Scan key={region.id} {...shown} /> : <Player key={region.id} {...shown} />}
       {mode === 'symphony' && <ArtPanel art={art} />}
     </>
   )
 }
 
-function Player({ visualization }: { visualization: Visualization }) {
+function Player({ visualization, region }: { visualization: Visualization; region: Region }) {
   const vibration = useVibrationSetting()
   const announce = useAnnounce()
   const { frames, source } = visualization
@@ -90,7 +99,7 @@ function Player({ visualization }: { visualization: Visualization }) {
   // A pulse each time the player lands on a date, while playing or when one date is chosen. Not on page load.
   const player = usePlayer(visualization, (_index, category) => {
     if (vibration.enabled) vibrateForDate(category, visualization.mapping)
-  }, linked)
+  }, linked, { region })
   const words = variableWords(visualization.variable)
   const frame = frames[player.index]
   const playing = player.status === 'playing'

@@ -7,7 +7,7 @@ import { SCHEDULE_LOOKAHEAD_S } from '../../audio/ensemble/constants'
 import { useEnsemble } from '../../audio/ensemble/useEnsemble'
 import { Button, Slider, useAnnounce } from '../../components'
 import { dateFormatterFor } from '../../dates'
-import type { Visualization } from '../../data'
+import { primaryRegion, type Region, type Visualization } from '../../data'
 import { presetFor } from '../../sonify'
 import { columnAt, scanPlan, SCAN_MS_PER_COLUMN, type ScanColumn } from '../../sonify/scan'
 import { scanFeatures } from './scanFeatures'
@@ -23,9 +23,9 @@ const START = 'Scanning from the west edge. About five seconds.'
 
 const prefersReducedMotion = () => typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-export function Scan({ visualization }: { visualization: Visualization }) {
+export function Scan({ visualization, region }: { visualization: Visualization; region?: Region }) {
   const announce = useAnnounce()
-  const { frames, regions, source } = visualization
+  const { frames, source } = visualization
   const preset = presetFor(visualization.sonification?.preset ?? 'major')
   const { ensemble, status } = useEnsemble(preset, 'full')
   const [index, setIndex] = useState(0)
@@ -169,7 +169,7 @@ export function Scan({ visualization }: { visualization: Visualization }) {
 
   return (
     <section className="player symphony" aria-label="Scan">
-      <Viewer frame={frame} dateText={format(frame.date)} region={regions[0]} source={source}>
+      <Viewer frame={frame} dateText={format(frame.date)} region={region ?? primaryRegion(visualization)} source={source}>
         {/* Only for sighted listeners; the start and the end are announced in words. */}
         {line && <div className="scan__line" data-column={line.column} aria-hidden="true" style={lineStyle} />}
       </Viewer>

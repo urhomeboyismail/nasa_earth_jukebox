@@ -76,13 +76,18 @@ describe('visualizationSchema', () => {
     expect(errorAfter(v => { v.comparisons[0].regionId = 'nope' })).toBe('comparisons.0.regionId: there is no region "nope"')
   })
 
-  it('rejects a comparison in any region but the first, until Compare uses the comparison\'s own region', () => {
+  it('accepts a comparison in a region other than the first (F48)', () => {
+    const v: any = valid()
+    v.regions.push({ ...v.regions[0], id: 'second' })
+    v.comparisons[0].regionId = 'second'
+    expect(visualizationSchema.safeParse(v).success).toBe(true)
+  })
+
+  it('still rejects a comparison that names a region the data set does not have, when there are two', () => {
     expect(errorAfter(v => {
       v.regions.push({ ...v.regions[0], id: 'second' })
-      v.comparisons[0].regionId = 'second'
-    })).toBe(
-      `comparisons.0.regionId: is "second" but must be "${valid().regions[0].id}", the first region, because Compare and the listening test use the first region only`,
-    )
+      v.comparisons[0].regionId = 'third'
+    })).toBe('comparisons.0.regionId: there is no region "third"')
   })
 
   it('rejects region points outside the image', () => {
