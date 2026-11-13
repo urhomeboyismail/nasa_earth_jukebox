@@ -154,7 +154,7 @@ Echo, the guide, redrawn as Juke-Bot (helmet visor, headphones, chest screen, ai
 | [JB04](tickets/JB04-dataset-mascot-theme.md) | Data-set colour themes and trails from the manifest | M | agent | F58 | schema, catalogue | done |
 | [JB05](tickets/JB05-tour-flight-path.md) | Guided tour flight path with a glowing jet trail | L | agent | JB01, JB02 | player | open |
 | [JB06](tickets/JB06-alert-visor.md) | Alert visor on notable data events | S | agent | JB01, SN10 | player | open |
-| [JB07](tickets/JB07-explorer-mirror-legend.md) | Echo mirrors the explorer; the legend becomes playable | M | agent | JB01, SN09, IX02 | explorer | claimed: E, 2026-11-13 |
+| [JB07](tickets/JB07-explorer-mirror-legend.md) | Echo mirrors the explorer; the legend becomes playable | M | agent | JB01, SN09, IX02 | explorer | ready: feature/JB07-explorer-mirror-legend |
 
 ### P3: people, evidence and submission
 

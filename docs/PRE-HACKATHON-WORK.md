@@ -92,6 +92,7 @@ Add one line per piece of work, newest last.
 | 13 Nov | VIS3 Design-system housekeeping: Roboto Flex loaded; the token generator reproduces `tokens.css` (and adds the warning pair and Echo's `--mascot-*` colours); Echo's art, the corner radii and the colour fallbacks use tokens; the shared loader as the Suspense fallback | `feature/VIS3-design-system-housekeeping` (#48) |
 | 13 Nov | IX02 What's here on demand: I, a long press, a right click or gamepad X says and shows what the place shows, a second ask within 4 s where it is; no sound; Escape forgets the question; Brief or Full kept on the device | `feature/IX02-whats-here` (#49) |
 | 13 Nov | VIS2 Colour-vision patterns and display settings: a Display button with an easier reading font (Atkinson Hyperlegible, self-hosted), a yellow-and-cyan-on-black high-contrast scheme and six stroke-only patterns over the sound map and in the legend; kept on the device, announced, the sound and the grid read unchanged | `feature/VIS2-patterns-display-settings` (#50) |
+| 13 Nov | JB07 Echo mirrors the sound map (searching visor, a chest bar that follows the value, the "What's here?" sentence in the bubble) and the legend is playable: focus or click a category to hear its tone and its label, range and pitch direction | `feature/JB07-explorer-mirror-legend` |
 
 ## Outside resources used
 

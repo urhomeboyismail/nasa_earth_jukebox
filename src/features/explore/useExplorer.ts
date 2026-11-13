@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
 import { analyzeGrid, type FrameGrid } from '../../analysis'
 import type { SequenceStep, SoundEngine } from '../../audio'
+import { useAssistantContext } from '../../assistant/context'
 import { useEnsemble } from '../../audio/ensemble/useEnsemble'
 import { elevationForPoint, panForPoint } from '../../audio/pan'
 import { presetFor } from '../../sonify/presets'
@@ -524,6 +525,16 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
     .filter(shortcut => shortcut.device === 'keyboard' && shortcut.scope === 'map')
     .map(shortcut => `${shortcut.keys}: ${shortcut.does(words)}${shortcut.note ? ` ${shortcut.note}` : ''}`)
     .join(' ')} Direct touch: drag to hear each place. Two fingers tap to stop.`
+
+  // JB07: Echo mirrors the explorer. Published on the context bus: whether the map is being explored, the value under the cursor and where it sits
+  // across the legend, and the last "What's here?" sentence. Cleared when the explorer goes away.
+  const cursorValue = on && grid ? (grid.cells[cursor.row * grid.cols + cursor.col]?.value ?? null) : null
+  useAssistantContext('explore', {
+    exploring: on && !!grid,
+    value: cursorValue,
+    position: cursorValue === null ? null : positionOfValue(cursorValue, colorScale),
+    here: on ? whatsHere : '',
+  })
 
   return {
     on, grid, mapping, error, cursor, sweeping, locked, area, image: frame.image, loading: on && !grid && !error,
