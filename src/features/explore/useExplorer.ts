@@ -21,6 +21,7 @@ import { useActionHandler } from '../../interaction/registry'
 import { listedShortcuts } from '../../interaction/shortcuts'
 import { registerSpeechStopper } from '../../interaction/speech'
 import { useKeyboard, usePointerInput } from '../../interaction/useInput'
+import { addStoredMark, removeStoredMarkLike } from '../marks/store'
 import { vibrateForDate } from '../player/vibration'
 import { createProbeAudio, useProbeSettings, type ProbeAudio } from './probeAudio'
 import { VERBOSITY_KEY, nextLevel, parseVerbosity, whatsHereText, type LastQuery, type Verbosity } from './whatsHere'
@@ -489,6 +490,17 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   useActionHandler('undo', () => {
     if (!on) return
     undoLast()
+  })
+  // IX08: M marks the date and the cell the cursor is on. One bright note answers at once; the mark is listed as text by the marks panel. Ctrl+Z takes it back.
+  useActionHandler('mark', () => {
+    if (!on || !grid) return
+    const { col, row } = cursorRef.current
+    const mark = { dataId: visualization.id, date: frame.date, col, row, at: new Date().toISOString() }
+    addStoredMark(mark)
+    recordUndo('mark', () => removeStoredMarkLike(mark))
+    feedback.mark()
+    wake()
+    begin()
   })
   // IX02: I, a long press, a right click or gamepad X. Words, never sound: level 1 says what the place shows, a second question within 4 s where it is.
   useActionHandler('query', () => {
