@@ -136,7 +136,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [I12](tickets/I12-missing-unit-tests.md) | Unit tests for five untested modules | S | agent | — | — | done |
 | [VIS1](tickets/VIS1-low-vision-map-tools.md) | Low-vision map tools: magnifier, big cursor, high-contrast outline, forced colours | M | agent | — | explorer | done |
 | [VIS2](tickets/VIS2-patterns-display-settings.md) | Colour-vision patterns and display settings | M | agent | — | app, explorer | open |
-| [VIS3](tickets/VIS3-design-system-housekeeping.md) | Design-system housekeeping | M | agent | — | app | ready: feature/VIS3-design-system-housekeeping |
+| [VIS3](tickets/VIS3-design-system-housekeeping.md) | Design-system housekeeping | M | agent | — | app | done |
 | [F42](tickets/F42-spoken-demo-caption.md) | Spoken demo caption; demo fixes | S | agent | — | — | done |
 | [F48](tickets/F48-region-picker.md) | Region picker | M | agent | I06 | player, compare, schema | open |
 | [AU-UI](tickets/AU-UI-interface-sounds.md) | Interface sounds, quiet and behind a switch | M | agent | SN04, H03 | player, compare, voice | open |
