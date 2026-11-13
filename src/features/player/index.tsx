@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAssistantContext } from '../../assistant/context'
 import { Button, Legend, LoadingIndicator, Notice, Slider, useAnnounce } from '../../components'
-import type { ChangeVisualization } from '../../analysis'
 import { higherPhrase, variableWords, type Visualization } from '../../data'
 import { describeChange } from '../../describe'
 import { Description } from '../../describe/Description'
@@ -211,7 +210,7 @@ function Player({ visualization }: { visualization: Visualization }) {
 
       {player.results && <Description visualization={visualization} results={player.results} index={player.index} />}
       {player.style === 'change' && player.score && (
-        <p className="player__change">{describeChange(visualization as ChangeVisualization, player.score, { detail })}</p>
+        <p className="player__change">{describeChange(visualization, player.score, { detail })}</p>
       )}
 
       {player.results && (
@@ -324,6 +323,7 @@ function Player({ visualization }: { visualization: Visualization }) {
               Trace the {words.edge}
             </Button>
             <span>Plays each line of change on this date as a sound that moves across the map. Press T, or Escape to stop.</span>
+            {player.scoreProblem && <Notice variant="error">The change for this date could not be read, so there is nothing to trace. {player.scoreProblem}</Notice>}
           </>
         )}
         <Button pressed={player.spatial === '3d'} onClick={() => player.setSpatial(player.spatial === '3d' ? 'stereo' : '3d')}>

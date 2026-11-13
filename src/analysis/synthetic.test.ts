@@ -17,7 +17,7 @@ type Expected = { frameId: string; regionId: string; sampled: number; valid: num
 const MEDIAN_TOLERANCE = 0.05
 
 const dataDir = resolve(fileURLToPath(import.meta.url), '../../../public/data')
-const readJson = <T>(id: string, file: string) => JSON.parse(readFileSync(`${dataDir}/${id}/${file}`, 'utf8')) as T
+const readJson = <Shape>(id: string, file: string) => JSON.parse(readFileSync(`${dataDir}/${id}/${file}`, 'utf8')) as Shape
 const readFrame = (id: string, image: string) => decodePng(readFileSync(`${dataDir}/${id}/${image}`))
 
 describe.each(['synthetic-ocean', 'synthetic-globe'])('%s: every frame gives the category it should', id => {

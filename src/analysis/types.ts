@@ -1,6 +1,6 @@
 // Types of sound pipeline v2 (docs/PLAN.md §5.9). Types only, so T113 (contours) and T114 (audio) can import them without pulling in any code.
 
-import type { ColorScale, Frame, MapArea, Visualization } from '../data'
+import type { ColorScale, MapArea } from '../data'
 
 /** Row-major, row 0 north. NaN = cannot be read (missing data, land, cloud, a color off the legend). */
 export type ValueField = { cols: number; rows: number; area: MapArea; values: Float32Array }
@@ -49,9 +49,5 @@ export type Score = { frameId: string; change: ChangeSummary; contours: Contour[
 
 /** Where a frame's normal comes from. `image` is the picture to read (null for an anomaly product: the frame already is the change). */
 export type BaselineSource = { image: string | null; noiseFloor: number }
-
-/** The v2 manifest fields are part of the data types now (T111); these names are kept so the analysis code reads as before. */
-export type ChangeFrame = Frame
-export type ChangeVisualization = Visualization
 
 export type { ColorScale, MapArea }

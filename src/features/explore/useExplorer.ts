@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
 import { analyzeGrid, type FrameGrid } from '../../analysis'
+import { createLru } from '../../analysis/lru'
 import type { SequenceStep, SoundEngine } from '../../audio'
 import { useAssistantContext } from '../../assistant/context'
 import { useEnsemble } from '../../audio/ensemble/useEnsemble'
@@ -34,6 +35,8 @@ function saveVerbosity(verbosity: Verbosity) {
 }
 
 /** One cell of a sweep per step. */
+/** Dates whose map is kept; an older one is read again when it is asked for. */
+const GRID_CACHE_LIMIT = 128
 const SWEEP_STEP_MS = 250
 const CELL_NOTE_MS = 300
 /** One date of a locked place per step when it plays across the dates. */
@@ -102,7 +105,7 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   /** F23: the cursor is locked on one place, and the dates move under it. */
   const [locked, setLocked] = useState(false)
   /** The map of each date, read once: locking and scrubbing ask for the same dates again and again. */
-  const gridCache = useRef(new Map<string, FrameGrid>())
+  const [gridCache] = useState(() => createLru<FrameGrid>(GRID_CACHE_LIMIT))
 
   // Timers and counters that must not cause a render.
   const sweepId = useRef(0)
@@ -151,7 +154,7 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
         if (cancelled) return
         setRead({ frame, colorScale, mapping, mapArea, grid: done, error: '' })
         // The first read puts the cursor in the middle; a later date keeps it where it was.
-        gridCache.current.set(`${visualization.id}/${frame.id}`, done)
+        gridCache.set(`${visualization.id}/${frame.id}`, done)
         const now = cursorRef.current
         if (!(placed.current && now.col < done.cols && now.row < done.rows)) {
           place({ col: Math.floor(done.cols / 2), row: Math.floor(done.rows / 2) })
@@ -168,7 +171,7 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
         clearTimers()
       }
     }
-  }, [on, frame, colorScale, mapping, visualization, clearTimers, place, stopSweep])
+  }, [on, frame, colorScale, mapping, visualization, clearTimers, place, stopSweep, gridCache])
 
   useEffect(() => clearTimers, [clearTimers])
 
@@ -322,12 +325,12 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   /** The map of any date, from the cache or read now. */
   const gridFor = useCallback(async (of: Frame) => {
     const key = `${visualization.id}/${of.id}`
-    const known = gridCache.current.get(key)
+    const known = gridCache.get(key)
     if (known) return known
     const made = await analyzeGrid(of, colorScale, mapping, visualization.mapArea)
-    gridCache.current.set(key, made)
+    gridCache.set(key, made)
     return made
-  }, [visualization.id, visualization.mapArea, colorScale, mapping])
+  }, [visualization.id, visualization.mapArea, colorScale, mapping, gridCache])
 
   /** F23: holds the cursor on this place, so the dates can be heard one after another at the same spot. The lock is a sound, not a sentence. */
   const lock = useCallback(() => {

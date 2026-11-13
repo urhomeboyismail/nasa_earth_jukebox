@@ -93,4 +93,23 @@ npx vitest run src/analysis src/data src/features/player src/features/explore sr
 
 ## Result
 
-Not started.
+Built on `fix/I06-analysis-memory` (agent C, 2026-11-13).
+
+- `src/analysis/lru.ts` (new): `createLru(limit)` with `get`, `set`, `delete`, `size`. The three analysis caches and the explorer's grid cache use it, limit 128.
+- `analyzeAll` reads at most 3 frames at once (`mapLimited`), keeps frame order, and stops starting frames after the first failure.
+- Worker results are checked by kind (`expectResult`) instead of cast to `T`; a wrong kind rejects.
+- `ChangeFrame` and `ChangeVisualization` are gone; callers use `Frame` and `Visualization`.
+- A failed change score now keeps the trace button disabled, shows a `Notice` and is announced.
+- Outside the ticket's Touches, only to make the rename compile and the grep clean: `src/analysis/available.ts`, `src/describe/change.ts`, `src/describe/describe.test.ts` (type names), and `src/analysis/synthetic.test.ts` (a test helper's generic renamed from `T`; its JSON cast is unchanged).
+- Memory was not measured in a browser, so `docs/performance.md` is unchanged.
+
+```
+npm run lint     -> no warnings or errors
+npm test         -> Test Files 161 passed (161); Tests 2529 passed (2529)
+npm run build    -> tsc -b clean; vite build built in 1.62s
+npx vitest run src/analysis src/data src/features/player src/features/explore src/features/compare
+                 -> Test Files 55 passed (55); Tests 965 passed (965), golden tests unchanged
+grep -rnE "as T|ChangeVisualization|ChangeFrame" src -> no output
+```
+
+One earlier full run had a single failure in a Listen test (the Date slider check) that did not repeat and passes on main without this change; it looks load-related.
