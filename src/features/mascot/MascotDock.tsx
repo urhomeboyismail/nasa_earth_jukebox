@@ -4,6 +4,8 @@
 // The open data set colours Echo and picks its jet trail (accent.ts, JB04): set on the dock as --mascot-* variables and data-trail.
 
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
+import { currentContext, subscribeContext } from '../../assistant/context'
+import { LEVEL_BANDS } from '../../audio/levels'
 import { Button, useAnnounce } from '../../components'
 import { Echo } from '../../components/Mascot'
 import type { MascotPose } from '../../components/mascotTypes'
@@ -45,6 +47,31 @@ const TAIL_INSET = 24
 
 type CssVars = CSSProperties & Record<`--${string}`, string>
 
+/** JB07: what the sound map publishes on the context bus (useExplorer.ts). */
+type ExploreState = { exploring: boolean; position: number | null; here: string }
+const NOT_EXPLORING: ExploreState = { exploring: false, position: null, here: '' }
+
+function readExplore(data: unknown): ExploreState {
+  if (typeof data !== 'object' || data === null) return NOT_EXPLORING
+  const exploring = 'exploring' in data && data.exploring === true
+  const position = 'position' in data && typeof data.position === 'number' && Number.isFinite(data.position) ? Math.min(1, Math.max(0, data.position)) : null
+  const here = 'here' in data && typeof data.here === 'string' ? data.here : ''
+  return exploring ? { exploring, position, here } : NOT_EXPLORING
+}
+
+function useExploreState(): ExploreState {
+  const [state, setState] = useState(() => readExplore(currentContext().find(item => item.key === 'explore')?.data))
+  useEffect(() => subscribeContext(update => { if (update.key === 'explore') setState(readExplore(update.data)) }), [])
+  return state
+}
+
+/** One tall bar in the chest, placed across the bars by the value under the cursor (position 0 is the first bar, 1 the last). */
+function exploreLevels(position: number): Uint8Array {
+  const bars = new Uint8Array(LEVEL_BANDS)
+  bars[Math.round(position * (LEVEL_BANDS - 1))] = 255
+  return bars
+}
+
 /** The accent on the boots, headphones and trail, and a lighter mix of it for the nozzles and the unlit LEDs. */
 function themeStyle(accent: string): CssVars {
   return { '--mascot-accent': accent, '--mascot-accent-soft': `color-mix(in srgb, ${accent} 55%, #ffffff)`, '--mascot-trail': accent }
@@ -56,6 +83,7 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
   const { tip } = useMascotGuideState()
   const { clearTip } = useMascotGuide()
   const face = useFaceState()
+  const explore = useExploreState()
   const chest = useLevels(mascotOn && !voiceOpen && face.playing && !face.hidden)
   const boost = useScrollVelocity()
   const [open, setOpen] = useState(false)
@@ -70,7 +98,7 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
   // The voice panel took over: the bubble closes (state adjusted while rendering, not in an effect).
   if (voiceOpen && open) setOpen(false)
 
-  const expression = expressionFor({ loading, voice, playing: face.playing, tipMood: tip?.mood, idleMs: face.idleMs, hidden: face.hidden })
+  const expression = expressionFor({ loading: loading || explore.exploring, voice, playing: face.playing, tipMood: tip?.mood, idleMs: face.idleMs, hidden: face.hidden })
   const name = tip ? `${MASCOT_NAME}, your guide, has a tip` : `${MASCOT_NAME}, your guide`
 
   /** Puts the bubble beside the helmet. Writes to the element, so a scroll or resize costs no render. */
@@ -126,7 +154,7 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
 
   function toggle() {
     if (open) { close(); return }
-    const text = tip?.text ?? TIPS[page]
+    const text = explore.exploring && explore.here ? explore.here : (tip?.text ?? TIPS[page])
     setShown(text)
     announce(text)
     if (tip) clearTip()
@@ -179,7 +207,7 @@ export default function MascotDock({ page, loading, voice, voiceOpen, onTalk, on
       )}
       {hint && !open && <span className="mascot-dock__label" aria-hidden="true">{MASCOT_NAME}, your guide</span>}
       <button ref={button} type="button" className="mascot-dock__button" aria-expanded={open} aria-controls={open ? panelId : undefined} aria-label={name} onClick={toggle}>
-        <Echo className="mascot-dock__echo" pose={poseFor(voice)} expression={expression} motion={boost.motion} thrust={boost.thrust} levels={chest.levels ?? undefined} globeSpin={chest.loudness} />
+        <Echo className="mascot-dock__echo" pose={poseFor(voice)} expression={expression} motion={boost.motion} thrust={boost.thrust} levels={explore.exploring && explore.position !== null ? exploreLevels(explore.position) : (chest.levels ?? undefined)} globeSpin={chest.loudness} />
         {tip && <span className="mascot-dock__tip-dot" aria-hidden="true" />}
       </button>
     </div>

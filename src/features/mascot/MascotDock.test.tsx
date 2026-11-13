@@ -48,6 +48,7 @@ afterEach(() => {
   vi.useRealTimers()
   setMascotOn(true)
   publishContext('player', null)
+  publishContext('explore', null)
 })
 
 describe('the dock', () => {
@@ -276,5 +277,60 @@ describe("Echo's look follows the open data set (JB04)", () => {
     expect(dock(container)).toHaveAttribute('data-trail', 'sparks')
     rerender(<Dock visualization={null} />)
     expect(dock(container).style.getPropertyValue('--mascot-accent')).toBe('')
+  })
+})
+
+describe('Echo mirrors the sound map (JB07)', () => {
+  const exploring = (position: number, here = '') => ({ exploring: true, value: position * 30, position, here })
+
+  it('searches while the map is explored and goes back to its usual face after', () => {
+    const { container } = render(<Dock />)
+    expect(face(container)).toBe('happy')
+    act(() => publishContext('explore', exploring(0.5)))
+    expect(face(container)).toBe('searching')
+    act(() => publishContext('explore', { exploring: false, value: null, position: null, here: '' }))
+    expect(face(container)).toBe('happy')
+    act(() => publishContext('explore', exploring(0.5)))
+    act(() => publishContext('explore', null))
+    expect(face(container)).toBe('happy')
+  })
+
+  it('knows the map is being explored when it mounts after that began', () => {
+    publishContext('explore', exploring(0.2))
+    const { container } = render(<Dock />)
+    expect(face(container)).toBe('searching')
+  })
+
+  it('moves one bar of the chest with the value under the cursor', () => {
+    const { container } = render(<Dock />)
+    const resting = container.innerHTML
+    act(() => publishContext('explore', exploring(0)))
+    const low = container.innerHTML
+    act(() => publishContext('explore', exploring(1)))
+    const high = container.innerHTML
+    expect(low).not.toBe(resting)
+    expect(high).not.toBe(low)
+    act(() => publishContext('explore', exploring(0)))
+    expect(container.innerHTML).toBe(low)
+  })
+
+  it("shows the latest What's here sentence when the bubble is opened, and the usual tip when it is not exploring", async () => {
+    const user = userEvent.setup()
+    render(<Dock />)
+    act(() => publishContext('explore', exploring(0.5, 'Warm water, 21 °C, near the west edge.')))
+    await user.click(echoButton())
+    expect(screen.getByRole('region', { name: 'Echo, your guide' })).toHaveTextContent('Warm water, 21 °C, near the west edge.')
+    await user.click(echoButton())
+    act(() => publishContext('explore', null))
+    await user.click(echoButton())
+    expect(screen.getByRole('region', { name: 'Echo, your guide' })).toHaveTextContent(TIPS.listen)
+  })
+
+  it('makes no sound or speech of its own when the cursor moves', () => {
+    render(<Dock />)
+    const before = liveText()
+    act(() => publishContext('explore', exploring(0.3)))
+    act(() => publishContext('explore', exploring(0.9)))
+    expect(liveText()).toBe(before)
   })
 })

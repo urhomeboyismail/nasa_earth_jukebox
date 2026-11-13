@@ -88,4 +88,18 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Not started.
+Built on `feature/JB07-explorer-mirror-legend` (agent E, 2026-11-13).
+
+- `src/assistant/context.ts`: the `'explore'` key. `useExplorer.ts` publishes `{ exploring, value, position, here }` (`here` is IX02's last sentence, added so the dock can show it).
+- `MascotDock.tsx` reads it: while exploring the visor is `searching`, the chest shows one full-height bar placed across the four bars by `position`, and an opened bubble shows the latest "What's here?" sentence (else the usual tip). Echo adds no sound or speech.
+- `Legend.tsx`: each category is a focusable list item (roving Tab stop, arrow keys, Home and End) named "<label>: <from> to <to> <unit>". Keyboard focus or a click starts the legend's own ensemble and sounds the category's middle value through SN09's `createProbeAudio`; hover sounds it only once the sound is on; blur and pointer leave stop it. It announces "<label>: <range>[, higher or lower pitch than the last one]" with `{ busy: true }`.
+- Tests: `Legend.test.tsx`, `MascotDock.test.tsx`, and `Explorer.test.tsx` (the publish test; that file is outside Touches but the ticket's tests need it).
+
+```
+npm run lint   -> oxlint, no warnings or errors
+npm test       -> Test Files 153 passed (153), Tests 2456 passed (2456)
+npm run build  -> tsc -b clean, vite build: built in 453ms
+(cd server && .venv/Scripts/python -m pytest -q) -> 296 passed, 2 skipped
+```
+
+Notes: "one tall bar at position x 255" was read as the bar's place following the value (height 255), not its height; say if the height should follow instead. The voice client forwards every context key to the server, which ignores `'explore'` (`CONTEXT_KEYS` is player and compare), so a cursor move sends a small unused message while a voice session is open. Not tried with a screen reader or by ear; that is the ticket's step 4 and needs a person.

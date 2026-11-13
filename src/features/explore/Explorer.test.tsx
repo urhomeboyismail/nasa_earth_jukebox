@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
+import { currentContext } from '../../assistant/context'
 import type { FrameGrid } from '../../analysis'
 import { elevationForPoint, panForPoint } from '../../audio/pan'
 import type { ActionType } from '../../interaction/actions'
@@ -1219,5 +1220,31 @@ describe('Explorer: colour-vision patterns (VIS2)', () => {
     render(<PlayerPage visualization={visualization} />, { wrapper: wrap })
     await tick(0)
     expect(screen.getByText('Turn on Explore the map to see the patterns.')).toBeInTheDocument()
+  })
+})
+
+describe('Explorer: Echo mirrors it (JB07)', () => {
+  const published = () => currentContext().find(item => item.key === 'explore')?.data as { exploring: boolean; value: number | null; position: number | null; here: string } | undefined
+
+  it('publishes that it is exploring, the value under the cursor and where it sits across the legend, and clears when turned off', async () => {
+    const { user } = await exploring()
+    const start = cellOf(grid, START.col, START.row)
+    expect(published()?.exploring).toBe(true)
+    expect(published()?.value).toBe(start.value)
+    expect(published()?.position).toBeCloseTo(positionOfValue(start.value!, visualization.colorScale))
+    await user.keyboard('{ArrowRight}')
+    await tick(0)
+    expect(published()?.value).toBe(cellOf(grid, START.col + 1, START.row).value)
+    await user.click(screen.getByRole('button', { name: 'Explore the map' }))
+    await tick(0)
+    expect(published()).toMatchObject({ exploring: false, value: null, position: null })
+  })
+
+  it("carries the last What's here sentence", async () => {
+    const { user } = await exploring()
+    await user.keyboard('i')
+    await tick(0)
+    expect(published()?.here).not.toBe('')
+    expect(published()?.here).toBe(document.querySelector('.explorer__here')?.textContent)
   })
 })

@@ -1,12 +1,26 @@
-import { render, screen, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { render, screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../public/data/fixture/manifest.json'
 import type { ColorScale, Visualization } from '../data'
 import { DEFAULT_FLAGS } from '../display/flags'
 import { DisplaySettingsContext } from '../display/useDisplaySettings'
 import { expectNoA11yViolations } from '../test/a11y'
+import { AnnouncerProvider } from './Announcer'
 import { colourAt } from './colourAt'
 import { Legend } from './Legend'
+
+// JB07: the legend's ensemble and probe are recording stand-ins, so what it asks for can be checked and nothing sounds.
+const ensemble = vi.hoisted(() => ({ status: vi.fn(() => 'off'), start: vi.fn(async () => {}) }))
+const probe = vi.hoisted(() => ({ setMap: vi.fn(), point: vi.fn(), key: vi.fn(), leave: vi.fn(), start: vi.fn(), dispose: vi.fn() }))
+vi.mock('../audio/ensemble/useEnsemble', () => ({ useEnsemble: () => ({ ensemble, status: 'off', start: ensemble.start }) }))
+vi.mock('../features/explore/probeAudio', () => ({ createProbeAudio: () => probe }))
+
+beforeEach(() => {
+  Object.values(probe).forEach(fn => fn.mockClear())
+  ensemble.status.mockReset()
+  ensemble.status.mockReturnValue('off')
+})
 
 const visualization = fixture as Visualization
 // Blue at 0, yellow at 15, red at 30.
@@ -112,6 +126,91 @@ describe('Legend with colour-vision patterns (VIS2)', () => {
     expect(swatches).toHaveLength(visualization.mapping.categories.length + 1)
     expect(new Set(swatches.map(swatch => swatch.getAttribute('data-pattern'))).size).toBe(swatches.length)
     expect(screen.getByText('Not enough data')).toBeInTheDocument()
+    await expectNoA11yViolations(container)
+  })
+})
+
+describe('Legend: playable (JB07)', () => {
+  const liveText = () => document.querySelector('[aria-live="polite"]')?.textContent?.trim() ?? ''
+  const renderPlayable = () => render(
+    <AnnouncerProvider><Legend colorScale={visualization.colorScale} mapping={visualization.mapping} variable={visualization.variable} /></AnnouncerProvider>,
+  )
+  const stop = (name: string) => screen.getByRole('listitem', { name: new RegExp(`^${name}:`) })
+
+  it('is reached by Tab at the first category, and the arrow keys move between categories', async () => {
+    const user = userEvent.setup()
+    renderPlayable()
+    await user.tab()
+    expect(screen.getAllByRole('listitem')[0]).toHaveFocus()
+    await user.keyboard('{ArrowRight}')
+    expect(screen.getAllByRole('listitem')[1]).toHaveFocus()
+    await user.keyboard('{ArrowDown}{ArrowLeft}{ArrowUp}')
+    expect(screen.getAllByRole('listitem')[0]).toHaveFocus()
+    await user.keyboard('{End}')
+    expect(screen.getAllByRole('listitem')[4]).toHaveFocus()
+    await user.keyboard('{Home}')
+    expect(screen.getAllByRole('listitem')[0]).toHaveFocus()
+  })
+
+  it('sounds the focused category at the middle of its range, starts the sound from the key press, and says it once', async () => {
+    const user = userEvent.setup()
+    renderPlayable()
+    await user.tab()
+    expect(probe.start).toHaveBeenCalled()
+    expect(probe.setMap).toHaveBeenLastCalledWith(expect.objectContaining({ grid: expect.objectContaining({ cells: [{ value: 3, category: 'cold' }] }) }))
+    expect(probe.point).toHaveBeenCalledWith(0, 0)
+    expect(liveText()).toBe('Cold: 0 to 6 °C')
+  })
+
+  it('says whether the pitch is higher or lower than the last category played', async () => {
+    const user = userEvent.setup()
+    renderPlayable()
+    await user.tab()
+    await user.keyboard('{ArrowRight}')
+    expect(probe.setMap).toHaveBeenLastCalledWith(expect.objectContaining({ grid: expect.objectContaining({ cells: [{ value: 9, category: 'cool' }] }) }))
+    // Messages sent while sound plays are rate-limited to one per 1.5 s, newest first (announceRate.ts).
+    await waitFor(() => expect(liveText()).toContain('Cool: 6 to 12 °C, higher pitch'), { timeout: 3000 })
+    await user.keyboard('{ArrowLeft}')
+    await waitFor(() => expect(liveText()).toContain('Cold: 0 to 6 °C, lower pitch'), { timeout: 3000 })
+  })
+
+  it('stops the tone on blur', async () => {
+    const user = userEvent.setup()
+    renderPlayable()
+    await user.tab()
+    probe.leave.mockClear()
+    await user.tab()
+    expect(probe.leave).toHaveBeenCalled()
+  })
+
+  it('plays nothing on hover before a click or key press has started the sound', async () => {
+    const user = userEvent.setup()
+    renderPlayable()
+    await user.hover(stop('Warm'))
+    expect(probe.point).not.toHaveBeenCalled()
+    expect(liveText()).toBe('')
+  })
+
+  it('starts the sound on a click and sounds the category it was on', async () => {
+    const user = userEvent.setup()
+    renderPlayable()
+    await user.click(stop('Warm'))
+    expect(probe.start).toHaveBeenCalled()
+    expect(probe.setMap).toHaveBeenLastCalledWith(expect.objectContaining({ grid: expect.objectContaining({ cells: [{ value: 21, category: 'warm' }] }) }))
+  })
+
+  it('sounds a category on hover once the sound is on, and stops when the pointer leaves', async () => {
+    const user = userEvent.setup()
+    ensemble.status.mockReturnValue('on')
+    renderPlayable()
+    await user.hover(stop('Hot'))
+    expect(probe.setMap).toHaveBeenLastCalledWith(expect.objectContaining({ grid: expect.objectContaining({ cells: [{ value: 27, category: 'hot' }] }) }))
+    await user.unhover(stop('Hot'))
+    expect(probe.leave).toHaveBeenCalled()
+  })
+
+  it('has no accessibility violations', async () => {
+    const { container } = renderPlayable()
     await expectNoA11yViolations(container)
   })
 })
