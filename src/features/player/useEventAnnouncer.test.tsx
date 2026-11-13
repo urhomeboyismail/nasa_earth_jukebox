@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { FrameFeatures } from '../../analysis/features/types'
 import { AnnouncerContext } from '../../components/announcerContext'
 import type { Visualization } from '../../data'
+import { subscribeDataEvents } from '../mascot/dataEvents'
 import { features, spot } from '../../sonify/testFeatures'
 import { useEventAnnouncer } from './useEventAnnouncer'
 
@@ -51,5 +52,15 @@ describe('useEventAnnouncer', () => {
     vi.setSystemTime(10_000)
     rerender(show(features({ hotspots: [spot('h1', 'high', 0.8, 0.2)] })))
     expect(announce).not.toHaveBeenCalled()
+  })
+
+  it('publishes the events of each frame for Echo, and an empty list when playing stops', () => {
+    const seen: string[][] = []
+    const stop = subscribeDataEvents(events => seen.push(events.map(event => `${event.kind}: ${event.sentence}`)))
+    const { rerender } = render(show(features({ hotspots: [] })))
+    rerender(show(features({ hotspots: [spot('h1', 'high', 0.8, 0.2)] })))
+    rerender(show(null))
+    stop()
+    expect(seen).toEqual([[], ['appeared: A new warm area appeared in the north-east.'], []])
   })
 })
