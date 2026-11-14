@@ -56,6 +56,9 @@ class Settings(BaseSettings):
     mascot_timeout_seconds: float = Field(default=30, gt=0)
     # Optional: Planetary Computer works without a key, at lower rate limits.
     pc_sdk_subscription_key: SecretStr = SecretStr("")
+    # Echo's weather (WX01): the Meteomatics API login, sent as HTTP Basic auth. Left unset, Echo says weather is not set up.
+    meteomatics_username: str = ""
+    meteomatics_password: SecretStr = SecretStr("")
 
     # Google ADK agent (G01 to G05). Nothing calls the model while agent_enabled is false.
     agent_enabled: bool = False

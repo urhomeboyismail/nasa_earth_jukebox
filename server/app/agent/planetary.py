@@ -1,7 +1,8 @@
 """Echo fetches live data from Microsoft Planetary Computer (G11): one question in, a reply, a theme and an AudioPayload out.
 
-One ADK agent with two tools. The model only chooses tool arguments: which app data set answers the question, or which
-Planetary Computer collection, area and dates to fetch. The tools check those arguments and put what they fetched into the
+One ADK agent with three tools. The model only chooses tool arguments: which app data set answers the question, which
+Planetary Computer collection, area and dates to fetch, or which point and hours of weather to fetch from Meteomatics (WX01,
+app/agent/weather.py). The tools check those arguments and put what they fetched into the
 session state. The reply is a template filled from the fetched numbers, never text the model wrote (ADR-0005), and the
 sound is built from the numbers with no model call.
 
@@ -14,9 +15,10 @@ Manual check against the live API, with no model: `.venv/bin/python -m app.agent
 from __future__ import annotations
 
 import asyncio
+import logging
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime, timezone
 from functools import lru_cache
 from typing import Awaitable, Callable
 
@@ -27,8 +29,11 @@ from google.adk.runners import InMemoryRunner
 from google.adk.tools import FunctionTool, ToolContext
 from google.genai import types
 
+from app.agent import weather
 from app.agent.orchestrator import AudioPayload, _spread
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 STAC_URL = "https://planetarycomputer.microsoft.com/api/stac/v1"
 STATISTICS_URL = "https://planetarycomputer.microsoft.com/api/data/v1/item/statistics"
@@ -37,6 +42,9 @@ USER_ID = "anonymous"
 SERIES_KEY = "pc_series"
 LOCAL_KEY = "local_dataset_id"
 ERROR_KEY = "pc_error"
+#: "off" when no Meteomatics login is set, "down" when Meteomatics refused or did not answer.
+WEATHER_ERROR_KEY = "weather_error"
+WEATHER_SOURCE = "meteomatics-t_2m"
 
 #: The most values a series keeps (and so the most statistics calls one request makes), spread from the first day to the last.
 MAX_POINTS = 31
@@ -108,7 +116,7 @@ class Collection:
     metric: str
     unit: str
     theme: str
-    read: Reader
+    read: Reader | None = None  # None for a source with its own tool (weather)
 
 
 #: The only collections the model may ask for. (OISST, not the WHOI collection: its `sst` asset is a COG the data API reads.)
@@ -117,6 +125,11 @@ COLLECTIONS: dict[str, Collection] = {
     "noaa-cdr-sea-surface-temperature-optimum-interpolation": Collection(
         "days of sea surface temperature", "Sea surface temperature", " °C", "ocean", _sst_mean
     ),
+}
+#: The labels for every series the reply may describe. Separate from COLLECTIONS, so the model cannot ask Planetary Computer for weather.
+SOURCES: dict[str, Collection] = {
+    **COLLECTIONS,
+    WEATHER_SOURCE: Collection("hours of air temperature", "Air temperature", " °C", "atmosphere"),
 }
 
 
@@ -203,6 +216,29 @@ async def fetch_planetary_computer_data(
     return {"ok": True, "points": len(points)}
 
 
+async def fetch_weather(latitude: float, longitude: float, start: str, hours: int, tool_context: ToolContext) -> dict:
+    """Fetch hourly air temperature 2 m above the ground at one place, from Meteomatics.
+
+    latitude, longitude: the place asked about, in decimal degrees. start: the first hour, "YYYY-MM-DDTHH:00:00Z" in UTC.
+    hours: how many hours from start, 1 to 168 (24 for one day).
+    The series goes straight into the session state; this returns only how much was found."""
+    checked = weather.checked_args(latitude, longitude, start, hours)
+    if isinstance(checked, dict):
+        return checked
+    if not weather.configured():
+        tool_context.state[WEATHER_ERROR_KEY] = "off"
+        return {"error": "Weather is not set up on this server. Do not try again."}
+    try:
+        points = await weather.hourly_temperature(*checked)
+    except Exception as error:  # noqa: BLE001 - the network, a refusal (bad login, plan limits) or an unexpected body
+        status = error.response.status_code if isinstance(error, httpx.HTTPStatusError) else type(error).__name__
+        logger.warning("Meteomatics failed: %s", status)  # Never the URL: it holds the place asked about.
+        tool_context.state[WEATHER_ERROR_KEY] = "down"
+        return {"error": "Meteomatics did not answer. Do not try again."}
+    tool_context.state[SERIES_KEY] = series_of(WEATHER_SOURCE, points)
+    return {"ok": True, "points": len(points)}
+
+
 def search_local_datasets(dataset_id: str, tool_context: ToolContext) -> dict:
     """Choose one of the app's own data sets, listed in your instructions, when it answers the question. Give its id."""
     if dataset_id not in {entry["id"] for entry in tool_context.state.get("catalog") or []}:
@@ -223,15 +259,22 @@ def build_audio(series: dict, preference: str) -> dict:
 
 
 def _when(iso: str) -> str:
-    day = date.fromisoformat(iso)
-    return f"{day.day} {day:%B %Y}"
+    """A day ("14 November 2026"), or an hour when the value has a time ("14 November 2026 at 13:00 UTC")."""
+    moment = datetime.fromisoformat(iso)
+    day = f"{moment.day} {moment:%B %Y}"
+    return f"{day} at {moment:%H:%M} UTC" if "T" in iso else day
 
 
 HELP_REPLY = (
-    "I can fetch sea surface temperature or Sentinel-2 cloud cover from Planetary Computer. Try "
-    "'sea surface temperature around Mauritius in June 2026' or 'cloud cover over Madagascar in October 2026'."
+    "I can fetch the weather from Meteomatics, or sea surface temperature or Sentinel-2 cloud cover from Planetary "
+    "Computer. Try 'the weather in Port Louis today', 'sea surface temperature around Mauritius in June 2026' or "
+    "'cloud cover over Madagascar in October 2026'."
 )
 ERROR_REPLY = "Planetary Computer did not answer just now. Try again in a minute."
+WEATHER_REPLIES = {
+    "off": "Weather is not set up on this server yet, so I can't fetch it.",
+    "down": "The weather service did not answer just now. Try again in a minute.",
+}
 
 
 def answer_for(state: dict, preference: str, catalog: list[dict]) -> dict:
@@ -240,7 +283,7 @@ def answer_for(state: dict, preference: str, catalog: list[dict]) -> dict:
     local = next((entry for entry in catalog if entry["id"] == state.get(LOCAL_KEY)), None)
     answer = {"mascot_reply": HELP_REPLY, "dataset_theme": "default", "sonification_json": None, "local_dataset_id": None}
     if series and series["values"]:
-        spec = COLLECTIONS[series["collection"]]
+        spec = SOURCES[series["collection"]]
         values, dates = series["values"], series["dates"]
         top = values.index(max(values))
         span = _when(dates[0]) if len(dates) == 1 else f"{_when(dates[0])} and {_when(dates[-1])}"
@@ -254,11 +297,13 @@ def answer_for(state: dict, preference: str, catalog: list[dict]) -> dict:
         answer["mascot_reply"] = f"I already have '{local['title']}' in the app. Open it to hear it."
         answer["local_dataset_id"] = local["id"]
     elif series:
-        spec = COLLECTIONS[series["collection"]]
+        spec = SOURCES[series["collection"]]
         answer["mascot_reply"] = f"I found no {spec.label} there in those dates. Try a longer date range or a bigger area."
         answer["dataset_theme"] = spec.theme
     elif state.get(ERROR_KEY):
         answer["mascot_reply"] = ERROR_REPLY
+    elif state.get(WEATHER_ERROR_KEY) in WEATHER_REPLIES:
+        answer["mascot_reply"] = WEATHER_REPLIES[state[WEATHER_ERROR_KEY]]
     return answer
 
 
@@ -268,6 +313,9 @@ def _instruction(ctx) -> str:
     return (
         "You find Earth data for a listener. Call exactly one tool, once, then answer with the single word done.\n"
         "If one of the app's own data sets below answers the question, call search_local_datasets with its id.\n"
+        "For the weather or the air temperature at a place, call fetch_weather with the place's latitude and longitude, "
+        "the first hour in UTC, and the number of hours (24 for a day, at most 168); if no time is given, the next 24 hours "
+        f"from now. It is now {datetime.now(timezone.utc):%Y-%m-%dT%H:00:00Z}.\n"
         "Otherwise call fetch_planetary_computer_data. Sea or ocean temperature: "
         "noaa-cdr-sea-surface-temperature-optimum-interpolation. Clouds or satellite scenes: sentinel-2-l2a. "
         "For bbox, give [west, south, east, north] in degrees around the place named, at most 10 degrees each way. "
@@ -284,7 +332,7 @@ def build_finder(model: BaseLlm) -> LlmAgent:
         model=model,
         description="Chooses where Echo's data comes from. Writes no answer text.",
         instruction=_instruction,
-        tools=[FunctionTool(search_local_datasets), FunctionTool(fetch_planetary_computer_data)],
+        tools=[FunctionTool(search_local_datasets), FunctionTool(fetch_planetary_computer_data), FunctionTool(fetch_weather)],
         disallow_transfer_to_parent=True,
         disallow_transfer_to_peers=True,
         include_contents="none",
