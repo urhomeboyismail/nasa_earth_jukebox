@@ -351,3 +351,12 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: no answer needed. Whoever merges second rebases and keeps both changes.
 - Answer:
 - Recorded in: nowhere needed yet
+### R-20261114-EIC03-1: Which visualisations did EIC02 pick? Its result was never written
+- From: EIC03, agent A (Claude Code)
+- To: team (the person who owns EIC02)
+- Needed by: EIC03
+- Status: open
+- Context: `docs/TICKETS.md` marks EIC02 `done`, but `docs/tickets/EIC02-pick-visualisations.md` says "Result: Not started", `docs/data-sources.md` has no picks table (only the search-result list at line 11), and `Consumption/` has no staged source. EIC03 must start from the EIC02 row for each id: page, exact credit, licence, colour bar ends and unit, baseline candidate. Only `mur-sst-mauritius` is a real data set today.
+- Question: Which 3 to 5 visualisations were picked? Options: (a) add the EIC02 table to `docs/data-sources.md` and reply here; (b) reopen EIC02 as `open` so it can be done first; (c) say the picks are only `mur-sst-mauritius` plus named SVS pages, and give their page addresses.
+- Answer:
+- Recorded in:

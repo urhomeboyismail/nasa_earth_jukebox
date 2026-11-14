@@ -12,6 +12,11 @@ vi.mock('./JukeboxPlayer', () => ({
   ),
 }))
 
+// Echo's 3D robot needs WebGL; here it is a marker that shows its face and gesture.
+vi.mock('../mascot/Ixia', () => ({
+  default: ({ expression, pose }: { expression: string; pose: string }) => <p>Echo looks {expression} and is {pose}</p>,
+}))
+
 const audio = { base_bpm: 90, tracks: [{ instrument: 'marimba', pitch_range: [48, 72], volume_curve: [0.2, 0.8] }] }
 const vision = { descriptions: [{ timestamp_sec: 0, alt_text: 'Pale water.', intensity_level: 'low' }] }
 const good = { approved: true, feedback: '', revisions: 0, audio, vision }
@@ -149,5 +154,90 @@ describe('JukeboxStudio', () => {
   it('has no accessibility violations at the start', async () => {
     const { container } = show()
     await expectNoA11yViolations(container)
+  })
+
+  describe('Fetch live data (G11)', () => {
+    const catalog = [{ id: 'fixture', title: 'Fixture ocean', summary: 'Four test frames.' }]
+    const live = {
+      mascot_reply: 'I found 2 days of Sentinel-2 scenes between 1 October 2026 and 2 October 2026.',
+      dataset_theme: 'atmosphere',
+      sonification_json: { ...audio, base_bpm: 100 },
+      local_dataset_id: null,
+    }
+
+    /** The catalog file, then the mascot route, answered by `answer`. */
+    function stub(answer: () => Promise<Response>) {
+      const fetchMock = vi.fn((url: string, _init?: RequestInit) => (url.endsWith('index.json') ? Promise.resolve(reply(200, catalog)) : answer()))
+      vi.stubGlobal('fetch', fetchMock)
+      return fetchMock
+    }
+
+    async function ask(text = 'Cloud cover over Madagascar') {
+      await userEvent.type(screen.getByRole('textbox', { name: 'Your question' }), text)
+      await userEvent.click(screen.getByRole('button', { name: 'Fetch live data (Planetary Computer)' }))
+    }
+
+    it('shows Echo searching, then says, announces and plays the answer', async () => {
+      let finish: (response: Response) => void = () => {}
+      const fetchMock = stub(() => new Promise<Response>(resolve => (finish = resolve)))
+      const { container } = show()
+      await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Live data sound' }), 'bold')
+      await ask()
+
+      expect(await screen.findByText('Echo is fetching live data from Planetary Computer...')).toBeInTheDocument()
+      expect(await screen.findByText('Echo looks searching and is thinking')).toBeInTheDocument()
+      const call = fetchMock.mock.calls.find(([url]) => url.endsWith('/api/v1/mascot/query'))
+      expect(JSON.parse(String(call?.[1]?.body))).toEqual({
+        user_prompt: 'Cloud cover over Madagascar',
+        audio_preference: 'bold',
+        catalog,
+      })
+
+      finish(reply(200, live))
+      expect(await screen.findByText('Player at 100 with 0 descriptions')).toBeInTheDocument()
+      expect(screen.getByRole('region', { name: "Echo's answer" })).toHaveTextContent(live.mascot_reply)
+      expect(announced.at(-1)).toBe(live.mascot_reply)
+      expect(screen.getByText('Echo looks eq_active and is talking')).toBeInTheDocument()
+      await expectNoA11yViolations(container)
+    })
+
+    it('shows the numbers behind the sound on request (WX02)', async () => {
+      const series = { metric: 'Cloud cover', unit: '%', times: ['2026-10-01', '2026-10-02'], values: [10, 90] }
+      stub(async () => reply(200, { ...live, series }))
+      const { container } = show()
+      await ask()
+      await userEvent.click(await screen.findByText('Show the numbers'))
+      expect(screen.getByRole('table', { name: 'Cloud cover (%): 2 values, one for each note' })).toBeInTheDocument()
+      await expectNoA11yViolations(container)
+    })
+
+    it('links to an app data set that answers the question', async () => {
+      stub(async () => reply(200, { ...live, mascot_reply: "I already have 'Fixture ocean' in the app.", sonification_json: null, local_dataset_id: 'fixture' }))
+      show()
+      await ask('ocean test frames')
+      expect(await screen.findByRole('link', { name: 'Open it in the app' })).toHaveAttribute('href', 'index.html#listen?data=fixture')
+      expect(screen.getByText('Echo looks happy and is talking')).toBeInTheDocument()
+      expect(screen.queryByText(/Player at 100/)).not.toBeInTheDocument()
+    })
+
+    it('shows the alert face when nothing was found', async () => {
+      stub(async () => reply(200, { ...live, mascot_reply: 'I found no days of Sentinel-2 scenes there in those dates.', sonification_json: null }))
+      show()
+      await ask()
+      expect(await screen.findByText(/found no days/)).toBeInTheDocument()
+      expect(screen.getByText('Echo looks alert and is talking')).toBeInTheDocument()
+    })
+
+    it('says what went wrong, and Retry asks again', async () => {
+      const answers = [reply(503), reply(200, live)]
+      stub(async () => answers.shift() ?? reply(500))
+      show()
+      await ask()
+      expect(await screen.findByRole('alert')).toHaveTextContent('switched off')
+      expect(screen.getByText('Echo looks alert and is idle')).toBeInTheDocument()
+      await userEvent.click(screen.getByRole('button', { name: 'Retry' }))
+      expect(await screen.findByText('Player at 100 with 0 descriptions')).toBeInTheDocument()
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
   })
 })

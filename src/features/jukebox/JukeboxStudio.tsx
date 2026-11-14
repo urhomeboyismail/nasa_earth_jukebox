@@ -1,11 +1,42 @@
 // The page behind /jukebox.html (dev.tsx): ask a question or press a demo button, call the orchestrator, play the answer with its
 // descriptions. With no server, the offline box plays a pasted answer. A model's text is shown only where this file says so.
+// G11: "Fetch live data" asks Echo instead. The server fetches the series from Planetary Computer; Echo's face follows the request, and
+// its reply (built from the numbers on the server, not model text) is shown, announced, and played by the same player.
 
-import { useRef, useState } from 'react'
+import { lazy, Suspense, useRef, useState, type CSSProperties } from 'react'
 import { Button, Notice, useAnnounce } from '../../components'
+import type { MascotExpression, MascotPose } from '../../components/mascotTypes'
+import { loadCatalog, type CatalogEntry } from '../../data'
+import { hashFor } from '../../route'
 import { generateJukebox, MAX_QUERY_CHARS, type JukeboxErrorKind, type JukeboxRequest } from './generate'
 import { JukeboxPlayer } from './JukeboxPlayer'
+import { queryMascot, type AudioPreference, type DatasetTheme, type MascotAnswer } from './mascotQuery'
 import { parseAudioPayload, parseVisionPayload, type AudioPayload, type VisionPayload } from './payload'
+import { SeriesTable } from './SeriesTable'
+
+// The 3D robot loads its own scripts; this page only needs it once Echo is shown.
+const Ixia = lazy(() => import('../mascot/Ixia'))
+
+/** Echo's accent for each kind of data: generic themes from the server, mapped to the design tokens. */
+const THEME_ACCENT: Record<DatasetTheme, string> = {
+  ocean: 'var(--md-sys-color-tertiary)',
+  atmosphere: 'var(--md-sys-color-primary)',
+  forest: 'var(--md-sys-color-secondary)',
+  default: 'var(--md-sys-color-primary)',
+}
+
+type CssVars = CSSProperties & Record<`--${string}`, string>
+
+type Live = { waiting: boolean; answer: MascotAnswer | null; error: { kind: JukeboxErrorKind; retryAfter?: number } | null }
+
+/** Echo's face and gesture for the live request. */
+function echoFor(live: Live): { expression: MascotExpression; pose: MascotPose } {
+  if (live.waiting) return { expression: 'searching', pose: 'thinking' }
+  if (live.error) return { expression: 'alert', pose: 'idle' }
+  if (!live.answer) return { expression: 'happy', pose: 'idle' }
+  if (live.answer.audio) return { expression: 'eq_active', pose: 'talking' }
+  return { expression: live.answer.localId ? 'happy' : 'alert', pose: 'talking' }
+}
 
 /** Example questions for this development page. They are not a data set's details. */
 const DEMOS = [
@@ -70,6 +101,11 @@ export function JukeboxStudio() {
   const [nothing, setNothing] = useState(false)
   const [answer, setAnswer] = useState<Answer | null>(null)
   const [offlineText, setOfflineText] = useState(SAMPLE)
+  const [preference, setPreference] = useState<AudioPreference>('normal')
+  const [live, setLive] = useState<Live>({ waiting: false, answer: null, error: null })
+  /** WX02: the step of Echo's sound being heard, marked in "Show the numbers". */
+  const [liveStep, setLiveStep] = useState<number | null>(null)
+  const catalog = useRef<Promise<CatalogEntry[]> | null>(null)
   /** The request to send again on Retry. */
   const last = useRef<JukeboxRequest | null>(null)
   /** Goes up on every send, so an old answer that arrives late is dropped. */
@@ -82,6 +118,7 @@ export function JukeboxStudio() {
     setError(null)
     setNothing(false)
     setAnswer(null)
+    setLive({ waiting: false, answer: null, error: null })
     const result = await generateJukebox(request)
     if (sent.current !== mine) return
     setWaiting(false)
@@ -92,7 +129,30 @@ export function JukeboxStudio() {
     else setAnswer(result.answer)
   }
 
+  async function fetchLive(prompt: string) {
+    const mine = (sent.current += 1)
+    setWaiting(true)
+    setError(null)
+    setNothing(false)
+    setAnswer(null)
+    setLive({ waiting: true, answer: null, error: null })
+    // The app's data sets go with the question; without the catalog the question still goes.
+    catalog.current ??= loadCatalog().catch(() => [])
+    const result = await queryMascot({ prompt, preference, catalog: await catalog.current })
+    if (sent.current !== mine) return
+    setWaiting(false)
+    if (result.kind === 'error') {
+      setLive({ waiting: false, answer: null, error: { kind: result.error, retryAfter: result.retryAfter } })
+      announce(errorText(result.error, result.retryAfter))
+    } else {
+      setLive({ waiting: false, answer: result.answer, error: null })
+      announce(result.answer.reply)
+    }
+  }
+
   const request = (text: string): JukeboxRequest => ({ query: text.trim(), contrast, detailLevel })
+  const echo = echoFor(live)
+  const echoStyle: CssVars = { '--mascot-accent': THEME_ACCENT[live.answer?.theme ?? 'default'] }
   const offline = readOffline(offlineText)
 
   return (
@@ -132,9 +192,26 @@ export function JukeboxStudio() {
               <option value="brief">Brief</option>
             </select>
           </div>
+          <div className="ui-field">
+            <label className="ui-field__label" htmlFor="jukebox-sound">Live data sound</label>
+            <select
+              id="jukebox-sound"
+              className="ui-select"
+              value={preference}
+              disabled={waiting}
+              onChange={event => setPreference(event.target.value === 'gentle' ? 'gentle' : event.target.value === 'bold' ? 'bold' : 'normal')}
+            >
+              <option value="gentle">Gentle</option>
+              <option value="normal">Normal</option>
+              <option value="bold">Bold</option>
+            </select>
+          </div>
         </div>
         <div className="jukebox-studio__row">
           <Button type="submit" variant="primary" size="medium" disabled={waiting || !query.trim()}>Make music</Button>
+          <Button disabled={waiting || !query.trim()} onClick={() => void fetchLive(query.trim())}>
+            Fetch live data (Planetary Computer)
+          </Button>
           {DEMOS.map(demo => (
             <Button
               key={demo.label}
@@ -150,7 +227,26 @@ export function JukeboxStudio() {
         </div>
       </form>
 
-      {waiting && <p role="status">Orchestrating NASA data and auditing accessibility...</p>}
+      <div className="jukebox-studio__echo" style={echoStyle}>
+        <Suspense fallback={null}>
+          <Ixia expression={echo.expression} pose={echo.pose} say={live.answer?.reply ?? ''} />
+        </Suspense>
+      </div>
+      {live.waiting && <p role="status">Echo is fetching live data from Planetary Computer...</p>}
+      {waiting && !live.waiting && <p role="status">Orchestrating NASA data and auditing accessibility...</p>}
+      {live.error && (
+        <Notice variant="error" action={{ label: 'Retry', onClick: () => void fetchLive(query.trim()), disabled: waiting || !query.trim() }}>
+          {errorText(live.error.kind, live.error.retryAfter)}
+        </Notice>
+      )}
+      {live.answer && (
+        <section aria-label="Echo's answer" className="jukebox-studio__reply">
+          <p>{live.answer.reply}</p>
+          {live.answer.localId && <a href={`index.html${hashFor('listen', { data: live.answer.localId })}`}>Open it in the app</a>}
+          {live.answer.audio && <JukeboxPlayer payload={live.answer.audio} vision={null} onStep={setLiveStep} />}
+          {live.answer.series && <SeriesTable series={live.answer.series} current={liveStep} />}
+        </section>
+      )}
       {error && (
         <Notice variant="error" action={{ label: 'Retry', onClick: () => last.current && void send(last.current), disabled: waiting }}>
           {errorText(error.kind, error.retryAfter)}

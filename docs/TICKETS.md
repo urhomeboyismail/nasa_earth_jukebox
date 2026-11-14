@@ -70,7 +70,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
 | [EIC02](tickets/EIC02-pick-visualisations.md) | Pick 3–5 EIC visualisations; check source, credit and licence | S | 👤 | — | — | done |
-| [EIC03](tickets/EIC03-ingest-datasets.md) | Ingest and tune each picked visualisation (manifest and data only) | M each | agent+👤 | EIC02 | catalogue | open |
+| [EIC03](tickets/EIC03-ingest-datasets.md) | Ingest and tune each picked visualisation (manifest and data only) | M each | agent+👤 | EIC02 | catalogue | blocked: EIC02 picks missing (see AGENT-BOARD R-20261114-EIC03-1) |
 
 ### P1: Gemini on ADK and the voice panel
 
@@ -89,7 +89,6 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [G11](tickets/G11-planetary-computer-echo.md) | Echo fetches live Planetary Computer data in Jukebox Studio (`POST /api/v1/mascot/query`) | M | agent | — | — | claimed: A, 2026-11-14 |
 
 ### P2: Echo as Juke-Bot (the guide)
 
@@ -100,6 +99,17 @@ Echo, the guide, redrawn as Juke-Bot (helmet visor, headphones, chest screen, ai
 | [JB09](tickets/JB09-tour-from-welcome.md) | The tour starts after the welcome (map path), and Echo flies home to the dock when it finishes | S | agent | — | tour | done |
 | [JB10](tickets/JB10-tour-mixer-stop.md) | The tour's third stop is the Speed and Volume mixer, not Explore the map | S | agent | — | player | done |
 | [JB11](tickets/JB11-chat-welcome.md) | Echo's chat welcome (name, four sound chips, then the path and sound check) with a "Prefer manual setup?" form | M | agent | JB09 | welcome | done |
+
+### P2: Echo's weather (Meteomatics)
+
+Echo fetches the weather for a place, shows every value it fetched, and plays it. Server credentials: `METEOMATICS_USERNAME`, `METEOMATICS_PASSWORD`.
+
+| ID | Ticket | Size | Who | Needs | Hotspots | Status |
+|---|---|---|---|---|---|---|
+| [WX01](tickets/WX01-echo-fetches-weather.md) | Echo fetches hourly air temperature from Meteomatics; reply and sound from the numbers | S | agent | — | — | ready: feature/echo-weather |
+| [WX02](tickets/WX02-echo-shows-the-numbers.md) | "Show the numbers": every fetched value in an accessible table, the playing row marked | S | agent | WX01 | — | ready: feature/echo-weather |
+| [WX03](tickets/WX03-weather-in-three-voices.md) | Weather in three voices: temperature melody, rain pulse, wind pad | S | agent | WX01 | — | open |
+| [WX04](tickets/WX04-voice-guide-weather.md) | The voice guide can tell the weather (ADK path; `get_weather` tool) | S | agent | WX01 | — | ready: feature/echo-weather |
 
 ### P3: people, evidence and submission
 

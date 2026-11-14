@@ -57,3 +57,52 @@
   flex-wrap: wrap;
   gap: 0.75rem;
 }
+
+/* G11: Echo on the studio page, in the robot's own size. Its colours come from the theme of the live answer (--mascot-accent). */
+.jukebox-studio__echo {
+  position: relative;
+  inline-size: 240px;
+  block-size: 216px;
+  --robot-accent: var(--mascot-accent, var(--md-sys-color-primary));
+  --robot-on-accent: var(--md-sys-color-on-primary);
+  --robot-bubble: var(--md-sys-color-surface-container-highest);
+  --robot-bubble-line: var(--md-sys-color-outline-variant);
+  --robot-ink: var(--md-sys-color-on-surface);
+  --robot-muted: var(--md-sys-color-on-surface-variant);
+}
+
+.jukebox-studio__reply {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: start;
+}
+
+/* WX02: "Show the numbers". The row being heard changes colour only, so nothing moves. */
+.jukebox-series table {
+  border-collapse: collapse;
+}
+
+.jukebox-series caption {
+  text-align: start;
+  padding-block: 0.5rem;
+}
+
+.jukebox-series th,
+.jukebox-series td {
+  padding: 0.25rem 0.75rem;
+  text-align: start;
+  font-weight: normal;
+}
+
+.jukebox-series thead th {
+  font-weight: bold;
+}
+
+.jukebox-series td {
+  font-variant-numeric: tabular-nums;
+}
+
+.jukebox-series tr[aria-current='true'] {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}

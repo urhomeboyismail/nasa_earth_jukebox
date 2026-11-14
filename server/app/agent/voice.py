@@ -92,12 +92,12 @@ async def connect_adk(language: str, page: str) -> AsyncIterator[LiveSession]:
 
     from app.agent.callbacks import guard_tool, log_tool
     from app.agent.models import keyed_model
-    from app.agent.tools import AGENT_TOOLS
+    from app.agent.tools import AGENT_TOOLS, WEATHER_INSTRUCTION
 
     agent = LlmAgent(
         name="voice_guide",
         model=keyed_model(settings.gemini_live_model),
-        instruction=system_instruction(settings.app_name, language, page, page_label=PAGE_PLACEHOLDER),
+        instruction=system_instruction(settings.app_name, language, page, page_label=PAGE_PLACEHOLDER) + WEATHER_INSTRUCTION,
         tools=list(AGENT_TOOLS),
         before_tool_callback=guard_tool,
         after_tool_callback=log_tool,

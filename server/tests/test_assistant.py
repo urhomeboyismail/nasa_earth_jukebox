@@ -242,8 +242,8 @@ def test_the_adk_guide_is_not_told_about_point_to_because_it_has_no_such_tool():
     assert "point_to" not in {tool.name for tool in AGENT_TOOLS}
 
 
-def test_the_agent_has_the_five_tools_in_order_with_their_enum_lists():
-    assert [tool.name for tool in AGENT_TOOLS] == ["navigate_to", "explain_section", "control_playback", "set_date", "get_screen_context"]
+def test_the_agent_has_the_six_tools_in_order_with_their_enum_lists():
+    assert [tool.name for tool in AGENT_TOOLS] == ["navigate_to", "explain_section", "control_playback", "set_date", "get_screen_context", "get_weather"]
     schemas = {tool.name: tool._get_declaration().parameters_json_schema for tool in AGENT_TOOLS}
     assert schemas["navigate_to"]["properties"]["page"]["enum"] == PAGE_IDS
     assert schemas["explain_section"]["properties"]["page"]["enum"] == PAGE_IDS
@@ -266,7 +266,7 @@ def test_the_guide_speaks_as_the_mascot_and_keeps_its_rules():
     assert "astronaut" not in text
     assert "Rules you must never break" in text and "never play sound yourself" in text
     # The persona changes how the guide sounds, not what it can do.
-    assert len(AGENT_TOOLS) == 5
+    assert len(AGENT_TOOLS) == 6
 
 
 def test_the_persona_name_matches_the_frontend():

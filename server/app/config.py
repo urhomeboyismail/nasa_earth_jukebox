@@ -46,6 +46,18 @@ class Settings(BaseSettings):
     jukebox_runs_per_minute: int = Field(default=4, gt=0)
     jukebox_runs_per_minute_per_visitor: int = Field(default=2, gt=0)  # so one visitor cannot use up everyone's runs
     jukebox_timeout_seconds: float = Field(default=120, gt=0)
+    # Echo's live data (G11): POST /api/v1/mascot/query, one model run with a Planetary Computer fetch. Billed like the others, so
+    # off unless switched on, rate limited and time limited.
+    mascot_enabled: bool = False
+    mascot_model: str = "gemini-3.5-flash-lite"
+    mascot_runs_per_minute: int = Field(default=6, gt=0)
+    mascot_runs_per_minute_per_visitor: int = Field(default=3, gt=0)
+    mascot_timeout_seconds: float = Field(default=30, gt=0)
+    # Optional: Planetary Computer works without a key, at lower rate limits.
+    pc_sdk_subscription_key: SecretStr = SecretStr("")
+    # Echo's weather (WX01): the Meteomatics API login, sent as HTTP Basic auth. Left unset, Echo says weather is not set up.
+    meteomatics_username: str = ""
+    meteomatics_password: SecretStr = SecretStr("")
 
     # Google ADK agent (G01 to G05). Nothing calls the model while agent_enabled is false.
     agent_enabled: bool = False

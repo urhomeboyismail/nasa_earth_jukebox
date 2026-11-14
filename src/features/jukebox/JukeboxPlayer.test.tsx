@@ -256,6 +256,32 @@ const vision: VisionPayload = {
   ],
 }
 
+describe('the step being heard (WX02)', () => {
+  it('reports each step at its time, and null on Stop', async () => {
+    const steps: (number | null)[] = []
+    render(
+      <AnnouncerContext.Provider value={text => announced.push(text)}>
+        <JukeboxPlayer payload={one} onStep={index => steps.push(index)} />
+      </AnnouncerContext.Provider>,
+    )
+    await pressPlay()
+    const [end, ...events] = tone.state.transport.once
+    expect(end.time).toBeGreaterThan(events.at(-1)?.time ?? Infinity)
+    expect(events.map(event => event.time)).toEqual([0, 1, 2].map(index => (index * 30) / one.base_bpm))
+    events[1].callback(1)
+    await waitFor(() => expect(steps).toEqual([1]))
+    await userEvent.click(screen.getByRole('button', { name: 'Stop' }))
+    expect(steps).toEqual([1, null])
+    expect(tone.state.transport.cleared).toEqual(expect.arrayContaining(events.map(event => event.id)))
+  })
+
+  it('schedules no steps without onStep', async () => {
+    show(one)
+    await pressPlay()
+    expect(tone.state.transport.once).toHaveLength(1)
+  })
+})
+
 describe('captions', () => {
   it('shows nothing about captions, and schedules only the end, without vision', async () => {
     show(two)
