@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from pydantic import SecretStr
 
 from app.agent.ask import AskService
-from app.agent.bucket import TokenBucket
+from app.ratelimit import TokenBucket
 from app.agent.fake import FakeLlm, keyword_script
 from app.api import agent as agent_api
 from app.config import settings
@@ -38,9 +38,12 @@ def client(monkeypatch):
     monkeypatch.setattr(settings, "agent_enabled", True)
     monkeypatch.setattr(settings, "gemini_api_key", SecretStr("not-a-real-key"))
     monkeypatch.setattr(settings, "agent_timeout_seconds", 5.0)
+    monkeypatch.setattr(settings, "agent_max_requests_per_minute_per_visitor", 100)  # Each test sets the limit it checks.
     _REAL_BUCKET.cache_clear()
+    agent_api._visitors.cache_clear()
     yield TestClient(app)
     _REAL_BUCKET.cache_clear()
+    agent_api._visitors.cache_clear()
 
 
 def _ask(client, **changes):
@@ -108,8 +111,20 @@ def test_rate_limit(client, monkeypatch):
     assert _ask(client).status_code == 200
     second = _ask(client)
     assert second.status_code == 429 and second.json() == {"detail": "rate_limited"}
+    assert second.headers["Retry-After"] == "60"
     now[0] += 60
     assert _ask(client).status_code == 200
+
+
+def test_rate_limit_per_visitor(client, monkeypatch):
+    monkeypatch.setattr(settings, "agent_max_requests_per_minute_per_visitor", 1)
+    agent_api._visitors.cache_clear()
+    _install(monkeypatch, lambda _: _selection(["F-first"]))
+    one, other = {"X-Forwarded-For": "203.0.113.1"}, {"X-Forwarded-For": "203.0.113.2, 10.0.0.1"}
+    assert client.post(URL, json=BODY, headers=one).status_code == 200
+    refused = client.post(URL, json=BODY, headers=one)
+    assert refused.status_code == 429 and int(refused.headers["Retry-After"]) >= 1
+    assert client.post(URL, json=BODY, headers=other).status_code == 200  # Someone else still gets their share.
 
 
 def test_validation(client, monkeypatch):
@@ -198,6 +213,7 @@ def test_foreign_origin_gets_no_cors_header(client, monkeypatch):
     assert "access-control-allow-origin" not in foreign.headers
     allowed = client.post(URL, json=BODY, headers={"Origin": settings.cors_origin_list[0]})
     assert allowed.headers["access-control-allow-origin"] == settings.cors_origin_list[0]
+    assert "retry-after" in allowed.headers["access-control-expose-headers"].lower()  # The site can read how long to wait.
 
 
 def test_never_logs_the_question(client, monkeypatch, caplog):

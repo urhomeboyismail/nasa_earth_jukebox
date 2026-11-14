@@ -27,7 +27,8 @@ export type JukeboxErrorKind = 'rate' | 'model' | 'off' | 'unreachable'
 export type JukeboxResult =
   | { kind: 'answer'; answer: JukeboxAnswer }
   | { kind: 'nothing' }
-  | { kind: 'error'; error: JukeboxErrorKind }
+  /** `retryAfter`: whole seconds to wait, from the server's Retry-After, on a 429 that sent one. */
+  | { kind: 'error'; error: JukeboxErrorKind; retryAfter?: number }
 
 const answerSchema = z.object({
   approved: z.boolean(),
@@ -51,7 +52,11 @@ export async function generateJukebox(request: JukeboxRequest, signal?: AbortSig
       body: JSON.stringify({ query: request.query, accessibilityProfile: { contrast: request.contrast, detailLevel: request.detailLevel } }),
       signal,
     })
-    if (response.status !== 200) return { kind: 'error', error: errorFor(response.status) }
+    if (response.status !== 200) {
+      const wait = Number(response.headers.get('Retry-After'))
+      const retryAfter = response.status === 429 && Number.isInteger(wait) && wait > 0 ? wait : undefined
+      return { kind: 'error', error: errorFor(response.status), ...(retryAfter && { retryAfter }) }
+    }
     const parsed = answerSchema.safeParse(await response.json())
     if (!parsed.success) return { kind: 'error', error: 'model' }
     const { approved, feedback, audio, vision } = parsed.data

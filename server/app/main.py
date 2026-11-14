@@ -19,6 +19,7 @@ app.add_middleware(
     allow_origins=settings.cors_origin_list,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type"],
+    expose_headers=["Retry-After"],  # So the site, on another origin, can say how long to wait after a 429.
 )
 
 

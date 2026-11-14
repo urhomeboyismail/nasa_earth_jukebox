@@ -1,6 +1,6 @@
 """Grounded Ask (G02): a question and the browser's facts in, fact IDs out. The response has no text field, on purpose.
 
-Off unless `AGENT_ENABLED=true` and a key is set; small body; rate limited for the whole server; time limited. The question and
+Off unless `AGENT_ENABLED=true` and a key is set; small body; rate limited for the whole server and for each visitor; time limited. The question and
 the facts are never logged. The agent is imported on the first request, so a server with the route off loads no ADK.
 """
 from __future__ import annotations
@@ -14,7 +14,9 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, ValidationError, field_validator, model_validator
 
 from app.assistant.tools import _ISO_DATE, _is_real_date
+from app import ratelimit
 from app.config import settings
+from app.ratelimit import TokenBucket, VisitorBuckets
 
 logger = logging.getLogger(__name__)
 
@@ -70,10 +72,13 @@ class AskResponse(BaseModel):
 
 
 @lru_cache(maxsize=1)
-def _bucket():
-    from app.agent.bucket import TokenBucket  # Lazy too: even importing app.agent counts as loading the agent package.
-
+def _bucket() -> TokenBucket:
     return TokenBucket(settings.agent_max_requests_per_minute)
+
+
+@lru_cache(maxsize=1)
+def _visitors() -> VisitorBuckets:
+    return VisitorBuckets(settings.agent_max_requests_per_minute_per_visitor)
 
 
 @lru_cache(maxsize=1)
@@ -101,8 +106,7 @@ async def ask(request: Request) -> AskResponse:
         # Where and what, never the value that was sent.
         detail = error.errors(include_url=False, include_context=False, include_input=False)
         raise HTTPException(status_code=422, detail=detail) from None
-    if not _bucket().take():
-        raise HTTPException(status_code=429, detail="rate_limited")
+    ratelimit.check(request, _bucket(), _visitors())
 
     facts = [fact.model_dump() for fact in body.facts]
     try:

@@ -1,7 +1,7 @@
 """The Jukebox orchestrator's route (G08): one question in, checked sound parameters and time-coded descriptions out.
 
 Every run is billed and there are no accounts, so the route is off unless `JUKEBOX_ENABLED=true` and a key is set, takes a small
-body, and is rate limited for the whole server. The graph itself is capped (app/agent/orchestrator.py, RECURSION_LIMIT) and
+body, and is rate limited for the whole server and for each visitor. The graph itself is capped (app/agent/orchestrator.py, RECURSION_LIMIT) and
 each run has a time limit. Request bodies are never logged.
 
 The orchestrator is imported on the first request, not when the server starts, so a server with the route switched off loads
@@ -11,14 +11,15 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import time
 from functools import lru_cache
-from typing import Annotated, Any, Callable, Literal
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, ValidationError
 
+from app import ratelimit
 from app.config import settings
+from app.ratelimit import TokenBucket, VisitorBuckets
 
 logger = logging.getLogger(__name__)
 
@@ -54,28 +55,14 @@ class GenerateOut(BaseModel):
     vision: dict[str, Any] | None
 
 
-class TokenBucket:
-    """Runs allowed a minute, for the whole server. It starts full and refills steadily."""
-
-    def __init__(self, per_minute: int, clock: Callable[[], float] = time.monotonic) -> None:
-        self._capacity = float(per_minute)
-        self._tokens = float(per_minute)
-        self._clock = clock
-        self._last = clock()
-
-    def take(self) -> bool:
-        now = self._clock()
-        self._tokens = min(self._capacity, self._tokens + (now - self._last) * self._capacity / 60.0)
-        self._last = now
-        if self._tokens < 1.0:
-            return False
-        self._tokens -= 1.0
-        return True
-
-
 @lru_cache(maxsize=1)
 def _bucket() -> TokenBucket:
     return TokenBucket(settings.jukebox_runs_per_minute)
+
+
+@lru_cache(maxsize=1)
+def _visitors() -> VisitorBuckets:
+    return VisitorBuckets(settings.jukebox_runs_per_minute_per_visitor)
 
 
 @lru_cache(maxsize=1)
@@ -101,8 +88,7 @@ async def generate(request: Request) -> GenerateOut:
         # Where and what, never the value that was sent.
         detail = error.errors(include_url=False, include_context=False, include_input=False)
         raise HTTPException(status_code=422, detail=detail) from None
-    if not _bucket().take():
-        raise HTTPException(status_code=429, detail="rate_limited")
+    ratelimit.check(request, _bucket(), _visitors())
 
     state = {"user_query": body.query, "accessibility_profile": body.accessibility_profile.model_dump()}
     try:
