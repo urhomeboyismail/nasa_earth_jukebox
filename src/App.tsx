@@ -12,6 +12,9 @@ import { noteGuidePlaybackCommand, useDucking } from './assistant/ducking'
 import { sendPlayerCommand } from './features/player/controls'
 import { dispatch } from './interaction/registry'
 import { loadAssistantAudio, useVoiceAssistant, type AssistantAction } from './hooks/useVoiceAssistant'
+import { useWakeWord } from './hooks/useWakeWord'
+import { useWakeSetting } from './assistant/wakeWord'
+import { WakeIndicator } from './WakeIndicator'
 import { MascotGuideProvider } from './features/mascot/MascotGuideProvider'
 import { pages, type Page } from './pages'
 import { currentDataParam, hashFor, parseHash } from './route'
@@ -169,7 +172,30 @@ function App() {
   /** What the guide is saying now, for Echo's robot to mouth (JB08). */
   const spokenLine = assistant.status === 'speaking' ? (assistant.transcript.findLast(entry => entry.role === 'assistant')?.text ?? '') : ''
 
+  // "Hey Echo" (opt-in): opens the guide and starts talking, like "Hey Google". Words said after the phrase are asked once connected.
+  const [wakeOn, setWakeOn] = useWakeSetting()
+  const wakeQuestion = useRef<string | null>(null)
+  const guideBusy = assistant.status === 'connecting' || assistant.status === 'listening' || assistant.status === 'speaking'
+  const wake = useWakeWord({
+    enabled: wakeOn,
+    paused: guideBusy,
+    lang: 'en',
+    onWake: question => {
+      wakeQuestion.current = question || null
+      setAssistantOpen(true)
+      assistant.start()
+    },
+  })
+  const { sendText } = assistant
+  useEffect(() => {
+    if (assistant.status !== 'listening' || !wakeQuestion.current) return
+    const question = wakeQuestion.current
+    wakeQuestion.current = null
+    sendText(question)
+  }, [assistant.status, sendText])
+
   function closeAssistant() {
+    wakeQuestion.current = null
     assistant.stop()
     setAssistantOpen(false)
   }
@@ -254,6 +280,7 @@ function App() {
                 "Voice guide", which contains the visible word (WCAG 2.5.3). */}
             <span className="app-guide-toggle__short" aria-hidden="true">Guide</span>
           </button>
+          <WakeIndicator state={wake.state} onTurnOff={() => setWakeOn(false)} />
         </header>
 
         <main className={`app-main app-main--${wideTools.has(page) ? 'wide' : 'prose'}`}>

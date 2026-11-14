@@ -8,6 +8,7 @@ import App from './App'
 import { DataError, friendlyDataMessage } from './data'
 import { addActionHandler } from './interaction/registry'
 import { expectNoA11yViolations } from './test/a11y'
+import { FakeRecognition } from './test/fakes'
 
 // No sound or microphone in jsdom: the speech player and the recorder are stand-ins (V01).
 vi.mock('./assistant/audio', async importOriginal => ({
@@ -540,5 +541,68 @@ describe('The voice guide moves the app without moving focus (V01)', () => {
     await user.click(screen.getByRole('textbox', { name: 'Type a question instead' }))
     await user.keyboard('{Alt>}e{/Alt}')
     expect(toggle()).toHaveAttribute('aria-pressed', 'true')
+  })
+})
+
+describe('"Hey Echo" opens the guide hands-free', () => {
+  class WakeSocket {
+    static OPEN = 1
+    static instances: WakeSocket[] = []
+    readyState = 1
+    binaryType = ''
+    onopen: (() => void) | null = null
+    onmessage: ((event: { data: unknown }) => void) | null = null
+    onclose: (() => void) | null = null
+    onerror: (() => void) | null = null
+    sent: unknown[] = []
+    constructor() { WakeSocket.instances.push(this) }
+    send(data: unknown) { this.sent.push(data) }
+    close() {}
+  }
+  beforeEach(() => {
+    Element.prototype.scrollTo ??= () => {}
+    FakeRecognition.instances = []
+    WakeSocket.instances = []
+    vi.stubGlobal('webkitSpeechRecognition', FakeRecognition)
+    vi.stubGlobal('WebSocket', WakeSocket)
+    localStorage.setItem('earth-jukebox:mic-consent', 'text')
+  })
+  afterEach(() => localStorage.clear())
+
+  it('is off until turned on, and says nothing in the header', async () => {
+    render(<App />)
+    await screen.findByText(/Now playing from: Fixture ocean/)
+    expect(FakeRecognition.instances).toHaveLength(0)
+    expect(screen.queryByText(/Listening for “Hey Echo”/)).toBeNull()
+  })
+
+  it('when on, the header says it is listening; the phrase opens the guide, connects, and asks the question said after it', async () => {
+    localStorage.setItem('earth-jukebox:wake-word', 'on')
+    render(<App />)
+    await screen.findByText(/Now playing from: Fixture ocean/)
+    expect(screen.getByText('Listening for “Hey Echo”')).toBeInTheDocument()
+    const recognition = FakeRecognition.instances.at(-1)!
+    act(() => recognition.say('hey echo which date was warmest'))
+
+    expect(await screen.findByRole('region', { name: 'Voice guide' })).toBeInTheDocument()
+    await waitFor(() => expect(WakeSocket.instances).toHaveLength(1))
+    expect(recognition.aborted).toBe(true) // The guide has the microphone now.
+    const socket = WakeSocket.instances[0]
+    act(() => socket.onopen?.())
+    act(() => socket.onmessage?.({ data: JSON.stringify({ type: 'ready' }) }))
+    const sentTexts = () => socket.sent.filter((item): item is string => typeof item === 'string').map(item => JSON.parse(item))
+    await waitFor(() => expect(sentTexts()).toContainEqual({ type: 'text', text: 'which date was warmest' }))
+    expect(screen.queryByText('Listening for “Hey Echo”')).toBeNull() // Paused during the conversation.
+  })
+
+  it('"Turn off" in the header stops listening', async () => {
+    localStorage.setItem('earth-jukebox:wake-word', 'on')
+    const user = userEvent.setup()
+    render(<App />)
+    await screen.findByText(/Now playing from: Fixture ocean/)
+    const recognition = FakeRecognition.instances.at(-1)!
+    await user.click(screen.getByRole('button', { name: 'Turn off “Hey Echo”' }))
+    expect(recognition.aborted).toBe(true)
+    expect(localStorage.getItem('earth-jukebox:wake-word')).toBeNull()
   })
 })
