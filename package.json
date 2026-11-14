@@ -19,6 +19,7 @@
     "check": "npm run lint && npm test && npm run check-data && .venv/bin/python -I -m pytest scripts/tests -q"
   },
   "dependencies": {
+    "@radix-ui/react-slider": "^1.6.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "tonal": "^6.5.1",

@@ -84,4 +84,16 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Built on `feature/UI06-compare-decks` (agent C, 2026-11-14), on Windows.
+
+- `npm test`: 206 of 207 files pass, 2967 of 2971 tests. The 4 failures are all in `Fusion.test.tsx` and also fail on a clean `main`: `Fusion.tsx` and `fusion.ts` differ only in case, so on Windows `./Fusion` resolves to `fusion.ts` and the import is `undefined`. Run from a temporary copy named `FusionX.tsx`, the unchanged Fusion tests pass 5 of 5 with the new markup. They pass on Linux.
+- `npm run lint`: only the 2 errors in `src/sonify/fuse.ts:31,39` (type assertions). They are on `main` and in no file of this ticket.
+- `npm run build`: the only errors are the same `Fusion`/`fusion` casing clash (TS2305, TS1149, TS1261), also on `main`. No error in any other file.
+- New tests: `RangeSlider.test.tsx` (5) and four in `compare.test.tsx`. `test-mode.test.tsx` is unchanged and passes.
+
+Deviations, for review:
+
+- A ready-made comparison shows a deck's date only after the reveal, and the frames stay in the result cards, because the date and the picture give away the answer. Your own two dates show at once.
+- Radix's Page Up/Down step ten and its Home/End let a handle pass the other, so `RangeSlider` handles those four keys itself (five steps; clamped one step from the other handle).
+- When the old choosers put B before A, the handles are named the other way round, so each still sets the deck it names.
+- Files outside Touches, mechanical only: `change.test.tsx` (the two choosers are found by role, because `getByLabelText('Date A')` now also finds the handle), and `ResizeObserver` stubs (jsdom has none and Radix needs it) in `words.test.tsx` and `region.test.tsx`. A global stub in `src/test/setup.ts` broke the Story tests, so the stubs are per file.

@@ -1,0 +1,51 @@
+/* The two-handle scrubber (RangeSlider). Styled with the same tokens as the single slider. */
+.ui-range {
+  position: relative;
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+  block-size: 44px;
+  touch-action: none;
+  user-select: none;
+}
+.ui-range__track {
+  position: relative;
+  flex-grow: 1;
+  block-size: 16px;
+  border-radius: var(--ui-corner-small, 8px);
+  background: var(--md-sys-color-secondary-container, var(--border));
+}
+.ui-range__range {
+  position: absolute;
+  block-size: 100%;
+  border-radius: var(--ui-corner-small, 8px);
+  background: var(--ui-primary, var(--accent));
+}
+.ui-range__thumb {
+  display: block;
+  inline-size: 4px;
+  block-size: 44px;
+  border-radius: 9999px;
+  background: var(--ui-primary, var(--accent));
+  cursor: grab;
+}
+.ui-range__thumb:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.ui-range__thumb[data-disabled] { cursor: not-allowed; opacity: 0.38; }
+/* The value shows above a handle while it is in use. It is drawn from the attribute, so screen readers do not read it twice. */
+.ui-range__thumb::after {
+  content: attr(data-value);
+  position: absolute;
+  inset-block-end: calc(100% + 4px);
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--ui-corner-small, 8px);
+  background: var(--md-sys-color-inverse-surface, var(--text-h));
+  color: var(--md-sys-color-inverse-on-surface, var(--bg));
+  font: 500 0.875rem / 1.25 ui-monospace, SFMono-Regular, Menlo, monospace;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+}
+.ui-range__thumb:focus-visible::after,
+.ui-range__thumb:active::after { opacity: 1; }
