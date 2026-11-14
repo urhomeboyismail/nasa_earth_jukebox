@@ -6,11 +6,15 @@ import { SCHEDULE_LOOKAHEAD_S } from '../../audio/ensemble/constants'
 import { useEnsemble } from '../../audio/ensemble/useEnsemble'
 import { useAudioPrefs } from '../../audio/prefs'
 import { Button, Notice, Slider, useAnnounce } from '../../components'
-import { loadCatalog, loadVisualization, type CatalogEntry, type Visualization } from '../../data'
+import { loadCatalog, loadVisualization, variableWords, type CatalogEntry, type Visualization } from '../../data'
 import { fuseFrames, presetFor, toMusicFrame, type MusicFrame } from '../../sonify'
+import { alignedExtremes, MERGE_SECONDS, momentChord, momentSentence, sampleOf, type Aligned, type DeckSample } from '../../sonify/fuse'
 import { frameOn, overlap } from './fusionDates'
 
 const B_STREAM = 'fusion-b'
+// The moments are found by reading every shared date of both decks once, on streams of their own, so the playing streams are not disturbed.
+const SCAN_A = 'fusion-scan-a'
+const SCAN_B = 'fusion-scan-b'
 
 /**
  * Compare → "Two data sets" (docs/planning/UIUX-BLUEPRINT.md §3.2): this data set (deck A) and one it is paired with (deck B, from the manifest's
@@ -29,6 +33,9 @@ export function Fusion({ visualization }: { visualization: Visualization }) {
   const [mix, setMix] = useState(50)
   const [summary, setSummary] = useState('')
   const [playing, setPlaying] = useState(false)
+  const [marking, setMarking] = useState(true)
+  const [samples, setSamples] = useState<{ key: string; a: DeckSample[]; b: DeckSample[] } | null>(null)
+  const [strip, setStrip] = useState('')
 
   const prefs = useAudioPrefs()
   const deckB = loaded?.id === bId ? loaded.v : null
@@ -55,6 +62,52 @@ export function Fusion({ visualization }: { visualization: Visualization }) {
 
   const shared = useMemo(() => (b ? overlap(a, b) : null), [a, b])
 
+  // Read every shared date of both decks once. Until it is done (or when the switch is off) there are no moments.
+  useEffect(() => {
+    if (!b || !shared?.a.length || !marking) return
+    let cancelled = false
+    resetStream(SCAN_A)
+    resetStream(SCAN_B)
+    void (async () => {
+      const readA: DeckSample[] = []
+      const readB: DeckSample[] = []
+      for (const frame of shared.a) {
+        if (cancelled) return
+        try {
+          readA.push(sampleOf(await readFrameFeatures(a, frame, SCAN_A)))
+          readB.push(sampleOf(await readFrameFeatures(b, frameOn(shared.b, frame.date), SCAN_B)))
+        } catch { return }
+      }
+      if (!cancelled) setSamples({ key: `${a.id}|${b.id}`, a: readA, b: readB })
+    })()
+    return () => { cancelled = true }
+  }, [a, b, shared, marking])
+  // Samples of an earlier pair of decks, or with the switch off, give no moments.
+  const moments = useMemo(() => (marking && samples && b && samples.key === `${a.id}|${b.id}` ? alignedExtremes(samples.a, samples.b) : []), [marking, samples, a, b])
+
+  // The newest values for the frame callback below, which lives inside a memo that must not be rebuilt when they change.
+  const mixRef = useRef(0.5)
+  const lastMomentAt = useRef(-Infinity)
+  const onMoment = useRef<(moment: Aligned) => void>(() => {})
+  const momentsRef = useRef<Aligned[]>([])
+  momentsRef.current = moments
+  onMoment.current = moment => {
+    if (!b) return
+    const wordsA = variableWords(a.variable)
+    const wordsB = variableWords(b.variable)
+    const sentence = momentSentence(moment, { name: a.variable.name.toLowerCase(), highest: wordsA.highest, lowest: wordsA.lowest }, { name: b.variable.name.toLowerCase(), highest: wordsB.highest, lowest: wordsB.lowest })
+    const now = performance.now()
+    // Moments close together are one line and one chord.
+    if (now - lastMomentAt.current < MERGE_SECONDS * 1000) {
+      setStrip(previous => `${previous} ${sentence}`)
+      return
+    }
+    lastMomentAt.current = now
+    ensemble.playNotes(momentChord(moment.kind, preset.tonic, mixRef.current), ensemble.now() + SCHEDULE_LOOKAHEAD_S)
+    setStrip(sentence)
+    announce(sentence)
+  }
+
   // One source steps through A's shared frames; each frame of A reads B's frame for the same date and plays the two as one.
   // The crossfader is kept inside, so moving it does not make a new source.
   const deck = useMemo(() => {
@@ -75,6 +128,8 @@ export function Fusion({ visualization }: { visualization: Visualization }) {
           const fused = fuseFrames(musicA, musicB, share)
           ensemble.apply(fused, ensemble.now() + SCHEDULE_LOOKAHEAD_S)
           setSummary(fused.summary)
+          const moment = momentsRef.current.find(m => m.date === frame.date)
+          if (moment) onMoment.current(moment)
         }, () => {
           ensemble.apply(fuseFrames(musicA, null, share), ensemble.now() + SCHEDULE_LOOKAHEAD_S)
         })
@@ -83,7 +138,7 @@ export function Fusion({ visualization }: { visualization: Visualization }) {
     return { source: sequence, setShare: (next: number) => { share = next } }
   }, [a, b, shared, preset, prefs.speed, ensemble])
   const source = deck?.source ?? null
-  useEffect(() => { deck?.setShare(mix / 100) }, [deck, mix])
+  useEffect(() => { deck?.setShare(mix / 100); mixRef.current = mix / 100 }, [deck, mix])
 
   // StrictMode runs a cleanup and then the effect again with the same source, so the disposal waits a microtask and is skipped if it came back.
   const current = useRef<FrameSequenceSource | null>(null)
@@ -108,6 +163,8 @@ export function Fusion({ visualization }: { visualization: Visualization }) {
     source?.stop()
     ensemble.stop()
     setPlaying(false)
+    setStrip('')
+    lastMomentAt.current = -Infinity
   }
 
   function swap() {
@@ -151,8 +208,10 @@ export function Fusion({ visualization }: { visualization: Visualization }) {
           <div className="player__controls" role="group" aria-label="Playback">
             <Button variant="primary" onClick={() => void (playing ? stop() : play())}>{playing ? 'Stop' : 'Play both'}</Button>
             <Button onClick={swap}>Swap decks</Button>
+            <Button pressed={marking} onClick={() => { setMarking(on => !on); setStrip('') }}>Mark moments</Button>
           </div>
           <p className="fusion__now"><strong>Now:</strong> {summary || 'Nothing is playing yet.'}</p>
+          <p className="fusion__moment"><strong>Moments:</strong> {strip || (marking ? 'None yet. A chord sounds when both decks peak together.' : 'Off.')}</p>
           <p className="fusion__hint">Each data set says only what it shows. Hearing them together does not mean one causes the other.</p>
         </>
       )}
