@@ -42,6 +42,7 @@ function startPlayback(
   captions: Caption[],
   onEnd: () => void,
   onCaption: (caption: Caption) => void,
+  onStep?: (index: number) => void,
 ): () => void {
   const transport = tone.getTransport()
   const step = stepSeconds(payload)
@@ -76,22 +77,26 @@ function startPlayback(
   const end = transport.scheduleOnce(time => {
     timer = setTimeout(onEnd, Math.max(0, time - tone.now()) * 1000)
   }, totalSeconds(payload) + step)
-  const captionTimers = new Set<ReturnType<typeof setTimeout>>()
-  const captionEvents = captions.map(caption =>
+  const timers = new Set<ReturnType<typeof setTimeout>>()
+  const at = (seconds: number, run: () => void) =>
     transport.scheduleOnce(time => {
       const handle = setTimeout(() => {
-        captionTimers.delete(handle)
-        onCaption(caption)
+        timers.delete(handle)
+        run()
       }, Math.max(0, time - tone.now()) * 1000)
-      captionTimers.add(handle)
-    }, caption.at),
-  )
+      timers.add(handle)
+    }, seconds)
+  const events = captions.map(caption => at(caption.at, () => onCaption(caption)))
+  if (onStep) {
+    const steps = Math.max(...payload.tracks.map(track => track.volume_curve.length))
+    for (let index = 0; index < steps; index += 1) events.push(at(index * step, () => onStep(index)))
+  }
   transport.start()
 
   return () => {
     transport.clear(end)
-    for (const id of captionEvents) transport.clear(id)
-    for (const handle of captionTimers) clearTimeout(handle)
+    for (const id of events) transport.clear(id)
+    for (const handle of timers) clearTimeout(handle)
     clearTimeout(timer)
     transport.stop()
     for (const { synth, sequence } of voices) {
@@ -107,11 +112,13 @@ type Props = {
   payload: AudioPayload
   /** The `vision` field, already checked with `parseVisionPayload`. Without it the player shows no captions. */
   vision?: VisionPayload | null
+  /** WX02: the step being heard (0 = the first), and null when the sound stops. */
+  onStep?: (index: number | null) => void
 }
 
 const canSpeak = () => typeof window !== 'undefined' && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined'
 
-export function JukeboxPlayer({ payload, vision }: Props) {
+export function JukeboxPlayer({ payload, vision, onStep }: Props) {
   const announce = useAnnounce()
   const [playing, setPlaying] = useState(false)
   const [failed, setFailed] = useState(false)
@@ -126,6 +133,11 @@ export function JukeboxPlayer({ payload, vision }: Props) {
   const stopPlayback = useRef<(() => void) | null>(null)
   /** Goes up on every Play and Stop, so a Play that was still loading Tone knows it has been overtaken. */
   const attempt = useRef(0)
+  /** Read on stop, so a new callback does not rebuild `stop` (and end the sound). */
+  const onStepRef = useRef(onStep)
+  useEffect(() => {
+    onStepRef.current = onStep
+  }, [onStep])
 
   const stop = useCallback(() => {
     attempt.current += 1
@@ -134,6 +146,7 @@ export function JukeboxPlayer({ payload, vision }: Props) {
     hush()
     setCaption(null)
     setPlaying(false)
+    onStepRef.current?.(null)
   }, [])
 
   // A new payload, or leaving the page, ends the old sound.
@@ -162,6 +175,10 @@ export function JukeboxPlayer({ payload, vision }: Props) {
           announce(next.alt_text)
           if (spokenRef.current) void speak(next.alt_text)
         },
+        onStep &&
+          (index => {
+            if (attempt.current === mine) onStepRef.current?.(index)
+          }),
       )
       announce('Playing')
     } catch {

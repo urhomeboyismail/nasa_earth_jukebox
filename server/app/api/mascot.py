@@ -46,6 +46,13 @@ class MascotQuery(_Strict):
     catalog: list[CatalogEntry] = Field(default_factory=list, max_length=MAX_CATALOG)
 
 
+class SeriesOut(BaseModel):
+    metric: str  # what the values are, e.g. "Air temperature"
+    unit: str  # e.g. "°C"; may be empty
+    times: list[str]  # ISO 8601: a day, or an hour in UTC
+    values: list[float]
+
+
 class MascotAnswer(BaseModel):
     mascot_reply: str
     dataset_theme: Literal["ocean", "atmosphere", "forest", "default"]
@@ -53,6 +60,8 @@ class MascotAnswer(BaseModel):
     sonification_json: dict[str, Any] | None
     #: One of the catalog ids that were sent, when an app data set answers the question.
     local_dataset_id: str | None
+    #: WX02: every value behind the sound, one per step, for the "Show the numbers" table. None when nothing was found.
+    series: SeriesOut | None = None
 
 
 @lru_cache(maxsize=1)

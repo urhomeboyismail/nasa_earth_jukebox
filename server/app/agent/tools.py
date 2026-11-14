@@ -1,4 +1,4 @@
-"""The voice guide's five tools as ADK function tools.
+"""The voice guide's tools as ADK function tools: the five app tools, and get_weather (WX04).
 
 Each one wraps `run_tool` (app/assistant/tools.py), which stays the one place that checks page names, playback commands and
 dates: the functions here only read the session state, call it, and pass on what it returns. ADK builds each tool's schema from
@@ -7,12 +7,18 @@ must be static; test_agent_core.py checks they equal PAGE_IDS and PLAYBACK_COMMA
 """
 from __future__ import annotations
 
+import logging
+from datetime import datetime, timezone
 from typing import Literal
 
+import httpx
 from google.adk.tools import FunctionTool, ToolContext
 
+from app.agent import weather
 from app.agent.sink import sink
 from app.assistant.tools import SessionState, run_tool
+
+logger = logging.getLogger(__name__)
 
 PageId = Literal["home", "learn", "listen", "compare", "about"]
 PlaybackCommand = Literal["play", "pause", "stop", "replay", "next", "previous"]
@@ -61,6 +67,46 @@ def get_screen_context(tool_context: ToolContext) -> dict:
     return _run("get_screen_context", {}, tool_context)
 
 
+#: WX04: Meteomatics calls one voice session may make. Each is billed, and a session has no account behind it.
+MAX_WEATHER_CALLS = 3
+WEATHER_CALLS_KEY = "weather_calls"
+
+#: Appended to the voice guide's instruction (app/agent/voice.py), after its rules, so the tool's numbers are allowed.
+WEATHER_INSTRUCTION = (
+    "\n- Weather (an exception to the rules above): when the user asks about the weather or the temperature at a place, call "
+    "get_weather with that place's latitude and longitude, then read out its summary in one or two sentences. The numbers "
+    "get_weather returns are the only weather numbers you may say. If it returns an error, say so in a few words."
+)
+
+
+async def get_weather(latitude: float, longitude: float, tool_context: ToolContext, hours: int = 24) -> dict:
+    """Get the air temperature 2 m above the ground for the next hours at one place, from the Meteomatics weather service.
+    latitude, longitude: the place in decimal degrees. hours: how many hours from now, 1 to 168 (24 by default)."""
+    calls = int(tool_context.state.get(WEATHER_CALLS_KEY) or 0)
+    if calls >= MAX_WEATHER_CALLS:
+        return {"error": "No more weather requests in this conversation. Tell the user."}
+    now = datetime.now(timezone.utc).isoformat()
+    checked = weather.checked_args(latitude, longitude, now, hours)
+    if isinstance(checked, dict):
+        return checked
+    if not weather.configured():
+        return {"error": "Weather is not set up on this server. Tell the user, and do not try again."}
+    tool_context.state[WEATHER_CALLS_KEY] = calls + 1
+    try:
+        points = await weather.hourly_temperature(*checked)
+    except Exception as error:  # noqa: BLE001 - the network, a refusal (bad login, plan limits) or an unexpected body
+        status = error.response.status_code if isinstance(error, httpx.HTTPStatusError) else type(error).__name__
+        logger.warning("Meteomatics failed: %s", status)  # Never the place asked about.
+        return {"error": "The weather service did not answer. Tell the user, and do not try again."}
+    if not points:
+        return {"error": "The weather service had no values for that place. Tell the user."}
+    return {
+        "summary": weather.summary(points),
+        "unit": "°C",
+        "hourly": [[f"{when:%Y-%m-%d %H:%M} UTC", value] for when, value in points],
+    }
+
+
 #: The only tools the agent has. Each one's action, if any, has passed run_tool before it reaches the sink.
-AGENT_TOOLS = [FunctionTool(fn) for fn in (navigate_to, explain_section, control_playback, set_date, get_screen_context)]
+AGENT_TOOLS = [FunctionTool(fn) for fn in (navigate_to, explain_section, control_playback, set_date, get_screen_context, get_weather)]
 TOOL_NAMES = frozenset(tool.name for tool in AGENT_TOOLS)
