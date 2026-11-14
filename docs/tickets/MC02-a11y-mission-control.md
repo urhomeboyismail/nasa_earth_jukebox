@@ -68,4 +68,36 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Branch `chore/MC02-a11y-mission-control` (from `chore/jpl-hud-theme` at `14b29ce`), commit `7882adb`. Claim kept local, not pushed (the person's choice, 14 Nov 2026).
+
+**Audit (Chrome, Night theme, 1440 wide, dev server)**
+
+| Check | Result |
+|---|---|
+| Lighthouse accessibility, desktop snapshot | Home 99, Learn 98, Listen 99, Compare 99, About 99. The one failure on every page is `skip-link` ("No skip link target"): `a.app-skip` in `src/App.tsx:272`, from `dd3e834` (UI T50), not this look. Its `href` is a route and its click handler focuses the page heading, so keyboard users still land on the heading; axe cannot see that. Left alone: `App.tsx` is the `app` hotspot and outside this ticket. Worth its own small ticket. |
+| Visible focus inside HUD panels | Pass. Tab into the page, then focus Play in the player transport (a `.nasa-hud-card`): `:focus-visible` holds, 3px solid `rgb(0, 220, 252)` outline, 2px offset, and the panel does not clip it (`overflow: visible`). |
+| Reduced motion | Pass. With `matchMedia('(prefers-reduced-motion: reduce)')` made to match before load, the canvas drew one frame, then stayed identical across 800 ms even after `setJukeboxEnergy(1)`. Without it, frames changed. |
+| Text contrast on HUD panels over the backdrop | Pass, now tested (below). The backdrop is `#040812`; glass over it is lighter than glass over pure black, which the existing test already covered. |
+| Screen reader exposure | Unchanged: the canvas is `aria-hidden="true"`; the only markup changes are class names. |
+| Mono readouts | Dates, counts and slider values read in JetBrains Mono with tabular figures ("January 2024: cold", "80 percent"). |
+
+Nothing in the look failed, so the change is the tests that keep it that way. New tests in `src/styles/tokens.test.ts`:
+
+- Text on the glass over deep space: `on-surface`, `on-surface-variant` and `primary` reach 4.5:1 on the glass over the backdrop's own `SPACE` colour, read from `public/nasa-bg.js`. These run for Night only (the backdrop never draws in Day or high contrast), which is the 9 skipped below.
+- `.nasa-hud-card` fallbacks exist for more contrast and reduced transparency, no `backdrop-filter`, and the app's high contrast switch.
+- `.nasa-hud-card` blurs at least 14px. That blur is what stops stars (1 to 1.6px) and the horizon line from showing through text as bright points. Without blur support the panel turns solid, so see-through without blur never happens.
+
+**👤 Still for a person (does not block `ready`):** one page with a screen reader (VoiceOver or NVDA), in Night theme:
+
+1. The backdrop is never announced (no "image", "canvas" or "graphic").
+2. Tab from the top: the skip link, the nav, then the page. Focus is always visible on the HUD panels.
+3. On Listen, Play, then Stop: the player's announcements read as before, and nothing new speaks over them.
+4. The date and volume readouts read as words, not character by character.
+
+**Checks**
+
+```
+npm run lint   → 0 errors (only the existing src/features/compare/Fusion.tsx warnings)
+npm test       → Test Files 220 passed (220); Tests 3167 passed | 9 skipped (3176)
+npm run build  → ✓ built in 918ms
+```
