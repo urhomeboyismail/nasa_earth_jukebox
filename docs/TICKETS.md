@@ -86,7 +86,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 |---|---|---|---|---|---|---|
 | [UI01](tickets/UI01-dark-glass-tokens.md) | Dark-glass tokens, telemetry accents, mono type, Night/Day switch and server pill | L | agent+👤 | — | theme, app | claimed: A, 2026-11-14 |
 | [UI02](tickets/UI02-welcome-glass.md) | Welcome in glass: Echo's chat and the manual form | M | agent+👤 | — | welcome | open |
-| [UI03](tickets/UI03-crate-records.md) | Vinyl Crate in glass, with a 10-second preview of the data | M | agent+👤 | — | — | open |
+| [UI03](tickets/UI03-crate-records.md) | Vinyl Crate in glass, with a 10-second preview of the data | M | agent+👤 | — | — | claimed: D, 2026-11-14 |
 | [UI04](tickets/UI04-stage-transport.md) | Jukebox stage and transport in glass, with Loop and a mixer drawer | L | agent+👤 | — | player | open |
 | [UI05](tickets/UI05-motion-layer.md) | Motion layer on Anime.js: press, drawers, sky, theme sweep and Echo's flight | M | agent+👤 | — | tour | open |
 | [UI06](tickets/UI06-compare-decks.md) | Compare and Remix as two glass decks, with a dual-handle date scrubber | M | agent+👤 | — | compare | open |
