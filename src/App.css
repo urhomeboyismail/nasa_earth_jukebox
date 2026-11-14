@@ -521,3 +521,19 @@ html {
 @media (max-width: 359.98px) {
   .app-header nav { inline-size: calc(100% - 16px); }
 }
+
+/* "Hey Echo" is listening: always in view while it is (src/WakeIndicator.tsx). */
+.app-wake { display: inline-flex; align-items: center; gap: 0.5rem; }
+.app-wake[hidden] { display: none; }
+.app-wake__text { margin: 0; font-size: 0.875rem; color: var(--md-sys-color-on-surface); }
+.app-wake__off {
+  min-block-size: var(--control-size);
+  padding-inline: 0.75rem;
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--md-sys-color-primary);
+  background: none;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-full, 999px);
+  cursor: pointer;
+}

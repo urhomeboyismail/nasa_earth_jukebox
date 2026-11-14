@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
+import { recognitionCtor, useWakeSetting } from './assistant/wakeWord'
 import { Button, ButtonGroup, IconButton, Notice } from './components'
 import type { AnswerLength } from './assistant/consent'
 import { Icon } from './components/Icon'
@@ -18,6 +19,8 @@ export default function VoiceAssistant({ assistant, onClose }: { assistant: Assi
     consent, consentAsked, talkMode, talking, answerLength, limitWarning, waking,
   } = assistant
   const [draft, setDraft] = useState('')
+  const [wakeOn, setWakeOn] = useWakeSetting()
+  const canWake = recognitionCtor() !== null
   const log = useRef<HTMLOListElement>(null)
   const title = useRef<HTMLHeadingElement>(null)
   const consentTitle = useRef<HTMLHeadingElement>(null)
@@ -210,6 +213,20 @@ export default function VoiceAssistant({ assistant, onClose }: { assistant: Assi
     <ButtonGroup type="connected" legend="Answers" name="voice-answer-length" options={ANSWER_LENGTHS} value={answerLength}
       onChange={assistant.setAnswerLength} />
     {active && <p className="voice-assistant__why">A change to Answers applies to the next conversation.</p>}
+
+    {canWake && (
+      <>
+        <label className="ui-choice">
+          <input type="checkbox" checked={wakeOn} aria-describedby="voice-wake-why" onChange={event => setWakeOn(event.target.checked)} />
+          <span>Answer to “Hey Echo”</span>
+        </label>
+        <p id="voice-wake-why" className="voice-assistant__why">
+          Say “Hey Echo”, or “Hey Echo” and a question, to start talking without a click. While this is on, your browser listens on
+          this page, and in Chrome and Edge the sound goes to the browser maker's speech service to find the phrase. Nothing reaches
+          Echo until you say it. The header shows when it is listening.
+        </p>
+      </>
+    )}
 
     <p className="voice-assistant__note">
       While this is open, your voice and what you type are sent to Google's Gemini cloud AI to answer you. This app saves none of it.

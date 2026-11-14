@@ -7,6 +7,7 @@
 // Neither fake makes sound or runs code in another thread. They record what happened so a test can check it.
 
 import { vi } from 'vitest'
+import type { Recognition } from '../assistant/wakeWord'
 
 // ---- AudioContext -------------------------------------------------------------------------------------------
 
@@ -118,4 +119,27 @@ export function installFakeWorker(handler?: FakeWorkerHandler) {
     get workers() { return FakeWorker.instances },
     uninstall() { vi.unstubAllGlobals() },
   }
+}
+
+// ---- SpeechRecognition (the "Hey Echo" wake phrase) ---------------------------------------------------------
+
+/** A SpeechRecognition that records what the code does and lets a test say things to it. */
+export class FakeRecognition implements Recognition {
+  static instances: FakeRecognition[] = []
+  continuous = false
+  interimResults = true
+  lang = ''
+  onresult: Recognition['onresult'] = null
+  onerror: Recognition['onerror'] = null
+  onend: Recognition['onend'] = null
+  started = 0
+  aborted = false
+  constructor() { FakeRecognition.instances.push(this) }
+  start() { this.started++ }
+  stop() { this.onend?.() }
+  abort() { this.aborted = true }
+  say(transcript: string, isFinal = true) {
+    this.onresult?.({ resultIndex: 0, results: { length: 1, 0: { isFinal, 0: { transcript } } } })
+  }
+  fail(error: string) { this.onerror?.({ error }); this.onend?.() }
 }
