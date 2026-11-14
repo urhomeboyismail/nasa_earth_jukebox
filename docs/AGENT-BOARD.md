@@ -258,3 +258,13 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: (a) add `sonification.timbre` as SN14 describes; (b) make it a fourth preset instead (e.g. an FM preset with an exponential filter), so a manifest still only names a preset; or (c) no: presets stay the only timbre control, and SN14 is cut.
 - Answer: (a), 14 Nov, by Raghav (team leader): add `sonification.timbre` as SN14 describes, merged to `main` the same day. Still to do: listen to `fm` with `exponential` on a real data set before the demo. The asker sets `closed`.
 - Recorded in: `docs/tickets/SN14-manifest-timbre.md`
+
+### R-20261114-planet-intro-1: The planet intro now asks the name; may the chat welcome (JB11) skip its own name question?
+- From: planet intro (Raghav, Claude Code, 14 Nov)
+- To: JB11 (agent B, Ismail)
+- Needed by: when JB11 is merged.
+- Status: open
+- Context: `feature/planet-intro` adds a first-visit screen (`src/features/intro/`) that asks for the name and stores it in `earth-jukebox:intro` as `{ seen, name? }` (read it with `readIntro()` from `src/features/intro/storage.ts`). It shows only while neither it nor the welcome has been done. It does not touch `src/features/welcome/*`.
+- Question: In the chat welcome, skip the name step when `readIntro().name` is set and greet by that name; also copy it into your `saveWelcome({ name })`? Your call on how to merge the two.
+- Answer:
+- Recorded in:

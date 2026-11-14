@@ -19,6 +19,8 @@ import { MascotGuideProvider } from './features/mascot/MascotGuideProvider'
 import { pages, type Page } from './pages'
 import { currentDataParam, hashFor, parseHash } from './route'
 import { useNavDrag } from './useNavDrag'
+import { useIntro } from './features/intro/storage'
+import { useWelcome } from './features/welcome/storage'
 import './App.css'
 
 // Home loads with the app; every other page is fetched the first time it is opened, so the first load stays small.
@@ -28,6 +30,8 @@ const LearnPage = lazy(() => import('./features/learn'))
 const PlayerPage = lazy(() => import('./features/player'))
 // Echo's corner widget is not needed to read the page, so it loads after it.
 const MascotDock = lazy(() => import('./features/mascot/MascotDock'))
+// The planet intro (first visit only) brings three.js, so it loads only then.
+const Intro = lazy(() => import('./features/intro/Intro'))
 // The voice panel loads the first time the guide is opened. The guide's audio code starts loading with it, so it is
 // there by the time Start is pressed. If it fails here, Start loads it again and says so.
 const VoiceAssistant = lazy(() => {
@@ -69,6 +73,8 @@ function failureOf(id: string | null, error: unknown) {
 function App() {
   const [route, setRoute] = useState(() => parseHash(window.location.hash))
   const page = route.page
+  const intro = useIntro()
+  const welcome = useWelcome()
   const [assistantOpen, setAssistantOpen] = useState(false)
   const [catalog, setCatalog] = useState<CatalogEntry[] | null>(null)
   const [loaded, setLoaded] = useState<Visualization | null>(null)
@@ -311,6 +317,7 @@ function App() {
           <MascotDock page={page} loading={!visualization && !loadError} voice={assistant.status} voiceOpen={assistantOpen} line={spokenLine}
             onTalk={() => setAssistantOpen(true)} />
         </Suspense>
+        {page === 'home' && !intro.seen && !welcome.done && <Suspense fallback={null}><Intro /></Suspense>}
       </MascotGuideProvider>
       </DisplaySettingsProvider>
     </AnnouncerProvider>
