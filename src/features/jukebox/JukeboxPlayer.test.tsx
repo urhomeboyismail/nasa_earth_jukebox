@@ -285,6 +285,31 @@ describe('captions', () => {
     expect(spoke).toEqual(['Pale water.'])
   })
 
+  it('says the descriptions are written by AI, and hiding them stops showing, announcing and speaking them', async () => {
+    const { container } = show(two, vision)
+    expect(screen.getByText(/written by AI from the images/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Spoken narration (Web Speech API)' }))
+    await pressPlay()
+    const [, first, second] = tone.state.transport.once
+    first.callback(1)
+    expect(await screen.findByText('Open sea.')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Hide AI descriptions' }))
+    expect(announced.at(-1)).toBe('AI descriptions hidden')
+    expect(screen.queryByText('Open sea.')).not.toBeInTheDocument()
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+    expect(spoke.at(-1)).toBe('<hush>')
+    second.callback(1)
+    await new Promise(resolve => setTimeout(resolve, 20))
+    expect(announced).not.toContain('Pale water.')
+    expect(spoke).not.toContain('Pale water.')
+    expect(screen.getByRole('button', { name: 'Stop' })).toBeInTheDocument() // The sound plays on.
+    await expectNoA11yViolations(container)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Show AI descriptions' }))
+    expect(screen.getByText('Descriptions appear here while it plays.')).toBeInTheDocument()
+  })
+
   it('has no speech toggle where the browser has no speech', () => {
     vi.unstubAllGlobals()
     show(two, vision)

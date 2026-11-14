@@ -119,6 +119,9 @@ export function JukeboxPlayer({ payload, vision }: Props) {
   const [spoken, setSpoken] = useState(false)
   /** Read when a description comes up, so the toggle applies to the next one without rebuilding the sound. */
   const spokenRef = useRef(false)
+  /** The listener can hide the AI-written descriptions; read when one comes up, so hiding works mid-play. */
+  const [hidden, setHidden] = useState(false)
+  const hiddenRef = useRef(false)
   /** Silences what is playing. Null when nothing is. */
   const stopPlayback = useRef<(() => void) | null>(null)
   /** Goes up on every Play and Stop, so a Play that was still loading Tone knows it has been overtaken. */
@@ -154,7 +157,7 @@ export function JukeboxPlayer({ payload, vision }: Props) {
           announce('Finished')
         },
         next => {
-          if (attempt.current !== mine) return
+          if (attempt.current !== mine || hiddenRef.current) return
           setCaption(next)
           announce(next.alt_text)
           if (spokenRef.current) void speak(next.alt_text)
@@ -198,6 +201,26 @@ export function JukeboxPlayer({ payload, vision }: Props) {
         ))}
       </ul>
       {hasCaptions && (
+        <>
+          {/* A model wrote these (the one exception to ADR-0005), so the listener is told, and can turn them off. */}
+          <p className="jukebox-player__provenance">The descriptions are written by AI from the images. No person has checked them.</p>
+          <Button
+            onClick={() => {
+              const next = !hidden
+              hiddenRef.current = next
+              setHidden(next)
+              if (next) {
+                hush()
+                setCaption(null)
+              }
+              announce(next ? 'AI descriptions hidden' : 'AI descriptions shown')
+            }}
+          >
+            {hidden ? 'Show AI descriptions' : 'Hide AI descriptions'}
+          </Button>
+        </>
+      )}
+      {hasCaptions && !hidden && (
         <>
           {canSpeak() && (
             <label className="jukebox-player__speech">
