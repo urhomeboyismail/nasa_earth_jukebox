@@ -33,15 +33,15 @@ describe('the globe motion', () => {
     expect(turn(0, 1)).toBeCloseTo(1)
   })
 
-  it('swings the arms while running, and raises the right one to wave', () => {
-    const running = poseAt(0, 1, 1, 0)
-    expect(running.lean).toBeGreaterThan(0)
-    expect(running.armL).toBeCloseTo(-running.armR)
-    expect(running.raise).toBeCloseTo(0)
+  it('swings the arms while walking, and raises the right one to wave', () => {
+    const walking = poseAt(0, 1, 1, 0)
+    expect(walking.lean).toBeGreaterThan(0)
+    expect(walking.lx).toBeCloseTo(-walking.rx)
+    expect(walking.rz).toBeLessThan(0.5)
 
     const waving = poseAt(0, 1, 0, 1)
     expect(waving.lean).toBe(0)
-    expect(waving.armR).toBeCloseTo(0)
-    expect(waving.raise).toBeLessThan(-2)
+    expect(waving.lx).toBe(0)
+    expect(waving.rz).toBeGreaterThan(2)
   })
 })

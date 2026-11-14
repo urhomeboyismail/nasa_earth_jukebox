@@ -63,16 +63,20 @@ export function dragPlanet(m: PlanetMotion, dx: number, dy: number, width: numbe
 }
 
 /**
- * Echo's pose. `phase` is the stride, `run` 0 (standing) to 1 (running), `wave` 0 to 1 how far the right arm is up in a wave, and `t`
- * the clock for the idle bob and the hand going to and fro (pass 0 to hold them still).
+ * Echo's pose, in the terms robot-companion.js uses: `lift` and `lean` for the body, `headX` for the head, and for each arm x (swing)
+ * and z (raise). `phase` is the stride, `run` 0 (standing) to 1 (walking), `wave` 0 to 1 how far the right arm is up in a wave, and
+ * `t` the clock for the idle bob and the hand going to and fro (pass 0 to hold them still).
  */
 export function poseAt(t: number, phase: number, run: number, wave: number) {
   const stride = Math.sin(phase)
+  const walk = 0.55 * stride * run
   return {
-    lift: 0.05 + run * 0.035 * Math.abs(stride) + (1 - run) * 0.01 * Math.sin(t * 2.5),
-    lean: 0.28 * run,
-    armL: 0.9 * stride * run,
-    armR: -0.9 * stride * run * (1 - wave),
-    raise: wave * (-2.5 + 0.35 * Math.sin(t * 11)),
+    lift: 0.02 + run * 0.03 * Math.abs(stride) + (1 - run) * 0.008 * Math.sin(t * 2.5),
+    lean: 0.22 * run,
+    headX: -0.12 * run,
+    lx: walk,
+    lz: 0.15 * run,
+    rx: -walk * (1 - wave) + wave * (-1.15 + 0.12 * Math.sin(t * 16)),
+    rz: 0.15 * run * (1 - wave) + 2.45 * wave,
   }
 }
