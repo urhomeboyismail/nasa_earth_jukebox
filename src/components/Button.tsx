@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes } from 'react'
+import { pressRecoil } from '../motion'
 
 type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'aria-pressed'> & {
   /** Makes this a toggle: true is on, false is off. Leave undefined for an ordinary button. */
@@ -13,7 +14,7 @@ type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'aria-pressed'> & {
 }
 
 /** A button at least 48 × 48 px. With `pressed` it is a toggle, announced as "pressed" or "not pressed". */
-export function Button({ pressed, variant = 'secondary', size = 'small', className, type = 'button', ...rest }: Props) {
+export function Button({ pressed, variant = 'secondary', size = 'small', className, type = 'button', onPointerDown, ...rest }: Props) {
   const classes = ['ui-button', `ui-button--${variant}`, size !== 'small' && `ui-button--${size}`, className].filter(Boolean).join(' ')
-  return <button {...rest} type={type} className={classes} aria-pressed={pressed} />
+  return <button {...rest} type={type} className={classes} aria-pressed={pressed} onPointerDown={event => { void pressRecoil(event.currentTarget); onPointerDown?.(event) }} />
 }

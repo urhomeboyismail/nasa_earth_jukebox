@@ -12,7 +12,8 @@ const wrapper = ({ children }: { children: ReactNode }) => (
   <AnnouncerProvider><DisplaySettingsProvider>{children}</DisplaySettingsProvider></AnnouncerProvider>
 )
 const root = document.documentElement
-const CLASSES = ['display-readable', 'display-high-contrast', 'display-patterns']
+const CLASSES = ['display-readable', 'display-high-contrast', 'display-patterns', 'display-hide-crate']
+const THREE = ['display-readable', 'display-high-contrast', 'display-patterns']
 const classes = () => CLASSES.filter(name => root.classList.contains(name))
 const liveText = () => document.querySelector('[aria-live="polite"]')?.textContent?.trim() ?? ''
 
@@ -34,7 +35,7 @@ afterEach(() => { CLASSES.forEach(name => root.classList.remove(name)); localSto
 describe('display settings', () => {
   it('starts with everything off', async () => {
     await open()
-    for (const name of ['Easier reading font', 'High contrast', 'Colour-vision patterns']) expect(sw(name)).not.toBeChecked()
+    for (const name of ['Easier reading font', 'High contrast', 'Colour-vision patterns', 'Hide the Crate on Home']) expect(sw(name)).not.toBeChecked()
     expect(classes()).toEqual([])
   })
 
@@ -56,7 +57,7 @@ describe('display settings', () => {
     [['Easier reading font', 'High contrast'], ['display-readable', 'display-high-contrast']],
     [['Easier reading font', 'Colour-vision patterns'], ['display-readable', 'display-patterns']],
     [['High contrast', 'Colour-vision patterns'], ['display-high-contrast', 'display-patterns']],
-    [['Easier reading font', 'High contrast', 'Colour-vision patterns'], CLASSES],
+    [['Easier reading font', 'High contrast', 'Colour-vision patterns'], THREE],
   ])('combines %j', async (names, expected) => {
     const { user } = await open()
     for (const name of names) await user.click(sw(name))
