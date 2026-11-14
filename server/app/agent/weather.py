@@ -78,6 +78,17 @@ def parse(body: bytes) -> list[Point]:
     return [(entry.date, entry.value) for entry in dates if entry.value is not None and entry.value != NO_VALUE]
 
 
+def summary(points: list[Point]) -> str:
+    """One sentence for the voice guide to read out, built from the values only. `points` must not be empty."""
+    values = [value for _, value in points]
+    low, high = values.index(min(values)), values.index(max(values))
+    at = lambda index: f"{points[index][0]:%H:%M} UTC"  # noqa: E731 - three uses in one sentence
+    return (
+        f"Air temperature for the next {len(points)} hours: now {values[0]:g} °C, lowest {values[low]:g} °C at {at(low)}, "
+        f"highest {values[high]:g} °C at {at(high)}."
+    )
+
+
 async def hourly_temperature(
     latitude: float, longitude: float, first: datetime, hours: int, transport: httpx.AsyncBaseTransport | None = None
 ) -> list[Point]:

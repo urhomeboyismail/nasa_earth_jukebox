@@ -92,7 +92,7 @@ def test_generated_schemas_list_the_same_enums():
     assert schemas["navigate_to"]["properties"]["page"]["enum"] == PAGE_IDS
     assert schemas["explain_section"]["properties"]["page"]["enum"] == PAGE_IDS
     assert schemas["control_playback"]["properties"]["command"]["enum"] == PLAYBACK_COMMANDS
-    assert TOOL_NAMES == {"navigate_to", "explain_section", "control_playback", "set_date", "get_screen_context"}
+    assert TOOL_NAMES == {"navigate_to", "explain_section", "control_playback", "set_date", "get_screen_context", "get_weather"}
     # The model never sees the tool context.
     assert all("tool_context" not in str(schema) for schema in schemas.values())
 

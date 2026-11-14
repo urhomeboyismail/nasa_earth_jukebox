@@ -167,3 +167,83 @@ def test_meteomatics_refusing_is_an_answer(client, monkeypatch, login, status, c
     body = _ask(client, monkeypatch, _weather_call())
     assert body["mascot_reply"] == planetary.WEATHER_REPLIES["down"]
     assert "not-a-real-password" not in caplog.text and "57.5" not in caplog.text
+
+
+# --- WX04: the voice guide's get_weather -------------------------------------------------------------------------------------
+
+from types import SimpleNamespace  # noqa: E402 - kept with the WX04 tests
+
+from app.agent import tools as agent_tools  # noqa: E402
+
+
+def _voice_context():
+    """Stands in for ADK's ToolContext, as in test_agent_core.py."""
+    return SimpleNamespace(state={"page": "home", "language": "en", "screens": {}}, session=SimpleNamespace(id="s1"))
+
+
+def _hours(*values):
+    return [(datetime(2026, 11, 14, hour, tzinfo=timezone.utc), value) for hour, value in enumerate(values)]
+
+
+def test_summary_reads_now_lowest_and_highest():
+    assert weather.summary(_hours(25.0, 23.2, 31.6)) == (
+        "Air temperature for the next 3 hours: now 25 °C, lowest 23.2 °C at 01:00 UTC, highest 31.6 °C at 02:00 UTC."
+    )
+
+
+def test_voice_weather_gives_the_summary_and_every_hour(monkeypatch, login):
+    seen = {}
+
+    async def fetch(*args):
+        seen["args"] = args
+        return _hours(25.0, 23.2, 31.6)
+
+    monkeypatch.setattr(weather, "hourly_temperature", fetch)
+    result = asyncio.run(agent_tools.get_weather(-20.16, 57.5, tool_context=_voice_context(), hours=3))
+    assert result["summary"].startswith("Air temperature for the next 3 hours: now 25 °C")
+    assert result["hourly"][2] == ["2026-11-14 02:00 UTC", 31.6]
+    latitude, longitude, first, hours = seen["args"]
+    assert (latitude, longitude, hours) == (-20.16, 57.5, 3) and first.tzinfo is not None and first.minute == 0
+
+
+@pytest.mark.parametrize(("latitude", "hours"), [(95, 24), (-20, 0), (-20, 500)])
+def test_voice_weather_bad_arguments_fetch_nothing(monkeypatch, login, latitude, hours):
+    monkeypatch.setattr(weather, "hourly_temperature", lambda *args: pytest.fail("no fetch expected"))
+    assert "error" in asyncio.run(agent_tools.get_weather(latitude, 57.5, tool_context=_voice_context(), hours=hours))
+
+
+def test_voice_weather_without_a_login(monkeypatch):
+    monkeypatch.setattr(settings, "meteomatics_username", "")
+    monkeypatch.setattr(weather, "hourly_temperature", lambda *args: pytest.fail("no fetch expected"))
+    result = asyncio.run(agent_tools.get_weather(-20.16, 57.5, tool_context=_voice_context()))
+    assert "not set up" in result["error"]
+
+
+def test_voice_weather_down_is_an_error_for_the_model(monkeypatch, login, caplog):
+    real = weather.hourly_temperature
+    transport = httpx.MockTransport(lambda request: httpx.Response(401, text="Unauthorized"))
+    monkeypatch.setattr(weather, "hourly_temperature", lambda *args: real(*args, transport=transport))
+    result = asyncio.run(agent_tools.get_weather(-20.16, 57.5, tool_context=_voice_context()))
+    assert "did not answer" in result["error"]
+    assert "401" in caplog.text and "57.5" not in caplog.text and "not-a-real-password" not in caplog.text
+
+
+def test_voice_weather_is_capped_for_each_session(monkeypatch, login):
+    calls = []
+
+    async def fetch(*args):
+        calls.append(args)
+        return _hours(20.0)
+
+    monkeypatch.setattr(weather, "hourly_temperature", fetch)
+    context = _voice_context()
+    results = [asyncio.run(agent_tools.get_weather(-20.16, 57.5, tool_context=context)) for _ in range(agent_tools.MAX_WEATHER_CALLS + 1)]
+    assert len(calls) == agent_tools.MAX_WEATHER_CALLS
+    assert "summary" in results[0] and "error" in results[-1]
+
+
+def test_the_weather_line_follows_the_rules_it_relaxes():
+    from app.assistant.knowledge import system_instruction
+
+    instruction = system_instruction("Earth Jukebox", "en", "home", page_label="{page_title}") + agent_tools.WEATHER_INSTRUCTION
+    assert instruction.index("Never invent temperatures") < instruction.index("get_weather")
