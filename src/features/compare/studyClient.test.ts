@@ -7,9 +7,9 @@ const answer = (n: number, extra: Partial<StudyAnswer> = {}): StudyAnswer => ({ 
 type Reply = Response | Error
 /** A fetch that answers from a script, one reply per call, and records the calls. */
 function scripted(replies: Reply[], fallback: () => Reply) {
-  const calls: { url: string; body: any }[] = []
+  const calls: { url: string; method?: string; body: any }[] = []
   const fn = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
-    calls.push({ url: String(url), body: JSON.parse(String(init?.body)) })
+    calls.push({ url: String(url), method: init?.method, body: init?.body ? JSON.parse(String(init.body)) : undefined })
     const reply = replies.shift() ?? fallback()
     if (reply instanceof Error) throw reply
     return reply
@@ -193,5 +193,36 @@ describe('StudyClient', () => {
     client.submit(answer(1))
     await vi.advanceTimersByTimeAsync(10_000)
     expect(calls).toHaveLength(0)
+  })
+
+  it('withdraws: stops sending and deletes the session; a failed delete can be tried again', async () => {
+    const { fn, calls } = scripted([created(), stored(), offline(), stored()], stored)
+    const client = new StudyClient({ fetch: fn })
+    client.start(SESSION)
+    client.submit(answer(1))
+    await client.flush()
+    expect(await client.withdraw()).toBe(false)
+    expect(await client.withdraw()).toBe(true)
+    expect(calls.slice(2).map(c => [c.method, c.url])).toEqual([['DELETE', '/api/v1/tests/abc'], ['DELETE', '/api/v1/tests/abc']])
+    client.submit(answer(2))
+    await client.flush()
+    expect(calls).toHaveLength(4) // Nothing is sent after withdrawing.
+  })
+
+  it('withdraws before a session exists without asking the server', async () => {
+    const { fn, calls } = scripted([], stored)
+    const client = new StudyClient({ fetch: fn })
+    client.submit(answer(1))
+    expect(await client.withdraw()).toBe(true)
+    expect(calls).toHaveLength(0)
+    expect(client.status.pending).toBe(0)
+  })
+
+  it('counts a session the server no longer knows as withdrawn', async () => {
+    const { fn } = scripted([created(), refused(404)], stored)
+    const client = new StudyClient({ fetch: fn })
+    client.start(SESSION)
+    await client.flush()
+    expect(await client.withdraw()).toBe(true)
   })
 })

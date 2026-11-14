@@ -174,6 +174,7 @@ onPlayerCommand(listener: (command: PlayerCommand) => void): () => void   // ret
 ```
 POST /api/v1/tests                       { participant, screenReader, sawImages, consent } → { id }
 POST /api/v1/tests/{id}/responses        { comparisonId, answer, correct, responseMs, confidence?, comment? } → 204
+DELETE /api/v1/tests/{id}                the participant withdraws: the session and its answers → 204 (404 if unknown)
 GET  /api/v1/tests/export.csv            header X-Team-Token → CSV
 ```
 ```sql

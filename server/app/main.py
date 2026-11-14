@@ -17,7 +17,7 @@ app = FastAPI(title=settings.app_name)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],  # DELETE: a participant withdraws from the listening test.
     allow_headers=["Content-Type"],
 )
 

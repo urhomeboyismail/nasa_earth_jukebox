@@ -30,7 +30,7 @@ vi.mock('../../audio', () => ({ createSoundEngine: () => engine }))
 const analyzeAll = vi.hoisted(() => vi.fn())
 vi.mock('../../analysis', () => ({ analyzeAll }))
 
-type Call = { url: string; body: Record<string, unknown> }
+type Call = { url: string; method: string; body: Record<string, unknown> }
 let calls: Call[]
 let failNext: number
 
@@ -40,8 +40,9 @@ beforeEach(() => {
   failNext = 0
   analyzeAll.mockImplementation(async () => visualization.frames.map((f, i) => ({ frameId: f.id, regionId: 'centre', sampled: 9, valid: 9, category: CATEGORIES[i] })))
   vi.stubGlobal('fetch', vi.fn(async (url: string, init: RequestInit) => {
-    calls.push({ url, body: JSON.parse(String(init.body)) })
+    calls.push({ url, method: init.method ?? 'GET', body: init.body ? JSON.parse(String(init.body)) : {} })
     if (failNext > 0) { failNext--; throw new TypeError('Failed to fetch') }
+    if (init.method === 'DELETE') return new Response(null, { status: 204 })
     return url.endsWith('/responses') ? new Response(null, { status: 204 }) : new Response(JSON.stringify({ id: 'sess1' }), { status: 201 })
   }))
 })
@@ -148,7 +149,7 @@ describe('Test mode: a full session', () => {
     render(<ComparePage visualization={visualization} testMode />)
     await toQuestions(user)
 
-    expect(calls[0]).toEqual({ url: '/api/v1/tests', body: { participant: 'blind_low_vision', screenReader: true, sawImages: false, consent: true } })
+    expect(calls[0]).toEqual({ url: '/api/v1/tests', method: 'POST', body: { participant: 'blind_low_vision', screenReader: true, sawImages: false, consent: true } })
 
     await user.click(screen.getByRole('button', { name: 'Play date A' }))
     await user.click(screen.getByRole('button', { name: 'Play date B' }))
@@ -172,6 +173,27 @@ describe('Test mode: a full session', () => {
     expect(second.body).not.toHaveProperty('confidence')
     expect(second.body).not.toHaveProperty('comment')
     expect(await screen.findByText(/All 2 of your answers were sent/)).toBeInTheDocument()
+  })
+
+  it('lets the participant withdraw at the end, which deletes their session, and says so', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<ComparePage visualization={visualization} testMode />)
+    await toQuestions(user)
+    await user.click(screen.getByRole('radio', { name: 'B is warmer' }))
+    await user.click(screen.getByRole('button', { name: 'Submit and go to the next question' }))
+    await user.click(screen.getByRole('radio', { name: 'A is warmer' }))
+    await user.click(screen.getByRole('button', { name: 'Submit and finish' }))
+    await screen.findByText(/All 2 of your answers were sent/)
+    await expectNoA11yViolations(container)
+
+    failNext = 1
+    await user.click(screen.getByRole('button', { name: 'Withdraw my answers' }))
+    expect(await screen.findByText(/could not be deleted just now/)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Withdraw my answers' }))
+    expect(await screen.findByText('Your answers have been withdrawn and deleted from our results.')).toBeInTheDocument()
+    expect(calls.filter(c => c.method === 'DELETE').map(c => c.url)).toEqual(['/api/v1/tests/sess1', '/api/v1/tests/sess1'])
+    expect(screen.queryByRole('button', { name: 'Withdraw my answers' })).toBeNull()
+    await expectNoA11yViolations(container)
   })
 
   it('never shows the right answer or the explanation during the test', async () => {

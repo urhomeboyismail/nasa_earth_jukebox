@@ -11,6 +11,7 @@ import { useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
 import { useAssistantContext } from '../../assistant/context'
 import { Button, Card, Notice } from '../../components'
+import { useAnnounce } from '../../components/useAnnounce'
 import { primaryRegion, variableWords, type Comparison, type Visualization } from '../../data'
 import { dateFormatterFor } from '../../dates'
 import { StudyClient, type Participant, type StudyStatus } from './studyClient'
@@ -107,7 +108,7 @@ export default function TestMode({ visualization, client: given }: { visualizati
           <ul className="test__list">
             <li>We keep your answers and how long you took. We do not ask for your name or email, and we do not store your IP address.</li>
             <li>It tests the app, not you. There are no wrong ways to find it hard, and we want to hear if you do.</li>
-            <li>You can stop at any time by closing the page. Answers you have already given may stay in our results.</li>
+            <li>You can stop at any time by closing the page. Answers you have already given may stay in our results. At the end you can withdraw them, and we delete them.</li>
           </ul>
           <label className="test__check">
             <input type="checkbox" checked={agreed} onChange={event => setAgreed(event.target.checked)} />
@@ -280,8 +281,27 @@ function Question({ comparison, number, of, visualization, engine, results, show
   )
 }
 
+const WITHDRAWN = 'Your answers have been withdrawn and deleted from our results.'
+const WITHDRAW_FAILED = 'Your answers could not be deleted just now. Check your connection, then press Withdraw my answers again.'
+
 function Thanks({ status, client, heading }: { status: StudyStatus; client: StudyClient; heading: React.RefObject<HTMLHeadingElement | null> }) {
+  const announce = useAnnounce()
   const [retrying, setRetrying] = useState(false)
+  const [withdrawal, setWithdrawal] = useState<'idle' | 'working' | 'done' | 'failed'>('idle')
+  async function withdraw() {
+    setWithdrawal('working')
+    const done = await client.withdraw()
+    setWithdrawal(done ? 'done' : 'failed')
+    announce(done ? WITHDRAWN : WITHDRAW_FAILED)
+  }
+  if (withdrawal === 'done') {
+    return (
+      <div className="test__form">
+        <h2 ref={heading} tabIndex={-1}>Thank you</h2>
+        <Notice>{WITHDRAWN}</Notice>
+      </div>
+    )
+  }
   const waiting = status.pending > 0
   async function retry() {
     setRetrying(true)
@@ -304,6 +324,9 @@ function Thanks({ status, client, heading }: { status: StudyStatus; client: Stud
           {status.rejected === 1 ? '1 answer was' : `${status.rejected} answers were`} refused by the server and could not be saved. Please tell the team.
         </Notice>
       )}
+      <p>Changed your mind? You can take your answers back, and we delete them from our results.</p>
+      <Button disabled={withdrawal === 'working'} onClick={() => void withdraw()}>Withdraw my answers</Button>
+      {withdrawal === 'failed' && <Notice variant="error">{WITHDRAW_FAILED}</Notice>}
     </div>
   )
 }
