@@ -123,6 +123,7 @@ Add one line per piece of work, newest last.
 | 14 Nov | UI04 Listen as a glass stage with a glass transport bar, Loop (a `usePlayer` option) and the mixer in a glass drawer | `feature/UI04-stage-transport` |
 | 14 Nov | UI10 Compare says and sounds what changed from A to B: a "What changed" card (overall change and the region that moved most, in the manifest's words) and a "Hear the change" button | `feature/UI10-compare-summary` |
 | 14 Nov | UI03 Vinyl Crate in glass: record cards with a disc painted from the data set's colour scale, and a 10-second preview of its own sound (`src/features/home/preview.ts`) | `feature/UI03-crate-records` |
+| 14 Nov | UI08 Echo's chest equaliser: the chest bars follow the music through a real analyser on its output (`src/features/mascot/useChestBands.ts`) | `feature/UI08-chest-equaliser` |
 
 ## Outside resources used
 
