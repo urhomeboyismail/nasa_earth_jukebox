@@ -12,6 +12,7 @@ import { generateJukebox, MAX_QUERY_CHARS, type JukeboxErrorKind, type JukeboxRe
 import { JukeboxPlayer } from './JukeboxPlayer'
 import { queryMascot, type AudioPreference, type DatasetTheme, type MascotAnswer } from './mascotQuery'
 import { parseAudioPayload, parseVisionPayload, type AudioPayload, type VisionPayload } from './payload'
+import { SeriesTable } from './SeriesTable'
 
 // The 3D robot loads its own scripts; this page only needs it once Echo is shown.
 const Ixia = lazy(() => import('../mascot/Ixia'))
@@ -102,6 +103,8 @@ export function JukeboxStudio() {
   const [offlineText, setOfflineText] = useState(SAMPLE)
   const [preference, setPreference] = useState<AudioPreference>('normal')
   const [live, setLive] = useState<Live>({ waiting: false, answer: null, error: null })
+  /** WX02: the step of Echo's sound being heard, marked in "Show the numbers". */
+  const [liveStep, setLiveStep] = useState<number | null>(null)
   const catalog = useRef<Promise<CatalogEntry[]> | null>(null)
   /** The request to send again on Retry. */
   const last = useRef<JukeboxRequest | null>(null)
@@ -240,7 +243,8 @@ export function JukeboxStudio() {
         <section aria-label="Echo's answer" className="jukebox-studio__reply">
           <p>{live.answer.reply}</p>
           {live.answer.localId && <a href={`index.html${hashFor('listen', { data: live.answer.localId })}`}>Open it in the app</a>}
-          {live.answer.audio && <JukeboxPlayer payload={live.answer.audio} vision={null} />}
+          {live.answer.audio && <JukeboxPlayer payload={live.answer.audio} vision={null} onStep={setLiveStep} />}
+          {live.answer.series && <SeriesTable series={live.answer.series} current={liveStep} />}
         </section>
       )}
       {error && (

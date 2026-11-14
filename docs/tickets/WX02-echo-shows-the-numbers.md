@@ -24,7 +24,7 @@ Under Echo's answer in the Jukebox, a "Show the numbers" disclosure lists every 
 - **Browser**:
   - `mascotQuery.ts` validates `series` with zod; a bad series is dropped, not an error.
   - A new `SeriesTable.tsx` in `src/features/jukebox/` renders a `<details>` with "Show the numbers", then a `<table>` with a caption ("Air temperature, °C"), one row per value, times in the listener's locale, and `aria-current="true"` on the row playing.
-  - `JukeboxPlayer` already knows the playing step, so pass it down. If it doesn't expose it, post on `docs/AGENT-BOARD.md` first.
+  - `JukeboxPlayer` gains an optional `onStep(index | null)` prop. It schedules one event per step on the Transport, the same way as the captions, and calls back with null on Stop. Without the prop nothing changes. (No open ticket holds the player, so no board post was needed.)
 - Labels and units come from the server. Nothing specific to weather goes in `src/` (`phases.md`).
 
 ## Reuse
@@ -33,7 +33,7 @@ The `Card` and `Notice` components; the design tokens; `useAnnounce` (the reply 
 
 ## Touches
 
-`server/app/api/mascot.py`, `server/app/agent/planetary.py`, `server/tests/test_mascot.py`, `src/features/jukebox/mascotQuery.ts` (+ test), `src/features/jukebox/SeriesTable.tsx` (new, + test), `src/features/jukebox/JukeboxStudio.tsx` (+ test).
+`server/app/api/mascot.py`, `server/app/agent/planetary.py`, `server/tests/test_mascot.py`, `src/features/jukebox/mascotQuery.ts` (+ test), `src/features/jukebox/SeriesTable.tsx` (new, + test), `src/features/jukebox/JukeboxStudio.tsx` (+ test), `src/features/jukebox/JukeboxPlayer.tsx` (+ test), `src/features/jukebox/jukebox.css`.
 
 ## Steps
 
@@ -69,4 +69,24 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Built by agent A on 2026-11-14, on top of the local WX01 commit.
+
+- **Server**:
+  - `MascotAnswer` gains `series: {metric, unit, times, values}`, filled by `answer_for` for every fetched series (weather and Planetary Computer);
+  - it is null for help, a local data set, or an error.
+- **Browser**:
+  - `queryMascot` validates `series` with zod; a bad series is dropped and the reply kept;
+  - the new `SeriesTable` is a closed `<details>`, "Show the numbers", holding a captioned table with one row per note, days or hours in UTC, and the playing row marked with `aria-current` (a colour change only);
+  - `JukeboxPlayer` gains an optional `onStep`;
+  - `JukeboxStudio` wires the two together under Echo's reply.
+
+Checks:
+
+```
+(cd server && .venv/bin/python -m pytest)   396 passed, 2 skipped, 14 warnings in 11.32s
+npm run lint                                exit 0; only the existing warnings in src/features/compare/Fusion.tsx
+npm test                                    Test Files 222 passed (222)
+npm run build                               ✓ built in 970ms
+```
+
+`npm test` was flaky: two earlier full runs failed 40 and then 14 tests in `Explorer.test.tsx` and `player.test.tsx`. Neither file imports the Jukebox, and both passed alone (193 of 193). Run on the WX01 commit without these changes, the suite failed only the known `ArtPanel` flake. The run quoted above passed in full.

@@ -201,6 +201,16 @@ describe('JukeboxStudio', () => {
       await expectNoA11yViolations(container)
     })
 
+    it('shows the numbers behind the sound on request (WX02)', async () => {
+      const series = { metric: 'Cloud cover', unit: '%', times: ['2026-10-01', '2026-10-02'], values: [10, 90] }
+      stub(async () => reply(200, { ...live, series }))
+      const { container } = show()
+      await ask()
+      await userEvent.click(await screen.findByText('Show the numbers'))
+      expect(screen.getByRole('table', { name: 'Cloud cover (%): 2 values, one for each note' })).toBeInTheDocument()
+      await expectNoA11yViolations(container)
+    })
+
     it('links to an app data set that answers the question', async () => {
       stub(async () => reply(200, { ...live, mascot_reply: "I already have 'Fixture ocean' in the app.", sonification_json: null, local_dataset_id: 'fixture' }))
       show()

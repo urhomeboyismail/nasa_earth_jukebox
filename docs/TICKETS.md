@@ -106,8 +106,8 @@ Echo fetches the weather for a place, shows every value it fetched, and plays it
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [WX01](tickets/WX01-echo-fetches-weather.md) | Echo fetches hourly air temperature from Meteomatics; reply and sound from the numbers | S | agent | — | — | claimed: A, 2026-11-14 |
-| [WX02](tickets/WX02-echo-shows-the-numbers.md) | "Show the numbers": every fetched value in an accessible table, the playing row marked | S | agent | WX01 | — | open |
+| [WX01](tickets/WX01-echo-fetches-weather.md) | Echo fetches hourly air temperature from Meteomatics; reply and sound from the numbers | S | agent | — | — | ready: local commit in ../nasa-a, no branch yet |
+| [WX02](tickets/WX02-echo-shows-the-numbers.md) | "Show the numbers": every fetched value in an accessible table, the playing row marked | S | agent | WX01 | — | ready: local commit in ../nasa-a, no branch yet |
 | [WX03](tickets/WX03-weather-in-three-voices.md) | Weather in three voices: temperature melody, rain pulse, wind pad | S | agent | WX01 | — | open |
 
 ### P3: people, evidence and submission

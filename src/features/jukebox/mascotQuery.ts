@@ -24,7 +24,24 @@ export type MascotAnswer = {
   audio: AudioPayload | null
   /** One of the catalog ids that were sent, when an app data set answers the question. */
   localId: string | null
+  /** WX02: every value behind the sound, one per step. Null when none was sent, or it did not pass. */
+  series: Series | null
 }
+
+/** More than the server ever sends (a week of hours, or a year of days). */
+const MAX_SERIES = 400
+
+const seriesSchema = z
+  .object({
+    metric: z.string().min(1).max(80),
+    unit: z.string().max(12),
+    times: z.array(z.string().max(40)).min(1).max(MAX_SERIES),
+    values: z.array(z.number()).min(1).max(MAX_SERIES),
+  })
+  .refine(series => series.times.length === series.values.length)
+
+/** The numbers Echo fetched. Labels come from the server, so nothing here is specific to one kind of data. */
+export type Series = z.infer<typeof seriesSchema>
 
 export type MascotResult =
   | { kind: 'answer'; answer: MascotAnswer }
@@ -35,6 +52,7 @@ const answerSchema = z.object({
   dataset_theme: z.enum(['ocean', 'atmosphere', 'forest', 'default']).catch('default'),
   sonification_json: z.unknown(),
   local_dataset_id: z.string().nullish(),
+  series: z.unknown().optional(),
 })
 
 function errorFor(status: number): JukeboxErrorKind {
@@ -65,8 +83,12 @@ export async function queryMascot(
     if (!parsed.success) return { kind: 'error', error: 'model' }
     const { mascot_reply, dataset_theme, sonification_json, local_dataset_id } = parsed.data
     const audio = audioPayloadSchema.safeParse(sonification_json)
+    const series = seriesSchema.safeParse(parsed.data.series)
     const localId = catalog.some(entry => entry.id === local_dataset_id) ? (local_dataset_id ?? null) : null
-    return { kind: 'answer', answer: { reply: mascot_reply, theme: dataset_theme, audio: audio.success ? audio.data : null, localId } }
+    return {
+      kind: 'answer',
+      answer: { reply: mascot_reply, theme: dataset_theme, audio: audio.success ? audio.data : null, localId, series: series.success ? series.data : null },
+    }
   } catch {
     return { kind: 'error', error: 'unreachable' }
   }

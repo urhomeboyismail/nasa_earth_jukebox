@@ -281,7 +281,7 @@ def answer_for(state: dict, preference: str, catalog: list[dict]) -> dict:
     """The route's answer, built from what the tools left in the state. No model text reaches it."""
     series = state.get(SERIES_KEY)
     local = next((entry for entry in catalog if entry["id"] == state.get(LOCAL_KEY)), None)
-    answer = {"mascot_reply": HELP_REPLY, "dataset_theme": "default", "sonification_json": None, "local_dataset_id": None}
+    answer = {"mascot_reply": HELP_REPLY, "dataset_theme": "default", "sonification_json": None, "local_dataset_id": None, "series": None}
     if series and series["values"]:
         spec = SOURCES[series["collection"]]
         values, dates = series["values"], series["dates"]
@@ -293,6 +293,8 @@ def answer_for(state: dict, preference: str, catalog: list[dict]) -> dict:
         )
         answer["dataset_theme"] = spec.theme
         answer["sonification_json"] = build_audio(series, preference)
+        # One value per step of the sound, so the table's row i is the note i (build_audio keeps the order).
+        answer["series"] = {"metric": spec.metric, "unit": spec.unit.strip(), "times": dates, "values": values}
     elif local:
         answer["mascot_reply"] = f"I already have '{local['title']}' in the app. Open it to hear it."
         answer["local_dataset_id"] = local["id"]
