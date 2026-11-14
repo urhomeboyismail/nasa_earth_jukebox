@@ -1,6 +1,7 @@
 import { Card, Legend } from '../../components'
 import { STYLE_IDS, primaryRegion, variableWords, type Visualization } from '../../data'
 import { dateFormatterFor, formatDate } from '../../dates'
+import { listedShortcuts } from '../../interaction/shortcuts'
 import { presetFor } from '../../sonify'
 import { PlaylistPanel } from '../playlist/PlaylistPanel'
 import type { PageProps } from '../types'
@@ -23,7 +24,9 @@ function About({ visualization }: { visualization: Visualization }) {
   const formatFrameDate = dateFormatterFor(dates)
   const missing = frames.filter(frame => frame.note)
   const unit = variable.unit
-  const lower = variableWords(variable).lower
+  const words = variableWords(variable)
+  const lower = words.lower
+  const shortcuts = listedShortcuts().filter(shortcut => shortcut.device === 'keyboard')
 
   return (
     <div className="about">
@@ -96,6 +99,35 @@ function About({ visualization }: { visualization: Visualization }) {
 
       <Card title="The sound recipe" headingLevel={2}>
         <SoundRecipe preset={presetFor(visualization.sonification?.preset ?? 'major')} />
+      </Card>
+
+      <Card title="Keyboard shortcuts" headingLevel={2}>
+        <p>These are the keys on Listen. The single-letter keys work only while the sound map has focus, so they never act anywhere else on the page.</p>
+        <div className="about__table" role="region" aria-label="Keyboard shortcuts" tabIndex={0}>
+          <table>
+            <caption>Every key, from the same list the Listen page reads.</caption>
+            <thead><tr><th scope="col">Key</th><th scope="col">What it does</th><th scope="col">Where</th></tr></thead>
+            <tbody>
+              {shortcuts.map(shortcut => (
+                <tr key={shortcut.id}>
+                  <td><kbd>{shortcut.keys}</kbd></td>
+                  <td>{shortcut.does(words)}{shortcut.note && ` ${shortcut.note}`}</td>
+                  <td>{shortcut.scope === 'map' ? 'On the sound map' : 'Anywhere on Listen'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <Card title="Using a screen reader" headingLevel={2}>
+        <ul className="about__limits">
+          <li>Everything you hear has words too. Changes are announced politely, and the music lowers while they are spoken.</li>
+          <li>The sound map is an application region. Move to it, press Enter on &ldquo;Explore the map&rdquo;, and use the arrow keys. Escape leaves it.</li>
+          <li>NVDA and JAWS: turn on forms or focus mode on the map, so the arrow keys reach it instead of moving the reading cursor.</li>
+          <li>VoiceOver on a Mac: press VO + Shift + Down to interact with the map, and VO + Shift + Up to stop.</li>
+          <li>VoiceOver on iPhone and TalkBack on Android: drag one finger across the map to hear each place, or swipe to move between controls.</li>
+        </ul>
       </Card>
 
       <Card title="What to keep in mind" headingLevel={2}>

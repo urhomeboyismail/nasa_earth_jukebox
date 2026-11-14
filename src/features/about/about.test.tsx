@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
 import type { Visualization } from '../../data'
+import { listedShortcuts } from '../../interaction/shortcuts'
 import { expectNoA11yViolations } from '../../test/a11y'
 import AboutPage from '.'
 
@@ -134,5 +135,13 @@ describe('About the data page', () => {
   it('has no accessibility violations', async () => {
     const { container } = render(<main><h1>About the data</h1><AboutPage visualization={visualization} /></main>)
     await expectNoA11yViolations(container)
+  })
+
+  it('lists every keyboard shortcut from the shared list, and has screen-reader help', () => {
+    render(<AboutPage visualization={visualization} />)
+    const table = screen.getByRole('table', { name: /Every key/ })
+    const keyboard = listedShortcuts().filter(shortcut => shortcut.device === 'keyboard')
+    expect(within(table).getAllByRole('row')).toHaveLength(keyboard.length + 1)
+    expect(screen.getByRole('heading', { name: 'Using a screen reader' })).toBeInTheDocument()
   })
 })

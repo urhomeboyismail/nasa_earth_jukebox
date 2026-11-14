@@ -70,4 +70,18 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Branch `feature/UI11-about-keys`.
+
+```
+npm run lint   -> oxlint, no warnings or errors
+npm test       -> Test Files 214 passed (214); Tests 3090 passed (3090)
+npm run build  -> built in 996ms (only the usual chunk-size notice)
+```
+
+What was built
+- About has two new cards: "Keyboard shortcuts" (a table from `listedShortcuts()`, keyboard rows only, so it matches the Listen dialog) and "Using a screen reader" (NVDA/JAWS, Mac VoiceOver, iPhone VoiceOver and TalkBack).
+- One new test: one row per keyboard shortcut in the shared list, and the screen-reader heading.
+
+Notes
+- The first full run showed 43 failures in 5 files under load (stale `node_modules` in the worktree, then a timeout-heavy run). The art tests pass alone with and without this change, and a rerun passed everything.
+- Touch, mouse and gamepad rows are not in the About table: the ticket asks for keyboard shortcuts, and the dialog still has them.
