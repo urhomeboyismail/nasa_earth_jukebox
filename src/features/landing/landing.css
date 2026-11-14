@@ -38,3 +38,4 @@
   .landing__card { animation: landing-in 0.4s ease-out; }
 }
 @keyframes landing-in { from { opacity: 0; transform: translateY(0.5rem); } }
+.landing__ask { margin: 0; }
