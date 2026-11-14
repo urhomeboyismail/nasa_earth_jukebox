@@ -3,11 +3,13 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { applyStoredTheme } from './hooks/useTheme'
+import { SkyBackdrop } from './motion/SkyBackdrop'
 
 applyStoredTheme()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <SkyBackdrop />
     <App />
   </StrictMode>,
 )

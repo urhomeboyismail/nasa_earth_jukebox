@@ -91,4 +91,22 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Built on `feature/UI05-motion-layer` (14 Nov, agent D). New: `src/motion/index.ts` (`reducedMotion`, `pressRecoil`, `slideDrawer`, `themeSweep`, `drawPath`, `flyAlong`, all on `element.animate`), `sky.ts` (pure drawing), `SkyBackdrop.tsx`, and their tests. Hooks: `src/main.tsx` mounts `SkyBackdrop`; `Button` calls `pressRecoil` on pointer-down; `tour.ts` takes its reduced-motion check from `src/motion/` (`prefersReducedMotion` is now `reducedMotion`). No dependency added.
+
+Not done, on purpose:
+- **Scroll boost.** The dock has no boost state to feed (nothing in `src/` matches "boost"). Asked on the board: R-20261114-UI05-1.
+- **Tour flight on `flyAlong`.** The ticket says "where that is simpler". The tour's CSS `offset-path` flight already works and respects reduced motion, so it is unchanged. `flyAlong` is exported and tested for the next user.
+- `slideDrawer` and `themeSweep` are exported and tested but not wired (out of scope in the ticket).
+
+Checks:
+
+```
+$ npm run lint      -> oxlint, no warnings or errors
+$ npm run build     -> tsc -b clean; vite build: built
+$ npx vitest run --pool=forks --maxWorkers=1
+ Test Files  218 passed (218)
+      Tests  3147 passed (3147)
+   Duration  752.71s
+```
+
+(The default worker count runs out of memory on this 8 GB laptop, hence `--pool=forks --maxWorkers=1`.) Not checked by eye: the sky in a real browser. Under jsdom the canvas is faked, so the look and the 4.5:1 contrast at 12% alpha rest on the alpha cap, which a test checks, not on a screenshot.

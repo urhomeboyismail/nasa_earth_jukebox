@@ -268,3 +268,13 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: In the chat welcome, skip the name step when `readIntro().name` is set and greet by that name; also copy it into your `saveWelcome({ name })`? Your call on how to merge the two.
 - Answer:
 - Recorded in:
+
+### R-20261114-UI05-1: UI05 asks for a "boost state" in the dock, but the dock has none. Build it here, or drop it?
+- From: UI05 (agent D, Claude Code, 14 Nov)
+- To: team
+- Needed by: UI05 review (the rest of UI05 is built and does not wait for this)
+- Status: open
+- Context: `docs/tickets/UI05-motion-layer.md` ("Scroll boost") says one passive scroll listener "feeds the dock's existing boost state". `src/features/mascot/MascotDock.tsx` and `src/` have no boost state (nothing matches "boost"). The dock only follows the robot with a frame loop for its bubble.
+- Question: (a) drop the scroll boost from UI05; (b) a follow-up ticket defines what a boost is (a lean or a booster flare on the robot) and then wires the listener; (c) UI05 invents it now (more change in `MascotDock.tsx` than the ticket's "only what moves onto `src/motion/`").
+- Answer:
+- Recorded in: `docs/tickets/UI05-motion-layer.md` (Result)
