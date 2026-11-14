@@ -121,6 +121,7 @@ Add one line per piece of work, newest last.
 | 14 Nov | UI01 UI overhaul base: dark-glass tokens, four science accents, mono type, Night/Day switch, server pill (`docs/planning/UI-OVERHAUL.md`) | `feature/UI01-dark-glass-tokens` |
 | 14 Nov | UI06 Compare and Remix as two glass decks, with a two-handle date scrubber (new `RangeSlider`, on Radix Slider) | `feature/UI06-compare-decks` |
 | 14 Nov | UI04 Listen as a glass stage with a glass transport bar, Loop (a `usePlayer` option) and the mixer in a glass drawer | `feature/UI04-stage-transport` |
+| 14 Nov | UI10 Compare says and sounds what changed from A to B: a "What changed" card (overall change and the region that moved most, in the manifest's words) and a "Hear the change" button | `feature/UI10-compare-summary` |
 | 14 Nov | UI03 Vinyl Crate in glass: record cards with a disc painted from the data set's colour scale, and a 10-second preview of its own sound (`src/features/home/preview.ts`) | `feature/UI03-crate-records` |
 
 ## Outside resources used
