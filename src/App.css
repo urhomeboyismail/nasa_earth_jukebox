@@ -540,3 +540,36 @@ html {
 
 /* The server pill and its "Check again" button sit together in the header (UI01). */
 .app-server { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.5rem; }
+
+/* ---- Phone pass: a short header that scrolls away, and the voice guide as a round button above the tab bar ---- */
+@media (max-width: 767.98px) {
+  .app-header {
+    position: relative; /* not sticky; relative keeps its frosted layer inside it */
+    gap: 0.25rem 0.5rem;
+    padding-block: 0.25rem;
+  }
+  html { scroll-padding-top: 0; }
+  .app-header > .app-brand { flex: 1 1 auto; }
+
+  /* Display and theme sit beside the wordmark; the server status gets a row of its own. */
+  .app-server { flex: 1 1 100%; min-inline-size: 0; }
+
+  /* The voice guide: bottom left, above the tab bar (Echo's dock is bottom right). While its sheet is open the sheet covers it. */
+  .app-guide-toggle {
+    position: fixed;
+    z-index: 21;
+    inset-inline-start: calc(0.75rem + env(safe-area-inset-left));
+    inset-block-end: calc(var(--bottom-nav-height) + 0.5rem);
+    margin: 0;
+    box-shadow: var(--md-sys-elevation-3, 0 2px 8px rgb(0 0 0 / 0.4));
+  }
+  .app-guide-toggle[aria-pressed='true'] { display: none; }
+}
+
+/* Phone touch targets: checkboxes and radios are at least 44 px to tap, with the box itself larger. */
+@media (max-width: 767.98px) {
+  input[type='checkbox'],
+  input[type='radio'] { inline-size: 1.5rem; block-size: 1.5rem; flex: none; }
+  label:has(> input[type='checkbox']),
+  label:has(> input[type='radio']) { display: inline-flex; align-items: center; gap: 0.5rem; min-block-size: 44px; }
+}

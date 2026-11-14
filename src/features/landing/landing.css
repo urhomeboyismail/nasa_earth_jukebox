@@ -39,3 +39,9 @@
 }
 @keyframes landing-in { from { opacity: 0; transform: translateY(0.5rem); } }
 .landing__ask { margin: 0; }
+
+/* Phone: a shorter globe, so the card's first button is on the first screen without scrolling. */
+@media (max-width: 767.98px) {
+  .landing { gap: 0.5rem; padding-block: 0.5rem; }
+  .landing .orbit-globe { block-size: clamp(9rem, 26dvh, 14rem); }
+}
