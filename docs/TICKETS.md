@@ -91,7 +91,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [AU-UI](tickets/AU-UI-interface-sounds.md) | Interface sounds, quiet and behind a switch | M | agent | — | player, compare | open |
+| [AU-UI](tickets/AU-UI-interface-sounds.md) | Interface sounds, quiet and behind a switch | M | agent | — | player, compare | claimed: D, 2026-11-14 |
 
 ### P2: Echo as Juke-Bot (the guide)
 
