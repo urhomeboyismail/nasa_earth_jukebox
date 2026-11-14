@@ -85,17 +85,17 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
 | [UI01](tickets/UI01-dark-glass-tokens.md) | Dark-glass tokens, telemetry accents, mono type, Night/Day switch and server pill | L | agent+👤 | — | theme, app | claimed: A, 2026-11-14 |
-| [UI02](tickets/UI02-welcome-glass.md) | Welcome in glass: Echo's chat and the manual form | M | agent+👤 | UI01, JB11 | welcome | open |
-| [UI03](tickets/UI03-crate-records.md) | Vinyl Crate in glass, with a 10-second preview of the data | M | agent+👤 | UI01 | — | open |
-| [UI04](tickets/UI04-stage-transport.md) | Jukebox stage and transport in glass, with Loop and a mixer drawer | L | agent+👤 | UI01, JB10 | player | open |
-| [UI05](tickets/UI05-motion-layer.md) | Motion layer on Anime.js: press, drawers, sky, theme sweep and Echo's flight | M | agent+👤 | UI01, JB09 | tour | open |
-| [UI06](tickets/UI06-compare-decks.md) | Compare and Remix as two glass decks, with a dual-handle date scrubber | M | agent+👤 | UI01 | compare | open |
+| [UI02](tickets/UI02-welcome-glass.md) | Welcome in glass: Echo's chat and the manual form | M | agent+👤 | — | welcome | open |
+| [UI03](tickets/UI03-crate-records.md) | Vinyl Crate in glass, with a 10-second preview of the data | M | agent+👤 | — | — | open |
+| [UI04](tickets/UI04-stage-transport.md) | Jukebox stage and transport in glass, with Loop and a mixer drawer | L | agent+👤 | — | player | open |
+| [UI05](tickets/UI05-motion-layer.md) | Motion layer on Anime.js: press, drawers, sky, theme sweep and Echo's flight | M | agent+👤 | — | tour | open |
+| [UI06](tickets/UI06-compare-decks.md) | Compare and Remix as two glass decks, with a dual-handle date scrubber | M | agent+👤 | — | compare | open |
 
 ### P2: quality and smaller features
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [AU-UI](tickets/AU-UI-interface-sounds.md) | Interface sounds, quiet and behind a switch | M | agent | H03 | player, compare | open |
+| [AU-UI](tickets/AU-UI-interface-sounds.md) | Interface sounds, quiet and behind a switch | M | agent | — | player, compare | open |
 
 ### P2: Echo as Juke-Bot (the guide)
 
@@ -104,7 +104,7 @@ Echo, the guide, redrawn as Juke-Bot (helmet visor, headphones, chest screen, ai
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
 | [JB09](tickets/JB09-tour-from-welcome.md) | The tour starts after the welcome (map path), and Echo flies home to the dock when it finishes | S | agent | — | tour | claimed: B, 2026-11-13 |
-| [JB10](tickets/JB10-tour-mixer-stop.md) | The tour's third stop is the Speed and Volume mixer, not Explore the map | S | agent | JB05 | player | claimed: E, 2026-11-14 |
+| [JB10](tickets/JB10-tour-mixer-stop.md) | The tour's third stop is the Speed and Volume mixer, not Explore the map | S | agent | — | player | claimed: E, 2026-11-14 |
 | [JB11](tickets/JB11-chat-welcome.md) | Echo's chat welcome (name, four sound chips, then the path and sound check) with a "Prefer manual setup?" form | M | agent | JB09 | welcome | claimed: B, 2026-11-13 |
 
 ### P3: people, evidence and submission
