@@ -2,6 +2,7 @@
 // heard can always be traced back: deck A keeps the melody, the harmony, the motion and the clock; deck B plays the bass and the rhythm; the hot
 // spots of both sound, A's on the left and B's on the right. The captions name the deck. Pure, like the rest of the ruleset.
 
+import { VOICE_IDS } from '../data/sonification'
 import { MAX_HOTSPOT_NOTES } from './ranges'
 import type { MusicFrame, VoiceId } from './types'
 
@@ -28,7 +29,7 @@ export function fuseFrames(a: MusicFrame, b: MusicFrame | null, mix = 0.5): Musi
   // Taken in turn, so neither deck's hot spots crowd the other's out.
   const hotspots = Array.from({ length: Math.max(spotsA.length, spotsB.length) }, (_, i) => [spotsA[i], spotsB[i]]).flat().filter(spot => spot !== undefined).slice(0, MAX_HOTSPOT_NOTES)
 
-  const missing = (Object.keys(FUSION_ROLES) as VoiceId[]).filter(voice => {
+  const missing = VOICE_IDS.filter(voice => {
     const role = FUSION_ROLES[voice]
     if (role === 'A') return a.missing.includes(voice)
     if (role === 'B') return !b || b.missing.includes(voice)
@@ -36,7 +37,7 @@ export function fuseFrames(a: MusicFrame, b: MusicFrame | null, mix = 0.5): Musi
   })
 
   const caption = { ...a.caption }
-  for (const voice of Object.keys(FUSION_ROLES) as VoiceId[]) {
+  for (const voice of VOICE_IDS) {
     const role = FUSION_ROLES[voice]
     caption[voice] = role === 'A' ? said('A', a.caption[voice]) : role === 'B' ? said('B', b?.caption[voice]) : [said('A', a.caption[voice]), said('B', b?.caption[voice])].filter(Boolean).join(' ')
   }
