@@ -7,6 +7,7 @@ from app.api.agent import agent_ready
 from app.api.agent import router as agent_router
 from app.api.assistant import router as assistant_router
 from app.api.jukebox import router as jukebox_router
+from app.api.mascot import router as mascot_router
 from app.config import settings
 from app.study.api import router as study_router
 
@@ -32,3 +33,4 @@ app.include_router(assistant_router)
 app.include_router(study_router)
 app.include_router(jukebox_router)
 app.include_router(agent_router)
+app.include_router(mascot_router)
