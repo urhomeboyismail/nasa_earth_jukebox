@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import globe from '../../../public/data/synthetic-globe/manifest.json'
@@ -15,6 +15,8 @@ import { frameOn, overlap } from './fusionDates'
 
 const fakes = vi.hoisted(() => ({
   ensemble: null as FakeEnsemble | null,
+  /** The reading (0 to 1) of a deck on a date, for the scan that finds the shared moments. */
+  reading: (_deck: string, _date: string): number => 0.5,
   sources: [] as { options: { onFrame: (frame: unknown) => void; visualization: { frames: { date: string }[] } }; start: () => void }[],
 }))
 
@@ -30,7 +32,7 @@ vi.mock('../../analysis/video/frameSequence', () => ({
     constructor(options: never) { this.options = options; fakes.sources.push(this) }
   },
 }))
-vi.mock('../../analysis/video/readFrame', () => ({ readFrameFeatures: async () => features({ position: 0.9 }) }))
+vi.mock('../../analysis/video/readFrame', () => ({ readFrameFeatures: async (v: { id: string }, frame: { date: string }) => features({ date: frame.date, position: fakes.reading(v.id, frame.date) }) }))
 
 const a = globe as Visualization
 const b = change as Visualization
@@ -38,6 +40,8 @@ const b = change as Visualization
 beforeEach(() => {
   fakes.ensemble = createFakeEnsemble()
   fakes.sources = []
+  // Both decks peak high on 15 April and are one high, one low on 15 September; every other date is in the middle.
+  fakes.reading = (deck, date) => (date === '2024-04-15' ? 1 : date === '2024-09-15' ? (deck === a.id ? 1 : 0) : 0.5)
   vi.stubGlobal('fetch', vi.fn(async (url: string) => {
     const body = url.endsWith('index.json') ? [{ id: b.id, title: b.title, summary: '' }] : url.includes(`${b.id}/manifest.json`) ? b : null
     return body ? new Response(JSON.stringify(body)) : new Response('', { status: 404 })
@@ -86,5 +90,57 @@ describe('Compare: two data sets', () => {
     const { container } = mount()
     await screen.findByText(/Linked time/)
     await expectNoA11yViolations(container)
+  })
+
+  describe('shared moments (UI09)', () => {
+    const frame = (date: string) => ({ features: features({ position: 0.5, date }), date, confidence: 1 })
+
+    async function play() {
+      const view = mount()
+      await screen.findByText(/Linked time/)
+      await view.user.click(screen.getByRole('button', { name: 'Play both' }))
+      return { ...view, source: fakes.sources.at(-1)! }
+    }
+
+    it('sounds a major chord and shows one caption when both decks peak together', async () => {
+      const { source } = await play()
+      await waitFor(async () => {
+        await act(async () => { source.options.onFrame(frame('2024-04-15')) })
+        expect(fakes.ensemble!.ensemble.playNotes).toHaveBeenCalled()
+      })
+      const notes = vi.mocked(fakes.ensemble!.ensemble.playNotes).mock.calls[0][0]
+      expect(notes.map((n: { midi: number }) => n.midi)).toEqual([60, 64, 67])
+      // One sentence in the strip under the decks, and the same one announced.
+      expect(document.querySelector('.fusion__moment')).toHaveTextContent(/Both high together: A's .* and B's /)
+      expect(screen.getAllByText(/Both high together/)).toHaveLength(2)
+    })
+
+    it('adds the minor second and says so when one deck is high and the other low', async () => {
+      const { source } = await play()
+      await waitFor(async () => {
+        await act(async () => { source.options.onFrame(frame('2024-09-15')) })
+        expect(fakes.ensemble!.ensemble.playNotes).toHaveBeenCalled()
+      })
+      expect(vi.mocked(fakes.ensemble!.ensemble.playNotes).mock.calls[0][0]).toHaveLength(4)
+      expect(document.querySelector('.fusion__moment')).toHaveTextContent(/One high and one low/)
+    })
+
+    it('stays quiet on dates that are not shared moments', async () => {
+      const { source } = await play()
+      await act(async () => { source.options.onFrame(frame('2024-02-15')) })
+      expect(fakes.ensemble!.ensemble.playNotes).not.toHaveBeenCalled()
+      expect(screen.getByText(/None yet/)).toBeInTheDocument()
+    })
+
+    it('turns the chord and the caption off with Mark moments', async () => {
+      const { user, source } = await play()
+      const toggle = screen.getByRole('button', { name: 'Mark moments' })
+      expect(toggle).toHaveAttribute('aria-pressed', 'true')
+      await user.click(toggle)
+      expect(toggle).toHaveAttribute('aria-pressed', 'false')
+      await act(async () => { source.options.onFrame(frame('2024-04-15')) })
+      expect(fakes.ensemble!.ensemble.playNotes).not.toHaveBeenCalled()
+      expect(screen.getByText('Off.')).toBeInTheDocument()
+    })
   })
 })
