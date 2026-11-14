@@ -87,4 +87,32 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Built on `feature/UI03-crate-records` (agent D, 2026-11-14). Files changed: `src/features/home/Crate.tsx`, `home.css`, `Crate.test.tsx`, and new `preview.ts`, `preview.test.ts`. Nothing else.
+
+**What it does**
+
+- Each data set is a record: a glass sleeve (local CSS on the `--md-sys-color-*` tokens, solid and outlined under `prefers-contrast: more`, `prefers-reduced-transparency: reduce` and without `backdrop-filter`), with a disc whose label is the colour scale as a conic gradient, ringed in `mascotTheme(...).accent`. The disc is `aria-hidden`. Title is a heading; pills show "Saved on this device" and the date count; buttons are "Play 10 seconds", "Open in Listen" and Save/Remove. The recent row is pill links and the saved filter is a pill switch (still a real checkbox).
+- `.ui-glass`, `.ui-pill` and `.ui-label` do not exist in `components.css` on `main`, so the glass is a local copy, as the ticket says. `tokens.css`, `components.css` and `index.css` are untouched.
+- The preview reads the data set's own checked frames with `FrameSequenceSource` (the reader Listen uses when there is no video), turns each into a `MusicFrame` with `toMusicFrame`, and plays it with `createEnsemble`, at Fast speed, for at most 10 s counted from the first sound. If the frames run out first it ends 0.5 s after the last one. It uses the listener's saved style, bass and muted voices, and the manifest's voices and timbre.
+- Button states: "Play 10 seconds" → "Preparing…" → "Stop preview". Announced: "Preview of <title>, 10 seconds." and "Preview ended.". One preview at a time; leaving Home stops it; nothing sounds before a press.
+- Manifests are loaded once per page (`loadManifest`, cached, retried after a failure) to paint the discs and to play the preview.
+
+**Deviations to review**
+
+1. The ticket says to analyse the first frames with `analyzeAll`. That gives per-frame categories, not the `FrameFeatures` the ruleset and ensemble need, so the preview uses `FrameSequenceSource` (analysis module, called not edited) instead.
+2. The "Open" link is now "Open in Listen" and its accessible name is "Open in Listen: <title>" (it must contain the visible words, WCAG 2.5.3). The one existing assertion that looked it up as "Open <title>" was changed to the new name. No other existing Crate test changed.
+
+**Checks**
+
+```
+npx oxlint src/features/home                 -> exit 0, no findings
+npx vitest run --pool=forks --maxWorkers=1 src/features/home
+  Test Files 3 passed (3), Tests 39 passed (39)      (preview.test.ts: 15, Crate.test.tsx: 17, 10 of them new; home.test.tsx: 7)
+npx vitest run --pool=forks --maxWorkers=1   (whole suite)
+  Test Files 1 failed | 206 passed (207), Tests 4 failed | 2983 passed (2987)
+  The 4 failures are all src/features/compare/Fusion.test.tsx (see below).
+npm run lint   -> 2 errors, both src/sonify/fuse.ts:31 and :39 (consistent-type-assertions), a file this ticket does not touch
+npm run build  -> fails in tsc: Fusion.tsx / fusion.ts casing clash (below); no error in any file of this ticket
+```
+
+The `Fusion` failures and the build error come from `src/features/compare/` holding both `Fusion.tsx` and `fusion.ts` (and `Fusion.test.tsx`): on this case-insensitive Windows checkout `./Fusion` resolves to `fusion.ts`, so `Fusion` is not exported. They are on `main` as it is, in files outside this ticket's Touches; I did not change them. `npm run lint` fails on `fuse.ts` for the same reason: unchanged by this ticket. `npm run build` therefore could not be shown passing here; CI on Linux should be checked.

@@ -29,14 +29,97 @@
 .home a:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: var(--md-sys-shape-corner-extra-small); }
 
 
-/* The crate (blueprint §2.1). Layout is deferred (platform.md): a plain list for now. */
+/* The crate (blueprint §2.1, UI03): each data set is a record in a glass sleeve. The glass is local to this feature, on the theme's own tokens, so it
+   follows Night and Day with them; layout is deferred (platform.md). */
 .crate__filters { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; }
 .crate__filters input[type='search'] { min-block-size: var(--control-size); padding-inline: 0.75rem; font: inherit; }
+.crate__recent { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+
+/* A pill: a short fact, or a link that reads as one. */
+.crate__pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.75rem;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+.crate__pill--link { min-block-size: var(--control-size); padding-inline: 1rem; text-decoration: none; }
+.crate__pill--link:hover { border-color: var(--accent-strong); }
+.crate__pills { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+/* "Saved on this device only": the checkbox stays a real checkbox, drawn as a switch. */
 .crate__only-saved { display: inline-flex; gap: 0.5rem; align-items: center; min-block-size: var(--control-size); }
-.crate__recent { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: center; }
-.crate__recent a, .crate__open { display: inline-flex; align-items: center; min-block-size: var(--control-size); font-weight: 600; }
+.crate__only-saved input {
+  appearance: none;
+  position: relative;
+  inline-size: 2.75rem;
+  block-size: 1.5rem;
+  margin: 0;
+  border: 2px solid var(--md-sys-color-outline);
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+}
+.crate__only-saved input::before {
+  content: '';
+  position: absolute;
+  inset-block: 0.1875rem;
+  inset-inline-start: 0.1875rem;
+  inline-size: 1rem;
+  border-radius: 50%;
+  background: var(--md-sys-color-outline);
+  transition: transform 150ms;
+}
+.crate__only-saved input:checked { border-color: var(--md-sys-color-primary); background: var(--md-sys-color-primary); }
+.crate__only-saved input:checked::before { background: var(--md-sys-color-surface-container-high); transform: translateX(1.25rem); }
+.crate__only-saved input:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
 .crate__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
-.crate__sleeve { display: grid; gap: 0.25rem; padding-block: 0.5rem; border-block-end: 1px solid var(--border); }
+
+/* The sleeve: translucent glass over the page, with a lit top edge. */
+.crate__sleeve {
+  --accent: var(--md-sys-color-primary);
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1rem;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-block-start-color: color-mix(in srgb, var(--md-sys-color-on-surface) 30%, transparent);
+  border-radius: var(--md-sys-shape-corner-large, 1rem);
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 70%, transparent);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+}
+/* Where glass would hurt (more contrast asked for, transparency turned off, or no blur in the browser) the sleeve is solid and outlined. */
+@media (prefers-contrast: more) {
+  .crate__sleeve { background: var(--md-sys-color-surface-container-high); border: 2px solid var(--md-sys-color-outline); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .crate__sleeve { background: var(--md-sys-color-surface-container-high); border: 2px solid var(--md-sys-color-outline); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .crate__sleeve { background: var(--md-sys-color-surface-container-high); border: 2px solid var(--md-sys-color-outline); }
+}
+
+/* The disc: the data set's colour scale as its label, ringed in its accent. Decoration only. */
+.crate__disc {
+  flex: none;
+  inline-size: 4.5rem;
+  block-size: 4.5rem;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--md-sys-color-surface-container-highest) 0 7%, transparent 8%),
+    radial-gradient(circle, transparent 0 34%, color-mix(in srgb, #000 55%, transparent) 35% 36%, transparent 37%),
+    var(--disc, var(--md-sys-color-outline-variant));
+  box-shadow: 0 0 0 4px var(--accent), 0 0 0 7px color-mix(in srgb, var(--md-sys-color-on-surface) 18%, transparent);
+}
+
+.crate__body { display: grid; gap: 0.5rem; min-inline-size: 0; }
+.crate__body p { margin: 0; }
 .crate__title { margin: 0; font-size: 1.1rem; }
-.crate__badge { font-weight: 600; }
+.crate__badge { border-color: var(--accent); }
 .crate__buttons { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; }
+.crate__open { display: inline-flex; align-items: center; min-block-size: var(--control-size); font-weight: 600; }
