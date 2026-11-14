@@ -89,7 +89,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [UI07](tickets/UI07-ear-check.md) | Ear check: "Which is higher?" and "Left or right?" set the detail level and flip swapped ears | M | agent | — | welcome | open |
 | [UI08](tickets/UI08-chest-equaliser.md) | Echo's chest equaliser: bars from a real `AnalyserNode` on the music's output | M | agent | — | — | claimed: D, 2026-11-14 |
 | [UI09](tickets/UI09-fusion-moments.md) | Remix: a chord when both decks peak together, and one caption strip | M | agent | — | — | claimed: E, 2026-11-14 |
-| [UI10](tickets/UI10-compare-summary.md) | Compare: a written and sounded summary of what changed from A to B | S | agent | — | compare | open |
+| [UI10](tickets/UI10-compare-summary.md) | Compare: a written and sounded summary of what changed from A to B | S | agent | — | compare | claimed: C, 2026-11-14 |
 | [UI11](tickets/UI11-about-keys.md) | About: keyboard shortcuts (from the shared list) and screen-reader help | S | agent | — | about | open |
 
 ### P2: quality and smaller features
