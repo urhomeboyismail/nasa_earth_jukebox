@@ -62,7 +62,7 @@ From Muninn's `frontend/src/app/globals.css`, `tailwind.config.ts`, `lib/animati
 | 2. Onboarding and manual welcome | [UI02](../tickets/UI02-welcome-glass.md) | open |
 | 3. Vinyl Crate | [UI03](../tickets/UI03-crate-records.md) | open |
 | 4. Jukebox stage and mixer | [UI04](../tickets/UI04-stage-transport.md) | open |
-| 5. Motion layer and mascot engine | [UI05](../tickets/UI05-motion-layer.md) | open (no Anime.js) |
+| 5. Motion layer and mascot engine | UI05 | **Done and merged 14 Nov 2026** (PR #86, no Anime.js). Read it with `git log --diff-filter=D -- docs/tickets/UI05-motion-layer.md` |
 
 The second master prompt (14 Nov 2026) asked again for all of the above. These parts were not yet built, so each is a standalone ticket on `main` as it is:
 
