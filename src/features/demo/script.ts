@@ -31,5 +31,5 @@ export const DEMO_STEPS: DemoStep[] = [
 export const TOUR_STEPS: DemoStep[] = [
   { page: 'listen', say: 'This is where you choose the data set. Each one has its own sounds, and its own source and credit.', target: '[data-tour="dataset-picker"]' },
   { page: 'listen', say: 'Play starts the dates one after another. Press it again to pause.', target: '[data-tour="play"]' },
-  { page: 'listen', say: 'Explore the map lets you point at places on the picture and hear what is there.', target: '[data-tour="explore"]' },
+  { page: 'listen', say: 'Speed and Volume change how fast the dates play and how loud they are.', target: '[data-tour="mixer"]' },
 ]

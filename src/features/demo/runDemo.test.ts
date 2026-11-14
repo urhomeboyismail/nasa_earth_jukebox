@@ -107,6 +107,11 @@ describe('runDemo', () => {
     expect(pointAt.mock.calls.map(call => call[0])).toEqual([...TOUR_STEPS.map(step => step.target), null])
   })
 
+  it('stops at the data set picker, Play, and the Speed and Volume mixer (JB10)', () => {
+    expect(TOUR_STEPS.map(step => step.target)).toEqual(['[data-tour="dataset-picker"]', '[data-tour="play"]', '[data-tour="mixer"]'])
+    expect(TOUR_STEPS[2].say).toMatch(/Speed and Volume/)
+  })
+
   it('does not point when the step has no target, and works with no pointAt at all', async () => {
     const { all } = deps()
     const pointAt = vi.fn(async (_selector: string | null) => {})

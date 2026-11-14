@@ -64,4 +64,11 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Built by agent E, 14 Nov 2026. `data-tour="mixer"` is on the existing `player__settings` wrapper (holds Speed and Volume); the third `TOUR_STEPS` entry now points at it. `data-tour="explore"` is kept. The `TourOverlay` test page and a new `runDemo.test.ts` case follow the new stop.
+
+Checks (Windows, Node):
+- `npx vitest run src/features/demo src/features/mascot src/features/player`: 26 files, 336 tests passed.
+- `npm test`: 205 files passed, 1 failed (`src/features/compare/Fusion.test.tsx`, 4 tests). It fails the same way on a clean `main`: `compare/index.tsx` imports `./Fusion` but the file is `fusion.ts`, so it breaks on a case-insensitive file system (Windows).
+- `npm run lint`: 2 errors, both in `src/sonify/fuse.ts` (type assertions), a file this ticket does not touch; same on `main`.
+- `npm run build`: fails on the same `Fusion.ts` / `fusion.ts` casing clash (TS1261). Not caused by this change.
+- Not tried in a browser: the full app does not build here because of the casing clash.
