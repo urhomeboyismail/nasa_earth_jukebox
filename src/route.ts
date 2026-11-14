@@ -20,6 +20,10 @@ export function parseHash(hash: string): Route {
   return isPage(page) ? { page, params, known: true } : { page: 'home', params: new URLSearchParams(), known: false }
 }
 
+/** The landing view (#welcome) is not a page: it has no tab and no entry in `pages`. A first visit with no address opens on it. */
+export const LANDING_HASH = '#welcome'
+export const isLandingHash = (hash: string): boolean => hash.replace(/^#/, '').split('?', 1)[0].toLowerCase() === 'welcome'
+
 /** "#listen", or "#listen?data=synthetic-ocean" when a data set is chosen. Empty and missing parameters are left out. */
 export function hashFor(page: Page, params: Record<string, string | null | undefined> = {}): string {
   const query = new URLSearchParams()

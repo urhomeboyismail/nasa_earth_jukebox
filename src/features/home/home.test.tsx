@@ -16,6 +16,13 @@ describe('Home page', () => {
     expect(screen.getByText(/Now playing from: Fixture ocean/)).toBeInTheDocument()
   })
 
+  it('opens on the intro line, with no globe and no welcome card (they are on the landing page)', () => {
+    const { container } = render(<HomePage visualization={visualization} />)
+    expect(container.querySelector('.orbit-globe')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Skip the welcome' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Welcome' })).toBeNull()
+  })
+
   it('states the question the listener is asked', () => {
     render(<HomePage visualization={visualization} />)
     expect(screen.getByRole('heading', { name: 'What you will try' })).toBeInTheDocument()

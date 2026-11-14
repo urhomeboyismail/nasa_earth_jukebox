@@ -13,6 +13,7 @@ import type { MascotPose } from '../../components/mascotTypes'
 import type { Visualization } from '../../data'
 import type { AssistantStatus } from '../../hooks/useVoiceAssistant'
 import type { Page } from '../../pages'
+import { LANDING_HASH } from '../../route'
 import { setMascotOn, useMascotOn } from '../help/mascotSetting'
 import { TIPS } from '../help/tips'
 import { MASCOT_NAME } from '../welcome/lines'
@@ -208,6 +209,11 @@ export default function MascotDock({ page, loading, voice, voiceOpen, line = '',
     onTour?.()
   }
 
+  function replayWelcome() {
+    setOpen(false)
+    window.location.hash = LANDING_HASH
+  }
+
   function turnOff() {
     // The dock is about to go, so focus moves to the help button, which is the way back.
     document.querySelector<HTMLElement>('.help > button')?.focus()
@@ -234,6 +240,7 @@ export default function MascotDock({ page, loading, voice, voiceOpen, line = '',
           <div className="mascot-speech-bubble__actions">
             <Button variant="primary" onClick={talk}>Talk to {MASCOT_NAME}</Button>
             <Button onClick={tour}>Show me around</Button>
+            <Button onClick={replayWelcome}>Replay welcome</Button>
             <Button variant="text" onClick={turnOff}>Turn {MASCOT_NAME} off</Button>
           </div>
         </section>
