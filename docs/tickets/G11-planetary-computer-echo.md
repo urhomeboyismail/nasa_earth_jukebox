@@ -102,4 +102,20 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Branch `feature/G11-planetary-computer-echo` (agent A, 14 Nov 2026).
+
+- The SST collection is **OISST** (`noaa-cdr-sea-surface-temperature-optimum-interpolation`), not WHOI: OISST's `sst` asset is a COG that the data API's `item/statistics` reads (checked live; raw values are scaled by `raster:bands[0].scale`, 0.01 °C). OISST on Planetary Computer has gaps: no items for January 2025 or January 2026, while June and October 2026 have them. A request for January gets the "found no days" reply.
+- `metric_name` was dropped from the tool: each collection has one metric. Catalog entries may carry `summary`, but the agent reads only the id and the title.
+- Live check with no model (`.venv/bin/python -m app.agent.planetary`): 30 days of SST around Mauritius in June 2026, 25.39 to 26.21 °C; 14 days of Sentinel-2 over Madagascar in October 2026, cloud cover 2.71% to 83.63%.
+- Not run: the whole route with a real Gemini key (the model choosing the bbox and dates). Do it before a demo: `MASCOT_ENABLED=true`, then ask in `/jukebox.html`.
+
+```
+$ npm run lint            # exit 0; warnings only, in src/features/compare/Fusion.tsx (not this ticket)
+$ npx vitest run --maxWorkers=2
+ Test Files  221 passed (221)
+      Tests  3200 passed (3200)
+$ npm run build           # ✓ built (tsc -b clean)
+$ (cd server && .venv/bin/ruff check . && .venv/bin/python -m pytest -q)
+All checks passed!
+376 passed, 2 skipped
+```
