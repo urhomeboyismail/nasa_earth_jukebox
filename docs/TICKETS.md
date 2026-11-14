@@ -100,6 +100,16 @@ Echo, the guide, redrawn as Juke-Bot (helmet visor, headphones, chest screen, ai
 | [JB10](tickets/JB10-tour-mixer-stop.md) | The tour's third stop is the Speed and Volume mixer, not Explore the map | S | agent | — | player | done |
 | [JB11](tickets/JB11-chat-welcome.md) | Echo's chat welcome (name, four sound chips, then the path and sound check) with a "Prefer manual setup?" form | M | agent | JB09 | welcome | done |
 
+### P2: Echo's weather (Meteomatics)
+
+Echo fetches the weather for a place, shows every value it fetched, and plays it. Server credentials: `METEOMATICS_USERNAME`, `METEOMATICS_PASSWORD`.
+
+| ID | Ticket | Size | Who | Needs | Hotspots | Status |
+|---|---|---|---|---|---|---|
+| [WX01](tickets/WX01-echo-fetches-weather.md) | Echo fetches hourly air temperature from Meteomatics; reply and sound from the numbers | S | agent | — | — | claimed: A, 2026-11-14 |
+| [WX02](tickets/WX02-echo-shows-the-numbers.md) | "Show the numbers": every fetched value in an accessible table, the playing row marked | S | agent | WX01 | — | open |
+| [WX03](tickets/WX03-weather-in-three-voices.md) | Weather in three voices: temperature melody, rain pulse, wind pad | S | agent | WX01 | — | open |
+
 ### P3: people, evidence and submission
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
