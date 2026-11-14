@@ -68,6 +68,9 @@ export function usePlayer(
   const [speed, setSpeedState] = useState<Speed>('normal')
   const [volume, setVolumeState] = useState(() => welcomeVolume() ?? 0.8)
   const [finished, setFinished] = useState(false)
+  // UI04: Loop sends the last date back to the first instead of stopping. Kept here only: not saved, not in the address.
+  const [loop, setLoopState] = useState(false)
+  const loopRef = useRef(false)
   const [savedStyle, saveStyle] = useSoundStyle()
   // A style from a link holds for this visit only. It is never saved, so a shared link cannot change what the listener chose, and choosing a style drops it.
   const [linkedStyle, applyLinkedStyle] = useState<SoundStyle | null>(start?.style ?? null)
@@ -126,6 +129,8 @@ export function usePlayer(
   /** The category of the last date said during playback, so a run of equal dates is said once. Null before the first. */
   const lastCategory = useRef<string | null>(null)
   const volumeRef = useRef(volume)
+  /** The latest startFrom, so the end of a run can start the next one (Loop) without the callback naming itself. */
+  const startAgain = useRef<(from: number, speed: Speed) => void>(() => {})
   const onDateRef = useRef(onDate)
   useEffect(() => { onDateRef.current = onDate })
 
@@ -221,6 +226,13 @@ export function usePlayer(
       if (k === steps.length - 1) {
         endTimer.current = window.setTimeout(() => {
           if (mine !== run.current) return
+          // Loop: a run that reached the last date goes on from the first.
+          if (loopRef.current && last === frames.length - 1) {
+            announce('Looping back to the first date.')
+            lastCategory.current = null
+            startAgain.current(0, speedNow)
+            return
+          }
           setStatus('idle')
           // "That is the last date" is only true when the run reached the end of the data.
           setFinished(last === frames.length - 1)
@@ -229,7 +241,8 @@ export function usePlayer(
         }, stepMs)
       }
     })
-  }, [engine, results, frames, stepsFor, speakStep, speakStop, cancelRun])
+  }, [engine, results, frames, stepsFor, speakStep, speakStop, cancelRun, announce])
+  useEffect(() => { startAgain.current = (from, speedNow) => { void startFrom(from, speedNow) } }, [startFrom])
 
   /** Sounds one date on its own and leaves the player stopped there. */
   const playOne = useCallback(async (i: number) => {
@@ -487,6 +500,12 @@ export function usePlayer(
     void startFrom(from, speed, to)
   }, [ready, startFrom, speed])
 
+  const setLoop = useCallback((next: boolean) => {
+    loopRef.current = next
+    setLoopState(next)
+    announce(next ? 'Loop on. After the last date, playback goes back to the first.' : 'Loop off. Playback stops after the last date.')
+  }, [announce])
+
   const setVolume = useCallback((next: number) => {
     volumeRef.current = next
     setVolumeState(next)
@@ -511,7 +530,7 @@ export function usePlayer(
   }), [frames])
 
   return {
-    engine, region, results, index, status, speed, volume, finished, ready, style, setStyle, applyLinkedStyle, changeAvailable, score, scoreProblem, tracing, traceWarmEdge, stopTrace, spatial, setSpatial, downloading, downloadError,
+    engine, region, results, index, status, speed, volume, loop, setLoop, finished, ready, style, setStyle, applyLinkedStyle, changeAvailable, score, scoreProblem, tracing, traceWarmEdge, stopTrace, spatial, setSpatial, downloading, downloadError,
     error: engineError || analysisError,
     loading: !engineError && !analysisError && !results,
     play, pause, stop, replay, goTo, showDate, halt, playRange, download, setSpeed, setVolume, testSound, hearLegend, hearBothWays, hearWhatIsHidden,

@@ -48,9 +48,12 @@ beforeEach(() => {
 })
 afterEach(() => audio.uninstall())
 
-function mount(visualization: Visualization = v3) {
+/** Mounted with the Mixer drawer (UI04) open in Symphony mode, so the voice rows and the sound preferences are in the page as these tests read them. */
+function mount(visualization: Visualization = v3, { drawer = true } = {}) {
   const user = userEvent.setup()
-  return { user, ...render(<PlayerPage visualization={visualization} />, { wrapper: AnnouncerProvider }) }
+  const view = render(<PlayerPage visualization={visualization} />, { wrapper: AnnouncerProvider })
+  if (drawer && screen.queryByRole('region', { name: 'Symphony' })) fireEvent.click(screen.getByRole('button', { name: 'Mixer' }))
+  return { user, ...view }
 }
 const emit = (date = d1, o?: Parameters<FakeSource['frame']>[1]) => act(() => s.options!.onFrame(s.frame(date, o)))
 

@@ -83,4 +83,11 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Branch `feature/UI04-stage-transport`, agent C, 2026-11-14.
+
+- Simple player and Symphony: the NASA frame in a `.ui-glass` stage with a mono "NOW PLAYING" label (date readout in mono), and a glass transport bar: Play/Pause, Stop, **Loop** (`pressed`), **Mixer**, the Date slider with the first and last date at its ends (drawn from `data-text`, so not a second copy in the page text), Speed (Slow/Normal/Fast) and Volume. The other buttons stay in a second group, "More ways to listen". `data-tour="play"` and `data-tour="mixer"` are unchanged.
+- `usePlayer`: `loop` and `setLoop`. A run that reaches the last date starts again from the first when Loop is on (announced: "Looping back to the first date."); off, it stops as before. Not saved, not in the address. Loop on/off is announced.
+- Mixer drawer: the house `Dialog` (native `<dialog>`, Esc closes, focus returns to the button), styled as glass on one side with local rules on the existing `--glass-*` tokens, with the three solid fallbacks. Symphony: `VoiceMixer`, `MyMixControls` and `SoundPrefs` moved into it. Simple: `SoundPrefs`. The drawer sits outside the section, so Esc does not also stop Symphony. The mixer keys (1 to 7, Ctrl+Z) still work with focus in the drawer.
+- No `L` shortcut was added (the ticket makes it optional). No change to `tokens.css`, `components.css`, `index.css` or `Dialog.tsx`.
+
+

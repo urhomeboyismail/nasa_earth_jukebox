@@ -85,7 +85,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
 | [UI02](tickets/UI02-welcome-glass.md) | Welcome in glass: Echo's chat and the manual form | M | agent+👤 | — | welcome | open |
-| [UI04](tickets/UI04-stage-transport.md) | Jukebox stage and transport in glass, with Loop and a mixer drawer | L | agent+👤 | — | player | claimed: C, 2026-11-14 |
+| [UI04](tickets/UI04-stage-transport.md) | Jukebox stage and transport in glass, with Loop and a mixer drawer | L | agent+👤 | — | player | ready: feature/UI04-stage-transport |
 | [UI05](tickets/UI05-motion-layer.md) | Motion layer on Anime.js: press, drawers, sky, theme sweep and Echo's flight | M | agent+👤 | — | tour | open |
 
 ### P2: quality and smaller features

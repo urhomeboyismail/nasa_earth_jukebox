@@ -53,6 +53,8 @@ afterEach(() => audio.uninstall())
 async function mount(soundOn = true) {
   const user = userEvent.setup()
   const view = render(<PlayerPage visualization={v3} />, { wrapper: AnnouncerProvider })
+  // The voice rows are in the Mixer drawer (UI04); it is open here, as these tests read them.
+  await user.click(screen.getByRole('button', { name: 'Mixer' }))
   if (soundOn) await act(async () => { await e.ensemble.start() })
   screen.getByRole('button', { name: soundOn ? 'Pause' : 'Play' }).focus()
   return { user, ...view }

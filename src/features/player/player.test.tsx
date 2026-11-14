@@ -280,6 +280,64 @@ describe('Player: playing', () => {
   })
 })
 
+describe('Player: Loop and the Mixer drawer (UI04)', () => {
+  it('goes back to the first date after the last one and keeps playing, saying so', async () => {
+    const { user } = await renderReady()
+    const loop = screen.getByRole('button', { name: 'Loop' })
+    expect(loop).toHaveAttribute('aria-pressed', 'false')
+    await user.click(loop)
+    expect(loop).toHaveAttribute('aria-pressed', 'true')
+    expect(liveText()).toMatch(/^Loop on/)
+    await user.click(screen.getByRole('button', { name: 'Play' }))
+    await tick(4500)
+    expect(fake.sequences).toHaveLength(2)
+    expect(fake.sequences[1][0].category).toBe('cold')
+    expect(screen.getByRole('button', { name: 'Pause' })).toBeInTheDocument()
+    expect(screen.queryByText(/That is the last date/)).toBeNull()
+    expect(dateText()).toMatch(/^January 2024/)
+  })
+
+  it('stops after the last date when Loop is off, as before, and says so when it is turned off', async () => {
+    const { user } = await renderReady()
+    await user.click(screen.getByRole('button', { name: 'Loop' }))
+    await user.click(screen.getByRole('button', { name: 'Loop' }))
+    expect(liveText()).toMatch(/^Loop off/)
+    await user.click(screen.getByRole('button', { name: 'Play' }))
+    await tick(4500)
+    expect(fake.sequences).toHaveLength(1)
+    expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument()
+    expect(screen.getByText(/That is the last date/)).toBeInTheDocument()
+  })
+
+  it('has the first and last date at the ends of the slider, without a second copy of them in the page text', async () => {
+    const { container } = await renderReady()
+    const ends = [...container.querySelectorAll('.player__ends .ui-label')].map(node => node.getAttribute('data-text'))
+    expect(ends).toHaveLength(2)
+    expect(ends[0]).toBe('January 2024')
+    expect(ends[1]).toBeTruthy()
+    expect(screen.getAllByText('January 2024')).toHaveLength(1)
+  })
+
+  it('opens the mixer in a dialog named Mixer, closes it on Escape and gives focus back to the button', async () => {
+    const { user } = await renderReady()
+    const button = screen.getByRole('button', { name: 'Mixer' })
+    await user.click(button)
+    const dialog = screen.getByRole('dialog', { name: 'Mixer' })
+    expect(within(dialog).getByRole('heading', { name: 'Mixer' })).toBeInTheDocument()
+    expect(dialog.querySelector('.player__drawer')).not.toBeNull()
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog', { name: 'Mixer' })).toBeNull()
+    expect(button).toHaveFocus()
+  })
+
+  it('has no accessibility violations with the drawer open', async () => {
+    const { user, container } = await renderReady()
+    await user.click(screen.getByRole('button', { name: 'Mixer' }))
+    vi.useRealTimers() // axe waits on real timers
+    await expectNoA11yViolations(container)
+  })
+})
+
 describe('Player: pause, stop, replay', () => {
   it('pauses and resumes from the same date', async () => {
     const { user } = await renderReady()
