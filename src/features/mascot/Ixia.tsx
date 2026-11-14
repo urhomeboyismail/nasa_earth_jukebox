@@ -8,6 +8,7 @@ import type { MascotExpression, MascotPose } from '../../components/mascotTypes'
 import type { RobotCompanionElement } from '../../types/robot-companion'
 import { MASCOT_NAME } from '../welcome/lines'
 import { FACE_FOR, GESTURE_FOR, loadRobot, nextLine, ROBOT_LOGO, ROBOT_THREE, SPEAK_CPS } from './robot'
+import { useChestBands } from './useChestBands'
 
 type Props = {
   pose: MascotPose
@@ -29,6 +30,8 @@ export default function Ixia({ pose, expression, say = '', onActivate, className
   const speech = useRef({ said: '', latest: '', busy: false })
 
   useEffect(() => { activate.current = onActivate }, [onActivate])
+  // The bars on its chest follow the real sound while the player plays (UI08).
+  useChestBands(host, ready)
 
   // The script loads after the first render, once for the whole app.
   useEffect(() => {
