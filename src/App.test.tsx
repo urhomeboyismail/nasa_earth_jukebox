@@ -455,6 +455,7 @@ describe('The voice guide moves the app without moving focus (V01)', () => {
     FakeSocket.instances = []
     vi.stubGlobal('WebSocket', FakeSocket)
     window.localStorage.clear() // each case answers the microphone question afresh (V02)
+    window.localStorage.setItem('earth-jukebox:intro', '{"seen":true}') // a returning visitor: no planet intro over Home
   })
 
   const toggle = () => screen.getByRole('button', { name: 'Voice guide' })

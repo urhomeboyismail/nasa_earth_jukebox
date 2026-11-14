@@ -128,3 +128,4 @@ Add one line per piece of work, newest last.
 - **NASA data:** listed per data set in its `manifest.json` (`source`) and in `docs/data-sources.md`.
 - **Libraries:** React, Vite, Tone.js, tonal, zod (front end); FastAPI and google-genai (server).
 - **AI:** Google Gemini Live runs the optional voice guide. Coding assistants (Claude Code, Codex) helped write code and docs; the team reviewed every change.
+- Planet intro (14 Nov, `feature/planet-intro`, on top of `feature/orbit-globe`): on a first visit a full-screen planet with Echo on top asks your name (typed, or said where the browser has speech recognition), then fades to Home (`src/features/intro/`; the name stays on this device).
