@@ -77,7 +77,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
 | [H02](tickets/H02-live-parity-check.md) | Live parity check with a billed key | S | 👤 | — | — | done |
-| [G05](tickets/G05-adk-default.md) | ADK by default; retire the old bridge | S | agent | H02 | server-assistant | open |
+| [G05](tickets/G05-adk-default.md) | ADK by default; retire the old bridge | S | agent | H02 | server-assistant | claimed: C, 2026-11-14 |
 | [G07](tickets/G07-agent-eval-drafter.md) | Agent evaluation (scoring bug fixed) and the offline drafter | M | agent+👤 | — | — | blocked: held-out questions |
 
 ### P1: UI overhaul (the Muninn look; [`planning/UI-OVERHAUL.md`](planning/UI-OVERHAUL.md))
