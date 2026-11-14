@@ -126,4 +126,28 @@ The grep should print nothing. The front end is not changed, so the `npm` checks
 
 ## Result
 
-Not started.
+Agent C, 14 Nov 2026, branch `feature/G05-adk-default`.
+
+**Gate.** `docs/adk-spike.md` still says "not finished" and has no C1 to C4 answers. `docs/TICKETS.md` showed H02 as `done` (commit `5c0c14e`), and the person running agent C confirmed in this session that H02 passed. The pass is not written in `adk-spike.md`; H02's owner should add it.
+
+**Done.**
+- Deleted `live_config`, `connect_live`, `_Bridge`, `_run_bridge` and the google-genai imports from `server/app/api/assistant.py`; the route calls `_run_adk` only.
+- Deleted `tools()` and `_PAGE_PARAM` from `server/app/assistant/tools.py` (it has no google-genai import left).
+- Removed `assistant_engine` from `server/app/config.py` and `ASSISTANT_ENGINE` from `server/.env.example`.
+- Merged `test_assistant_adk.py` into `test_assistant.py` (file deleted). Replaced `test_tool_declarations_build` with `test_the_agent_has_the_five_tools_in_order_with_their_enum_lists`, and added a grep test that `tools.py` has no `google.genai`.
+- Documents: `docs/PLAN.md` (§3 Server, Voice guide and Agents rows, §4 diagram, §5.4 `CONTEXT_KEYS` path), `AGENTS.md` (Commands line, Deployment line), `README.md` ("AI tools" section already existed after S03, so it was extended there: ADK, fact IDs, what is sent to Google).
+
+**Outside Touches, needed to keep the suite green.** `server/tests/test_agent_core.py` (the two `assistant_engine` tests removed, `assistant_engine` dropped from `AGENT_SETTINGS`) and `server/tests/test_context_schemas.py` (the `live` case of `test_update_context_stores_only_valid_payloads` imported `_Bridge`). Board entries posted: `R-20261114-G05-1` (config.py), `-2` (point_to), `-3` (About page).
+
+**Behaviour change.** The bridge was the only path with `point_to` (IX09). The ADK agent has five tools, so the live voice guide can no longer point at the sound map. Chosen by the person running agent C: follow the ticket literally and log it (`R-20261114-G05-2`). Not changed: `server/app/assistant/knowledge.py` (its `pointing` default and "G05 adds it" comment) and the docstrings in `server/app/agent/limits.py` and `voice.py` that still say "bridge".
+
+**Checks (Windows, `server/.venv`).**
+```
+(cd server && .venv/Scripts/python.exe -m pytest -q)
+337 passed, 2 skipped in 13.99s
+env -u GEMINI_API_KEY -u GOOGLE_API_KEY  (same command)
+337 passed, 2 skipped in 18.99s
+grep -rn "connect_live\|_Bridge\|live_config\|assistant_engine\|ASSISTANT_ENGINE" server src docs/PLAN.md AGENTS.md README.md
+(no output)
+```
+The live path was not run (no key here). The front end is not changed, so the `npm` checks do not apply.

@@ -278,3 +278,33 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: (a) drop the scroll boost from UI05; (b) a follow-up ticket defines what a boost is (a lean or a booster flare on the robot) and then wires the listener; (c) UI05 invents it now (more change in `MascotDock.tsx` than the ticket's "only what moves onto `src/motion/`").
 - Answer:
 - Recorded in: `docs/tickets/UI05-motion-layer.md` (Result)
+
+### R-20261114-G05-1: G05 removes `assistant_engine` from `server/app/config.py`; is that OK?
+- From: G05 (agent C, Claude Code, 14 Nov)
+- To: team leader (owner of `server/app/config.py`)
+- Needed by: nothing; G05's PR carries the change and the team leader can answer when merging
+- Status: open
+- Context: `docs/tickets/G05-adk-default.md`, "Code". The google-genai bridge is deleted, so `assistant_engine` (`Literal["bridge", "adk"]`, default `"bridge"`, added by G01) has one value left. The PR also removes `ASSISTANT_ENGINE` from `server/.env.example`. G11 (agent A) also edits `config.py` and `.env.example`; whoever merges second rebases.
+- Question: may G05 remove the setting? (a) yes; (b) no, keep it. A rollback is a revert of the G05 merge commit.
+- Answer:
+- Recorded in: `server/app/config.py`, `server/.env.example`; `docs/tickets/G05-adk-default.md` (Result)
+
+### R-20261114-G05-2: Deleting the bridge removes `point_to` from the voice guide; which ticket adds it to ADK?
+- From: G05 (agent C, Claude Code, 14 Nov)
+- To: team leader (the voice guide's tools, `server/app/agent/tools.py`)
+- Needed by: nothing; G05 ships without it, as the person running agent C chose
+- Status: open
+- Context: IX09 added `point_to` to the bridge's tools and to `run_tool` (`server/app/assistant/tools.py`), but not to `AGENT_TOOLS` (`server/app/agent/tools.py`, five tools). With the bridge gone, the live voice guide has five tools and can no longer point at the sound map. `system_instruction` still has the `POINT_LINE` and a `pointing` argument whose comment says "G05 adds it there"; the G05 ticket does not, so it was left out. The browser side (`point` action, `src/features/point/`) is unchanged.
+- Question: (a) a new small ticket ports `point_to` to ADK (one `FunctionTool` over `run_tool`, `pointing=True` for ADK, and the test); (b) leave pointing out of the voice guide for now.
+- Answer:
+- Recorded in: `docs/tickets/G05-adk-default.md` (Result)
+
+### R-20261114-G05-3: The About page should name the Ask agent and ADK
+- From: G05 (agent C, Claude Code, 14 Nov)
+- To: Roni (owner of `src/features/about/index.tsx`, hotspot `about`)
+- Needed by: nothing
+- Status: open
+- Context: `src/features/about/index.tsx` (around lines 100-101) says "The voice guide uses Google's Gemini". The voice guide and the optional Ask agent both run on Google's Agent Development Kit (ADK) now, and the README's "AI tools" section says so.
+- Question: may the next ticket that edits the About page add that wording (the Ask agent chooses fact IDs, the app writes every sentence, and questions and voice go to Google while a conversation or an Ask question is open)? (a) yes; (b) no, say it differently (how).
+- Answer:
+- Recorded in: nowhere needed yet

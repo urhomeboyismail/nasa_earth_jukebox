@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Literal
 from urllib.parse import urlparse
 
 from pydantic import Field, SecretStr, field_validator
@@ -55,8 +54,6 @@ class Settings(BaseSettings):
     agent_timeout_seconds: float = Field(default=2.5, gt=0)
     agent_max_requests_per_minute: int = Field(default=5, gt=0)  # one token bucket for the whole server
     agent_max_requests_per_minute_per_visitor: int = Field(default=3, gt=0)  # and one for each visitor
-    # Which engine runs the voice guide: the old Gemini Live bridge or the ADK agent.
-    assistant_engine: Literal["bridge", "adk"] = "bridge"  # G05 changes the default to "adk"
 
     # Listening-test results (src/features/compare/TestMode.tsx, docs/PLAN.md §5.5). On Render the file needs a persistent
     # disk to survive restarts; without one, download the CSV after every session.

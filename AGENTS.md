@@ -22,7 +22,7 @@ Project plan (features, interfaces, folder ownership, milestones): see `docs/PLA
 
 ## Commands
 
-Stack: React + TypeScript, built with Vite. A small FastAPI server (`server/`) does three jobs: the voice guide (a Gemini Live bridge ported from FinAssist), the listening-test API, and the Jukebox orchestrator (`POST /api/v1/jukebox/generate`, off unless `JUKEBOX_ENABLED=true`). The rest of the app works without it.
+Stack: React + TypeScript, built with Vite. A small FastAPI server (`server/`) does three jobs: the voice guide and the Ask agent (both on Google ADK), the listening-test API, and the Jukebox orchestrator (`POST /api/v1/jukebox/generate`, off unless `JUKEBOX_ENABLED=true`). The rest of the app works without it.
 
 - Install: `npm install`
 - Dev: `npm run dev` (proxies `/api`, including the voice guide WebSocket, to the server on port 8000)
@@ -68,7 +68,7 @@ Tests sit next to the code (`thing.ts` → `thing.test.ts`) and run with `npm te
 
 ## Deployment
 
-Two services: the website on Vercel and the server (voice guide, listening-test API and Jukebox orchestrator) on Render.
+Two services: the website on Vercel and the server (voice guide, Ask agent, listening-test API and Jukebox orchestrator) on Render.
 
 | What | Where | Live URL |
 |---|---|---|
