@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
@@ -6,6 +6,8 @@ import { publishContext } from '../../assistant/context'
 import { readDescriptionDetail } from '../../describe/detail'
 import type { Visualization } from '../../data'
 import { expectNoA11yViolations } from '../../test/a11y'
+import { TOUR_STEPS } from '../demo/script'
+import { getTour, stopTour } from '../mascot/tour'
 import { onPlayerCommand, type PlayerCommand } from '../player/controls'
 import HomePage from '../home'
 import { MASCOT_NAME } from './lines'
@@ -45,7 +47,7 @@ beforeEach(() => {
   commands = []
   off = onPlayerCommand(command => commands.push(command))
 })
-afterEach(() => { off(); vi.useRealTimers(); vi.unstubAllGlobals(); localStorage.clear(); window.location.hash = '' })
+afterEach(() => { off(); act(() => stopTour()); vi.useRealTimers(); vi.unstubAllGlobals(); localStorage.clear(); window.location.hash = '' })
 
 /** Home with the lazy welcome loaded. */
 async function renderHome() {
@@ -228,6 +230,28 @@ describe('the three paths', () => {
     publishContext('player', { playing: true })
     await act(async () => { await vi.advanceTimersByTimeAsync(2000) })
     expect(commands.length).toBe(before)
+  })
+
+  it('starts the guided tour after the map path only', async () => {
+    await throughCheck('I can see the map')
+    await waitFor(() => expect(getTour().active).toBe(true))
+    expect(getTour().caption).toBe(TOUR_STEPS[0].say)
+    act(() => stopTour())
+    await waitFor(() => expect(getTour().active).toBe(false))
+
+    for (const path of ['I use a screen reader', 'Just play me something']) {
+      cleanup()
+      resetWelcome()
+      await throughCheck(path)
+      expect(getTour().active).toBe(false)
+    }
+  })
+
+  it('does not start the tour when the welcome is skipped', async () => {
+    const user = userEvent.setup()
+    await renderHome()
+    await user.click(screen.getByRole('button', { name: 'Skip the welcome' }))
+    expect(getTour().active).toBe(false)
   })
 
   it('remembers the volume chosen in the sound check', async () => {
