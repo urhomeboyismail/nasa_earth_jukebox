@@ -11,6 +11,7 @@ import { onPlayerCommand, type PlayerCommand } from '../player/controls'
 import { expectNoA11yViolations } from '../../test/a11y'
 import { AskPanel } from './AskPanel'
 import { ask, confidenceFor, guardsAllow, NOT_FOUND } from './ask'
+import { dateFormatterFor } from '../../dates'
 import { buildFacts } from './facts'
 import { AGENT_TIMEOUT_MS, WORKING_AFTER_MS } from './remote'
 
@@ -307,6 +308,34 @@ describe('AskPanel', () => {
     setup()
     await user.click(screen.getByRole('button', { name: 'Is any data missing?' }))
     expect(screen.getByRole('region', { name: 'Answer' })).toHaveTextContent('not a zero')
+  })
+
+  it('offers each date a cited fact is about as a button that plays it, and only when pressed', async () => {
+    const when = dateFormatterFor(dates)
+    const commands: PlayerCommand[] = []
+    const stop = onPlayerCommand(command => commands.push(command))
+    const user = userEvent.setup()
+    const { container } = setup()
+    await user.click(screen.getByRole('button', { name: 'Is any data missing?' }))
+    expect(screen.queryByRole('group', { name: 'Hear the cited dates' })).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'What was the lowest value?' }))
+    const play = screen.getByRole('button', { name: `Play ${when(dates[0])}` })
+    expect(commands).toEqual([])
+    await expectNoA11yViolations(container)
+    await user.click(play)
+    expect(commands).toEqual([{ setDate: dates[0] }])
+    stop()
+  })
+
+  it("does not repeat a cited date the agent's own button already plays", async () => {
+    vi.stubGlobal('fetch', agentReply({ factIds: ['F-lowest', 'F-highest'], confidence: 'high', action: { kind: 'set_date', date: dates[0] } }))
+    const when = dateFormatterFor(dates)
+    const user = userEvent.setup()
+    setup()
+    await askTyped(user, UNMATCHED)
+    await screen.findByRole('button', { name: `Play ${dates[0]}` })
+    expect(screen.queryByRole('button', { name: `Play ${when(dates[0])}` })).toBeNull()
+    expect(screen.getByRole('button', { name: `Play ${when(dates[2])}` })).toBeInTheDocument()
   })
 
   it('has no accessibility violations', async () => {
