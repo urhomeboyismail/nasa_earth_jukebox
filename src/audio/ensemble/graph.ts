@@ -3,10 +3,12 @@
 //   voice synths → (filter) → (panner) → voice gain ─┬→ space (melody, harmony only) ─┐
 //                                                    └────────────────────────────────┴→ bus → compressor → limiter → clip → master gain → speakers
 //
+// A live context also taps the master into an analyser that goes nowhere else (src/audio/level.ts, UI08), so it changes nothing that is heard.
 // The limiter does the work and the hard clip after it holds the peak at −1 dBFS whatever the voices do. No noise, no Tone.Reverb (its impulse is random),
 // no Freeverb and no PolySynth (measured: their renders differ from run to run), and nothing that calls Math.random.
 
 import type { Kit, VoiceId, Waveform } from '../../sonify/types'
+import { LEVEL_FFT_SIZE, LEVEL_SMOOTHING, setLevelSource } from '../level'
 import { createPanner, type Panner, type SpatialMode } from '../pan'
 import {
   CEILING_LINEAR, CLIP_CURVE_POINTS, COMPRESSOR, DROPOUT_GAIN_DB, GLIDE_S, HARMONY_POLYPHONY, HOLD_FILTER_HZ, MALLET_ENVELOPE, MASTER_LIMIT_DB, MAX_HOTSPOT_VOICES,
@@ -29,6 +31,8 @@ export type Graph = {
   /** The hard clip at CEILING_LINEAR, between the limiter and the master. */
   clip: InstanceType<ToneModule['WaveShaper']>
   bus: Gain
+  /** The read-only tap on the master (UI08); null on an offline render, which is never listened to live. */
+  analyser: AnalyserNode | null
   /** The first of the two delay lines that make the room; the melody and the harmony feed it. */
   space: InstanceType<ToneModule['FeedbackDelay']>
   melody: Chain
@@ -62,6 +66,18 @@ export type GraphOptions = {
 
 const DEFAULT_KIT: Kit = { melody: 'triangle', bass: 'triangle', rhythm: 'triangle' }
 
+/** The analyser on the master's output, handed to src/audio/level.ts. Not on an offline render: that is never heard, and must not take the live graph's place. */
+function tapMaster(t: ToneModule, master: Gain): AnalyserNode | null {
+  const context = t.getContext().rawContext
+  if ('startRendering' in context) return null
+  const analyser = context.createAnalyser()
+  analyser.fftSize = LEVEL_FFT_SIZE
+  analyser.smoothingTimeConstant = LEVEL_SMOOTHING
+  master.connect(analyser)
+  setLevelSource(analyser)
+  return analyser
+}
+
 export function buildGraph(t: ToneModule, options: GraphOptions): Graph {
   const nodes: { dispose(): unknown }[] = []
   const track = <T extends { dispose(): unknown }>(node: T): T => {
@@ -70,6 +86,7 @@ export function buildGraph(t: ToneModule, options: GraphOptions): Graph {
   }
 
   const master = track(new t.Gain(options.master).toDestination())
+  const analyser = tapMaster(t, master)
   const clip = track(new t.WaveShaper(x => Math.max(-CEILING_LINEAR, Math.min(CEILING_LINEAR, x)), CLIP_CURVE_POINTS).connect(master))
   const limiter = track(new t.Limiter(MASTER_LIMIT_DB).connect(clip))
   const compressor = track(new t.Compressor(COMPRESSOR).connect(limiter))
@@ -135,8 +152,12 @@ export function buildGraph(t: ToneModule, options: GraphOptions): Graph {
   const dropout = [0, 1].map(() => track(new t.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.002, decay: 0.06, sustain: 0, release: 0.02 }, volume: DROPOUT_GAIN_DB }).connect(bus)))
 
   return {
-    master, compressor, limiter, clip, bus, space, melody, harmony, bass, hotspots, rhythm, motion, time, hold, scan, dropout,
+    master, compressor, limiter, clip, bus, analyser, space, melody, harmony, bass, hotspots, rhythm, motion, time, hold, scan, dropout,
     dispose() {
+      if (analyser) {
+        analyser.disconnect()
+        setLevelSource(null)
+      }
       for (const node of nodes) node.dispose()
     },
   }

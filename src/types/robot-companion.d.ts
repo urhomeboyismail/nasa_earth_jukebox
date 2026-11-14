@@ -12,6 +12,8 @@ export interface RobotCompanionElement extends HTMLElement {
   stopGesture(name?: string): void
   /** Stops the line it is saying and closes its bubble. */
   hush(): void
+  /** Draws the bars on its chest screen: levels from 0 to 1, low pitch first. Null rests them flat. At most 30 draws a second; still under reduced motion. */
+  setChestBands(values: readonly number[] | null): RobotCompanionElement
   configure(config: Record<string, unknown>): RobotCompanionElement
 }
 

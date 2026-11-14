@@ -2,11 +2,15 @@ import * as Tone from 'tone'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CEILING_LINEAR, COMPRESSOR, HARMONY_POLYPHONY, MASTER_LIMIT_DB, MAX_HOTSPOT_VOICES, SCAN_VOICES } from './constants'
 import { buildGraph } from './graph'
-import { calls, nodes, resetTone, type MockNode } from './toneMock'
+import { hasLevelSource, setLevelSource } from '../level'
+import { calls, nodes, raw, resetTone, type MockNode } from './toneMock'
 
 vi.mock('tone', async () => (await import('./toneMock')).toneModule)
 
-beforeEach(resetTone)
+beforeEach(() => {
+  resetTone()
+  setLevelSource(null)
+})
 
 const only = (name: string) => nodes[name] ?? []
 const connected = (from: MockNode, to: MockNode) => from.connectedTo.includes(to)
@@ -48,6 +52,49 @@ describe('buildGraph: the master chain', () => {
     resetTone()
     buildGraph(Tone, { master: 1, spatial: 'stereo' })
     expect(only('Gain')[0].options).toBe(1)
+  })
+})
+
+describe('buildGraph: the level tap (UI08)', () => {
+  it('connects the master to an analyser as well, and the master still reaches the speakers', () => {
+    const g = buildGraph(Tone, { master: 0, spatial: 'stereo' })
+    const master = g.master as unknown as MockNode
+    expect(raw.analysers).toHaveLength(1)
+    expect(g.analyser).toBe(raw.analysers[0])
+    expect(raw.analysers[0]).toMatchObject({ fftSize: 256, smoothingTimeConstant: 0.8 })
+    expect(master.connectedTo).toEqual([raw.analysers[0]])
+    expect(master.toDestinationCalled).toBe(true)
+    expect(only('Gain').filter(n => n.toDestinationCalled)).toEqual([master])
+  })
+
+  it('takes nothing from the chain before the master: the analyser has no output', () => {
+    const g = buildGraph(Tone, { master: 0, spatial: 'stereo' })
+    const [clip] = only('WaveShaper')
+    expect(clip.connectedTo).toEqual([g.master])
+    expect(Object.keys(raw.analysers[0]).sort()).toEqual(['connected', 'disconnect', 'fftSize', 'smoothingTimeConstant'])
+  })
+
+  it('hands the analyser to the level reader, and takes it back on dispose', () => {
+    const g = buildGraph(Tone, { master: 0, spatial: 'stereo' })
+    expect(hasLevelSource()).toBe(true)
+    g.dispose()
+    expect(hasLevelSource()).toBe(false)
+    expect(raw.analysers[0].connected).toBe(false)
+  })
+
+  it('is not made for an offline render, so a render never replaces the live tap', () => {
+    const live = buildGraph(Tone, { master: 0, spatial: 'stereo' })
+    Object.assign(raw, { startRendering: () => {} })
+    try {
+      const offline = buildGraph(Tone, { master: 1, spatial: 'stereo' })
+      expect(offline.analyser).toBeNull()
+      expect(raw.analysers).toHaveLength(1)
+      offline.dispose()
+      expect(hasLevelSource()).toBe(true)
+    } finally {
+      delete (raw as { startRendering?: unknown }).startRendering
+    }
+    live.dispose()
   })
 })
 
