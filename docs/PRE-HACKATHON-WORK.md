@@ -125,6 +125,7 @@ Add one line per piece of work, newest last.
 | 14 Nov | UI03 Vinyl Crate in glass: record cards with a disc painted from the data set's colour scale, and a 10-second preview of its own sound (`src/features/home/preview.ts`) | `feature/UI03-crate-records` |
 | 14 Nov | UI08 Echo's chest equaliser: the chest bars follow the music through a real analyser on its output (`src/features/mascot/useChestBands.ts`) | `feature/UI08-chest-equaliser` |
 | 14 Nov | UI02 The welcome as a glass chat: Echo's glass bubbles under an ECHO label, accent bubbles for the listener, pill toggles for the sounds and a glass card for the manual form; opening line "Commander! Welcome to the Earth Information Jukebox. What should I call you?" | `feature/UI02-welcome-glass` |
+| 14 Nov | UI07 Ear check: "Which is higher?" and "Left or right?" suggest a starting detail level and flip swapped ears (`src/features/calibration/`, `playTone` in `src/audio/cues.ts`, `swapEars` in the audio prefs); the level is kept on the device | `feature/UI07-ear-check` |
 
 ## Outside resources used
 

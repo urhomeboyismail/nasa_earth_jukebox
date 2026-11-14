@@ -85,7 +85,6 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
 | [UI05](tickets/UI05-motion-layer.md) | Motion layer on CSS and the Web Animations API (no Anime.js): press, drawers, sky, theme sweep and Echo's flight | M | agent+👤 | — | tour | claimed: D, 2026-11-14 |
-| [UI07](tickets/UI07-ear-check.md) | Ear check: "Which is higher?" and "Left or right?" set the detail level and flip swapped ears | M | agent | — | welcome | ready: feature/UI07-ear-check |
 | [UI09](tickets/UI09-fusion-moments.md) | Remix: a chord when both decks peak together, and one caption strip | M | agent | — | — | done |
 
 ### P2: quality and smaller features
