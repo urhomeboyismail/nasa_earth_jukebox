@@ -4,8 +4,7 @@
   gap: 0.75rem;
   padding: 1rem;
   border-radius: var(--md-sys-shape-corner-extra-large);
-  background: var(--ui-surface-container-highest);
-  color: var(--ui-on-surface-variant);
+  color: var(--ui-on-surface);
   text-align: left;
 }
 .welcome__top { display: flex; justify-content: flex-end; }
@@ -31,7 +30,16 @@
 @keyframes welcome-bob { 50% { transform: translateY(-0.25rem); } }
 
 .welcome__transcript { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
-.welcome__line--you { justify-self: end; padding: 0.5rem 0.75rem; border-radius: var(--md-sys-shape-corner-large); background: var(--ui-surface-container); }
+.welcome__transcript li { max-inline-size: 90%; padding: 0.5rem 0.75rem; border-radius: var(--md-sys-shape-corner-large); }
+/* Echo: a glass bubble on the left under a mono "ECHO" label. The listener: an accent bubble on the right. */
+.welcome__line--echo { justify-self: start; display: grid; gap: 0.125rem; background: color-mix(in srgb, var(--md-sys-color-surface-container-high) 70%, transparent); border: 1px solid var(--glass-border); color: var(--ui-on-surface); }
+.welcome__line--you { justify-self: end; background: var(--md-sys-color-tertiary-container); color: var(--md-sys-color-on-tertiary-container); }
+.welcome__card { padding: 1rem; border-radius: var(--md-sys-shape-corner-large); }
+/* The sound choices are toggle pills. */
+.welcome__pills .ui-button { border-radius: var(--ui-corner-full); }
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  .welcome__line--echo { background: var(--ui-surface-container-high); border: 2px solid var(--ui-outline); }
+}
 .welcome__form, .welcome__chat { display: grid; gap: 0.75rem; }
 .welcome__field { display: grid; gap: 0.25rem; border: 0; margin: 0; padding: 0; font-weight: 600; }
 .welcome__field input[type='text'], .welcome__field select { min-block-size: 2.75rem; font: inherit; padding: 0 0.75rem; }

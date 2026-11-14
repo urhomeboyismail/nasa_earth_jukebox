@@ -69,7 +69,6 @@ describe('the welcome on Home', () => {
     const user = userEvent.setup()
     const { container } = await renderHome()
     expect(screen.getByRole('heading', { name: 'Welcome' })).toBeInTheDocument()
-    expect(screen.getByText(new RegExp(`I'm ${MASCOT_NAME}`))).toBeInTheDocument()
     expect(screen.getByText(CHAT_GREETING)).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: /What should I call you/ })).toBeInTheDocument()
     // The first thing a keyboard reaches is Skip.
@@ -392,3 +391,40 @@ describe('what do you love listening to?', () => {
   })
 })
 
+
+describe('the glass chat look (UI02)', () => {
+  it("opens with Echo's line as written, under an ECHO label, in a glass panel", async () => {
+    const { container } = await renderHome()
+    expect(CHAT_GREETING).toBe('Commander! Welcome to the Earth Information Jukebox. What should I call you?')
+    const bubble = screen.getByText(CHAT_GREETING).closest('li')
+    expect(bubble).toHaveClass('welcome__line--echo')
+    expect(bubble).toHaveTextContent(new RegExp(`^${MASCOT_NAME}`, 'i'))
+    expect(container.querySelector('.welcome')).toHaveClass('ui-glass')
+  })
+
+  it("shows the listener's answer as its own bubble", async () => {
+    const user = userEvent.setup()
+    await renderHome()
+    await user.type(screen.getByRole('textbox', { name: /What should I call you/ }), 'Sam{Enter}')
+    expect(screen.getByText('Sam').closest('li')).toHaveClass('welcome__line--you')
+  })
+
+  it('offers the sounds as toggle buttons that start unpressed', async () => {
+    const user = userEvent.setup()
+    const { container } = await renderHome()
+    await user.click(screen.getByRole('button', { name: 'Skip this question' }))
+    const group = screen.getByRole('group', { name: 'Sound style' })
+    const buttons = Array.from(group.querySelectorAll('button'))
+    expect(buttons).toHaveLength(4)
+    for (const button of buttons) expect(button).toHaveAttribute('aria-pressed', 'false')
+    await expectNoA11yViolations(container)
+  })
+
+  it('puts the manual form on one glass card with no accessibility violations', async () => {
+    const user = userEvent.setup()
+    const { container } = await renderHome()
+    await user.click(screen.getByRole('button', { name: 'Prefer manual setup?' }))
+    expect(screen.getByRole('form', { name: 'Manual setup' }).closest('.welcome__card')).toHaveClass('ui-glass')
+    await expectNoA11yViolations(container)
+  })
+})
