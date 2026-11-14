@@ -29,7 +29,7 @@ export const NOT_HEARD = 'Check that your headphones or speakers are on and the 
 
 export const VOLUME_QUESTION = 'Is this volume comfortable?'
 
-export const CHAT_GREETING = `Commander! Welcome to the Earth Information Jukebox. I'm ${MASCOT_NAME}, your sonic guide. Before we drop the needle on these NASA datasets, what should I call you?`
+export const CHAT_GREETING = 'Commander! Welcome to the Earth Information Jukebox. What should I call you?'
 
 export const tuneQuestion = (name: string) =>
   `${name ? `Great to meet you, ${name}!` : 'Great to meet you!'} How are we tuning your sound frequencies today?`

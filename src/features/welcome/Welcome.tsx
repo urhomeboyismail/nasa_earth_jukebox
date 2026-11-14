@@ -17,7 +17,7 @@ import { startTour } from '../mascot/tour'
 import { resetOnboarding } from '../onboarding/store'
 import { sendPlayerCommand } from '../player/controls'
 import { SoundPrefs } from '../player/SoundPrefs'
-import { CHAT_GREETING, CHECK_STEPS, GREETING, lockedLine, NOT_HEARD, PATH_HINTS, PATH_LABELS, TUNE_CHIPS, tuneQuestion, VOLUME_QUESTION } from './lines'
+import { CHAT_GREETING, CHECK_STEPS, GREETING, lockedLine, MASCOT_NAME, NOT_HEARD, PATH_HINTS, PATH_LABELS, TUNE_CHIPS, tuneQuestion, VOLUME_QUESTION } from './lines'
 import { ManualSetup } from './ManualSetup'
 import { hush, speak } from './speak'
 import { saveWelcome, type WelcomePath } from './storage'
@@ -210,7 +210,7 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
   const current = step < CHECK_STEPS.length ? CHECK_STEPS[step] : null
 
   return (
-    <section className="welcome" aria-labelledby={titleId}>
+    <section className="welcome ui-glass" aria-labelledby={titleId}>
       <div className="welcome__top">
         {/* First in focus order, so anyone can skip the welcome at once. */}
         <Button variant="text" onClick={skipWelcome}>Skip the welcome</Button>
@@ -223,16 +223,18 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
           {!path && manual ? (
             <>
               <h3 ref={stepHeading} tabIndex={-1} className="welcome__step-title">Manual setup</h3>
-              <ManualSetup name={name} onName={setName} style={style} onStyle={setStyle} path={pick} onPath={setPick} onSave={saveManual} />
+              <div className="welcome__card ui-glass">
+                <ManualSetup name={name} onName={setName} style={style} onStyle={setStyle} path={pick} onPath={setPick} onSave={saveManual} />
+              </div>
             </>
           ) : !path ? (
             <>
               <ol className="welcome__transcript" aria-label="Conversation with Echo">
-                <li>{CHAT_GREETING}</li>
+                <li className="welcome__line--echo"><span className="ui-label">{MASCOT_NAME}</span><span>{CHAT_GREETING}</span></li>
                 {phase !== 'name' && <li className="welcome__line--you">{name || '(No name)'}</li>}
-                {phase !== 'name' && <li>{tuneQuestion(name)}</li>}
+                {phase !== 'name' && <li className="welcome__line--echo"><span className="ui-label">{MASCOT_NAME}</span><span>{tuneQuestion(name)}</span></li>}
                 {phase === 'path' && <li className="welcome__line--you">{TUNE_CHIPS.find(chip => chip.id === style)?.label ?? '(No preference)'}</li>}
-                {phase === 'path' && <li>{GREETING}</li>}
+                {phase === 'path' && <li className="welcome__line--echo"><span className="ui-label">{MASCOT_NAME}</span><span>{GREETING}</span></li>}
               </ol>
               {phase === 'name' && (
                 <form className="welcome__chat" onSubmit={(event: FormEvent) => { event.preventDefault(); sendName(false) }}>
@@ -250,7 +252,7 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
               {phase === 'tune' && (
                 <div className="welcome__chat">
                   <h3 ref={stepHeading} tabIndex={-1} className="welcome__step-title">Your sound</h3>
-                  <div className="welcome__buttons" role="group" aria-label="Sound style">
+                  <div className="welcome__buttons welcome__pills" role="group" aria-label="Sound style">
                     {TUNE_CHIPS.map(chip => <Button key={chip.id} pressed={style === chip.id} onClick={() => pickStyle(chip.id)}>{chip.label}</Button>)}
                   </div>
                   <div className="welcome__buttons"><Button variant="text" onClick={() => pickStyle(null)}>Skip this question</Button></div>
