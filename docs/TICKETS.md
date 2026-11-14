@@ -69,14 +69,14 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [EIC02](tickets/EIC02-pick-visualisations.md) | Pick 3–5 EIC visualisations; check source, credit and licence | S | 👤 | — | — | open |
+| [EIC02](tickets/EIC02-pick-visualisations.md) | Pick 3–5 EIC visualisations; check source, credit and licence | S | 👤 | — | — | done |
 | [EIC03](tickets/EIC03-ingest-datasets.md) | Ingest and tune each picked visualisation (manifest and data only) | M each | agent+👤 | EIC02 | catalogue | open |
 
 ### P1: Gemini on ADK and the voice panel
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [H02](tickets/H02-live-parity-check.md) | Live parity check with a billed key | S | 👤 | — | — | open |
+| [H02](tickets/H02-live-parity-check.md) | Live parity check with a billed key | S | 👤 | — | — | done |
 | [G05](tickets/G05-adk-default.md) | ADK by default; retire the old bridge | S | agent | H02 | server-assistant | open |
 | [G07](tickets/G07-agent-eval-drafter.md) | Agent evaluation (scoring bug fixed) and the offline drafter | M | agent+👤 | — | — | blocked: held-out questions |
 
@@ -105,11 +105,11 @@ Echo, the guide, redrawn as Juke-Bot (helmet visor, headphones, chest screen, ai
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [H03](tickets/H03-practice-listening-test.md) | Practice listening test: Symphony against Simple, Find and Predict, with a blind or low-vision tester | M | 👤 | — | — | open |
-| [H04](tickets/H04-change-style-check.md) | Change-style check on real data | S | 👤 | — | — | open |
-| [H06](tickets/H06-device-numbers.md) | Device numbers, live-video CPU on a phone, real-phone checks | S | 👤 | — | — | open |
-| [H07](tickets/H07-video-slides.md) | 30 s video and 7 slides | M | 👤 | H03 | — | open |
-| [H08](tickets/H08-final-check.md) | Final check: keyboard, NVDA and VoiceOver, server off | M | 👤 | — | — | open |
+| [H03](tickets/H03-practice-listening-test.md) | Practice listening test: Symphony against Simple, Find and Predict, with a blind or low-vision tester | M | 👤 | — | — | done |
+| [H04](tickets/H04-change-style-check.md) | Change-style check on real data | S | 👤 | — | — | done |
+| [H06](tickets/H06-device-numbers.md) | Device numbers, live-video CPU on a phone, real-phone checks | S | 👤 | — | — | done |
+| [H07](tickets/H07-video-slides.md) | 30 s video and 7 slides | M | 👤 | H03 | — | done |
+| [H08](tickets/H08-final-check.md) | Final check: keyboard, NVDA and VoiceOver, server off | M | 👤 | — | — | done |
 
 ## Parked
 
