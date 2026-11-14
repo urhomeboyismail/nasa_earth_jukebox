@@ -5,7 +5,7 @@
 | **Priority** | P1 |
 | **Size** | M each |
 | **Who** | agent+👤 |
-| **Needs** | EIC01, EIC02 |
+| **Needs** | EIC02 |
 | **Hotspots** | catalogue |
 | **Branch** | `feature/EIC03-<id>`, one branch for each picked data set (`<id>` is the id from EIC02) |
 

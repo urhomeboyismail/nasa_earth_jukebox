@@ -5,7 +5,7 @@
 | **Priority** | P0 / P1 / P2 / P3 |
 | **Size** | S (under half a day) / M (about a day) / L (more than a day) |
 | **Who** | agent / 👤 (a person; agents never claim it) / agent+👤 (an agent builds it, a person signs off) |
-| **Needs** | Ticket IDs that must be `done` first, or — |
+| **Needs** | — (tickets are independent; list an ID only for work that is still open and can't be folded in) |
 | **Hotspots** | Hotspot files this ticket edits (see `docs/TICKETS.md`), or — |
 | **Branch** | `feature/<ID>-<slug>` (or `fix/`, `chore/`) |
 

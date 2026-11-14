@@ -5,7 +5,7 @@
 | **Priority** | P1 |
 | **Size** | S (under half a day) |
 | **Who** | agent |
-| **Needs** | G04, H02 |
+| **Needs** | H02 |
 | **Hotspots** | server-assistant |
 | **Branch** | `feature/G05-adk-default` |
 

@@ -8,7 +8,7 @@ import { useAudioPrefs } from '../../audio/prefs'
 import { Button, Notice, Slider, useAnnounce } from '../../components'
 import { loadCatalog, loadVisualization, type CatalogEntry, type Visualization } from '../../data'
 import { fuseFrames, presetFor, toMusicFrame, type MusicFrame } from '../../sonify'
-import { frameOn, overlap } from './fusion'
+import { frameOn, overlap } from './fusionDates'
 
 const B_STREAM = 'fusion-b'
 

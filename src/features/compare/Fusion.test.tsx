@@ -11,7 +11,7 @@ import { features } from '../../sonify/testFeatures'
 import { expectNoA11yViolations } from '../../test/a11y'
 import { createFakeEnsemble, type FakeEnsemble } from '../player/symphonyTestSupport'
 import { Fusion } from './Fusion'
-import { frameOn, overlap } from './fusion'
+import { frameOn, overlap } from './fusionDates'
 
 const fakes = vi.hoisted(() => ({
   ensemble: null as FakeEnsemble | null,

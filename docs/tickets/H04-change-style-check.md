@@ -5,7 +5,7 @@
 | **Priority** | P3 |
 | **Size** | S (under half a day, plus the listeners) |
 | **Who** | 👤 |
-| **Needs** | S02, S05 |
+| **Needs** | — |
 | **Hotspots** | — |
 | **Branch** | `chore/H04-change-style-check` |
 

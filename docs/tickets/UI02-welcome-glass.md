@@ -1,60 +1,68 @@
-# UI02 Welcome in glass: Echo's chat and the manual form
+# UI02 Welcome in glass: Echo's chat look and the manual form
 
 | | |
 |---|---|
 | **Priority** | P1 |
 | **Size** | M (about a day) |
 | **Who** | agent+👤 |
-| **Needs** | UI01, JB11 |
-| **Hotspots** | — |
+| **Needs** | — |
+| **Hotspots** | welcome |
 | **Branch** | `feature/UI02-welcome-glass` |
+
+## Standalone
+
+This ticket is built on the welcome that is on `main` today (`src/features/welcome/Welcome.tsx`, `lines.ts`, `storage.ts`, `welcome.css`). It does not wait for any other ticket. JB11 (the chat flow) edits the same folder, so both hold the `welcome` hotspot: only one of them is in it at a time. Whoever merges second rebases onto the first and keeps the other's logic; this ticket changes look and copy only, never the flow or the storage.
 
 ## Goal
 
-The first-visit welcome that JB11 builds (Echo's chat: name, then four sound chips, then the path and sound check, with "Prefer manual setup?") looks like Muninn's glass chat: glass speech bubbles, chips as telemetry pills, and a calm glass form for the manual path.
+The first-visit welcome looks like a glass chat: a glass panel, Echo's lines as glass bubbles under a mono "ECHO" label, the listener's answers as accent bubbles, the sound choices as toggle pills, and a calm glass card for any form.
 
 ## Why
 
-- Draft Ticket 2 asks for this flow; JB11 (claimed by B) builds it in `src/features/welcome/`. This ticket only restyles it and adds the draft's copy.
-- Muninn's chat panel (`frontend/src/components/chat/MemoryChat.tsx`) is the look: a glass window, a mono header label and a status pill, user and assistant bubbles, and the input row at the bottom.
+- The overhaul wants Muninn's chat look (`docs/planning/UI-OVERHAUL.md`): a glass window, a mono header label, user and assistant bubbles, the input row at the bottom.
+- The welcome today is plain (`src/features/welcome/welcome.css`).
 
 ## Design
 
-- The chat column is a `.ui-glass` panel. Echo's lines are glass bubbles on the left with a `.ui-label` "ECHO"; the listener's answers are accent bubbles on the right (`--accent-atmosphere`).
-- The name input and its submit sit at the bottom like Muninn's input row. The sound chips are `.ui-pill` toggle buttons with `pressed`, one per existing style id (`STYLE_IDS`), using the existing labels.
-- Echo's first line uses the draft's wording, adapted: "Commander! Welcome to the Earth Information Jukebox. What should I call you?". It goes in JB11's `lines.ts`, so the copy stays in one place.
-- "Prefer manual setup?" stays JB11's control. Its form becomes one `.ui-glass` card with native fields; nothing in it is chat-styled.
-- JB11's storage and its bypass of the welcome for a returning visitor are unchanged.
+- The welcome column is a glass panel. Echo's lines are glass bubbles on the left under a mono uppercase "ECHO" label. The listener's answers are accent bubbles on the right (`--md-sys-color-tertiary-container`).
+- Any text input and its submit sit at the bottom of the panel. Choices that are toggles are pill buttons with `aria-pressed`, using the labels the welcome already has.
+- Echo's opening line becomes: "Commander! Welcome to the Earth Information Jukebox. What should I call you?" It goes in `lines.ts` only, so the copy stays in one place. If the welcome on `main` has no name question, change the wording of its first line and do not add a step.
+- Any manual or setup form is one glass card with native, labelled fields.
+- No animation here.
+
+Write the glass as a local class in this feature's CSS, on the existing `--md-sys-color-*` tokens: a translucent `surface-container` with `backdrop-filter: blur(24px)`, a 1 px lit top edge, and a solid `surface-container-high` with a 2 px outline under `prefers-contrast: more`, `prefers-reduced-transparency: reduce` and `@supports not (backdrop-filter: blur(1px))`. If `.ui-glass`, `.ui-pill` and `.ui-label` already exist in `src/styles/components.css` on `main` when you start, use them instead and write no local copy. Do not edit `tokens.css`, `components.css` or `index.css` (the `theme` hotspot).
 
 ## Reuse
 
-- Everything JB11 adds: `Welcome.tsx`, `ManualSetup.tsx`, `lines.ts`, its storage, and its tests.
-- `.ui-glass`, `.ui-pill` and `.ui-label` from UI01. `Button` (`pressed`), `useAnnounce`.
+- `Welcome.tsx`, `lines.ts`, `storage.ts`, `welcome.test.tsx`. `Button` (`pressed`), `useAnnounce`.
 
 ## Touches
 
-- `src/features/welcome/welcome.css`, `Welcome.tsx`, `ManualSetup.tsx` (class names and markup wrappers only), `lines.ts` (the first line).
-- `src/features/welcome/welcome.test.tsx` (new cases only).
+- `src/features/welcome/welcome.css`, `Welcome.tsx` (class names and wrapper markup only), `lines.ts` (the first line), `welcome.test.tsx` (new cases only).
 
 ## Steps
 
-1. Read JB11's merged files. Wrap the chat column, bubbles, chips and manual form in the UI01 classes.
-2. Write the chip and bubble CSS on tokens in `welcome.css`.
+1. Wrap the column, bubbles, choices and any form in the glass classes.
+2. Write the bubble and pill CSS on tokens in `welcome.css`.
 3. Change Echo's first line in `lines.ts`.
 
 ## Tests
 
-- The first line reads as written. The chips are buttons with `aria-pressed`. "Prefer manual setup?" still switches to a form with labelled fields.
-- `expectNoA11yViolations` on the chat and on the manual form.
+- The first line reads as written. Toggle choices are buttons with `aria-pressed`. Every existing welcome test passes unchanged.
+- `expectNoA11yViolations` on the chat and on any form.
 
 ## Guardrails
 
-- The template's guardrails. No sound before a click; the sound check stays JB11's.
-- New bubbles don't animate here (motion is UI05).
+The template's guardrails, and:
+
+- Nothing specific to one data set in `src/` (`.claude/rules/phases.md`); colours and text come from the manifest.
+- No sound before a click or key press. Nothing flashes. Every sound has a text equivalent.
+
+- The flow, steps and storage do not change.
 
 ## Done when
 
-- The welcome looks like Muninn's glass chat in both themes, passes its tests, and behaves exactly as JB11 left it.
+- The welcome looks like a glass chat in both themes, behaves exactly as before, and passes its tests.
 
 ## Checks
 
@@ -64,7 +72,7 @@ npm run lint && npm test && npm run build
 
 ## Out of scope
 
-- Changing JB11's flow, its storage or its steps. Echo's motion (UI05).
+- Changing the flow, the storage or the steps (JB11). Echo's motion (UI05).
 
 ## Result
 

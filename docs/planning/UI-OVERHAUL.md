@@ -56,13 +56,13 @@ From Muninn's `frontend/src/app/globals.css`, `tailwind.config.ts`, `lib/animati
 
 ## 5. From the drafts to the queue
 
-| Draft | Queue | Needs |
+| Draft | Ticket | State |
 |---|---|---|
-| 1. Design system and M3 tokens | [UI01](../tickets/UI01-dark-glass-tokens.md) | — |
-| 2. Onboarding and manual welcome | [UI02](../tickets/UI02-welcome-glass.md) | UI01, JB11 |
-| 3. Vinyl Crate | [UI03](../tickets/UI03-crate-records.md) | UI01 |
-| 4. Jukebox stage and mixer | [UI04](../tickets/UI04-stage-transport.md) | UI01, JB10 |
-| 5. Anime.js and mascot engine | [UI05](../tickets/UI05-motion-layer.md) | UI01, JB09 |
-| 6. Remix and compare | [UI06](../tickets/UI06-compare-decks.md) | UI01 |
+| 1. Design system and M3 tokens | UI01 | **Done and merged 14 Nov 2026.** Its ticket was deleted with the other done ones: read it with `git log --diff-filter=D -- docs/tickets/UI01-dark-glass-tokens.md` |
+| 2. Onboarding and manual welcome | [UI02](../tickets/UI02-welcome-glass.md) | open |
+| 3. Vinyl Crate | [UI03](../tickets/UI03-crate-records.md) | open |
+| 4. Jukebox stage and mixer | [UI04](../tickets/UI04-stage-transport.md) | open |
+| 5. Anime.js and mascot engine | [UI05](../tickets/UI05-motion-layer.md) | open |
+| 6. Remix and compare | [UI06](../tickets/UI06-compare-decks.md) | open |
 
-After UI01, UI02 to UI06 touch different files and can run at the same time.
+UI02 to UI06 build on the UI01 tokens and classes (`.ui-glass`, `.ui-label`, `.ui-pill`, the `--accent-*` and `--glass-*` tokens, `ThemeSwitch`, `ServerPill`), now on `main`.

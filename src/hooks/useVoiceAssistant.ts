@@ -125,7 +125,7 @@ const WARNING_SECONDS = 60
 /** An open mic with no speech for this long turns itself off. */
 const OPEN_MIC_QUIET_MS = 60_000
 /** A server that is still connecting after this long is probably waking up (Render's free tier sleeps). */
-const WAKING_AFTER_MS = 3_000
+export const WAKING_AFTER_MS = 3_000
 
 export const MIC_NOTES = {
   refused: 'Echo cannot use the microphone. You can type your questions.',

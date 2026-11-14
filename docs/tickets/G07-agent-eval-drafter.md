@@ -5,7 +5,7 @@
 | **Priority** | P1 |
 | **Size** | M (about a day) |
 | **Who** | agent+👤 |
-| **Needs** | G02 |
+| **Needs** | — |
 | **Hotspots** | — |
 | **Branch** | `feature/G07-agent-eval-drafter` |
 

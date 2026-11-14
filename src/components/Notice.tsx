@@ -23,7 +23,7 @@ const labels = { info: '', warning: 'Warning: ', error: 'Error: ' }
  */
 export function Notice({ variant = 'info', children, action }: Props) {
   return (
-    <div className={`ui-notice ui-notice--${variant}`} role={variant === 'info' ? 'status' : 'alert'}>
+    <div className={`ui-notice ui-notice--${variant}${variant === 'info' ? ' ui-glass' : ''}`} role={variant === 'info' ? 'status' : 'alert'}>
       <svg className="ui-notice__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d={icons[variant]} /></svg>
       <div className="ui-notice__text">
         {labels[variant] && <strong className="ui-notice__label">{labels[variant]}</strong>}

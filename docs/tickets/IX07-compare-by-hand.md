@@ -5,7 +5,7 @@
 | **Priority** | P1 |
 | **Size** | S (under half a day) |
 | **Who** | agent |
-| **Needs** | IX01, SN04 |
+| **Needs** | — |
 | **Hotspots** | explorer |
 | **Branch** | `feature/IX07-compare-by-hand` |
 

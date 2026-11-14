@@ -4,6 +4,8 @@ Ticket files and reviews that are finished, cut or replaced. They are kept for t
 
 Moved here on 9 Nov 2026, when the tickets were reorganised into one queue for two agents (the v3 "sight into sound" plan).
 
+**14 Nov 2026:** the 71 done tickets (S, I, SN, IX, EIC01/04, G01–G10, V, VIS, F, JB01–JB08, D04, H01, H05) were deleted from `tickets/`; read them with `git log -- docs/tickets/<file>` or `git show faf36d9:docs/tickets/<file>`.
+
 | File | What it was | Replaced by |
 |---|---|---|
 | [`TICKETS-pre-v3.md`](TICKETS-pre-v3.md) | The old board: everything built (T00–T120), the open T85, T87, T88b, T114 step 7 and T120 checks | `../TICKETS.md`: T85 → S02, EIC01–EIC03, D04; T87 → S03, H03, H08; T88b/F34 → H01, H07; T114.7 → S05, H04; T120 phone checks → H06 |
