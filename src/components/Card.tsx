@@ -12,7 +12,7 @@ type Props = {
 export function Card({ title, headingLevel = 2, variant = 'elevated', children }: Props) {
   const Heading = `h${headingLevel}` as const
   return (
-    <section className={`ui-card ui-card--${variant}`}>
+    <section className={`ui-card ui-card--${variant}${variant === 'elevated' ? ' ui-glass' : ''}`}>
       <Heading className="ui-card__title">{title}</Heading>
       <div className="ui-card__body">{children}</div>
     </section>

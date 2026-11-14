@@ -533,3 +533,80 @@
 .ui-dialog__title { margin: 0; font-size: 1.5rem; }
 .ui-dialog__body p { margin: 0; }
 .ui-dialog__actions { display: flex; justify-content: flex-end; }
+
+/* ---------- Glass, labels and pills (UI01; docs/planning/UI-OVERHAUL.md) ---------- */
+
+/* Muninn's glass window on tokens: translucent, blurred, a lit top edge and a soft glow. The glow sits behind the content
+   (z-index -1 inside an isolated box), so it can never tint text. tokens.test.ts checks text on the glass over every backdrop. */
+.ui-glass {
+  position: relative;
+  isolation: isolate;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--glass-border);
+  border-block-start-color: var(--glass-border-lit);
+  box-shadow: var(--glass-shadow);
+}
+.ui-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--glass-glow);
+  pointer-events: none;
+}
+.ui-notice--info.ui-glass { color: var(--ui-on-surface); }
+.ui-notice--info.ui-glass .ui-notice__icon { color: var(--ui-primary); }
+
+/* Solid where glass would cost readability or is not supported: more contrast, less transparency, no backdrop-filter, and the
+   app's own high contrast switch (display.css). The same declarations four times, because a selector cannot be shared with @media or @supports. */
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  .ui-glass { background: var(--ui-surface-container-high); -webkit-backdrop-filter: none; backdrop-filter: none; border: 2px solid var(--ui-outline); box-shadow: none; }
+  .ui-glass::before { display: none; }
+  .ui-pill { background: transparent; border: 2px solid var(--ui-outline); }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .ui-glass { background: var(--ui-surface-container-high); border: 2px solid var(--ui-outline); box-shadow: none; }
+  .ui-glass::before { display: none; }
+}
+:root.display-high-contrast .ui-glass { background: var(--ui-surface); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+:root.display-high-contrast .ui-glass::before { display: none; }
+:root.display-high-contrast .ui-pill { background: transparent; border: 2px solid var(--ui-outline); }
+
+/* Telemetry labels and readouts: monospace, never below 0.75 rem. */
+.ui-label {
+  font-family: var(--md-ref-typeface-mono);
+  font-size: var(--md-sys-typescale-label-mono-size);
+  line-height: var(--md-sys-typescale-label-mono-line-height);
+  font-weight: var(--md-sys-typescale-label-mono-weight);
+  letter-spacing: var(--md-sys-typescale-label-mono-tracking);
+  text-transform: uppercase;
+  color: var(--ui-on-surface-variant);
+}
+
+/* A status pill: text in the foreground colour, with the accent only in the border, the tint and the dot. Text carries the meaning. */
+.ui-pill {
+  --pill-accent: var(--ui-outline);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-block-size: 1.75rem;
+  padding: 0.125rem 0.75rem;
+  font-family: var(--md-ref-typeface-mono);
+  font-size: var(--md-sys-typescale-label-mono-size);
+  line-height: var(--md-sys-typescale-label-mono-line-height);
+  font-weight: var(--md-sys-typescale-label-mono-weight);
+  letter-spacing: 0.02em;
+  color: var(--ui-on-surface);
+  background: color-mix(in srgb, var(--pill-accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--pill-accent) 60%, transparent);
+  border-radius: var(--ui-corner-full);
+}
+.ui-pill__dot { flex: none; inline-size: 0.5rem; block-size: 0.5rem; border-radius: var(--ui-corner-full); background: var(--pill-accent); }
+.ui-pill--ocean { --pill-accent: var(--accent-ocean); }
+.ui-pill--atmosphere { --pill-accent: var(--accent-atmosphere); }
+.ui-pill--forest { --pill-accent: var(--accent-forest); }
+.ui-pill--fire { --pill-accent: var(--accent-fire); }
+.ui-pill--error { --pill-accent: var(--ui-error); }

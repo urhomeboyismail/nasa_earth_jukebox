@@ -7,9 +7,9 @@
 //   MCU_DIR=/tmp/mcu node scripts/make_tokens.mjs        # writes src/styles/tokens.css and prints the contrast ratios
 //   git diff --exit-code src/styles/tokens.css           # empty when nothing below changed
 //
-// Colour is computed from SEED: SchemeVibrant's primary, secondary, tertiary and error palettes, with a neutral palette of chroma 0,
-// in the 2025 colour spec, light and dark, at contrast 0 and 1. Everything else (type, shape, elevation, motion, state, the warning
-// pair and the mascot) is the data in this file, written out as it is.
+// Colour is computed from SEED: SchemeVibrant's primary, secondary, tertiary and error palettes, with a neutral palette tinted
+// deep space blue (NEUTRAL), in the 2025 colour spec, night and day, at contrast 0 and 1. Everything else (type, shape, elevation,
+// motion, state, the warning pair, the four science accents, the glass and the mascot) is the data in this file, written out as it is.
 
 import { createRequire, registerHooks } from 'node:module'
 import { writeFileSync } from 'node:fs'
@@ -31,8 +31,10 @@ registerHooks({
 const mcu = await import(pathToFileURL(createRequire(`${dir}/`).resolve('@material/material-color-utilities')).href)
 const { argbFromHex, DynamicScheme, hexFromArgb, Hct, SchemeVibrant, TonalPalette, Variant } = mcu
 
-/** Purple. Change it and run the script to re-theme the whole app. */
-const SEED = '#8a1fe0'
+/** Atmosphere Cyan. Change it and run the script to re-theme the whole app. */
+const SEED = '#00f0ff'
+/** Deep space blue: the hue the surfaces and outlines are tinted with, at a low chroma so they stay near black (night) or white (day). */
+const NEUTRAL = { hex: '#0b132b', chroma: 8, variantChroma: 14 }
 const SPEC = '2025'
 
 // ---- Colour ---------------------------------------------------------------------------------------------------------------------
@@ -58,34 +60,75 @@ const camel = name => name.replace(/-([a-z])/g, (_, c) => c.toUpperCase())
 function colours(isDark, contrastLevel) {
   const sourceColorHct = Hct.fromInt(argbFromHex(SEED))
   const vibrant = new SchemeVibrant(sourceColorHct, isDark, contrastLevel, SPEC)
-  // Grey surfaces and outlines: black or white backgrounds with no tint.
-  const neutral = TonalPalette.fromHueAndChroma(sourceColorHct.hue, 0)
+  // Surfaces and outlines: near black or near white, with a faint deep space blue tint.
+  const neutralHue = Hct.fromInt(argbFromHex(NEUTRAL.hex)).hue
+  const neutral = TonalPalette.fromHueAndChroma(neutralHue, NEUTRAL.chroma)
+  const neutralVariant = TonalPalette.fromHueAndChroma(neutralHue, NEUTRAL.variantChroma)
   const scheme = new DynamicScheme({
     sourceColorHct, variant: Variant.VIBRANT, contrastLevel, isDark, specVersion: SPEC,
     primaryPalette: vibrant.primaryPalette, secondaryPalette: vibrant.secondaryPalette,
     tertiaryPalette: vibrant.tertiaryPalette, errorPalette: vibrant.errorPalette,
-    neutralPalette: neutral, neutralVariantPalette: neutral,
+    neutralPalette: neutral, neutralVariantPalette: neutralVariant,
   })
   const roles = Object.fromEntries(ROLES.map(name => [name, hexFromArgb(scheme[camel(name)]).toLowerCase()]))
   return { ...roles, ...WARNING[isDark ? 'dark' : 'light'] }
 }
 
 const SCHEMES = {
-  light: colours(false, 0),
-  dark: colours(true, 0),
-  lightHc: colours(false, 1),
-  darkHc: colours(true, 1),
+  day: colours(false, 0),
+  night: colours(true, 0),
+  dayHc: colours(false, 1),
+  nightHc: colours(true, 1),
+}
+
+// ---- The four science accents (UI01) ---------------------------------------------------------------------------------------------
+/** At night they are the neon the overhaul asks for, with black on top. By day the same hue and chroma at a darker tone, so they keep 3:1 on a light surface and white stays readable on them. */
+const ACCENTS = { ocean: '#00ffcc', atmosphere: '#00f0ff', forest: '#39ff14', fire: '#ff9f00' }
+const DAY_ACCENT_TONE = { 0: 38, 1: 30 }
+function accents(isDark, contrastLevel) {
+  const lines = []
+  for (const [name, hex] of Object.entries(ACCENTS)) {
+    const source = Hct.fromInt(argbFromHex(hex))
+    const value = isDark ? hex : hexFromArgb(Hct.from(source.hue, source.chroma, DAY_ACCENT_TONE[contrastLevel]).toInt()).toLowerCase()
+    lines.push(`--accent-${name}: ${value};`, `--on-accent-${name}: ${isDark ? '#000000' : '#ffffff'};`)
+  }
+  return lines
+}
+
+// ---- Glass (UI01): Muninn's .glass-window as tokens ------------------------------------------------------------------------------
+/** alpha: how much of surface-container-high shows; glow: the strength of the accent glow at the top edge. tokens.test.ts checks text on the result. */
+const GLASS = {
+  night: { alpha: 62, glow: 14, shadow: '0 16px 36px -10px rgb(0 0 0 / 0.65), 0 0 24px -6px rgb(0 240 255 / 0.1)' },
+  day: { alpha: 76, glow: 10, shadow: '0 16px 36px -10px rgb(11 19 43 / 0.18), 0 0 24px -6px rgb(0 130 150 / 0.08)' },
+}
+const glass = isDark => {
+  const g = GLASS[isDark ? 'night' : 'day']
+  return [
+    `--glass-alpha: ${g.alpha}%;`,
+    `--glass-bg: color-mix(in srgb, var(--md-sys-color-surface-container-high) var(--glass-alpha), transparent);`,
+    `--glass-border: color-mix(in srgb, var(--md-sys-color-on-surface) 14%, transparent);`,
+    `--glass-border-lit: color-mix(in srgb, var(--md-sys-color-on-surface) 30%, transparent);`,
+    `--glass-shadow: ${g.shadow};`,
+    `--glass-glow: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--accent-atmosphere) ${g.glow}%, transparent) 0%, transparent 70%);`,
+    `--glass-blur: 24px;`,
+  ]
 }
 
 /** The warning pair goes after the error roles. */
 const ORDER = [...ROLES.slice(0, ROLES.indexOf('on-error-container') + 1), ...Object.keys(WARNING.light), ...ROLES.slice(ROLES.indexOf('surface'))]
-const colourLines = (scheme, indent) => ORDER.map(name => `${indent}--md-sys-color-${name}: ${scheme[name]};`).join('\n')
+const colourLines = (scheme, indent, isDark, contrastLevel) => [
+  ...ORDER.map(name => `--md-sys-color-${name}: ${scheme[name]};`),
+  ...accents(isDark, contrastLevel),
+  ...glass(isDark),
+].map(line => `${indent}${line}`).join('\n')
 
 // ---- Type -----------------------------------------------------------------------------------------------------------------------
 const TYPEFACES = [
   `--md-ref-typeface-brand: 'Google Sans Flex', 'Google Sans', 'Roboto Flex', system-ui, 'Segoe UI Variable', 'Segoe UI', Roboto, sans-serif;`,
   `--md-ref-typeface-plain: 'Google Sans Flex', 'Roboto Flex', system-ui, 'Segoe UI Variable', 'Segoe UI', Roboto, sans-serif;`,
   `--md-sys-typescale-emphasized-weight: 650;`,
+  // JetBrains Mono (public/fonts): labels, pills and readouts, in the telemetry look of the overhaul (UI01).
+  `--md-ref-typeface-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;`,
 ]
 /** [role, size, font size, line height, weight, tracking], one group per role. */
 const TYPE = [
@@ -99,6 +142,13 @@ const typeLines = TYPE.map(group => group.flatMap(([role, size, font, line, weig
   const name = `--md-sys-typescale-${role}-${size}`
   return [`  ${name}-size: ${font};`, `  ${name}-line-height: ${line};`, `  ${name}-weight: ${weight};`, `  ${name}-tracking: ${tracking};`]
 }).join('\n')).join('\n\n')
+
+/** Mono roles: [name, font size, line height, weight, tracking]. Never below 0.75 rem. label-mono is uppercase (UI01 sets that on .ui-label). */
+const MONO = [['label-mono', '0.75rem', '1rem', 500, '0.08em'], ['data-mono', '0.875rem', '1.25rem', 400, '0']]
+const monoLines = MONO.flatMap(([name, size, line, weight, tracking]) => {
+  const base = `--md-sys-typescale-${name}`
+  return [`  ${base}-size: ${size};`, `  ${base}-line-height: ${line};`, `  ${base}-weight: ${weight};`, `  ${base}-tracking: ${tracking};`]
+}).join('\n')
 
 // ---- Shape, elevation, motion, state ---------------------------------------------------------------------------------------------
 const SHAPE = {
@@ -143,21 +193,26 @@ const css = `/*
  * Material 3 Expressive design tokens (T116). Names follow Material's own (md.sys.*), so the M3 docs map one to one.
  * GENERATED by scripts/make_tokens.mjs: change the script and run it again (see the top of that file), never this file by hand.
  *
- * Colors: purple on black. Seed ${SEED} (purple), ${SPEC} color spec (the M3 Expressive spec), generated with
- * @material/material-color-utilities 0.4.0: a DynamicScheme with SchemeVibrant's primary, secondary, tertiary and error
- * palettes, and a neutral grey palette (chroma 0) for the surfaces and outlines, so backgrounds are black or white with no
- * tint. High contrast uses contrast level 1. Material has no warning role, so the warning pair is a fixed amber.
- * src/styles/tokens.test.ts checks the contrast of all four blocks.
+ * Colors: Night (the default) and Day, on deep space blue. Seed ${SEED} (Atmosphere Cyan), ${SPEC} color spec (the M3 Expressive spec),
+ * generated with @material/material-color-utilities 0.4.0: a DynamicScheme with SchemeVibrant's primary, secondary, tertiary and
+ * error palettes, and neutral palettes tinted ${NEUTRAL.hex} (chroma ${NEUTRAL.chroma} and ${NEUTRAL.variantChroma}) for the surfaces and outlines. High contrast uses
+ * contrast level 1. Material has no warning role, so the warning pair is a fixed amber. The four science accents and the glass
+ * (Muninn's glass-window as tokens) are written with each scheme. Night is :root; Day is :root[data-theme='day'], set by ThemeSwitch.
+ * src/styles/tokens.test.ts checks the contrast of all four blocks, and of text on the glass.
  */
 
 :root {
-  /* Light */
-${colourLines(SCHEMES.light, '  ')}
+  color-scheme: dark;
+
+  /* Night */
+${colourLines(SCHEMES.night, '  ', true, 0)}
 
   /* Type. Body text uses body-large (16 px); body-medium and smaller are for captions only. */
 ${TYPEFACES.map(line => `  ${line}`).join('\n')}
 
 ${typeLines}
+
+${monoLines}
 
   /* Shape: the M3 Expressive corner scale. */
 ${Object.entries(SHAPE).map(([name, value]) => `  --md-sys-shape-corner-${name}: ${value};`).join('\n')}
@@ -179,24 +234,23 @@ ${Object.entries(STATE).map(([name, value]) => `  --md-sys-state-${name}-state-l
 ${Object.entries(MASCOT).map(([name, value]) => `  --mascot-${name}: ${value};`).join('\n')}
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Dark */
-${colourLines(SCHEMES.dark, '    ')}
-  }
+/* Day: the same roles, light. ThemeSwitch sets data-theme="day" on <html>. */
+:root[data-theme='day'] {
+  color-scheme: light;
+
+  /* Day */
+${colourLines(SCHEMES.day, '  ', false, 0)}
 }
 
 @media (prefers-contrast: more) {
   :root {
-    /* Light, high contrast */
-${colourLines(SCHEMES.lightHc, '    ')}
+    /* Night, high contrast */
+${colourLines(SCHEMES.nightHc, '    ', true, 1)}
   }
-}
 
-@media (prefers-color-scheme: dark) and (prefers-contrast: more) {
-  :root {
-    /* Dark, high contrast */
-${colourLines(SCHEMES.darkHc, '    ')}
+  :root[data-theme='day'] {
+    /* Day, high contrast */
+${colourLines(SCHEMES.dayHc, '    ', false, 1)}
   }
 }
 

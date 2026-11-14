@@ -52,7 +52,8 @@ beforeEach(() => {
   vi.stubGlobal('scrollTo', vi.fn())
   vi.stubGlobal('fetch', vi.fn((input: RequestInfo | URL) => {
     const url = String(input)
-    const body = url.endsWith('/data/index.json') ? catalog
+    const body = url.endsWith('/api/v1/health') ? { status: 'ok' }
+      : url.endsWith('/data/index.json') ? catalog
       : url.endsWith('/data/fixture/manifest.json') ? fixture
       : url.endsWith('/data/synthetic-ocean/manifest.json') ? synthetic
       : null

@@ -112,6 +112,13 @@ Add one line per piece of work, newest last.
 | 13 Nov | IX09 Echo points: E on the sound map points at the date's hot spots, largest first, then the centre, with three pings from the place (pan and height) and a line that says where, in the data set's own words; the voice guide's `point_to` sends the same action, checked on the server and in the browser, at the nine compass places. Pointing at a hot spot by voice waits on the explore context carrying the hot spots (board R-20261113-IX09-1); the ADK agent has no `point_to` yet (G05) | `feature/IX09-echo-points` (#67) |
 | 14 Nov | EIC04 Authoring workflow: `Consumption/` staging, `scripts/consume.py` (`new`, `parse`, `clean`) turns an SVS MP4 and its `.vtt` captions into `public/data/<id>/` with `caption-<n>` story chapters, `npm run view` on port 5180 reloads on data JSON edits, `npm run check` | `feature/EIC04-authoring-workflow` |
 | 14 Nov | SN14 Manifest timbre: optional `sonification.timbre` (FM oscillators, low-pass range and curve, pan width), defaults keep every data set's sound | `feature/SN14-manifest-timbre` |
+| 14 Nov | Ask answers offer "Play <date>" for the dates they cite (idea from Muninn) | `feature/ask-play-citations` |
+| 14 Nov | Per-visitor rate limits with `Retry-After` on Ask and the Jukebox; one shared `TokenBucket` in `server/app/ratelimit.py` | `feature/per-visitor-rate-limit` |
+| 14 Nov | The Jukebox says its descriptions are AI-written, and the listener can hide them | `feature/jukebox-ai-text-review` |
+| 14 Nov | A listening-test participant can withdraw their answers (`DELETE /api/v1/tests/{id}`) | `feature/study-withdraw` |
+| 14 Nov | Quiet interface sounds (voice guide connects, ends, fails; Ask answer ready) behind a switch | `feature/interface-earcons` |
+| 14 Nov | "Hey Echo" wake phrase opens the voice guide hands-free (opt-in) | `feature/hey-echo` |
+| 14 Nov | UI01 UI overhaul base: dark-glass tokens, four science accents, mono type, Night/Day switch, server pill (`docs/planning/UI-OVERHAUL.md`) | `feature/UI01-dark-glass-tokens` |
 
 ## Outside resources used
 

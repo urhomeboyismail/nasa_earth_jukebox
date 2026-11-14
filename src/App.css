@@ -537,3 +537,6 @@ html {
   border-radius: var(--md-sys-shape-corner-full, 999px);
   cursor: pointer;
 }
+
+/* The server pill and its "Check again" button sit together in the header (UI01). */
+.app-server { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.5rem; }

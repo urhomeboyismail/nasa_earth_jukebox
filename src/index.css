@@ -9,6 +9,14 @@
   font-display: swap;
 }
 
+/* JetBrains Mono, variable weight, Latin subset, self-hosted (SIL OFL; the licence is beside the file). Labels, pills and readouts (UI01). */
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/JetBrainsMono-latin.woff2') format('woff2');
+  font-weight: 100 800;
+  font-display: swap;
+}
+
 /* Atkinson Hyperlegible, Latin subset, self-hosted (SIL OFL; the licence is beside the files). Only fetched when "Easier reading font" is on. */
 @font-face {
   font-family: 'Atkinson Hyperlegible';
@@ -56,7 +64,6 @@
   line-height: var(--md-sys-typescale-body-large-line-height);
   font-weight: var(--md-sys-typescale-body-large-weight);
   letter-spacing: var(--md-sys-typescale-body-large-tracking);
-  color-scheme: light dark;
   color: var(--md-sys-color-on-surface);
   background: var(--md-sys-color-surface);
   accent-color: var(--md-sys-color-primary);
@@ -65,6 +72,10 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Thin scrollbars and a selection in the accent, on tokens (Muninn's look). High contrast keeps the full outline colour. */
+html { scrollbar-width: thin; scrollbar-color: var(--md-sys-color-outline) transparent; }
+::selection { background: color-mix(in srgb, var(--accent-atmosphere) 38%, transparent); color: var(--md-sys-color-on-surface); }
 
 #root {
   min-height: 100svh;
