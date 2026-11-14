@@ -20,6 +20,7 @@ Like every MC ticket, this one branches from `chore/jpl-hud-theme` (not yet on `
 ## Why
 
 - On 14 Nov 2026 a full `npm test` had 1 failure out of 3162 at `src/App.test.tsx:112`. The same file alone passed (51/51), and the run before passed everything. That points to a timing flake under load, not a code fault, but no one has confirmed that.
+- During MC01's full run, a different test failed the same way: `src/features/art/ArtPanel.test.tsx` "imports a valid file: the choice is applied and art mode is on" failed in the full suite and passed alone (21/21). So look for a shared cause (suite load, timeouts, leaked timers or globals), not just one test.
 - A flaky test makes the gate before the pull request (MC05) untrustworthy.
 
 ## Reuse

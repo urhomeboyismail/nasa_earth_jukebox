@@ -72,4 +72,30 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Branch `chore/MC01-review-mission-control` (from `chore/jpl-hud-theme` at `14b29ce`), commit `1f4663a`. Claim kept local, not pushed (the person's choice, 14 Nov 2026).
+
+**Verdicts**
+
+| Finding | Verdict |
+|---|---|
+| Energy timer runs while the graph exists (`level.ts:29-31`) | Dismissed. One 128-byte analyser read every 34 ms; while paused it reads silence, which is the correct rest value; browsers throttle hidden-tab timers to 1 a second. |
+| Resize rebuilds the star field (`nasa-bg.js:199`, `:50`, `:63`) | **Confirmed, fixed.** On phones, hiding the address bar on scroll is a resize, so the stars jumped. Stars are made once in 0..1 coordinates; the count still follows the screen area. |
+| MutationObserver restarts the loop (`nasa-bg.js:202`) | Dismissed, and needed: `nasa-bg.js` runs before `applyStoredTheme` sets `data-theme`, so the observer is what hides the backdrop in Day theme. A restart costs one frame with `dt = 0`. |
+| `.nasa-hud-card` flattens the Card variants (`components.css:582`) | **Confirmed, fixed.** `Card` puts the HUD panel only on the elevated variant, so filled and outlined keep their own look. |
+| `nasa-bg.js` is not type-checked | Dismissed. oxlint does lint `public/` (checked with a probe file) and the script is clean; a JS type checker for one 200-line script is not worth it. |
+| Review also looked at: `index.html` script order, `level.ts` global typing, the satellite label flip, `textAlign` leak, `.ui-card` background order, the offline service worker (network first, so the script is served live) | No issue. |
+
+**How the fixes were checked**
+
+- Card: new test in `components.test.tsx` ("gives only the elevated card the HUD panel…"). It fails without the fix (`1 failed | 34 passed`) and passes with it (`35 passed`).
+- Stars (no harness for `public/`): in Chrome, I sampled star pixels at 1440×900, resized to 1440×840 and sampled again. 15 of 17 stars sat exactly at the scaled position; the other 2 dropped out because a smaller screen draws fewer stars. Before the fix every star moved.
+
+**Checks**
+
+```
+npm run lint   → 0 errors (only the existing src/features/compare/Fusion.tsx warnings)
+npm test       → Test Files 1 failed | 219 passed (220); Tests 1 failed | 3162 passed (3163)
+                 failed: src/features/art/ArtPanel.test.tsx "imports a valid file…"; alone it passes (21 passed).
+                 Same pattern as the App test before; handed to MC04 (flaky under full-suite load, unrelated files).
+npm run build  → ✓ built in 1.95s
+```
