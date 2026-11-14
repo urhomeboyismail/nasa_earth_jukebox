@@ -128,7 +128,16 @@ export type VideoSpec = {
  * How the data set is sonified by default (SN07). Every field after `preset` is optional. `voices`, when given, is a non-empty list of
  * distinct voice ids; a voice left out is never sounded for this data set.
  */
-export type SonificationSpec = { preset: PresetId; detail?: DetailLevel; voices?: VoiceId[] }
+export type SonificationSpec = { preset: PresetId; detail?: DetailLevel; voices?: VoiceId[]; timbre?: TimbreSpec }
+
+/**
+ * How the live voices sound for this data set (SN14). General, never tied to a named measure, and every field optional: left out, the voices
+ * sound exactly as before. `instrument` 'fm' gives every pitched voice an FM oscillator; `filterHz` is the low-pass range brightness moves
+ * through, along `curve`; `panWidth` (0 to 1) scales how far left and right the voices are placed.
+ */
+export type TimbreSpec = { instrument?: TimbreInstrument; filterHz?: { low: number; high: number }; curve?: TimbreCurve; panWidth?: number }
+export type TimbreInstrument = 'synth' | 'fm'
+export type TimbreCurve = 'linear' | 'exponential'
 
 /** The look of Echo's jet trail (JB04). A style, never the name of a data set. */
 export type MascotTrail = 'sparks' | 'bubbles' | 'ions' | 'pulse'

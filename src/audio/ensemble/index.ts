@@ -7,6 +7,7 @@ import { duck } from '../duck'
 import { MAX_RENDER_S, PAUSE_FADE_S, RENDER_TAIL_S, RESUME_FADE_S, STOP_FADE_S, VOICE_GAIN_DB, VOLUME_RAMP_S } from './constants'
 import { buildGraph, type Graph } from './graph'
 import { createStatus, watchContext, watchVisibility } from './lifecycle'
+import { resolveTimbre } from './timbre'
 import { createPlayer, type Player } from './voices'
 import type { Ensemble, EnsembleOptions, HeldTone, NoteEvent, ScheduledFrame } from './types'
 
@@ -25,6 +26,7 @@ const clampBass = (db: number) => Math.min(BASS_DB_RANGE, Math.max(-BASS_DB_RANG
 
 export function createEnsemble(preset: Preset, options: EnsembleOptions = {}): Ensemble {
   const spatial = options.spatial ?? 'stereo'
+  const timbre = resolveTimbre(options.timbre)
   let detail: DetailLevel = options.detail ?? 'full'
   let volume = clamp01(options.volume ?? 1)
   let bassDb = clampBass(options.bassDb ?? 0)
@@ -45,10 +47,10 @@ export function createEnsemble(preset: Preset, options: EnsembleOptions = {}): E
 
   /** Built once, on the first start(): the graph, the player and the two listeners. */
   function build(t: ToneModule) {
-    graph = buildGraph(t, { master: 0, spatial, kit: preset.kit, bassDb })
+    graph = buildGraph(t, { master: 0, spatial, kit: preset.kit, bassDb, fm: timbre.fm })
     raw = t.getContext().rawContext
     const context = raw
-    player = createPlayer({ t, graph, preset, clock: () => context.currentTime, canSound: () => status.get() === 'on' })
+    player = createPlayer({ t, graph, preset, timbre, clock: () => context.currentTime, canSound: () => status.get() === 'on' })
     player.setDetail(detail)
     player.setSolo(soloed)
     for (const voice of muted) player.setMuted(voice, true)
@@ -135,8 +137,8 @@ export function createEnsemble(preset: Preset, options: EnsembleOptions = {}): E
     const t = (tone ??= await import('tone'))
     // A graph of its own on the offline context, at full level whatever the listening volume is: the file is played on the listener's own volume.
     const buffer = await t.Offline(() => {
-      const offlineGraph = buildGraph(t, { master: 1, spatial, kit: preset.kit, bassDb })
-      const offlinePlayer = createPlayer({ t, graph: offlineGraph, preset, clock: () => 0, canSound: () => true })
+      const offlineGraph = buildGraph(t, { master: 1, spatial, kit: preset.kit, bassDb, fm: timbre.fm })
+      const offlinePlayer = createPlayer({ t, graph: offlineGraph, preset, timbre, clock: () => 0, canSound: () => true })
       offlinePlayer.setDetail(opts.detail)
       for (const { frame, atSeconds } of sorted) offlinePlayer.apply(frame, atSeconds)
       t.getTransport().start(0)

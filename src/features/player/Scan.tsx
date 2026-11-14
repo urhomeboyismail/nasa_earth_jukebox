@@ -27,7 +27,7 @@ export function Scan({ visualization, region }: { visualization: Visualization; 
   const announce = useAnnounce()
   const { frames, source } = visualization
   const preset = presetFor(visualization.sonification?.preset ?? 'major')
-  const { ensemble, status } = useEnsemble(preset, 'full')
+  const { ensemble, status } = useEnsemble(preset, 'full', visualization.sonification?.timbre)
   const [index, setIndex] = useState(0)
   const [phase, setPhase] = useState<Phase>('idle')
   const [line, setLine] = useState<Line | null>(null)

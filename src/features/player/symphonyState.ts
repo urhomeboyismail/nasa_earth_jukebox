@@ -105,7 +105,7 @@ export function useSymphony(visualization: Visualization, video: HTMLVideoElemen
   const [latest, setLatest] = useState<Symphony['latest']>(null)
   const [listenerPaused, setListenerPaused] = useState(false)
 
-  const { ensemble, status: ensembleStatus } = useEnsemble(preset, detail)
+  const { ensemble, status: ensembleStatus } = useEnsemble(preset, detail, spec?.timbre)
   const previous = useRef<MusicFrame | null>(null)
 
   // Each frame the source reads becomes one frame of music. Set from the callback, not from an effect.

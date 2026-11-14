@@ -84,7 +84,7 @@ export function useExplorer({ visualization, frame, engine, vibrate, frames, for
   // SN09: the explorer's own ensemble and probe. Nothing loads or sounds until the first press starts it.
   const probeSettings = useProbeSettings(visualization.sonification !== undefined)
   const preset = presetFor(visualization.sonification?.preset ?? 'major')
-  const { ensemble } = useEnsemble(preset, 'full')
+  const { ensemble } = useEnsemble(preset, 'full', visualization.sonification?.timbre)
   const ownProbe = useMemo(() => createProbeAudio(ensemble, preset), [ensemble, preset])
   // IX01: the one-note sounds (a move, the edge, lock and unlock, undo) go through the ensemble's playNotes at once, never through a frame.
   const feedback = useMemo(() => createFeedback(ensemble, preset), [ensemble, preset])

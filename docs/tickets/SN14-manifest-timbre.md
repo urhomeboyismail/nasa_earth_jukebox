@@ -6,7 +6,7 @@
 | **Size** | M (about a day) |
 | **Who** | agent+👤 (the team leader signs off the design and the sound) |
 | **Needs** | SN05 |
-| **Hotspots** | schema, engine |
+| **Hotspots** | schema, explorer (`engine` is `src/audio/engine.ts`, which this does not touch) |
 | **Branch** | `feature/SN14-manifest-timbre` |
 
 **Built at Raghav's request (14 Nov); the team leader still signs off through R-20261114-SN14-1 on `docs/AGENT-BOARD.md`.** `docs/PLAN.md` §6.3 says timbre comes from a general preset that a manifest only names, so this needs the owner's OK first.
@@ -37,7 +37,7 @@ A manifest can tune the timbre of its live sonification within limits: the instr
 
 ## Touches
 
-`src/data/schema.ts`, `src/data/types.ts`, `src/data/sonification.ts`, `src/audio/ensemble/graph.ts`, `voices.ts`, `constants.ts`, their tests, and `docs/data-sources.md` ("v3 fields").
+`src/data/schema.ts`, `src/data/types.ts`, `src/audio/ensemble/timbre.ts` (new), `graph.ts`, `voices.ts`, `index.ts`, `types.ts`, `useEnsemble.ts`, the callers `src/features/player/symphonyState.ts`, `src/features/player/Scan.tsx` and `src/features/explore/useExplorer.ts` (explorer hotspot), their tests, and `docs/data-sources.md` ("v3 fields").
 
 ## Tests
 
@@ -67,4 +67,16 @@ npm run check-data
 
 ## Result
 
-Filled in by the agent.
+Branch `feature/SN14-manifest-timbre` (agent E, 14 Nov). Built at Raghav's request, so it still needs the team leader's answer to R-20261114-SN14-1 and a listen before merging.
+
+- `sonification.timbre` (`instrument`, `filterHz`, `curve`, `panWidth`) in `src/data/schema.ts` and `types.ts`, strict, all optional.
+- `src/audio/ensemble/timbre.ts` (new): `resolveTimbre`, `cutoff` (linear, or `low x (high/low)^brightness`), `oscillatorFor` (`fm` + waveform). `graph.ts` builds FM oscillators on pitched voices (the time pulse stays plain); `voices.ts` uses the range, curve and pan width. `createEnsemble` and `useEnsemble` take the timbre; Symphony, Scan and Explore pass the manifest's.
+- Without `timbre` the nodes and ramps are exactly as before: all goldens unchanged.
+- Not done: WAV exports from marks and the playlist (`renderRecording.ts`, `renderSequence.ts`) and Learn, Legend, Fusion still use the default sound.
+- Not heard: only tested against the Tone mock. Listen to `fm` + `exponential` before merging.
+
+Checks:
+- `npm run lint`: 2 errors, both in `src/sonify/fuse.ts:31,39`, already on `main`; nothing new.
+- `npm test` (`--maxWorkers=2`; the default worker count got killed for memory): 199 files, 2907 tests passed (13 new: `timbre.test.ts`, schema cases).
+- `npm run check-data`: 303 passed.
+- `npm run build`: built.
