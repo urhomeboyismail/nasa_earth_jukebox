@@ -14,8 +14,8 @@ from pydantic import SecretStr
 from app.agent.callbacks import PLAYER_TOOLS
 from app.agent.limits import MAX_AUDIO_FRAME_BYTES
 from app.agent.sink import sink
-from app.api import assistant as assistant_api
 from app.agent.tools import AGENT_TOOLS
+from app.api import assistant as assistant_api
 from app.assistant.knowledge import PAGE_IDS, PAGES, system_instruction
 from app.assistant.tools import COMPASS_PLACES, PLAYBACK_COMMANDS, SessionState, run_tool
 from app.config import settings

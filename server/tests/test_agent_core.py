@@ -10,7 +10,7 @@ import pytest
 from google.adk.agents import LlmAgent
 from google.adk.runners import InMemoryRunner
 from google.genai import types
-from pydantic import SecretStr, ValidationError
+from pydantic import SecretStr
 
 from app.agent import callbacks, models, tools
 from app.agent.callbacks import guard_tool, log_tool
