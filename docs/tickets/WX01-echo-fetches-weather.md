@@ -100,4 +100,4 @@ npm test                                    Test Files 221 passed (221), Tests 3
 npm run build                               ✓ built in 1.16s
 ```
 
-Still to do (👤): the live check `.venv/bin/python -m app.agent.weather` with a real Meteomatics login. The URL's `<start>--<end>:PT1H` form is from Meteomatics' documentation and has not been run against the live API yet.
+Live check (👤, 2026-11-14): `.venv/bin/python -m app.agent.weather` with a real Meteomatics login printed the hourly temperatures, so the `<start>--<end>:PT1H` URL form and the Basic auth work against the live API. Not yet tried: asking Echo for the weather in the Jukebox and listening to it.
