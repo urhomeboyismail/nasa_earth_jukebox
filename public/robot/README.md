@@ -21,5 +21,6 @@ Made for this app:
 |---|---|
 | `echo-logo.png` | "echo" on the robot's chest, in place of the myt logo (Atkinson Hyperlegible Bold, OFL; 512 by 256, transparent). |
 | `echo-head.png` | A still of the robot's head (256 by 256, transparent), for the small badges (`src/components/RobotBadge.tsx`). Rendered from the robot with Playwright and cropped. |
+| `echo-model.js` | `buildRobot()` copied unchanged from `robot-companion.js` (lines 424-573) as an ES module, so the Home globe (`src/features/home/orbitScene.ts`) can draw the same robot in its own scene. Copy it again if `robot-companion.js` changes. sha256 `1440c055abf10838d3092754de0283c0f3ab2deea1366157f2dbfe882d987ba3` |
 
 The app loads three.js from here (the element's `three` attribute), never from a CDN, and the script only after the first render. Lint skips this folder (`.oxlintrc.json`).

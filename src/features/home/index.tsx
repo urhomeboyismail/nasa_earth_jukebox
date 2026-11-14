@@ -7,6 +7,7 @@ import type { PageProps } from '../types'
 import { useMascotOn } from '../help/mascotSetting'
 import { useWelcome } from '../welcome/storage'
 import { Crate } from './Crate'
+import OrbitGlobe from './OrbitGlobe'
 import './home.css'
 
 // The welcome is only for a first visit, so its code is fetched only then.
@@ -27,6 +28,7 @@ export default function HomePage({ visualization }: PageProps) {
   const mascotOn = useMascotOn()
   return (
     <div className="home">
+      <OrbitGlobe />
       <p>Hear how our planet is changing. The Earth Jukebox turns NASA Earth imagery into sound.</p>
       {!welcome.done && mascotOn && <Suspense fallback={null}><Welcome visualization={visualization} /></Suspense>}
       {visualization && <p>Now playing from: {visualization.title}. {visualization.summary}</p>}
