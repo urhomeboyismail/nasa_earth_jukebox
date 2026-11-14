@@ -37,6 +37,8 @@ beforeEach(() => {
   analyzeAll.mockImplementation(async (_frames: unknown, region: Region) =>
     base.frames.map((frame, i) => ({ frameId: frame.id, regionId: region.id, sampled: 9, valid: 9, category: CATEGORIES[i] })))
   vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ id: 'sess1' }), { status: 201 })))
+  // jsdom has no ResizeObserver, which the RangeSlider (Radix) in Compare uses to measure its handles.
+  vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} })
 })
 afterEach(() => {
   window.location.hash = ''

@@ -9,6 +9,10 @@ import { visualizationSchema } from './schema'
 import type { Visualization } from './types'
 import { DEFAULT_WORDS, higherPhrase, variableWords } from './words'
 
+// jsdom has no ResizeObserver, which the RangeSlider (Radix) in Compare uses to measure its handles.
+vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} })
+
+
 vi.mock('../audio', () => ({
   createSoundEngine: () => ({ unlock: async () => {}, playCategory: () => {}, playMissing: () => {}, stop: () => {}, setStyle: () => {}, setSpatial: () => {} }),
 }))

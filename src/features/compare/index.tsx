@@ -5,7 +5,7 @@ import { useSoundEngine } from '../../audio/useSoundEngine'
 import { styleFor, useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
 import { useAssistantContext } from '../../assistant/context'
-import { Button, ButtonGroup, Card, LoadingIndicator, Notice, RegionPicker } from '../../components'
+import { Button, ButtonGroup, Card, LoadingIndicator, Notice, RangeSlider, RegionPicker } from '../../components'
 import { useRegionChoice } from '../../components/useRegionChoice'
 import { useAnnounce } from '../../components/useAnnounce'
 import { higherPhrase, regionFor, variableWords, type Visualization } from '../../data'
@@ -89,6 +89,14 @@ function Compare({ visualization }: { visualization: Visualization }) {
   // A ready-made comparison can name a date the data set does not have; the page then says so instead of crashing.
   const frameA = frames.find(f => f.id === frameAId)
   const frameB = frames.find(f => f.id === frameBId)
+  // The shared scrubber sets the same two dates as the choosers. Its handles never cross, so if the choosers put B before A the
+  // handles are named the other way round and still say which deck they set.
+  const indexA = Math.max(0, frames.findIndex(f => f.id === customA))
+  const indexB = Math.max(0, frames.findIndex(f => f.id === customB))
+  const swapped = indexA > indexB
+  const scrubber: { swapped: boolean; value: [number, number]; labels: [string, string] } = swapped
+    ? { swapped, value: [indexB, indexA], labels: ['Date B', 'Date A'] }
+    : { swapped, value: [indexA, indexB], labels: ['Date A', 'Date B'] }
   const resultA = results?.find(r => r.frameId === frameAId)
   const resultB = results?.find(r => r.frameId === frameBId)
 
@@ -202,6 +210,23 @@ function Compare({ visualization }: { visualization: Visualization }) {
               </select>
             </div>
           ))}
+          {frames.length > 1 && (
+            <div className="compare__scrubber">
+              <RangeSlider
+                labels={scrubber.labels}
+                value={scrubber.value}
+                min={0}
+                max={frames.length - 1}
+                describe={index => formatDate(frames[index].date)}
+                onChange={(next, thumb) => {
+                  // The handles keep their order, so the low one is deck B's when the choosers put B before A.
+                  const which = (thumb === 0) !== scrubber.swapped ? 'a' : 'b'
+                  pickDate(which, frames[next[thumb]].id)
+                  announce(`Date ${which.toUpperCase()}: ${formatDate(frames[next[thumb]].date)}.`, { busy: true })
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -221,9 +246,15 @@ function Compare({ visualization }: { visualization: Visualization }) {
       </p>
       {regions.length > 1 && <p className="compare__region">Region: {region.name}</p>}
 
-      <div className="compare__play" ref={playRef}>
-        <Button variant="primary" disabled={!ready} onClick={() => void playDate('A')}>Play date A</Button>
-        <Button variant="primary" disabled={!ready} onClick={() => void playDate('B')}>Play date B</Button>
+      <div className="compare__decks" ref={playRef}>
+        {(['A', 'B'] as const).map(which => (
+          <div key={which} className="compare__deck compare-glass">
+            <span className="compare__deck-label">Deck {which}</span>
+            {/* A ready-made comparison keeps its dates (and so its season) hidden until the reveal, like its pictures. */}
+            {(!preset || revealed) && <span className="compare__deck-date">{formatDate((which === 'A' ? frameA : frameB).date)}</span>}
+            <Button variant="primary" disabled={!ready} onClick={() => void playDate(which)}>Play date {which}</Button>
+          </div>
+        ))}
       </div>
 
       {!canAnswer && ready && !preset && (

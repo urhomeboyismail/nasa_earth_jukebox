@@ -8,6 +8,10 @@ import type { Visualization } from '../../data'
 import { expectNoA11yViolations } from '../../test/a11y'
 import ComparePage from '.'
 
+// jsdom has no ResizeObserver, which the RangeSlider (Radix) uses to measure its handles.
+vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} })
+
+
 const plain = fixture as Visualization
 const withBaseline = {
   ...plain,
@@ -97,15 +101,15 @@ describe('Compare with a baseline', () => {
 
   it('plays the hiss for a date whose change could not be read', async () => {
     const { user } = await inChangeStyle()
-    await user.selectOptions(screen.getByLabelText('Date A'), plain.frames[3].id)
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Date A' }), plain.frames[3].id)
     await user.click(screen.getByRole('button', { name: 'Play date A' }))
     expect(engine.playMissing).toHaveBeenCalled()
   })
 
   it('judges by change, even where the temperature says the opposite, and names the baseline in the reveal', async () => {
     const { user } = await inChangeStyle()
-    await user.selectOptions(screen.getByLabelText('Date A'), plain.frames[0].id)
-    await user.selectOptions(screen.getByLabelText('Date B'), plain.frames[2].id)
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Date A' }), plain.frames[0].id)
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Date B' }), plain.frames[2].id)
     await user.click(screen.getByRole('radio', { name: 'A is further above' }))
     await user.click(screen.getByRole('button', { name: 'Reveal the answer' }))
     const result = screen.getByRole('region', { name: 'Result' })

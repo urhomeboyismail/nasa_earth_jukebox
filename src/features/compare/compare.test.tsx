@@ -8,6 +8,10 @@ import { expectNoA11yViolations } from '../../test/a11y'
 import ComparePage from '.'
 import { AnnouncerProvider } from '../../components'
 
+// jsdom has no ResizeObserver, which the RangeSlider (Radix) uses to measure its handles.
+vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} })
+
+
 const visualization = fixture as Visualization
 const CATEGORIES = ['cold', 'mild', 'hot', 'insufficient'] as const
 
@@ -219,6 +223,44 @@ describe('Compare: choosing your own dates', () => {
     await user.click(screen.getByRole('radio', { name: 'B is warmer' }))
     await user.selectOptions(screen.getByRole('combobox', { name: 'Date A' }), 'July 2024')
     expect(screen.getByRole('radio', { name: 'B is warmer' })).not.toBeChecked()
+  })
+
+  it('has a two-handle scrubber that shows the same two dates as the choosers', async () => {
+    const { container } = await openCustom()
+    expect(screen.getByRole('slider', { name: 'Date A' })).toHaveAttribute('aria-valuetext', 'January 2024')
+    expect(screen.getByRole('slider', { name: 'Date B' })).toHaveAttribute('aria-valuetext', 'March 2025')
+    await expectNoA11yViolations(container)
+  })
+
+  it('sets deck A from the "Date A" handle, announces it, and keeps the chooser in sync', async () => {
+    const { user } = await openCustom()
+    screen.getByRole('slider', { name: 'Date A' }).focus()
+    await user.keyboard('{ArrowRight}')
+    expect(screen.getByRole('combobox', { name: 'Date A' })).toHaveValue(visualization.frames[1].id)
+    expect(document.querySelector('[aria-live="polite"]')).toHaveTextContent('Date A: July 2024.')
+  })
+
+  it('moves the handle when a chooser changes, and clears the answer when a handle moves', async () => {
+    const { user } = await openCustom()
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Date B' }), 'July 2024')
+    expect(screen.getByRole('slider', { name: 'Date B' })).toHaveAttribute('aria-valuetext', 'July 2024')
+    await user.click(screen.getByRole('radio', { name: 'B is warmer' }))
+    screen.getByRole('slider', { name: 'Date B' }).focus()
+    await user.keyboard('{ArrowRight}')
+    expect(screen.getByRole('combobox', { name: 'Date B' })).toHaveValue(visualization.frames[2].id)
+    expect(screen.getByRole('radio', { name: 'B is warmer' })).not.toBeChecked()
+  })
+
+  it('keeps each handle named for its own deck when the choosers put B before A', async () => {
+    const { user } = await openCustom()
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Date A' }), 'December 2024')
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Date B' }), 'January 2024')
+    const lowHandle = screen.getAllByRole('slider')[0]
+    expect(lowHandle).toHaveAccessibleName('Date B')
+    lowHandle.focus()
+    await user.keyboard('{ArrowRight}')
+    expect(screen.getByRole('combobox', { name: 'Date B' })).toHaveValue(visualization.frames[1].id)
+    expect(screen.getByRole('combobox', { name: 'Date A' })).toHaveValue(visualization.frames[2].id)
   })
 })
 

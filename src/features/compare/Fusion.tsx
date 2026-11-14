@@ -124,8 +124,11 @@ export function Fusion({ visualization }: { visualization: Visualization }) {
 
   return (
     <section className="fusion" aria-label="Two data sets">
-      <p>Deck A: <strong>{a.title}</strong>. It plays the melody, the harmony, the motion and the clock.</p>
-      <div className="fusion__deck">
+      <div className="fusion__decks">
+      <div className="fusion__deck compare-glass" data-deck="Deck A">
+        <p>Deck A: <strong>{a.title}</strong>. It plays the melody, the harmony, the motion and the clock.</p>
+      </div>
+      <div className="fusion__deck compare-glass" data-deck="Deck B">
         <label htmlFor={`${id}-b`}>Deck B</label>
         <select id={`${id}-b`} value={bId} onChange={event => { stop(); setSwapped(false); setBId(event.currentTarget.value) }} aria-describedby={note ? `${id}-note` : undefined}>
           {pairs.map(pair => <option key={pair.id} value={pair.id}>{titleOf(pair.id)}</option>)}
@@ -133,12 +136,18 @@ export function Fusion({ visualization }: { visualization: Visualization }) {
         {note && <p id={`${id}-note`}>Why these two: {note}</p>}
         {b && <p>Deck B: <strong>{b.title}</strong>. It plays the bass and the rhythm. The hot spots of A sound on the left, those of B on the right.</p>}
       </div>
+      </div>
       {loadError && <Notice>{loadError}</Notice>}
       {b && shared && !shared.a.length && <Notice>These two data sets share no dates ({dates(a)}, and {dates(b)}), so they cannot be heard together.</Notice>}
       {b && shared && shared.a.length > 0 && (
         <>
           <p>Linked time: the {shared.a.length} dates from {shared.a[0].date} to {shared.a[shared.a.length - 1].date}, which both data sets cover.</p>
-          <Slider label="Crossfader, A to B" min={0} max={100} step={10} value={mix} onChange={setMix} describe={value => (value === 50 ? 'Both decks' : value < 50 ? `More of A (${100 - value}%)` : `More of B (${value}%)`)} />
+          {/* The ends are drawn, not read: the slider's own label and value already say which deck is which. */}
+          <div className="fusion__fader compare-glass">
+            <span className="fusion__fader-end" aria-hidden="true">A</span>
+            <Slider label="Crossfader, A to B" min={0} max={100} step={10} value={mix} onChange={setMix} describe={value => (value === 50 ? 'Both decks' : value < 50 ? `More of A (${100 - value}%)` : `More of B (${value}%)`)} />
+            <span className="fusion__fader-end" aria-hidden="true">B</span>
+          </div>
           <div className="player__controls" role="group" aria-label="Playback">
             <Button variant="primary" onClick={() => void (playing ? stop() : play())}>{playing ? 'Stop' : 'Play both'}</Button>
             <Button onClick={swap}>Swap decks</Button>
