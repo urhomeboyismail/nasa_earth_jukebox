@@ -1,0 +1,515 @@
+{
+  "id": "sst-anomaly-global",
+  "title": "Sea surface temperature anomaly, worldwide, 2024 to 2026",
+  "summary": "Twenty-four maps of the whole ocean, 38 days apart from May 2024 to October 2026, showing how much warmer or cooler the sea surface is than normal.",
+  "description": "Sea surface temperature anomaly from NASA's MUR analysis (JPL PO DAAC), as drawn by NASA's Scientific Visualization Studio: blue where the sea is cooler than normal, white where it is near normal, and red where it is warmer, on a scale from minus 4 to plus 4 degrees Celsius. The map is flat, the whole world, with land and the polar ice in grey, which the app reads as no data. The original is a daily animation; this data set keeps one map every 38 days. The numbers are read from the colours of the maps, so they are about, not exact.",
+  "variable": {
+    "name": "Sea surface temperature anomaly",
+    "unit": "°C",
+    "words": {
+      "higher": "warmer than normal",
+      "lower": "cooler than normal",
+      "highest": "furthest above normal",
+      "lowest": "furthest below normal",
+      "edge": "edge between warmer and cooler",
+      "thing": ""
+    }
+  },
+  "source": {
+    "name": "NASA Scientific Visualization Studio, Sea Surface Temperature (SST) Anomaly - Near Real Time (MUR SST, JPL PO DAAC)",
+    "url": "https://svs.gsfc.nasa.gov/5176",
+    "credit": "NASA's Scientific Visualization Studio. Visualizer: Kel Elkins (USRA). Scientist: Atousa Saberi (NASA/GSFC). Data: MUR SST (Multi-scale Ultra-high Resolution Sea Surface Temperature Analysis), JPL PO DAAC.",
+    "license": "The SVS page states no licence of its own and asks that the item be credited to NASA's Scientific Visualization Studio. NASA's media usage guidelines (https://www.nasa.gov/nasa-brand-center/images-and-media/) allow NASA content used in a factual manner that does not imply endorsement, with NASA acknowledged as the source. Not endorsed by NASA. The underlying MUR data are CC0 under NASA's data use guidance.",
+    "retrievedOn": "2026-11-14"
+  },
+  "colorScale": {
+    "stops": [
+      {
+        "value": -4,
+        "rgb": [
+          0,
+          35,
+          63
+        ]
+      },
+      {
+        "value": -3,
+        "rgb": [
+          0,
+          82,
+          142
+        ]
+      },
+      {
+        "value": -2,
+        "rgb": [
+          0,
+          139,
+          208
+        ]
+      },
+      {
+        "value": -1,
+        "rgb": [
+          121,
+          190,
+          232
+        ]
+      },
+      {
+        "value": 0,
+        "rgb": [
+          227,
+          227,
+          229
+        ]
+      },
+      {
+        "value": 1,
+        "rgb": [
+          234,
+          184,
+          131
+        ]
+      },
+      {
+        "value": 2,
+        "rgb": [
+          194,
+          116,
+          80
+        ]
+      },
+      {
+        "value": 3,
+        "rgb": [
+          138,
+          47,
+          46
+        ]
+      },
+      {
+        "value": 4,
+        "rgb": [
+          71,
+          25,
+          27
+        ]
+      }
+    ],
+    "noData": [
+      [
+        92,
+        92,
+        92
+      ],
+      [
+        128,
+        128,
+        128
+      ],
+      [
+        168,
+        168,
+        168
+      ]
+    ],
+    "maxColorDistance": 40
+  },
+  "regions": [
+    {
+      "id": "global-ocean",
+      "name": "The whole ocean",
+      "description": "The whole map, from pole to pole. Land and the polar ice are grey and count as no data.",
+      "points": [
+        {
+          "x": 0.4355,
+          "y": 0.5273
+        },
+        {
+          "x": 0.9668,
+          "y": 0.1836
+        },
+        {
+          "x": 0.959,
+          "y": 0.832
+        },
+        {
+          "x": 0.0332,
+          "y": 0.2148
+        },
+        {
+          "x": 0.0332,
+          "y": 0.832
+        },
+        {
+          "x": 0.5137,
+          "y": 0.0742
+        },
+        {
+          "x": 0.7949,
+          "y": 0.4961
+        },
+        {
+          "x": 0.6152,
+          "y": 0.8164
+        },
+        {
+          "x": 0.0996,
+          "y": 0.5273
+        },
+        {
+          "x": 0.3223,
+          "y": 0.8008
+        },
+        {
+          "x": 0.3418,
+          "y": 0.293
+        },
+        {
+          "x": 0.9707,
+          "y": 0.6211
+        },
+        {
+          "x": 0.7832,
+          "y": 0.6992
+        },
+        {
+          "x": 0.9629,
+          "y": 0.3867
+        },
+        {
+          "x": 0.6152,
+          "y": 0.5977
+        },
+        {
+          "x": 0.2676,
+          "y": 0.6133
+        },
+        {
+          "x": 0.1699,
+          "y": 0.3555
+        },
+        {
+          "x": 0.459,
+          "y": 0.6992
+        },
+        {
+          "x": 0.1191,
+          "y": 0.6914
+        },
+        {
+          "x": 0.6738,
+          "y": 0.3945
+        },
+        {
+          "x": 0.3457,
+          "y": 0.1445
+        },
+        {
+          "x": 0.4824,
+          "y": 0.2461
+        },
+        {
+          "x": 0.1816,
+          "y": 0.8477
+        },
+        {
+          "x": 0.2637,
+          "y": 0.4648
+        },
+        {
+          "x": 0.0332,
+          "y": 0.3711
+        },
+        {
+          "x": 0.4355,
+          "y": 0.3945
+        },
+        {
+          "x": 0.7988,
+          "y": 0.8242
+        },
+        {
+          "x": 0.9395,
+          "y": 0.5039
+        },
+        {
+          "x": 0.6309,
+          "y": 0.0898
+        },
+        {
+          "x": 0.8457,
+          "y": 0.3711
+        }
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "id": "2024-05-25",
+      "date": "2024-05-25",
+      "image": "frames/2024-05-25.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2024-05-25: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2024-07-02",
+      "date": "2024-07-02",
+      "image": "frames/2024-07-02.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2024-07-02: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2024-08-09",
+      "date": "2024-08-09",
+      "image": "frames/2024-08-09.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2024-08-09: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2024-09-16",
+      "date": "2024-09-16",
+      "image": "frames/2024-09-16.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2024-09-16: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2024-10-24",
+      "date": "2024-10-24",
+      "image": "frames/2024-10-24.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2024-10-24: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2024-12-01",
+      "date": "2024-12-01",
+      "image": "frames/2024-12-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2024-12-01: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2025-01-08",
+      "date": "2025-01-08",
+      "image": "frames/2025-01-08.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2025-01-08: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2025-02-15",
+      "date": "2025-02-15",
+      "image": "frames/2025-02-15.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2025-02-15: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2025-03-25",
+      "date": "2025-03-25",
+      "image": "frames/2025-03-25.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2025-03-25: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2025-05-02",
+      "date": "2025-05-02",
+      "image": "frames/2025-05-02.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2025-05-02: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2025-06-09",
+      "date": "2025-06-09",
+      "image": "frames/2025-06-09.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2025-06-09: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2025-07-17",
+      "date": "2025-07-17",
+      "image": "frames/2025-07-17.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2025-07-17: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2025-08-24",
+      "date": "2025-08-24",
+      "image": "frames/2025-08-24.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2025-08-24: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2025-10-01",
+      "date": "2025-10-01",
+      "image": "frames/2025-10-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2025-10-01: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2025-11-08",
+      "date": "2025-11-08",
+      "image": "frames/2025-11-08.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2025-11-08: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2025-12-16",
+      "date": "2025-12-16",
+      "image": "frames/2025-12-16.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2025-12-16: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2026-01-23",
+      "date": "2026-01-23",
+      "image": "frames/2026-01-23.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2026-01-23: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2026-03-02",
+      "date": "2026-03-02",
+      "image": "frames/2026-03-02.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2026-03-02: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2026-04-09",
+      "date": "2026-04-09",
+      "image": "frames/2026-04-09.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2026-04-09: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2026-05-17",
+      "date": "2026-05-17",
+      "image": "frames/2026-05-17.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2026-05-17: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2026-06-24",
+      "date": "2026-06-24",
+      "image": "frames/2026-06-24.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2026-06-24: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2026-08-01",
+      "date": "2026-08-01",
+      "image": "frames/2026-08-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2026-08-01: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2026-09-08",
+      "date": "2026-09-08",
+      "image": "frames/2026-09-08.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2026-09-08: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    },
+    {
+      "id": "2026-10-16",
+      "date": "2026-10-16",
+      "image": "frames/2026-10-16.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the whole ocean on 2026-10-16: blue where the sea surface is cooler than normal, red where it is warmer, and grey land."
+    }
+  ],
+  "mapping": {
+    "scale": "C major arpeggio",
+    "summary": "median",
+    "minValidFraction": 0.4,
+    "categories": [
+      {
+        "id": "cold",
+        "label": "Much cooler than normal",
+        "range": [
+          -4,
+          -2.4
+        ],
+        "note": "C4"
+      },
+      {
+        "id": "cool",
+        "label": "Cooler than normal",
+        "range": [
+          -2.4,
+          -0.8
+        ],
+        "note": "E4"
+      },
+      {
+        "id": "mild",
+        "label": "Near normal",
+        "range": [
+          -0.8,
+          0.8
+        ],
+        "note": "G4"
+      },
+      {
+        "id": "warm",
+        "label": "Warmer than normal",
+        "range": [
+          0.8,
+          2.4
+        ],
+        "note": "C5"
+      },
+      {
+        "id": "hot",
+        "label": "Much warmer than normal",
+        "range": [
+          2.4,
+          4
+        ],
+        "note": "E5"
+      }
+    ],
+    "tick": {
+      "note": "C6",
+      "durationMs": 60
+    },
+    "missingCue": {
+      "type": "noise",
+      "durationMs": 300
+    }
+  },
+  "comparisons": [],
+  "mapArea": {
+    "x0": 0,
+    "y0": 0,
+    "x1": 1,
+    "y1": 0.9412
+  },
+  "video": {
+    "src": "video/sst-anomaly-global.mp4",
+    "fps": 5,
+    "firstFrameDate": "2024-05-25",
+    "frameStepDays": 38
+  }
+}
