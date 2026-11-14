@@ -4,6 +4,7 @@ import { Button } from '../../components'
 import { useAnnounce } from '../../components/useAnnounce'
 import { useAssistantContext } from '../../assistant/context'
 import type { Visualization } from '../../data'
+import { dateFormatterFor } from '../../dates'
 import type { AssistantAction } from '../../hooks/useVoiceAssistant'
 import { pages } from '../../pages'
 import { currentDataParam, hashFor } from '../../route'
@@ -35,6 +36,7 @@ export function AskPanel({ visualization, results }: Props) {
   const facts = useMemo(() => buildFacts(visualization, results), [visualization, results])
   const dates = useMemo(() => visualization.frames.map(frame => frame.date), [visualization])
   const questions = useMemo(() => availableQuestions(facts), [facts])
+  const when = useMemo(() => dateFormatterFor(dates), [dates])
   // G06: the voice guide reads the same facts (and the dates the data set has) through get_screen_context. Only sent while a voice
   // conversation is open, and cleared when the panel goes away. The server drops a fact over 400 characters, so a long one is cut here.
   useAssistantContext('facts', {
@@ -99,6 +101,10 @@ export function AskPanel({ visualization, results }: Props) {
   }
 
   const action = answer?.action ?? null
+  const agentDate = action?.action === 'player' && typeof action.command === 'object' ? action.command.setDate : undefined
+  // Each date a cited fact is about becomes a button, so the evidence can be heard. The agent's own date button is not repeated.
+  const citedDates = [...new Set(facts.filter(fact => answer?.factIds.includes(fact.id)).flatMap(fact => fact.date ?? []))]
+    .filter(date => date !== agentDate)
 
   return (
     <section className="ask" aria-labelledby={`${inputId}-title`}>
@@ -126,6 +132,11 @@ export function AskPanel({ visualization, results }: Props) {
           <p className="ask__text">{answer.answer}</p>
           {answer.matched && <p className="ask__meta">{answer.confidence}. {answer.source}</p>}
           <p className="ask__mode">{MODE_TEXT[answer.mode]}</p>
+          {citedDates.length > 0 && (
+            <div role="group" aria-label="Hear the cited dates" className="ask__questions">
+              {citedDates.map(date => <Button key={date} onClick={() => sendPlayerCommand({ setDate: date })}>Play {when(date)}</Button>)}
+            </div>
+          )}
           {action?.action === 'navigate' && (
             <Button onClick={() => { window.location.hash = hashFor(action.page, { data: currentDataParam() }) }}>
               Go to {pages.find(page => page.id === action.page)?.title ?? action.page}

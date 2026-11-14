@@ -10,6 +10,8 @@ export type Fact = {
   /** "data" is read from the frames. "text" describes the method or the source and is not a measurement. */
   kind: 'data' | 'text'
   text: string
+  /** The one frame date the fact is about, so the answer can offer to play it. Never sent to the server. */
+  date?: string
 }
 
 const round = (value: number) => value.toFixed(1)
@@ -40,10 +42,10 @@ export function buildFacts(visualization: Visualization, results: FrameAnalysis[
     const last = read[read.length - 1]
     const lowest = read.reduce((a, b) => (b.value < a.value ? b : a))
     const highest = read.reduce((a, b) => (b.value > a.value ? b : a))
-    facts.push({ id: 'F-first', kind: 'data', text: `On ${when(first.date)} the ${name} was about ${round(first.value)}${unit}.` })
-    facts.push({ id: 'F-last', kind: 'data', text: `On ${when(last.date)} the ${name} was about ${round(last.value)}${unit}.` })
-    facts.push({ id: 'F-lowest', kind: 'data', text: `The lowest reading was about ${round(lowest.value)}${unit}, on ${when(lowest.date)}.` })
-    facts.push({ id: 'F-highest', kind: 'data', text: `The highest reading was about ${round(highest.value)}${unit}, on ${when(highest.date)}.` })
+    facts.push({ id: 'F-first', kind: 'data', date: first.date, text: `On ${when(first.date)} the ${name} was about ${round(first.value)}${unit}.` })
+    facts.push({ id: 'F-last', kind: 'data', date: last.date, text: `On ${when(last.date)} the ${name} was about ${round(last.value)}${unit}.` })
+    facts.push({ id: 'F-lowest', kind: 'data', date: lowest.date, text: `The lowest reading was about ${round(lowest.value)}${unit}, on ${when(lowest.date)}.` })
+    facts.push({ id: 'F-highest', kind: 'data', date: highest.date, text: `The highest reading was about ${round(highest.value)}${unit}, on ${when(highest.date)}.` })
     if (read.length > 1) {
       facts.push({
         id: 'F-change', kind: 'data',
