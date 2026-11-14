@@ -82,8 +82,15 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 
 ### P1: UI overhaul (the Muninn look; [`planning/UI-OVERHAUL.md`](planning/UI-OVERHAUL.md))
 
+The MC tickets branch from `chore/jpl-hud-theme` (the Mission Control look, not yet on `main`) and are merged back into it; MC05 opens the one pull request into `main`.
+
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
+| [MC01](tickets/MC01-review-mission-control.md) | Code review of the Mission Control look, and its fixes | S | agent | — | theme, player | open |
+| [MC02](tickets/MC02-a11y-mission-control.md) | Accessibility pass on the Mission Control look | S | agent+👤 | — | theme | open |
+| [MC03](tickets/MC03-backdrop-real-audio.md) | The backdrop follows real sound | S | agent | — | — | open |
+| [MC04](tickets/MC04-quality-gate-flaky-app-test.md) | Quality gate, and the flaky App test | S | agent | — | — | open |
+| [MC05](tickets/MC05-pr-mission-control.md) | Pull request: the Mission Control look into main | S | agent+👤 | MC01, MC02, MC03, MC04 | — | open |
 
 ### P2: quality and smaller features
 
