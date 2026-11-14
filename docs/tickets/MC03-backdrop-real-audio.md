@@ -65,4 +65,26 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Branch `chore/MC03-backdrop-real-audio` (from `chore/jpl-hud-theme` at `14b29ce`): **no code change**, so there is nothing to merge. This is a findings ticket. Claim kept local, not pushed (the person's choice, 14 Nov 2026).
+
+**How it was measured:** Chrome, dev server, Listen at 1440×900, real clicks on Play (so audio starts with a user gesture). `window.setJukeboxEnergy` was wrapped from the page to log every value `level.ts` sends (about 30 a second). 10 s per run.
+
+**Finding 1: only Symphony mode drives the backdrop.** The analyser tap exists only on the Symphony ensemble's master (`src/audio/ensemble/graph.ts:77`, the only caller of `setLevelSource`). Simple mode, which is the default on Listen (`src/features/player/index.tsx:89`), and Scan play through `src/audio/engine.ts`, which has no tap. Playing the fixture in Simple mode for 2.5 s logged **0** energy values, so the backdrop stays at rest. Echo's chest equaliser (UI08) has the same gap. Fixing it means tapping `engine.ts` the way `graph.ts` does, and `engine.ts` is the `engine` hotspot, outside this ticket. Proposed as a follow-up ticket; not built.
+
+**Finding 2: in Symphony mode the line follows the sound; the mapping stays as it is.**
+
+| Data set (Symphony) | Samples | Min | 10th pct | Median | 90th pct | Max | At 1.0 | Swings low→high per s |
+|---|---|---|---|---|---|---|---|---|
+| Fixture ocean (Loop on) | 294 | 0 | 0 | 0.092 | 0.636 | 0.856 | 0 | — |
+| Synthetic ocean | 294 | 0.100 | 0.456 | 0.851 | 0.898 | 0.913 | 0 | 0.2 |
+
+- Mapping in use: `readEnergy` = mean of 4 log bands × 2, clamped to 1 (`src/audio/level.ts:23`). Unchanged.
+- Why not retune: neither data set touched the clamp (overall max 0.913) or sat at 0, and the fixture used almost the whole range. Synthetic ocean sits high and steady because its sound is steady: the page's own description at that moment read "The overall level is middle and steady". A lower gain would leave the top third unused for every data set. A single gain cannot both lift quiet sets and spread steady loud ones; that would need a level relative to a slow average, which is a design change, not a tune.
+- Rest: after Stop, all 44 values in the next 1.5 s were 0 (the timer keeps running while the graph exists and reads silence). The backdrop's own smoothing settles the line in about half a second.
+- Flashing: the line changes width and opacity smoothly (analyser smoothing 0.8, then the backdrop's easing). It is a thin line, far below the WCAG 2.3.1 area for a flash, and swung low→high 0.2 times a second.
+
+**Screenshots** (local, in the session scratchpad `mc03/`): `fixture-playing.png`, `synthetic-ocean-playing.png` (atmosphere line visibly thicker while playing).
+
+**Checks:** none run, as no file changed. The branch is identical to `chore/jpl-hud-theme` at `14b29ce`, whose checks passed in MC02's base run.
+
+**Proposed follow-up (needs a new ticket; `engine` hotspot):** tap `src/audio/engine.ts`'s output into `setLevelSource` as `graph.ts` does, so Simple and Scan drive the backdrop and Echo's chest too.
