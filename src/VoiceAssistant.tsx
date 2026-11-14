@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
+import { playCue } from './audio/cues'
 import { Button, ButtonGroup, IconButton, Notice } from './components'
 import type { AnswerLength } from './assistant/consent'
 import { Icon } from './components/Icon'
@@ -33,6 +34,15 @@ export default function VoiceAssistant({ assistant, onClose }: { assistant: Assi
   const showMeter = status === 'listening' && micSending
 
   useEffect(() => { title.current?.focus() }, [])
+  // Interface sounds (src/audio/cues.ts) for the moments the panel's text already shows: connected, ended, failed. Turn taking
+  // (listening and speaking) is left silent, so the cues never talk over Echo.
+  const wasConnected = useRef(false)
+  useEffect(() => {
+    if (connected && !wasConnected.current) playCue('connected')
+    else if (status === 'ended') playCue('ended')
+    else if (status === 'error') playCue('error')
+    wasConnected.current = connected
+  }, [status, connected])
   // The card replaces the button that asked for it, so focus moves to the card's heading.
   useEffect(() => { if (showConsent) consentTitle.current?.focus() }, [showConsent])
   // The meter follows the mic level without re-rendering anything: the hook writes a ref, this reads it once a frame.

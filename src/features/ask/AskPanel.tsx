@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from 'react'
 import type { FrameAnalysis } from '../../analysis'
+import { playCue } from '../../audio/cues'
 import { Button } from '../../components'
 import { useAnnounce } from '../../components/useAnnounce'
 import { useAssistantContext } from '../../assistant/context'
@@ -59,6 +60,7 @@ export function AskPanel({ visualization, results }: Props) {
   function show(result: Answer, asked: string, mode: Mode, action: AssistantAction | null = null) {
     setWorking(false)
     setAnswer({ ...result, asked, mode, action })
+    playCue('answer')
     announce(`${result.answer}${result.matched ? ` ${result.confidence}.` : ''} ${MODE_TEXT[mode]}.`)
   }
 
