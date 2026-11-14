@@ -94,4 +94,26 @@ node scripts/make_tokens.mjs && npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Branch `feature/UI01-dark-glass-tokens`, claimed by A on 2026-11-14.
+
+**Built**
+- `scripts/make_tokens.mjs`: seed Atmosphere Cyan `#00f0ff`; neutrals tinted deep space blue `#0b132b` (chroma 8, variant 14). Night is `:root`, Day is `:root[data-theme='day']`, and `@media (prefers-contrast: more)` holds a block for each. Each scheme also gets the four accents (`--accent-ocean|atmosphere|forest|fire` and `--on-accent-*`: the neon at night, the same hue at tone 38 by day, tone 30 in high contrast), the glass tokens (`--glass-alpha|bg|border|border-lit|shadow|glow|blur`), and `color-scheme`. New type tokens: `--md-ref-typeface-mono` and `label-mono` / `data-mono` roles, never below 0.75 rem. `src/styles/tokens.css` regenerated; a second run gives identical bytes.
+- `src/styles/components.css`: `.ui-glass` (glow behind the content, so it cannot tint text), `.ui-label`, `.ui-pill` (+ `--ocean|atmosphere|forest|fire|error`). Glass turns solid under `prefers-contrast: more`, `prefers-reduced-transparency`, no `backdrop-filter`, and the app's own high-contrast switch. `Card` (elevated) and `Notice` (info) wear `.ui-glass`; warning and error notices keep their containers.
+- `src/index.css`: JetBrains Mono (`public/fonts/JetBrainsMono-latin.woff2`, 40 KB, OFL licence beside it), thin scrollbar, accent `::selection`; `color-scheme: light dark` removed, as tokens.css now sets it from the theme.
+- `ThemeSwitch` + `useTheme` (`src/hooks/useTheme.ts`): a toggle named "Day theme", key `earth-jukebox:theme`, announced; `applyStoredTheme()` runs in `src/main.tsx` before render, so there is no flash.
+- `ServerPill` + `useServerStatus`: one `GET /api/v1/health` on load and on "Check again", never polling; ready, waking (after `WAKING_AFTER_MS`, now exported), offline, with a 75 s limit. Only a real `{status: "ok"}` counts, so a static host answering every path with the home page reads as offline. "Server ready" on a normal load is not announced.
+- Both are in the header of `src/App.tsx`.
+
+**Checks**
+- `MCU_DIR=/tmp/mcu node scripts/make_tokens.mjs`: 28 contrast pairs ok, 0 FAILS.
+- `npm run lint`: only the 2 existing errors in `src/sonify/fuse.ts`; nothing from this branch.
+- `npm run build`: passes.
+- `npm test`: 3007 passed. On the last full run 1 test (`Explorer.test.tsx`, time travel) timed out under load (load average ~5); the file passes alone, 101 tests.
+- New tests: `tokens.test.ts` now checks text on the glass over every backdrop, the four accents (4.5:1 text, 3:1 as a ring or dot, on the surface and on the glass), mono size, `color-scheme`, and that the fallbacks exist; `ThemeSwitch.test.tsx` (5); `ServerPill.test.tsx` (8). All run in all four schemes. `expectNoA11yViolations` on both new components.
+- Looked at in Chrome (screenshots of Home at Night, Day, and `prefers-contrast: more`, reduced motion): both themes read well; high contrast gives solid black boxes with heavy outlines.
+
+**Not done / for the person who signs off the look**
+- The Crate's search box is still the browser's own grey field (it has no background token). UI03 restyles the Crate, so it is left for there.
+- The header now wraps to a second row on a 1280 px window because of the two new controls. Layout is deferred to the end (`.claude/rules/platform.md`).
+- `public/favicon.svg` is still purple; the brand colour of the icon and the PWA manifest were not part of this ticket.
+- The Night/Day switch is instant; the sunrise/sunset sweep is UI05.

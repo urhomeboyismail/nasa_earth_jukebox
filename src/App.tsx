@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ComponentType, type CSSProperties, type MouseEvent } from 'react'
-import { AnnouncerProvider, DatasetPicker, LoadingIndicator, Notice } from './components'
+import { AnnouncerProvider, DatasetPicker, LoadingIndicator, Notice, ServerPill, ThemeSwitch } from './components'
 import { Icon, type IconName } from './components/Icon'
 import { RobotBadge } from './components/RobotBadge'
 import { DataError, friendlyDataMessage, loadCatalog, loadVisualization, type CatalogEntry, type Visualization } from './data'
@@ -272,6 +272,8 @@ function App() {
             </ul>
           </nav>
           <DisplayButton />
+          <ThemeSwitch />
+          <ServerPill />
           <button ref={guideToggle} type="button" className="app-guide-toggle" aria-pressed={assistantOpen}
             aria-keyshortcuts="Alt+E" onClick={toggleGuide}>
             <RobotBadge size={32} className="app-guide-toggle__mascot" />
