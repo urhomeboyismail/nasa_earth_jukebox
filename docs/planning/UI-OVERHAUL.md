@@ -70,7 +70,7 @@ The second master prompt (14 Nov 2026) asked again for all of the above. These p
 |---|---|
 | 2-step sensory calibration ("Which is higher?", "Left or right?") setting the detail level | [UI07](../tickets/UI07-ear-check.md) |
 | Live Web Audio chest equaliser on Echo | [UI08](../tickets/UI08-chest-equaliser.md) |
-| Composite harmonic and dissonant events in Remix, with one caption strip | [UI09](../tickets/UI09-fusion-moments.md) |
+| Composite harmonic and dissonant events in Remix, with one caption strip | UI09 | **Done and merged 14 Nov 2026** (PR #80). Read it with `git log --diff-filter=D -- docs/tickets/UI09-fusion-moments.md` |
 | Compare's automated delta summary (audio and text) | [UI10](../tickets/UI10-compare-summary.md) |
 | About: keyboard shortcuts and screen-reader instructions | [UI11](../tickets/UI11-about-keys.md) |
 
