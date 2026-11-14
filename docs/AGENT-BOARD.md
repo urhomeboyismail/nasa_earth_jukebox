@@ -288,6 +288,7 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: may G05 remove the setting? (a) yes; (b) no, keep it. A rollback is a revert of the G05 merge commit.
 - Answer:
 - Recorded in: `server/app/config.py`, `server/.env.example`; `docs/tickets/G05-adk-default.md` (Result)
+- Note (2026-11-14, G05): PR #88 (`feature/G05-adk-default`, ready to merge). The change is made in that PR: `assistant_engine` and `ASSISTANT_ENGINE` are removed. If the answer is (b), revert the config lines in the PR before merging.
 
 ### R-20261114-G05-2: Deleting the bridge removes `point_to` from the voice guide; which ticket adds it to ADK?
 - From: G05 (agent C, Claude Code, 14 Nov)
@@ -298,6 +299,7 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: (a) a new small ticket ports `point_to` to ADK (one `FunctionTool` over `run_tool`, `pointing=True` for ADK, and the test); (b) leave pointing out of the voice guide for now.
 - Answer:
 - Recorded in: `docs/tickets/G05-adk-default.md` (Result)
+- Note (2026-11-14, G05): PR #88 (`feature/G05-adk-default`, ready to merge). Decision by the person running agent C: follow the ticket literally, so the voice guide ships with five tools and no `point_to` until this is answered. The PR description and the G05 ticket Result say so too.
 
 ### R-20261114-G05-3: The About page should name the Ask agent and ADK
 - From: G05 (agent C, Claude Code, 14 Nov)
@@ -308,3 +310,4 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Question: may the next ticket that edits the About page add that wording (the Ask agent chooses fact IDs, the app writes every sentence, and questions and voice go to Google while a conversation or an Ask question is open)? (a) yes; (b) no, say it differently (how).
 - Answer:
 - Recorded in: nowhere needed yet
+- Note (2026-11-14, G05): PR #88 (`feature/G05-adk-default`, ready to merge). The README "AI tools" section already has the wording; the About page is untouched.
