@@ -1,4 +1,4 @@
-# UI05 Motion layer on Anime.js: press, sky, drawer and sweep helpers, Echo's flight
+# UI05 Motion layer (CSS and the Web Animations API, no Anime.js): press, sky, drawer and sweep helpers, Echo's flight
 
 | | |
 |---|---|
@@ -15,17 +15,17 @@ A new module, `src/motion/`, plus three one-line hooks into code that is on `mai
 
 ## Goal
 
-One small motion module built on Anime.js and loaded on demand gives the app a physical feel: a springy press, an animated sky behind the app, drawer and theme-sweep helpers ready to use, and Echo's tour flight. Under `prefers-reduced-motion` every part of it is still.
+One small motion module, on CSS keyframes, the browser's Web Animations API (`element.animate`) and `requestAnimationFrame`, with no animation library, gives the app a physical feel: a springy press, an animated sky behind the app, drawer and theme-sweep helpers ready to use, and Echo's tour flight. Under `prefers-reduced-motion` every part of it is still.
 
 ## Why
 
-- Muninn's motion is one file of helpers on Anime.js (`frontend/src/lib/animations.ts`). None of them checks reduced motion, so they are ported, not copied.
+- Muninn's motion is one file of helpers on Anime.js (`frontend/src/lib/animations.ts`). None of them checks reduced motion, so they are ported, not copied, and the master prompt (14 Nov 2026) rules out Anime.js: the ports use `element.animate` instead.
 - Our motion is hand-written `requestAnimationFrame` (`src/features/mascot/MascotDock.tsx`, `TourOverlay.tsx`) with its own reduced-motion check (`src/features/mascot/tour.ts`). There is no shared gate.
 - The expressions exist (`src/features/mascot/expressionFor.ts`) and so does the flight path (`flightPath.ts`, pure).
 
 ## Design
 
-- `animejs` is a dependency, only ever loaded with `import('animejs')`, so it is never in Home's first load (`.claude/rules/frontend.md`).
+- No new dependency. Springs and elastic eases are `cubic-bezier` or `linear()` easings passed to `element.animate`; anything driven by a value (the flight, the scroll boost) is a `requestAnimationFrame` loop. Nothing is added to Home's first load (`.claude/rules/frontend.md`).
 - `src/motion/index.ts`:
   - `reducedMotion()`: true under `prefers-reduced-motion: reduce` or where `matchMedia` is missing. `tour.ts` is changed to use it.
   - `pressRecoil(el)`: scale 0.94 → 1 with an elastic ease, 300 ms.
@@ -33,7 +33,7 @@ One small motion module built on Anime.js and loaded on demand gives the app a p
   - `themeSweep(apply)`: a short horizon sweep, then calls `apply()`. Exported and tested; wiring it to a theme switch belongs to the ticket that builds the switch.
   - `drawPath(svgPath, ms)`: stroke-dashoffset draw.
   - `flyAlong(el, path, ms)`: moves Echo along the tour's SVG path.
-  - Every helper is a no-op that resolves at once when `reducedMotion()`, and never throws (a failed import means no motion).
+  - Every helper returns a promise that resolves when the animation finishes. It is a no-op that resolves at once when `reducedMotion()` or where `element.animate` is missing, and never throws.
 - `SkyBackdrop` (`src/motion/SkyBackdrop.tsx`): a fixed, `aria-hidden` canvas behind the app:
   - a slow starfield on dark colour schemes, an atmosphere glow on light ones, at most 30 fps;
   - stops when the tab is hidden (`visibilitychange`);
@@ -49,20 +49,19 @@ One small motion module built on Anime.js and loaded on demand gives the app a p
 
 ## Touches
 
-- `package.json`, `package-lock.json` (`animejs`)
 - `src/motion/index.ts`, `SkyBackdrop.tsx`, their tests (new), `src/main.tsx` (mounting the backdrop)
 - `src/components/Button.tsx` (one line)
 - `src/features/mascot/tour.ts`, `TourOverlay.tsx`, `MascotDock.tsx` (only what moves onto `src/motion/`)
 
 ## Steps
 
-1. Add `animejs`; write `src/motion/` with the gate and helpers, importing Anime.js lazily.
+1. Write `src/motion/` with the gate and the helpers on `element.animate`.
 2. Write `SkyBackdrop`.
 3. Wire the press; move the tour flight and scroll boost onto the helpers.
 
 ## Tests
 
-- `src/motion/index.test.ts`, with `matchMedia` stubbed: under reduced motion every helper resolves at once and never imports `animejs` (spy on the import); otherwise each starts one animation; a failed import resolves quietly.
+- `src/motion/index.test.ts`, with `matchMedia` stubbed and `Element.prototype.animate` spied: under reduced motion every helper resolves at once and never calls `animate`; otherwise each calls it once with the expected keyframes; where `animate` is missing, each resolves quietly.
 - `SkyBackdrop.test.tsx`: `aria-hidden`; no animation frame under reduced motion; stops on `visibilitychange` to hidden.
 - Existing mascot and tour tests pass. The tour under reduced motion still jumps to each stop.
 
@@ -78,7 +77,7 @@ The template's guardrails, and:
 
 ## Done when
 
-- Buttons spring, the sky moves and the tour flies; with reduced motion on, all of it is still. Anime.js is absent from Home's first-load bundle (check the `npm run build` output).
+- Buttons spring, the sky moves and the tour flies; with reduced motion on, all of it is still. `package.json` gains no dependency.
 
 ## Checks
 
@@ -88,7 +87,7 @@ npm run lint && npm test && npm run build
 
 ## Out of scope
 
-- A custom cursor, runes, shockwave, motion on the data image, Framer Motion, and wiring `slideDrawer` or `themeSweep` into pages that don't have a drawer or switch yet.
+- Anime.js, Framer Motion, Tailwind, a custom cursor, runes, shockwave, motion on the data image, and wiring `slideDrawer` or `themeSweep` into pages that don't have a drawer or switch yet.
 
 ## Result
 
