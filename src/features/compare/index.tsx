@@ -1,16 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { analyzeAll, type FrameAnalysis } from '../../analysis'
 import { useFrameAnalysis } from '../../analysis/useFrameAnalysis'
 import { hasChange } from '../../analysis/available'
 import { playCue } from '../../audio/cues'
 import { useSoundEngine } from '../../audio/useSoundEngine'
 import { styleFor, useSoundStyle } from '../../audio/style'
+import { panFor } from '../../audio/pan'
 import { voicingFor } from '../../audio/voicing'
 import { useAssistantContext } from '../../assistant/context'
 import { Button, ButtonGroup, Card, LoadingIndicator, Notice, RangeSlider, RegionPicker } from '../../components'
 import { useRegionChoice } from '../../components/useRegionChoice'
+import { ANNOUNCE_GAP_MS } from '../../components/announceRate'
 import { useAnnounce } from '../../components/useAnnounce'
-import { higherPhrase, regionFor, variableWords, type Visualization } from '../../data'
+import { higherPhrase, regionFor, variableWords, type Frame, type Visualization } from '../../data'
 import { describeFrame } from '../../describe'
+import { deltaBetween, describeDelta } from '../../describe/compare'
 import { useDescriptionDetail } from '../../describe/detail'
 import { dateFormatterFor } from '../../dates'
 import type { PageProps } from '../types'
@@ -21,6 +25,8 @@ import TestMode from './TestMode'
 import { Fusion } from './Fusion'
 
 const CUSTOM = 'custom'
+/** How long each of the two notes of "Hear the change" lasts. */
+const CHANGE_NOTE_MS = 700
 
 /** Listening-test mode is open only when the address is #compare?test=1. The App reads that once and passes it down. */
 export default function ComparePage({ visualization, testMode = false }: PageProps) {
@@ -64,6 +70,15 @@ function Compare({ visualization }: { visualization: Visualization }) {
   const [chosenRegion, chooseRegion] = useRegionChoice(visualization)
   const region = preset ? regionFor(visualization, preset.regionId) : chosenRegion
 
+  const frameAId = preset ? preset.frameA : customA
+  const frameBId = preset ? preset.frameB : customB
+  // A ready-made comparison can name a date the data set does not have; the page then says so instead of crashing.
+  const frameA = frames.find(f => f.id === frameAId)
+  const frameB = frames.find(f => f.id === frameBId)
+
+  // UI10: both dates read in every region, for the summary of what changed. Declared before the page's own analysis, so that stays the last read.
+  const regionResults = useRegionResults(visualization, frameA, frameB)
+
   // With a baseline each result also carries its change step.
   const analysis = useFrameAnalysis(visualization, region, { withChange: changeAvailable })
   const { error: analysisError } = analysis
@@ -85,11 +100,6 @@ function Compare({ visualization }: { visualization: Visualization }) {
   const resultRef = useRef<HTMLDivElement>(null)
   const playRef = useRef<HTMLDivElement>(null)
 
-  const frameAId = preset ? preset.frameA : customA
-  const frameBId = preset ? preset.frameB : customB
-  // A ready-made comparison can name a date the data set does not have; the page then says so instead of crashing.
-  const frameA = frames.find(f => f.id === frameAId)
-  const frameB = frames.find(f => f.id === frameBId)
   // The shared scrubber sets the same two dates as the choosers. Its handles never cross, so if the choosers put B before A the
   // handles are named the other way round and still say which deck they set.
   const indexA = Math.max(0, frames.findIndex(f => f.id === customA))
@@ -155,6 +165,39 @@ function Compare({ visualization }: { visualization: Visualization }) {
       }
       setPlayError('')
       announce(`Played date ${which}.`)
+    } catch (error) {
+      setPlayError(error instanceof Error ? error.message : String(error))
+    }
+  }
+
+  // UI10: what changed from A to B. A ready-made comparison keeps it back until the reveal, since it would give the answer away.
+  const delta = regionResults ? deltaBetween(visualization, regionResults.a, regionResults.b) : null
+  const summary = regionResults ? describeDelta(visualization, regionResults.a, regionResults.b, { detail }) : ''
+  const showSummary = summary !== '' && (!preset || revealed)
+  // Announced when either of the listener's own dates changes, but only once the date's own message has had its turn (one announcer gap) and the
+  // listener has stopped moving it. After a ready-made comparison's reveal it is shown and not announced, so it does not talk over the result.
+  useEffect(() => {
+    if (!showSummary || preset) return
+    const timer = window.setTimeout(() => announce(summary), ANNOUNCE_GAP_MS + 100)
+    return () => window.clearTimeout(timer)
+  }, [showSummary, preset, summary, announce])
+
+  // The two notes of "Hear the change": the region that changed most, date A then date B, in the place it is on the map. The second one
+  // is cancelled if the dates change or the page closes before it sounds.
+  const changeTimer = useRef<number | undefined>(undefined)
+  useEffect(() => () => window.clearTimeout(changeTimer.current), [engine, frameAId, frameBId])
+  async function hearChange() {
+    const top = delta?.top
+    if (!engine || !top) return
+    try {
+      await engine.unlock()
+      engine.stop()
+      window.clearTimeout(changeTimer.current)
+      const pan = panFor(top.region)
+      engine.playCategory(top.from.category, { pan, durationMs: CHANGE_NOTE_MS })
+      changeTimer.current = window.setTimeout(() => engine.playCategory(top.to.category, { pan, durationMs: CHANGE_NOTE_MS }), CHANGE_NOTE_MS + 200)
+      setPlayError('')
+      announce(`Played ${top.region.name}: date A, then date B.`)
     } catch (error) {
       setPlayError(error instanceof Error ? error.message : String(error))
     }
@@ -261,6 +304,13 @@ function Compare({ visualization }: { visualization: Visualization }) {
         ))}
       </div>
 
+      {showSummary && (
+        <Card title="What changed" headingLevel={2}>
+          <p>{summary}</p>
+          <Button disabled={!engine || !delta?.top} onClick={() => void hearChange()}>Hear the change</Button>
+        </Card>
+      )}
+
       {!canAnswer && ready && !preset && (
         <Notice>One of these dates has no usable data, so there is no right answer. Choose two other dates.</Notice>
       )}
@@ -301,4 +351,21 @@ function Compare({ visualization }: { visualization: Visualization }) {
       )}
     </div>
   )
+}
+
+/** Dates A and B read in every region of the data set, or null while they are being read (or if they cannot be). Results of other dates are not used. */
+function useRegionResults(visualization: Visualization, frameA: Frame | undefined, frameB: Frame | undefined) {
+  const { regions, colorScale, mapping } = visualization
+  const [state, setState] = useState<{ a: Frame; b: Frame; results: FrameAnalysis[][] } | null>(null)
+  useEffect(() => {
+    if (!frameA || !frameB) return
+    let cancelled = false
+    Promise.all(regions.map(region => analyzeAll([frameA, frameB], region, colorScale, mapping)))
+      .then(results => { if (!cancelled) setState({ a: frameA, b: frameB, results }) })
+      .catch(() => { if (!cancelled) setState(null) })
+    return () => { cancelled = true }
+  }, [regions, colorScale, mapping, frameA, frameB])
+  if (!state || state.a !== frameA || state.b !== frameB) return null
+  const of = (frame: Frame) => state.results.flatMap(perRegion => perRegion.filter(result => result.frameId === frame.id))
+  return { a: of(state.a), b: of(state.b) }
 }

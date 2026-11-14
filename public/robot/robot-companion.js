@@ -570,7 +570,45 @@
     let triangles = 0, meshes = 0;
     root.traverse(o => { if (o.isMesh) { meshes++; const g = o.geometry; triangles += (g.index ? g.index.count : g.attributes.position.count) / 3; } });
     rig.triangles = Math.round(triangles); rig.meshes = meshes;
+    addChestScreen(THREE, rig);
     return rig;
+  }
+
+  // The chest screen (UI08): a small rounded screen above the belly logo, drawn on a 64x32 canvas. setChestBands(values) draws the bars;
+  // with no values (or under reduced motion) they rest flat.
+  const CHEST_W = 64, CHEST_H = 32, CHEST_BARS = 6;
+  function drawChest(chest, bands) {
+    const g = chest.ctx, pad = 5, gap = 3, bw = (CHEST_W - pad * 2 - gap * (CHEST_BARS - 1)) / CHEST_BARS, top = 6, room = CHEST_H - top * 2;
+    g.clearRect(0, 0, CHEST_W, CHEST_H);
+    g.fillStyle = '#0b0a2c'; g.beginPath(); if (g.roundRect) g.roundRect(0, 0, CHEST_W, CHEST_H, 6); else g.rect(0, 0, CHEST_W, CHEST_H); g.fill();
+    g.fillStyle = '#a5ecf3';
+    for (let i = 0; i < CHEST_BARS; i++) {
+      const v = bands && Number.isFinite(bands[i]) ? Math.max(0, Math.min(1, bands[i])) : 0;
+      const h = Math.max(2, Math.round(v * room));
+      g.fillRect(Math.round(pad + i * (bw + gap)), CHEST_H - top - h, Math.round(bw), h);
+    }
+    chest.tex.needsUpdate = true;
+  }
+  function addChestScreen(THREE, rig) {
+    const c = document.createElement('canvas'); c.width = CHEST_W; c.height = CHEST_H;
+    const ctx = c.getContext('2d');
+    if (!ctx) return;
+    const W = 80, H = W / 2, yc = 205, half = W / 2 / rig.bodyR(yc), nu = 24, nv = 6, pos = [], uv = [], idx = [];
+    for (let j = 0; j <= nv; j++) for (let i = 0; i <= nu; i++) {
+      const u = i / nu, v = j / nv, a = (u - 0.5) * 2 * half, y = yc - H / 2 + v * H, r = rig.bodyR(y) + 0.9;
+      pos.push(r * Math.sin(a), y, r * Math.cos(a)); uv.push(u, v);
+    }
+    for (let j = 0; j < nv; j++) for (let i = 0; i < nu; i++) { const a = j * (nu + 1) + i, b = a + 1, d = a + nu + 2, e = a + nu + 1; idx.push(a, b, d, a, d, e); }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    geo.setIndex(idx);
+    const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+    const mat = new THREE.MeshBasicMaterial({ name: 'chest_screen', map: tex, transparent: true, toneMapped: false, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
+    const m = new THREE.Mesh(geo, mat); m.name = 'chest_screen'; m.renderOrder = 2;
+    rig.root.add(m);
+    rig.chest = { ctx, tex, at: 0, flat: true };
+    drawChest(rig.chest, null);
   }
 
   // Logo printed on the belly: a patch that follows the body's curve.
@@ -1300,6 +1338,22 @@
     }
 
     // ---------- public API ----------
+    /**
+     * Draws the bars on the chest screen: `values` are levels from 0 to 1, low pitch first (the first six are shown). Null, or
+     * reduced motion, rests them flat. Drawn at most 30 times a second; a flat screen is drawn once.
+     */
+    setChestBands(values) {
+      const chest = this._rig && this._rig.chest;
+      if (!chest) return this;
+      const bands = this._calm || !values ? null : values;
+      if (!bands && chest.flat) return this;
+      const t = performance.now();
+      if (bands && t - chest.at < 33) return this;
+      chest.at = t; chest.flat = !bands;
+      drawChest(chest, bands);
+      this._kick();
+      return this;
+    }
     configure(cfg) {
       const was = this._cfg || {};
       this._cfg = Object.assign({}, this._cfg, cfg || {});

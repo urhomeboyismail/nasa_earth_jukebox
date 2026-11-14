@@ -12,8 +12,8 @@ import './tour.css'
 type CssVars = CSSProperties & Record<`--${string}`, string>
 type Rect = { left: number; top: number; right: number; bottom: number; width: number; height: number }
 
-const measure = (selector: string): Rect | null => {
-  const rect = document.querySelector(selector)?.getBoundingClientRect()
+const measure = (selector: string | null): Rect | null => {
+  const rect = selector ? document.querySelector(selector)?.getBoundingClientRect() : null
   return rect ? { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height } : null
 }
 

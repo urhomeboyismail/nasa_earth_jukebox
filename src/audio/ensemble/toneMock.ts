@@ -82,6 +82,13 @@ const listeners = new Map<string, Set<() => void>>()
 export const raw = {
   state: 'running' as string,
   currentTime: 0,
+  /** UI08: the read-only tap on the master. Every analyser made is kept, newest last. */
+  analysers: [] as { fftSize: number; smoothingTimeConstant: number; connected: boolean; disconnect(): void }[],
+  createAnalyser() {
+    const analyser = { fftSize: 2048, smoothingTimeConstant: 0.8, connected: true, disconnect() { analyser.connected = false } }
+    this.analysers.push(analyser)
+    return analyser
+  },
   addEventListener(type: string, listener: () => void) { (listeners.get(type) ?? listeners.set(type, new Set()).get(type)!).add(listener) },
   removeEventListener(type: string, listener: () => void) { listeners.get(type)?.delete(listener) },
   /** The browser changes the state: a statechange event follows. */
@@ -129,6 +136,7 @@ export function resetTone() {
   transport.reset()
   raw.state = 'running'
   raw.currentTime = 0
+  raw.analysers.length = 0
   listeners.clear()
   behaviour.stateAfterStart = 'running'
   offlineRuns.length = 0

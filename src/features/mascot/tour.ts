@@ -24,7 +24,8 @@ export type TourStop = {
   side: 'left' | 'right'
   /** The SVG path Echo flies along, from `from` to `to`. */
   path: string
-  selector: string
+  /** The control Echo points at. null = no target and no ring (the flight home to the dock). */
+  selector: string | null
   /** 'flying' while Echo is on its way, 'arrived' once it points. */
   phase: 'flying' | 'arrived'
   /** Under reduced motion there is no flight and no trail. */
@@ -153,11 +154,20 @@ function run(from: number) {
   controller = mine
   waiter = null
   nextQueued = false
-  void runDemo(TOUR_STEPS.slice(from), depsFor(mine.signal, from), mine.signal).then(finished => {
+  void runDemo(TOUR_STEPS.slice(from), depsFor(mine.signal, from), mine.signal).then(async finished => {
     if (controller !== mine) return
+    if (finished && lastPoint && !prefersReducedMotion()) {
+      // Echo flies back to the dock. Stop tour, Esc and Back end or replace it at once (they abort `mine`).
+      const start = lastPoint
+      const to = dockPoint()
+      flights += 1
+      set({ caption: 'The tour has finished.', stop: { key: flights, from: start, to, side: 'right', path: flightPath([start, bend(start, to), to]), selector: null, phase: 'flying', reduced: false } })
+      await wait(FLIGHT_MS, mine.signal)
+      if (controller !== mine) return
+    }
     controller = null
     lastPoint = null
-    const caption = finished ? 'The tour has finished.' : 'The tour was stopped.'
+    const caption = finished && !mine.signal.aborted ? 'The tour has finished.' : 'The tour was stopped.'
     set({ ...IDLE, caption })
     announce(caption)
   })

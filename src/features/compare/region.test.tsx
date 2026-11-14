@@ -28,7 +28,8 @@ vi.mock('../../audio', () => ({ createSoundEngine: () => engine }))
 const analyzeAll = vi.hoisted(() => vi.fn())
 vi.mock('../../analysis', () => ({ analyzeAll }))
 
-const lastRegionAnalysed = () => analyzeAll.mock.calls.at(-1)?.[1]?.id
+// The page's own read of every date. (UI10's summary also reads just dates A and B in each region.)
+const lastRegionAnalysed = () => analyzeAll.mock.calls.filter(call => call[0].length === base.frames.length).at(-1)?.[1]?.id
 
 beforeEach(() => {
   vi.clearAllMocks()

@@ -11,6 +11,7 @@ class FakeRobot extends HTMLElement {
   gesture = vi.fn(() => Promise.resolve(true))
   stopGesture = vi.fn()
   hush = vi.fn()
+  setChestBands = vi.fn(() => this)
   say = vi.fn((_text: string, _options?: object) => Promise.resolve(true))
 }
 

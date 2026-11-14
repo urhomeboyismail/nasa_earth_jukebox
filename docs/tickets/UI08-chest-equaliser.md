@@ -77,4 +77,24 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Built on `feature/UI08-chest-equaliser`, 2026-11-14 (agent D).
+
+- `src/audio/level.ts` (new): `setLevelSource`, `readBands` (6 log-spaced bands, bin 0 left out, all zeros with no source).
+- `src/audio/ensemble/graph.ts`: the master also feeds an `AnalyserNode` (fftSize 256, smoothing 0.8) that goes nowhere else. Not made on an offline render (`'startRendering' in context`), so an export render never replaces the live tap. `dispose()` disconnects it and clears the source.
+- `public/robot/robot-companion.js`: `setChestBands(values)` and a 64×32 canvas screen on a curved mesh above the belly logo (above it, so the logo stays visible). At most 30 draws a second; null or reduced motion draws flat bars once.
+- `src/types/robot-companion.d.ts`: `setChestBands` typed.
+- `src/features/mascot/useChestBands.ts` (new), called once from `Ixia.tsx` (not `MascotDock.tsx`): reads 30 times a second only while the player plays, the tab is visible and motion is not reduced; otherwise bars flat.
+- Outside the listed Touches, test support only: `src/audio/ensemble/toneMock.ts` (a mock `createAnalyser`) and `src/features/mascot/Ixia.test.tsx` (`setChestBands` on the fake robot).
+
+```
+npm run lint            -> 0 warnings, 0 errors (oxlint)
+npm run build           -> built in 1.49s (existing chunk-size warning only)
+npx vitest run --pool=forks --maxWorkers=1
+  Test Files  215 passed (215)
+  Tests  3091 passed (3091)
+  Duration  743.95s
+```
+
+Golden and peak tests pass unchanged. `check-data` and the server tests were not run: `public/data/`, `server/` and `src/pages.ts` are untouched.
+
+Not checked: the bars drawn in a real browser. jsdom has no WebGL, so only the logic is tested; someone should look at Echo's chest on a running page with the music playing.
