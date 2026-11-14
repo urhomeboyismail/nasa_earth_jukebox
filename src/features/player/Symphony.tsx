@@ -1,5 +1,5 @@
 import { useMemo, useState, type KeyboardEvent } from 'react'
-import { Button } from '../../components'
+import { Button, Dialog } from '../../components'
 import { useKeyboard } from '../../interaction/useInput'
 import { HotspotMarkers } from '../../components/HotspotMarkers'
 import { hotspotMarkers } from '../../describe/markers'
@@ -36,6 +36,7 @@ function frameAt(frames: Frame[], date: string): Frame {
 
 export function Symphony({ visualization, preset, region }: { visualization: Visualization; preset?: Preset | null; region?: Region }) {
   const [video, setVideo] = useState<HTMLVideoElement | null>(null)
+  const [mixerOpen, setMixerOpen] = useState(false)
   const symphony = useSymphony(visualization, video, preset)
   const features = symphony.latest?.features ?? null
   useEventAnnouncer(features, visualization)
@@ -62,7 +63,11 @@ export function Symphony({ visualization, preset, region }: { visualization: Vis
   }
 
   return (
+    <>
     <section className="player symphony" aria-label="Symphony" onKeyDown={onKeyDown}>
+      {/* UI04: the same glass stage as the Simple player. The image and the live video are never filtered or tinted. */}
+      <div className="player__stage ui-glass">
+      <p className="ui-label player__now">Now playing</p>
       <Viewer frame={frame} dateText={format(date)} region={region ?? primaryRegion(visualization)} source={source}>
         {/* Always present, because the live source needs an element to be made. Without a video it has no source, stays hidden, and the source steps the checked frames instead. */}
         <video
@@ -77,6 +82,7 @@ export function Symphony({ visualization, preset, region }: { visualization: Vis
         />
         <HotspotMarkers markers={markers} />
       </Viewer>
+      </div>
 
       <p className="symphony__status">{statusText(symphony)}</p>
       <p className="symphony__now">
@@ -84,18 +90,27 @@ export function Symphony({ visualization, preset, region }: { visualization: Vis
       </p>
       {symphony.latest && <LayerCaptions music={symphony.latest.music} voices={symphony.voices} muted={symphony.muted} solo={symphony.solo} />}
 
-      <div className="player__controls" role="group" aria-label="Playback">
-        <Button variant="primary" onClick={symphony.toggle}>{BUTTON_LABELS[symphony.button]}</Button>
-        <Button disabled={idle} onClick={symphony.stop}>Stop</Button>
+      <div className="player__transport ui-glass">
+        <div className="player__controls player__controls--main" role="group" aria-label="Playback">
+          <Button variant="primary" onClick={symphony.toggle}>{BUTTON_LABELS[symphony.button]}</Button>
+          <Button disabled={idle} onClick={symphony.stop}>Stop</Button>
+          <Button aria-haspopup="dialog" onClick={() => setMixerOpen(true)}>Mixer</Button>
+        </div>
       </div>
 
       <DetailControl detail={symphony.detail} onChange={symphony.setDetail} />
-      <VoiceMixer voices={symphony.voices} muted={symphony.muted} solo={symphony.solo} onMute={symphony.toggleMute} onSolo={symphony.toggleSolo} />
-      <MyMixControls voices={symphony.voices} muted={symphony.muted} solo={symphony.solo} setMix={symphony.setMix} />
-
-      <SoundPrefs ownPreset={visualization.sonification?.preset ?? 'major'} cues />
 
       <p className="player__hint">Keyboard: Space plays or pauses, and Escape stops. Keys 1 to 7 solo a voice, Shift and 1 to 7 mute it, and Control Z puts the last change back.</p>
     </section>
+    {/* Outside the section, so Escape closing the drawer does not also stop the music. */}
+    <Dialog open={mixerOpen} onClose={() => setMixerOpen(false)} title="Mixer">
+      {/* The mixer's own keys (1 to 7, Control Z) still work with focus in the drawer; Escape is the dialog's, and Space is left to its buttons. */}
+      <div className="player__drawer" onKeyDown={onMixerKey}>
+        <VoiceMixer voices={symphony.voices} muted={symphony.muted} solo={symphony.solo} onMute={symphony.toggleMute} onSolo={symphony.toggleSolo} />
+        <MyMixControls voices={symphony.voices} muted={symphony.muted} solo={symphony.solo} setMix={symphony.setMix} />
+        <SoundPrefs ownPreset={visualization.sonification?.preset ?? 'major'} cues />
+      </div>
+    </Dialog>
+    </>
   )
 }

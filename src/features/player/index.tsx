@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAssistantContext } from '../../assistant/context'
-import { Button, Legend, LoadingIndicator, Notice, RegionPicker, Slider, useAnnounce } from '../../components'
+import { Button, Dialog, Legend, LoadingIndicator, Notice, RegionPicker, Slider, useAnnounce } from '../../components'
 import { useRegionChoice } from '../../components/useRegionChoice'
 import { higherPhrase, variableWords, type Region, type Visualization } from '../../data'
 import { describeChange } from '../../describe'
@@ -36,6 +36,7 @@ import { useListenMode, type ListenMode } from './listenMode'
 import { Scan } from './Scan'
 import { useScrub } from './useScrub'
 import { Symphony } from './Symphony'
+import { SoundPrefs } from './SoundPrefs'
 
 const SPEEDS: { id: Speed; label: string }[] = [
   { id: 'slow', label: 'Slow' },
@@ -203,6 +204,7 @@ function Player({ visualization, region }: { visualization: Visualization; regio
   // IX01: every key, button and gesture is an action (src/interaction/). The player answers the ones about the dates, the trace, the help and speech.
   // Which key means what is the list in src/interaction/shortcuts.ts, which the "Keyboard shortcuts" dialog is drawn from too.
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  const [mixerOpen, setMixerOpen] = useState(false)
   const onKeyDown = useKeyboard(LISTEN_SCOPES)
   useGamepad()
   useActionHandler('transport', () => {
@@ -234,9 +236,13 @@ function Player({ visualization, region }: { visualization: Visualization; regio
   return (
     <>
     <section className="player" aria-label="Player" onKeyDown={onKeyDown}>
-      <Viewer frame={frame} dateText={player.formatDate(frame.date)} region={player.region} source={source}>
-        <ExplorerSurface explorer={explorer} />
-      </Viewer>
+      {/* UI04: the NASA frame sits in a glass frame. The image itself is never filtered, blurred or tinted. */}
+      <div className="player__stage ui-glass">
+        <p className="ui-label player__now">Now playing</p>
+        <Viewer frame={frame} dateText={player.formatDate(frame.date)} region={player.region} source={source}>
+          <ExplorerSurface explorer={explorer} />
+        </Viewer>
+      </div>
       <ExplorerPanel visualization={visualization} explorer={explorer} />
       {/* IX03: what follow is doing. Not a live region: losing the spot is said through the speech gate. */}
       {follow.text && <p className="player__follow">{follow.text}</p>}
@@ -285,53 +291,65 @@ function Player({ visualization, region }: { visualization: Visualization; regio
         <StoryPanel visualization={visualization} chapters={chapters} results={player.results} playRange={player.playRange} predict={predict} onClose={closeStory} />
       )}
 
-      <div className="player__controls" role="group" aria-label="Playback">
-        <Button variant="primary" data-tour="play" disabled={!player.ready} onClick={playing ? player.pause : player.play}>
-          {playing ? 'Pause' : player.status === 'paused' ? 'Resume' : 'Play'}
-        </Button>
-        <Button disabled={!player.ready} onClick={player.stop}>Stop</Button>
+      <div className="player__transport ui-glass">
+        <div className="player__controls player__controls--main" role="group" aria-label="Playback">
+          <Button variant="primary" data-tour="play" disabled={!player.ready} onClick={playing ? player.pause : player.play}>
+            {playing ? 'Pause' : player.status === 'paused' ? 'Resume' : 'Play'}
+          </Button>
+          <Button disabled={!player.ready} onClick={player.stop}>Stop</Button>
+          <Button disabled={!player.ready} pressed={player.loop} onClick={() => player.setLoop(!player.loop)}>Loop</Button>
+          <Button aria-haspopup="dialog" onClick={() => setMixerOpen(true)}>Mixer</Button>
+        </div>
+
+        <div className="player__slider">
+          <Slider
+            label="Date"
+            min={0}
+            max={frames.length - 1}
+            value={player.index}
+            disabled={!player.ready}
+            onChange={i => {
+              // The slider is not an action, so the first-minute game is told of the date change here.
+              onboarding.record({ type: 'scrubTime', by: i - player.index })
+              // A locked place is heard on the new date, not the whole map.
+              if (explorer.locked) {
+                player.showDate(i)
+                void explorer.playLockedAt(i)
+              } else chooseDate(i)
+            }}
+            describe={i => player.ready ? player.describeDate(i) : player.formatDate(frames[i].date)}
+          />
+          {/* The first and last date, drawn from the attribute: the slider already says every date in words, so this is not a second copy for a screen reader. */}
+          <div className="player__ends" aria-hidden="true">
+            <span className="ui-label" data-text={player.formatDate(frames[0].date)} />
+            <span className="ui-label" data-text={player.formatDate(frames[frames.length - 1].date)} />
+          </div>
+        </div>
+
+        <div className="player__settings" data-tour="mixer">
+          <div role="group" aria-label="Speed" className="player__speed">
+            <span className="player__speed-label" aria-hidden="true">Speed</span>
+            {SPEEDS.map(({ id, label }) => (
+              <Button key={id} pressed={player.speed === id} onClick={() => player.setSpeed(id)}>{label}</Button>
+            ))}
+          </div>
+          <Slider
+            label="Volume"
+            min={0}
+            max={100}
+            value={Math.round(player.volume * 100)}
+            onChange={value => player.setVolume(value / 100)}
+            describe={value => `${value} percent`}
+          />
+        </div>
+      </div>
+
+      <div className="player__controls" role="group" aria-label="More ways to listen">
         <Button disabled={!player.ready} onClick={player.replay}>Replay this date</Button>
         <Button disabled={!player.ready} onClick={() => void player.hearBothWays()}>Hear this date both ways</Button>
         <Button disabled={!player.ready} onClick={() => void player.hearWhatIsHidden()}>What the sound hides</Button>
         <Button disabled={!player.ready} onClick={() => void player.testSound()}>Test sound</Button>
         <Button data-tour="explore" disabled={!player.ready || storyOpen} pressed={exploring} onClick={toggleExplorer}>Explore the map</Button>
-      </div>
-
-      <div className="player__slider">
-        <Slider
-          label="Date"
-          min={0}
-          max={frames.length - 1}
-          value={player.index}
-          disabled={!player.ready}
-          onChange={i => {
-            // The slider is not an action, so the first-minute game is told of the date change here.
-            onboarding.record({ type: 'scrubTime', by: i - player.index })
-            // A locked place is heard on the new date, not the whole map.
-            if (explorer.locked) {
-              player.showDate(i)
-              void explorer.playLockedAt(i)
-            } else chooseDate(i)
-          }}
-          describe={i => player.ready ? player.describeDate(i) : player.formatDate(frames[i].date)}
-        />
-      </div>
-
-      <div className="player__settings" data-tour="mixer">
-        <div role="group" aria-label="Speed" className="player__speed">
-          <span className="player__speed-label" aria-hidden="true">Speed</span>
-          {SPEEDS.map(({ id, label }) => (
-            <Button key={id} pressed={player.speed === id} onClick={() => player.setSpeed(id)}>{label}</Button>
-          ))}
-        </div>
-        <Slider
-          label="Volume"
-          min={0}
-          max={100}
-          value={Math.round(player.volume * 100)}
-          onChange={value => player.setVolume(value / 100)}
-          describe={value => `${value} percent`}
-        />
       </div>
 
       <div className="player__sound">
@@ -404,6 +422,12 @@ function Player({ visualization, region }: { visualization: Visualization; regio
         <Button onClick={() => setShortcutsOpen(true)}>Keyboard shortcuts</Button>
       </div>
     </section>
+    {/* Outside the section, so Escape closing the drawer is not also heard by the player's own keys. */}
+    <Dialog open={mixerOpen} onClose={() => setMixerOpen(false)} title="Mixer">
+      <div className="player__drawer">
+        <SoundPrefs ownPreset={visualization.sonification?.preset ?? 'major'} cues />
+      </div>
+    </Dialog>
     <ShortcutsDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} visualization={visualization} />
     </>
   )

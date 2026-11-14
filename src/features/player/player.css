@@ -40,14 +40,55 @@
    Explore the map across the full width, so no label has to wrap inside its button. With room, one row (below). */
 .player__controls {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(min(11rem, 100%), 1fr));
   gap: 0.5rem;
 }
 .player__controls .ui-button { padding-inline: 1rem; white-space: nowrap; }
-.player__controls .ui-button--primary,
-.player__controls .ui-button:last-child { grid-column: 1 / -1; }
+/* The main transport row: Play, Stop, Loop and Mixer. Play is the widest. */
+.player__controls--main { grid-template-columns: repeat(auto-fit, minmax(min(6rem, 100%), 1fr)); }
+.player__controls--main .ui-button--primary { grid-column: 1 / -1; }
 
-.player__slider { inline-size: 100%; }
+/* UI04: the stage (the NASA frame) and the transport bar sit in glass (.ui-glass, src/styles/components.css). The image is never filtered. */
+.player__stage, .player__transport {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: var(--md-sys-shape-corner-large);
+}
+/* "NOW PLAYING" above the frame, and the date under it as a mono readout. */
+.player__now { margin: 0; }
+.player__stage .player__date { font-family: var(--md-ref-typeface-mono); font-size: var(--md-sys-typescale-headline-small-size); line-height: var(--md-sys-typescale-headline-small-line-height); letter-spacing: 0; }
+
+.player__slider { inline-size: 100%; display: grid; gap: 0.25rem; }
+/* The first and last date at the ends of the slider, written from data-text so they are not a second copy of the dates in the page's text. */
+.player__ends { display: flex; justify-content: space-between; gap: 1rem; }
+.player__ends .ui-label::before { content: attr(data-text); }
+
+/* The mixer drawer (a native <dialog>, Dialog.tsx): glass on one side, full height. It simply appears; motion is UI05.
+   The same declarations as .ui-glass, four times, because a selector cannot be shared with @media or @supports. */
+.ui-dialog:has(.player__drawer) {
+  margin-block: 0;
+  margin-inline: auto 0;
+  inline-size: min(26rem, 100%);
+  block-size: 100dvh;
+  max-block-size: 100dvh;
+  border-radius: var(--ui-corner-extra-large) 0 0 var(--ui-corner-extra-large);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--glass-border);
+  border-block-start-color: var(--glass-border-lit);
+  box-shadow: var(--glass-shadow);
+}
+.ui-dialog:has(.player__drawer) .ui-dialog__body { max-block-size: 100dvh; block-size: 100%; }
+.player__drawer { display: grid; gap: 1rem; text-align: left; }
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  .ui-dialog:has(.player__drawer) { background: var(--ui-surface-container-high); -webkit-backdrop-filter: none; backdrop-filter: none; border: 2px solid var(--ui-outline); box-shadow: none; }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .ui-dialog:has(.player__drawer) { background: var(--ui-surface-container-high); border: 2px solid var(--ui-outline); box-shadow: none; }
+}
+:root.display-high-contrast .ui-dialog:has(.player__drawer) { background: var(--ui-surface); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
 
 /* Speed and Volume: each label sits above its control, like Date, so the two line up and the speed choices share one row. */
 .player__settings {
@@ -90,9 +131,7 @@
 
 /* With room (about 576 px of player), the four controls share one row, Play still first and widest. */
 @container (min-width: 36rem) {
-  .player__controls { grid-template-columns: 1.5fr 1fr 1fr 1fr; }
-  .player__controls .ui-button--primary,
-  .player__controls .ui-button:last-child { grid-column: auto; }
+  .player__controls--main .ui-button--primary { grid-column: auto; }
 
   .player__sound {
     grid-template-columns: max-content 1fr;
