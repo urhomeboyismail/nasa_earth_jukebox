@@ -10,7 +10,7 @@ import pytest
 from google.adk.agents import LlmAgent
 from google.adk.runners import InMemoryRunner
 from google.genai import types
-from pydantic import SecretStr, ValidationError
+from pydantic import SecretStr
 
 from app.agent import callbacks, models, tools
 from app.agent.callbacks import guard_tool, log_tool
@@ -218,23 +218,16 @@ def test_keyword_script_reads_the_newest_user_text():
 
 # 6. Settings: off by default, and every variable is documented in .env.example.
 
-AGENT_SETTINGS = ("agent_enabled", "agent_model", "agent_timeout_seconds", "agent_max_requests_per_minute", "assistant_engine")
+AGENT_SETTINGS = ("agent_enabled", "agent_model", "agent_timeout_seconds", "agent_max_requests_per_minute")
 
 
-def test_agent_settings_default_to_off_and_the_bridge(monkeypatch):
+def test_agent_settings_default_to_off(monkeypatch):
     for name in AGENT_SETTINGS:
         monkeypatch.delenv(name.upper(), raising=False)
     defaults = Settings(_env_file=None)
     assert defaults.agent_enabled is False
-    assert defaults.assistant_engine == "bridge"
     assert defaults.agent_timeout_seconds == 2.5
     assert defaults.agent_max_requests_per_minute == 5
-
-
-def test_assistant_engine_accepts_only_bridge_or_adk(monkeypatch):
-    monkeypatch.setenv("ASSISTANT_ENGINE", "other")
-    with pytest.raises(ValidationError):
-        Settings(_env_file=None)
 
 
 def test_every_agent_setting_is_in_env_example():

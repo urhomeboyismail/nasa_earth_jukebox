@@ -56,20 +56,14 @@ def _event(key, data):
     return {"type": "context", "key": key, "data": data}
 
 
-@pytest.mark.parametrize("engine", ["live", "adk"])
-def test_update_context_stores_only_valid_payloads(engine):
+def test_update_context_stores_only_valid_payloads():
     import asyncio
     from types import SimpleNamespace
 
     from app.agent.voice import AdkBridge
-    from app.api.assistant import _Bridge
 
-    if engine == "live":
-        state = SessionState(page="listen")
-        bridge, read = _Bridge(None, None, state), lambda: state.screens
-    else:
-        live = SimpleNamespace(state={"screens": {}})
-        bridge, read = AdkBridge(None, live), lambda: live.state["screens"]
+    live = SimpleNamespace(state={"screens": {}})
+    bridge, read = AdkBridge(None, live), lambda: live.state["screens"]
 
     async def run():
         await bridge.update_context(_event("facts", FACTS))
