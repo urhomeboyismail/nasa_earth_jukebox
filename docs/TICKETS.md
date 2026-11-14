@@ -75,6 +75,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [SN11](tickets/SN11-learn-v3.md) | Learn v3: one card per voice, played alone on the synthetic sets | M | agent | SN01, SN02, SN03, SN04, SN06 | learn | done |
 | [SN12](tickets/SN12-offline-render-playlist.md) | Offline render: byte-identical WAV, captions file, playlist of every data set | M | agent | SN01, SN03, SN04 | about | done |
 | [SN13](tickets/SN13-one-voice-at-a-time.md) | One voice at a time: real gain ducking under the guide and speech on every page | M | agent | SN04 | voice, engine | done |
+| [SN14](tickets/SN14-manifest-timbre.md) | Manifest timbre: optional `sonification.timbre` (instrument, low-pass range and curve, pan width) | M | agent+👤 | SN05 | schema, engine | claimed: E, 2026-11-14 |
 
 ### P1: interaction (the listener plays the map; `PLAN.md` §6.3)
 
