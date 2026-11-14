@@ -22,6 +22,34 @@ Sea ice extent, as these pages define it, is the total area where ice concentrat
 
 **Credit wording seen:** SVS pages ask that items be credited to NASA's Scientific Visualization Studio; the 2024 sea ice page also credits the Blue Marble data to Reto Stockli (NASA/GSFC). Check each page's own credit and licence line before using an image.
 
+### Checked picks (EIC02)
+
+Read on the live SVS pages on 14 Nov 2026. Every cell is copied from the page, or says "unknown" or "not on page". Nothing was downloaded. A pick is final only when a person has read the licence line and signed it off (last row of each pick).
+
+**Pick 1, sea surface temperature: SVS 4809** (picked by the team on 14 Nov 2026 in place of the anomaly page 5176, which stays a candidate)
+
+| Field | Value |
+|---|---|
+| Proposed id | `sst-global-2016-2020` (a working name; EIC03 decides the final id) |
+| Page | https://svs.gsfc.nasa.gov/4809 , "Earth Day 2020: Sea Surface Temperature (SST) from January 2016 through March 2020", released 21 April 2020, page last updated 22 December 2024 (ID 4809) |
+| Credit (exact) | "Please give credit for this item to: NASA's Scientific Visualization Studio". Visualizers: Greg Shirah (NASA/GSFC), Horace Mitchell (NASA/GSFC). Producer: Ryan Fitzgibbons (USRA) |
+| Licence or usage | Not on page: the page states no licence or usage note, only the credit request above. Falls back on NASA's media-usage guidance (https://www.nasa.gov/nasa-brand-center/images-and-media/): NASA content "used in a factual manner that does not imply endorsement may be used without needing explicit permission"; "NASA should be acknowledged as the source of the material."; the NASA insignia and logotype "are not in the public domain". Read by: TODO (person), on: TODO |
+| Underlying data and its licence | MUR SST (Multi-scale Ultra-high Resolution (MUR) Sea Surface Temperature (SST) Analysis), SVS dataset ID 845, "Collected by: JPL PO DAAC", dates used 2016-2020. The repo's `mur-sst-mauritius` records CC0 for this dataset under NASA's data-use guidance; the SVS page itself does not say so |
+| Colour bar | Yes, a separate image `sst_colorbar.png` (1920x1080) with the caption "color range is blue - cyan -gray - yellow - red; value range is 0 to 32 degrees Celcius". Which end is 0 and the labels on the bar: unknown, to read from the image |
+| Frames | `sst_comp_1080p30.mp4` and `.webm` (1920x1080, 30 fps in the file name); frame sets listed on the page as "comp (1920x1080) [131072 Item(s)]" and "comp (5760x3240) [262144 Item(s)]" (those counts look like placeholders and are not trusted). Frame count, exact rate and one date per frame: unknown, to read from the file in EIC03 |
+| Overlays | The composite has a dates layer and a background layer drawn into it. The layers are also published apart: `sst_data_layer` (data with alpha), `sst_dates_layer`, `sst_bg_layer`. Where the date text and any land mask sit: unknown, to read from a frame in EIC03. The separate data layer is the likely source for reading values |
+| Alt text (page's own words) | "This visualization shows sea surface temperature (SST) data of the oceans from January 2016 through March 2020. The data set used is from the Jet Propulsion Laboratory (JPL) Multi-scale Ultra-high Resolution (MUR) Sea Surface Temperature Analysis. The ocean temperatures are displayed between 0 degrees celcius (C) and 32 degrees C." |
+| Baseline candidate | `reference-date` or `none` (the bar shows absolute temperature, not change). For a same-month `climatology`, the page gives no monthly averages |
+| Decision | Picked by the team on 14 Nov 2026. Reason: a finished animation (January 2016 to March 2020, so the dates do not grow) with a printed 0 to 32 degrees C bar, which gives the app a global view beside the regional `mur-sst-mauritius`. Open points for EIC03: the dates of the frames, the data layer against the composite, and which end of the bar is 0 |
+
+Seen but not picked for sea surface temperature on 14 Nov 2026 (still candidates for other roles):
+
+- SVS 5176, "Sea Surface Temperature (SST) Anomaly - Near Real Time": credit "NASA's Scientific Visualization Studio"; bar "blue - white - red ... color range is -4 to 4 with the unit of degrees Celsius"; 4096x2048 frame sets of 902 items, updated daily; data from MUR via JPL PO DAAC. Good for an `anomaly-product` baseline.
+- SVS 5265 is "Worldview: Sea Surface Temperature" (credit "NASA's Worldview"), not "Sea Surface Temperature (SST) – Near Real Time" as the table above says: 2480x1240 PNG frame set of 29 items and a 1920x1080 set of 30 items; no bar, description or dataset on the page.
+- SVS 5382, "Arctic Sea Ice Minimum 2024": credit "NASA's Scientific Visualization Studio", with third-party credits on the page ("AMSR2 data courtesy of the Japan Aerospace Exploration Agency (JAXA)" and "The Blue Marble data is courtesy of Reto Stockli (NASA/GSFC)"). No bar. Not clearly free to use as a whole, so not picked until a person decides.
+
+Still to pick for EIC02: two to four more (an Arctic sea ice or other edge-rich one, a picture-mode one, and the animation role if 4809 does not cover it).
+
 ## Still to find out (for each of: Sea Surface Temperature, Arctic sea ice, global temperature anomaly)
 
 Fill these in from the released resources or the page itself. Do not assume.
