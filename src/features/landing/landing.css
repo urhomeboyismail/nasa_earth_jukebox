@@ -1,0 +1,40 @@
+/* The landing page: a centred column, the globe above one glass card. Flexible units, 48 px buttons, tokens only. */
+.landing {
+  display: grid;
+  gap: 1rem;
+  align-content: center;
+  min-block-size: 100dvh;
+  max-inline-size: 40rem;
+  margin-inline: auto;
+  padding: 1rem;
+  text-align: left;
+}
+.landing__title { margin: 0; text-align: center; }
+.landing__card { display: grid; gap: 0.75rem; padding: 1rem; border-radius: var(--md-sys-shape-corner-extra-large); color: var(--ui-on-surface); }
+.landing__card > h2, .landing__card h3 { margin: 0; }
+.landing__top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; }
+.landing__heading { font-size: 1.5rem; }
+.landing__step { font-size: 1.25rem; }
+.landing__step:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: var(--md-sys-shape-corner-extra-small); }
+.landing__transcript { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.landing__line { max-inline-size: 90%; padding: 0.5rem 0.75rem; border-radius: var(--md-sys-shape-corner-large); }
+/* Echo: a glass bubble on the left under a mono label. The listener: an accent bubble on the right. */
+.landing__line--echo { justify-self: start; display: grid; gap: 0.125rem; background: color-mix(in srgb, var(--md-sys-color-surface-container-high) 70%, transparent); border: 1px solid var(--glass-border); }
+.landing__line--you { justify-self: end; background: var(--md-sys-color-tertiary-container); color: var(--md-sys-color-on-tertiary-container); }
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  .landing__line--echo { background: var(--ui-surface-container-high); border: 2px solid var(--ui-outline); }
+}
+.landing__form { display: grid; gap: 0.75rem; }
+.landing__field { display: grid; gap: 0.25rem; font-weight: 600; }
+.landing__field input[type='text'], .landing__field select { min-block-size: 2.75rem; font: inherit; padding: 0 0.75rem; }
+.landing__name { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; }
+.landing__name .landing__field { flex: 1 1 12rem; }
+.landing__buttons { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+/* The sound choices are toggle pills. */
+.landing__pills .ui-button { border-radius: var(--ui-corner-full); }
+
+/* A gentle arrival, only for people who have not asked for less motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .landing__card { animation: landing-in 0.4s ease-out; }
+}
+@keyframes landing-in { from { opacity: 0; transform: translateY(0.5rem); } }
