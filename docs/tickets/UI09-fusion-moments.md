@@ -78,4 +78,15 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Built by agent E, 14 Nov 2026.
+
+- `src/sonify/fuse.ts`: pure `alignedExtremes(a, b)` (top or bottom 10% of each deck's own range on the shared dates; same place = within 1/8 of the image width, or date only when a deck has no place; `together` or `opposed`), `sampleOf` (a frame's median position and strongest hot spot), `placeWord` (ninth of the map), `momentChord` (major triad, plus a minor second when opposed; the whole chord 12 dB under the decks, scaled by the crossfader middle, silent at either end) and `momentSentence`.
+- `Fusion.tsx`: reads every shared date of both decks once on its own streams, sounds the chord through `ensemble.playNotes` on an aligned date, shows one caption strip ("Moments") and announces it. Moments within 2 s are one line and one chord. A "Mark moments" switch (on by default) turns the chord and caption off.
+- The caption uses each manifest's `variable.name` and its `highest` and `lowest` words; nothing is specific to one data set. `compare/index.tsx` is not touched. `sonify/index.ts` is not touched either, so `Fusion.tsx` imports from `sonify/fuse`.
+- Where the extremes sit is the ninth of the map ("north-east"), not a manifest region, because the regions carry no bounds to test against.
+
+Checks (Windows, Node):
+- `npm run lint`: 0 errors.
+- `npm test`: 213 files, 3087 tests passed (15 in `fuse.test.ts` including the new moment, chord and sentence tests; 4 new in `Fusion.test.tsx`).
+- `npm run build`: built.
+- Not heard in a browser; the chord is checked through the fake ensemble (`playNotes` called with the expected notes).
