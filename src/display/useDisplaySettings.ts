@@ -16,7 +16,7 @@ export function useDisplaySettings(): DisplaySettings {
   return useContext(DisplaySettingsContext)
 }
 
-const stored = z.object({ readable: z.boolean(), highContrast: z.boolean(), patterns: z.boolean() }).partial()
+const stored = z.object({ readable: z.boolean(), highContrast: z.boolean(), patterns: z.boolean(), hideCrate: z.boolean() }).partial()
 
 /** What was saved on this device. Anything missing, unreadable or of the wrong shape is ignored. */
 export function readStoredFlags(): Partial<DisplayFlags> {
