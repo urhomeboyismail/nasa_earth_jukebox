@@ -103,7 +103,7 @@ Echo, the guide, redrawn as Juke-Bot (helmet visor, headphones, chest screen, ai
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
 | [JB09](tickets/JB09-tour-from-welcome.md) | The tour starts after the welcome (map path), and Echo flies home to the dock when it finishes | S | agent | — | tour | claimed: B, 2026-11-13 |
-| [JB10](tickets/JB10-tour-mixer-stop.md) | The tour's third stop is the Speed and Volume mixer, not Explore the map | S | agent | — | player | claimed: E, 2026-11-14 |
+| [JB10](tickets/JB10-tour-mixer-stop.md) | The tour's third stop is the Speed and Volume mixer, not Explore the map | S | agent | — | player | done |
 | [JB11](tickets/JB11-chat-welcome.md) | Echo's chat welcome (name, four sound chips, then the path and sound check) with a "Prefer manual setup?" form | M | agent | JB09 | welcome | claimed: B, 2026-11-13 |
 
 ### P3: people, evidence and submission
