@@ -74,4 +74,21 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Branch `feature/UI10-compare-summary`.
+
+```
+npm run lint   -> oxlint, no warnings or errors
+npm test       -> Test Files 214 passed (214); Tests 3089 passed (3089)   (before the last test-mock typing fix)
+npm run build  -> tsc -b clean; vite build: built in 1.45s (only the usual chunk-size notice)
+npx vitest run src/features/compare -> Tests 98 passed (98)               (after the typing fix)
+```
+
+What was built
+- `src/describe/compare.ts`: `describeDelta`, `deltaBetween`, `littleChange`. Overall change = mean of the per-region changes; the biggest change is the region with the largest size. Words, unit and place names come from the manifest.
+- Compare: a "What changed" card (text plus a "Hear the change" button: the top region's note for A, then for B, panned with `panFor`). Dates A and B are read in every region by `analyzeAll` (cached), so the page's own analysis is unchanged.
+
+Decisions to check
+- "Little change" threshold: the top of the near-normal change step (the step that holds 0) when the manifest has `changeSteps`, else 2% of the colour scale's range. The ticket's "first step" would be the most-below-normal step, which is not a sensible limit.
+- A ready-made comparison's card appears only after "Reveal the answer" (it would give the answer away) and is not announced then, so it does not talk over the result. For the listener's own dates it shows at once.
+- The announcement waits one announcer gap (1.6 s) after a date changes, so the slider's own "Date A: …" message is spoken first and is not replaced.
+- `region.test.tsx` (not in Touches): its `lastRegionAnalysed` helper now looks at the page's read of every date, because the summary adds reads of dates A and B per region. One line, no behaviour change.

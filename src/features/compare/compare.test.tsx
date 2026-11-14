@@ -20,7 +20,7 @@ const calls = vi.hoisted(() => [] as string[])
 const cueLog = vi.hoisted(() => [] as string[])
 const engine = vi.hoisted(() => ({
   unlock: vi.fn(async () => { calls.push('unlock') }),
-  playCategory: vi.fn((id: string) => { calls.push(`category:${id}`) }),
+  playCategory: vi.fn((id: string, _opts?: { pan?: number }) => { calls.push(`category:${id}`) }),
   playMissing: vi.fn(() => { calls.push('missing') }),
   stop: vi.fn(() => { calls.push('stop') }),
   setStyle: vi.fn(),
@@ -357,5 +357,57 @@ describe('Compare: interface cues (AU-UI)', () => {
     expect(cueLog).toEqual(['compareA', 'compareB'])
     // Each cue comes after the unlock and before the date's own sound.
     expect(calls.filter(c => c !== 'stop').map(c => c.replace(/^category:.*/, 'category'))).toEqual(['unlock', 'cue', 'category', 'unlock', 'cue', 'category'])
+  })
+})
+
+describe('Compare: what changed (UI10)', () => {
+  // Each date's median is twice its index, so January is 0 and December 2024 is 4.
+  const withValues = () => visualization.frames.map((frame, i) => ({ frameId: frame.id, regionId: 'centre', sampled: 9, valid: 9, category: CATEGORIES[i], medianValue: i * 2 }))
+  const live = () => document.querySelector('[aria-live="polite"]')
+
+  async function openTwoDates() {
+    analyzeAll.mockImplementation(async () => withValues())
+    const view = await renderReady()
+    await view.user.selectOptions(screen.getByRole('combobox', { name: 'Comparison' }), 'Choose my own two dates')
+    await view.user.selectOptions(screen.getByRole('combobox', { name: 'Date B' }), visualization.frames[2].id)
+    return view
+  }
+
+  it('writes what changed under the dates, in the manifest\'s words, and announces it', async () => {
+    await openTwoDates()
+    const card = await screen.findByRole('heading', { name: 'What changed' })
+    expect(card.parentElement).toHaveTextContent('Overall 4 °C warmer.')
+    await waitFor(() => expect(live()).toHaveTextContent('Overall 4 °C warmer.'), { timeout: 3000 })
+  })
+
+  it('updates when a date changes', async () => {
+    const { user } = await openTwoDates()
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Date B' }), visualization.frames[1].id)
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'What changed' }).parentElement).toHaveTextContent('Overall 2 °C warmer.'))
+  })
+
+  it('plays two notes for the button, date A then date B, and none before it is pressed', async () => {
+    const { user } = await openTwoDates()
+    await screen.findByRole('heading', { name: 'What changed' })
+    expect(engine.playCategory).not.toHaveBeenCalled()
+    await user.click(screen.getByRole('button', { name: 'Hear the change' }))
+    await waitFor(() => expect(sounded()).toEqual(['category:cold', 'category:hot']), { timeout: 3000 })
+    expect(engine.playCategory.mock.calls.map(call => typeof call[1]?.pan)).toEqual(['number', 'number'])
+  })
+
+  it('keeps the summary of a ready-made comparison back until the reveal, so it does not give the answer away', async () => {
+    analyzeAll.mockImplementation(async () => withValues())
+    const { user } = await renderReady()
+    expect(screen.queryByRole('heading', { name: 'What changed' })).toBeNull()
+    await user.click(screen.getByRole('radio', { name: 'B is warmer' }))
+    await user.click(screen.getByRole('button', { name: 'Reveal the answer' }))
+    expect(screen.getByRole('heading', { name: 'What changed' }).parentElement).toHaveTextContent('Overall 4 °C warmer.')
+    expect(live()).toHaveTextContent(/Correct\. Date B is warmer\./)
+  })
+
+  it('has no accessibility violations with the summary shown', async () => {
+    const { container } = await openTwoDates()
+    await screen.findByRole('heading', { name: 'What changed' })
+    await expectNoA11yViolations(container)
   })
 })
