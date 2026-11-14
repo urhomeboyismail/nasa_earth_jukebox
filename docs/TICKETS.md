@@ -128,7 +128,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [UI01](tickets/UI01-dark-glass-tokens.md) | Dark-glass tokens, telemetry accents, mono type, Night/Day switch and server pill | L | agent+👤 | — | theme, app | open |
+| [UI01](tickets/UI01-dark-glass-tokens.md) | Dark-glass tokens, telemetry accents, mono type, Night/Day switch and server pill | L | agent+👤 | — | theme, app | claimed: A, 2026-11-14 |
 | [UI02](tickets/UI02-welcome-glass.md) | Welcome in glass: Echo's chat and the manual form | M | agent+👤 | UI01, JB11 | — | open |
 | [UI03](tickets/UI03-crate-records.md) | Vinyl Crate in glass, with a 10-second preview of the data | M | agent+👤 | UI01 | — | open |
 | [UI04](tickets/UI04-stage-transport.md) | Jukebox stage and transport in glass, with Loop and a mixer drawer | L | agent+👤 | UI01, JB10 | player | open |
