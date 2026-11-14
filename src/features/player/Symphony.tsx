@@ -93,7 +93,7 @@ export function Symphony({ visualization, preset, region }: { visualization: Vis
       <VoiceMixer voices={symphony.voices} muted={symphony.muted} solo={symphony.solo} onMute={symphony.toggleMute} onSolo={symphony.toggleSolo} />
       <MyMixControls voices={symphony.voices} muted={symphony.muted} solo={symphony.solo} setMix={symphony.setMix} />
 
-      <SoundPrefs ownPreset={visualization.sonification?.preset ?? 'major'} />
+      <SoundPrefs ownPreset={visualization.sonification?.preset ?? 'major'} cues />
 
       <p className="player__hint">Keyboard: Space plays or pauses, and Escape stops. Keys 1 to 7 solo a voice, Shift and 1 to 7 mute it, and Control Z puts the last change back.</p>
     </section>

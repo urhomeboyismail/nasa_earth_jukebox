@@ -1,5 +1,6 @@
 import { useId } from 'react'
 import { BASS_DB_RANGE } from '../../audio/ensemble'
+import { setCuesOn, useCuesOn } from '../../audio/cues'
 import { resetAudioPrefs, saveAudioPrefs, useAudioPrefs, type AudioPrefs } from '../../audio/prefs'
 import { Button, Slider, useAnnounce } from '../../components'
 import { STYLE_IDS, VOICE_IDS, type PresetId, type VoiceId } from '../../data'
@@ -20,6 +21,8 @@ type Props = {
   instruments?: boolean
   /** Show "Play sample" (the welcome; the Listen page plays the data itself). */
   sample?: boolean
+  /** Show the switch for interface sounds (the Listen page). */
+  cues?: boolean
 }
 
 const bassWords = (db: number) => (db === 0 ? 'Flat' : `${db > 0 ? 'plus' : 'minus'} ${Math.abs(db)} decibels`)
@@ -28,8 +31,9 @@ const bassWords = (db: number) => (db === 0 ? 'Flat' : `${db > 0 ? 'plus' : 'min
  * The listener's sound: a music style, the Bass setting, the speed and (in the welcome) which instruments play. Everything is written to the
  * one preference store (src/audio/prefs.ts), so the welcome and the Listen page always agree. A style is a choice of taste and never carries data.
  */
-export function SoundPrefs({ ownPreset, instruments = false, sample = false }: Props) {
+export function SoundPrefs({ ownPreset, instruments = false, sample = false, cues = false }: Props) {
   const prefs = useAudioPrefs()
+  const cuesOn = useCuesOn()
   const announce = useAnnounce()
   const id = useId()
   const chosen = prefs.style ? presetFor(prefs.style) : null
@@ -90,6 +94,14 @@ export function SoundPrefs({ ownPreset, instruments = false, sample = false }: P
           <p id={`${id}-melody`} className="sound-prefs__hint">The melody always plays: it carries the main value.</p>
         </fieldset>
       )}
+
+      {cues && (
+        <label className="player__style-option">
+          <input type="checkbox" checked={cuesOn} aria-describedby={`${id}-cues`} onChange={event => setCuesOn(event.currentTarget.checked)} />
+          <span>Interface sounds</span>
+        </label>
+      )}
+      {cues && <p id={`${id}-cues`} className="sound-prefs__hint">Short quiet tones when the voice guide connects or ends, or an answer is ready. They never carry data.</p>}
 
       <div className="sound-prefs__buttons">
         {sample && <Button onClick={() => void playSample(presetFor(prefs.style ?? ownPreset))}>Play sample</Button>}
