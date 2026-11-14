@@ -85,7 +85,6 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
 | [UI05](tickets/UI05-motion-layer.md) | Motion layer on CSS and the Web Animations API (no Anime.js): press, drawers, sky, theme sweep and Echo's flight | M | agent+👤 | — | tour | ready: feature/UI05-motion-layer |
-| [UI09](tickets/UI09-fusion-moments.md) | Remix: a chord when both decks peak together, and one caption strip | M | agent | — | — | done |
 
 ### P2: quality and smaller features
 
