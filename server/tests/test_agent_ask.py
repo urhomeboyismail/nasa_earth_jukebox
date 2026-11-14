@@ -5,11 +5,11 @@ from fastapi.testclient import TestClient
 from pydantic import SecretStr
 
 from app.agent.ask import AskService
-from app.ratelimit import TokenBucket
 from app.agent.fake import FakeLlm, keyword_script
 from app.api import agent as agent_api
 from app.config import settings
 from app.main import app
+from app.ratelimit import TokenBucket
 
 URL = "/api/v1/agent/ask"
 _REAL_BUCKET = agent_api._bucket

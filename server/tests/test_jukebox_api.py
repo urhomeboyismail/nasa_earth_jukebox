@@ -13,9 +13,9 @@ from app.agent import orchestrator
 from app.agent.fake import FakeLlm, FunctionCallSpec
 from app.api import jukebox
 from app.api.jukebox import MAX_BODY_BYTES, MAX_QUERY_CHARS
-from app.ratelimit import MAX_VISITORS, TokenBucket, VisitorBuckets
 from app.config import settings
 from app.main import app
+from app.ratelimit import MAX_VISITORS, TokenBucket, VisitorBuckets
 
 SERVER_DIR = Path(__file__).resolve().parents[1]
 URL = "/api/v1/jukebox/generate"
