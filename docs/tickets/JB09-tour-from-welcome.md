@@ -82,4 +82,4 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+`npm run lint`: clean. `npm run build`: built. `npx vitest run`: 3077 tests; two full runs under load showed timeouts in unrelated files (17, then 1 in `src/App.test.tsx`), and `src/App.test.tsx` alone then passed 50/50. Focused run of `src/features/mascot` and `src/features/welcome`: 113 passed. New tests: fly home on finish (trail, no ring, dock focus), Stop tour with no flight, tour starts after the map path only, not after the other paths or Skip the welcome. Not tried in a real browser.

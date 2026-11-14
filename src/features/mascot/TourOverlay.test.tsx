@@ -147,6 +147,38 @@ describe('the guided tour', () => {
     expect(document.querySelector('.tour__trail')).toBeInTheDocument()
   })
 
+  it('flies Echo home to the dock when the tour finishes, with a trail and no ring', async () => {
+    reduceMotion(false)
+    const user = userEvent.setup()
+    render(<App />)
+    await startTour(user)
+    for (let i = 0; i < TOUR_STEPS.length; i++) {
+      await waitFor(() => expect(caption()).toBe(TOUR_STEPS[i].say), { timeout: 3000 })
+      await waitFor(() => expect(document.querySelector('.tour__echo')).toHaveAttribute('data-flying', 'false'), { timeout: 3000 })
+      await user.click(screen.getByRole('button', { name: i === TOUR_STEPS.length - 1 ? 'Finish' : 'Next' }))
+    }
+    await waitFor(() => expect(caption()).toBe('The tour has finished.'))
+    expect(screen.getByRole('region', { name: 'Guided tour' })).toBeInTheDocument()
+    expect(document.querySelector('.tour__echo')).toHaveAttribute('data-flying', 'true')
+    expect(document.querySelector('.tour__trail')).toBeInTheDocument()
+    expect(document.querySelector('.tour__ring')).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Echo, your guide' })).toHaveFocus(), { timeout: 3000 })
+    expect(screen.queryByRole('region', { name: 'Guided tour' })).not.toBeInTheDocument()
+    expect(liveText()).toBe('The tour has finished.')
+  })
+
+  it('Stop tour ends it at once, with no flight home', async () => {
+    reduceMotion(false)
+    const user = userEvent.setup()
+    render(<App />)
+    await startTour(user)
+    await waitFor(() => expect(caption()).toBe(TOUR_STEPS[0].say))
+    await user.click(screen.getByRole('button', { name: 'Stop tour' }))
+    await waitFor(() => expect(getTour().active).toBe(false))
+    expect(document.querySelector('.tour__echo')).not.toBeInTheDocument()
+    expect(liveText()).toBe('The tour was stopped.')
+  })
+
   it('does not fly to a control that is not there, and says what to do', async () => {
     const user = userEvent.setup()
     render(<App missing />)

@@ -10,6 +10,7 @@ import { RobotBadge } from '../../components/RobotBadge'
 import { playerUpdate, type Visualization } from '../../data'
 import { useDescriptionDetail } from '../../describe/detail'
 import { currentDataParam, hashFor } from '../../route'
+import { startTour } from '../mascot/tour'
 import { resetOnboarding } from '../onboarding/store'
 import { sendPlayerCommand } from '../player/controls'
 import { SoundPrefs } from '../player/SoundPrefs'
@@ -129,6 +130,8 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
     const page = path === 'screen-reader' ? 'learn' : 'listen'
     window.location.hash = hashFor(page, { data: currentDataParam() })
     if (path === 'play') { resetOnboarding(); playWhenReady() }
+    // The map path is the sighted one: show it around. The other paths already have sound or a screen reader talking.
+    if (path === 'map') startTour(announce)
   }
 
   function answerYes() {
