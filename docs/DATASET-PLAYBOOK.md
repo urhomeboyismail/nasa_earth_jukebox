@@ -21,6 +21,8 @@ Convert into `public/data/rehearsal-<name>/`, which git ignores, and list it in 
 ```
 All the flags are in [Converting frames](data-sources.md#converting-frames-t91).
 
+For an EIC or SVS video, the staging routine does steps 3 to 6 in a few commands: `npm run new-translation -- "<Category>/<Source>/rehearsal-<name>"`, drop the `.mp4` and `.vtt` in that folder and fill in its `ingest.json`, then `npm run parse-nasa`, `npm run view` (the page reloads on every manifest edit) and `npm run check`. When the data set is final, run `npm run clean-consumption` ([Staging and captions](data-sources.md#staging-and-captions-eic04)).
+
 ## 4. Fill in the manifest (`public/data/<id>/manifest.json`)
 - Every `TODO`: title, summary, description, variable and unit, source fields, region name and description, one alt text per frame.
 - Check `colorScale.noData` (land, coast, labels) and `maxColorDistance`, and move any region points that sit on land.

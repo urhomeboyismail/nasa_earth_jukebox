@@ -47,3 +47,7 @@ public/data/rehearsal-*/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Authoring staging (EIC04): raw SVS material, never committed; emptied by npm run clean-consumption
+Consumption/*
+!Consumption/README.md

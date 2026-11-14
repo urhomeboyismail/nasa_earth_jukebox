@@ -227,6 +227,18 @@ What it does, in order: it checks every argument (nothing is written before they
 
 Not covered here: choosing the visualisations (EIC02), turning the set into a finished data set (EIC03) and making the video small enough for a phone (H06).
 
+## Staging and captions (EIC04)
+
+`scripts/consume.py` wraps `eic_ingest.py` in the routine of staging, parsing, viewing, checking and cleaning. The npm names are in `Consumption/README.md`. Each item is a folder `Consumption/<Category>/<Source>/<Item_ID>/` with one `.mp4`, an optional `.vtt` and an `ingest.json`:
+
+```json
+{ "id": "rehearsal-4960", "args": { "start-date": "2024-01-01", "step-days": 1, "legend-min": 0, "legend-max": 30, "preset": "pentatonic" } }
+```
+
+`args` are `eic_ingest.py` flags without the `--` (`true` for a switch such as `force`). `parse-nasa` refuses any `TODO` left in it. `Consumption/` is git-ignored, so when an item is finished, note the flags you used in the data set's PR.
+
+**Captions from `.vtt`.** Each cue becomes a `story` chapter `caption-<n>`, with the cue's text and its first few words as the title. Before anything is written, the cues are checked: each starts before it ends, cues run in order without overlapping, and the last ends inside the video, or `parse-nasa` stops and names the cue. A cue at second *t* starts at the latest dated frame on or before video frame ⌊*t* × fps⌋ (`firstFrameDate` + that many `frameStepDays`), and ends at the frame shown just before its end time. Running `parse-nasa` again replaces the `caption-` chapters and keeps chapters written by hand. Read them in Learn: one chapter per cue can be busy, so merge short cues into sentences in the manifest if needed.
+
 ## Known answers (D04)
 
 `npm run check-data` checks that the legend reads back its own stops, but not that the picture means the same numbers as NASA's. A data set can add `public/data/<id>/known-answers.json`: points where NASA's own number is known. `src/data/known-answers.test.ts` reads each point from the frame's picture through the legend, using the app's own `valueAtPixel`, and fails when the result differs from NASA's number by more than the legend's rounding (`legendRounding` in `src/data/check.ts`). A data set without the file is not checked. The schema and the check are in `src/data/knownAnswers.ts`.

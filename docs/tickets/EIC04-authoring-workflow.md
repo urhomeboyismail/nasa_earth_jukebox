@@ -47,4 +47,18 @@ A contributor can follow the nightvault-authors routine for an EIC item: create 
 
 ## Result
 
-Filled in by the agent.
+Branch `feature/EIC04-authoring-workflow` (agent E, 14 Nov). `scripts/consume.py` (`new`, `parse`, `clean`), `scripts/tests/test_consume.py`, npm scripts `new-translation`, `parse-nasa`, `clean-consumption`, `view`, `check`, a serve-only reload plugin in `vite.config.ts`, `Consumption/README.md` and its `.gitignore` rule, docs in `data-sources.md` ("Staging and captions (EIC04)"), `DATASET-PLAYBOOK.md` and `AGENTS.md`. No `src/` change.
+
+End to end, on a generated 3-second MP4 and a two-cue `.vtt` under `rehearsal-4960-test`:
+- `npm run new-translation -- "Atmosphere/SVS/rehearsal-4960-test"` made the folder and `ingest.json`.
+- `npm run parse-nasa` wrote the data set, `video` field and `caption-1` (2024-01-01 to 01-03) and `caption-2` (01-04 to 01-06).
+- `npm run view` served on 127.0.0.1:5180; editing the manifest sent `full-reload` on Vite's socket.
+- Overlapping cues: `consume.py: error: cue 2 ('Overlaps the first.'): it starts at 1.5 s, before cue 1 ends at 2 s`, exit 1, nothing written.
+- `npm run clean-consumption` left only `Consumption/README.md`.
+
+Checks:
+- `npm run lint`: 2 errors, both in `src/sonify/fuse.ts:31,39` (`consistent-type-assertions`), already on `main` from 1e53f2b, not touched here. So `npm run check` stops at lint until that is fixed.
+- `npm test`: 2894 passed, 3 failed (Explorer IX02 remount; Player IX03 follow; Player region picker). The two files pass alone (185/185), so the failures are timing under full-suite load, not this branch.
+- `npm run check-data`: 302 passed (15 files).
+- `.venv/bin/python -I -m pytest scripts/tests -q`: 109 passed, 1 skipped (20 new in `test_consume.py`).
+- `npm run build`: built.
