@@ -101,7 +101,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [EIC01](tickets/EIC01-ingest-script.md) | `scripts/eic_ingest.py`: MP4 or PNG sequence in, frames, colour scale, web video and manifest out | L | agent | SN05 | catalogue | done |
 | [EIC02](tickets/EIC02-pick-visualisations.md) | Pick 3–5 EIC visualisations; check source, credit and licence | S | 👤 | — | — | open |
 | [EIC03](tickets/EIC03-ingest-datasets.md) | Ingest and tune each picked visualisation (manifest and data only) | M each | agent+👤 | EIC01, EIC02 | catalogue | open |
-| [EIC04](tickets/EIC04-authoring-workflow.md) | Authoring workflow: `Consumption/` staging, `.vtt` captions to story, `parse-nasa`, `view` with reload, `check` | M | agent | EIC01 | — | claimed: E, 2026-11-14 |
+| [EIC04](tickets/EIC04-authoring-workflow.md) | Authoring workflow: `Consumption/` staging, `.vtt` captions to story, `parse-nasa`, `view` with reload, `check` | M | agent | EIC01 | — | ready: feature/EIC04-authoring-workflow |
 | [D04](tickets/D04-known-answer-check.md) | Known-answer check: decoded values against NASA's numbers | S | agent+👤 | — | catalogue | done |
 
 ### P1: Gemini on ADK and the voice panel

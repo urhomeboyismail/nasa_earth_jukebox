@@ -11,7 +11,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check-data": "vitest run src/data src/analysis/synthetic.test.ts",
-    "check-bundle": "node scripts/check-bundle.mjs"
+    "check-bundle": "node scripts/check-bundle.mjs",
+    "new-translation": ".venv/bin/python -I scripts/consume.py new",
+    "parse-nasa": ".venv/bin/python -I scripts/consume.py parse",
+    "clean-consumption": ".venv/bin/python -I scripts/consume.py clean",
+    "view": "vite --host 127.0.0.1 --port 5180 --strictPort",
+    "check": "npm run lint && npm test && npm run check-data && .venv/bin/python -I -m pytest scripts/tests -q"
   },
   "dependencies": {
     "react": "^19.3.1",
