@@ -14,10 +14,12 @@ export type AudioPrefs = {
   speed: 'slow' | 'normal' | 'fast'
   /** Never contains 'melody'. */
   muted: VoiceId[]
+  /** The listener's left and right are swapped, so every pan is flipped (the ear check, UI07). */
+  swapEars: boolean
 }
 
 export const AUDIO_PREFS_KEY = 'earth-jukebox:audio-prefs'
-export const DEFAULT_AUDIO_PREFS: AudioPrefs = { style: null, bassDb: 0, speed: 'normal', muted: [] }
+export const DEFAULT_AUDIO_PREFS: AudioPrefs = { style: null, bassDb: 0, speed: 'normal', muted: [], swapEars: false }
 
 let remembered: AudioPrefs = DEFAULT_AUDIO_PREFS
 const listeners = new Set<() => void>()

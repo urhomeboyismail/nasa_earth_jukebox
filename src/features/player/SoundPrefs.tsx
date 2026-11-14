@@ -5,6 +5,7 @@ import { resetAudioPrefs, saveAudioPrefs, useAudioPrefs, type AudioPrefs } from 
 import { Button, Slider, useAnnounce } from '../../components'
 import { STYLE_IDS, VOICE_IDS, type PresetId, type VoiceId } from '../../data'
 import { presetFor } from '../../sonify'
+import { EarCheckButton } from '../calibration/EarCheck'
 import { playSample } from './soundSample'
 import { VOICE_WORDS } from './symphonyState'
 
@@ -105,6 +106,7 @@ export function SoundPrefs({ ownPreset, instruments = false, sample = false, cue
 
       <div className="sound-prefs__buttons">
         {sample && <Button onClick={() => void playSample(presetFor(prefs.style ?? ownPreset))}>Play sample</Button>}
+        {!instruments && <EarCheckButton />}
         <Button variant="text" onClick={() => { resetAudioPrefs(); announce('Back to the data set\'s own sound.') }}>Reset to the data set's sound</Button>
       </div>
     </div>
