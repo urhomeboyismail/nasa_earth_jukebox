@@ -101,7 +101,7 @@ export function SoundPrefs({ ownPreset, instruments = false, sample = false, cue
           <span>Interface sounds</span>
         </label>
       )}
-      {cues && <p id={`${id}-cues`} className="sound-prefs__hint">Short quiet tones when the voice guide connects or ends, or an answer is ready. They never carry data.</p>}
+      {cues && <p id={`${id}-cues`} className="sound-prefs__hint">Short quiet tones, each with its words on screen: the voice guide connects (rising) or ends (falling), an answer is ready, or something fails (two low blips). Playing starts (two rising blips) and finishes (two falling blips). In Compare, one blip comes before date A and two before date B. A save, copy or link made gives three rising blips. They never carry data.</p>}
 
       <div className="sound-prefs__buttons">
         {sample && <Button onClick={() => void playSample(presetFor(prefs.style ?? ownPreset))}>Play sample</Button>}

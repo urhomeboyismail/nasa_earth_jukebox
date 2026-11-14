@@ -7,6 +7,7 @@ import { hasChange } from '../../analysis/available'
 import { useFrameAnalysis } from '../../analysis/useFrameAnalysis'
 import type { SequenceStep } from '../../audio'
 import { coarseCategory, hiddenChanges } from '../../audio/coarse'
+import { playCue } from '../../audio/cues'
 import { elevationFor, panFor, useSpatialMode } from '../../audio/pan'
 import { styleFor, useSoundStyle, type SoundStyle } from '../../audio/style'
 import { useSoundEngine } from '../../audio/useSoundEngine'
@@ -65,6 +66,9 @@ export function usePlayer(
 
   const [index, setIndex] = useState(start?.index ?? 0)
   const [status, setStatus] = useState<Status>('idle')
+  // AU-UI: the interface cue 'start' sounds only when playback really starts, not when a date is jumped to mid-run or the loop goes round.
+  const statusRef = useRef<Status>('idle')
+  useEffect(() => { statusRef.current = status }, [status])
   const [speed, setSpeedState] = useState<Speed>('normal')
   const [volume, setVolumeState] = useState(() => welcomeVolume() ?? 0.8)
   const [finished, setFinished] = useState(false)
@@ -217,6 +221,8 @@ export function usePlayer(
     rangeEnd.current = last === frames.length - 1 ? null : last
     const steps = stepsFor(from, last, stepMs)
     setFinished(false)
+    if (statusRef.current !== 'playing') playCue('start')
+    statusRef.current = 'playing'
     setStatus('playing')
     engine.playSequence(steps, k => {
       if (mine !== run.current) return
@@ -234,6 +240,8 @@ export function usePlayer(
             return
           }
           setStatus('idle')
+          statusRef.current = 'idle'
+          playCue('stop')
           // "That is the last date" is only true when the run reached the end of the data.
           setFinished(last === frames.length - 1)
           speakStop('finished', last)

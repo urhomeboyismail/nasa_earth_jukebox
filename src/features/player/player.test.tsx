@@ -76,6 +76,9 @@ const fake = vi.hoisted(() => {
   return engine
 })
 vi.mock('../../audio', () => ({ createSoundEngine: () => fake }))
+// AU-UI: the interface cues are recorded, not sounded.
+const playCue = vi.hoisted(() => vi.fn((_cue: string) => 0))
+vi.mock('../../audio/cues', async importOriginal => ({ ...(await importOriginal<typeof import('../../audio/cues')>()), playCue }))
 
 const analyzeAll = vi.hoisted(() => vi.fn())
 // IX03: the sound map reads a grid of each date, and its ensemble is a recording stand-in (as in Explorer.test.tsx).
@@ -111,6 +114,7 @@ beforeEach(() => {
   // Testing Library only advances fake timers after an event when it sees a global `jest`; without this it waits forever.
   vi.stubGlobal('jest', { advanceTimersByTime: (ms: number) => vi.advanceTimersByTime(ms) })
   fake.reset()
+  playCue.mockClear()
   analyzeAll.mockReset()
   analyzeAll.mockImplementation(async () => analysis())
 })
@@ -1300,5 +1304,39 @@ describe('Player: region picker', () => {
     await tick(0)
     vi.useRealTimers() // axe waits on real timers
     await expectNoA11yViolations(container)
+  })
+})
+
+describe('Player: interface cues (AU-UI)', () => {
+  it('sounds start once when playback starts and stop once when it ends, not on every date', async () => {
+    const { user } = await renderReady()
+    expect(playCue).not.toHaveBeenCalled()
+    await user.click(screen.getByRole('button', { name: 'Play' }))
+    await tick(0)
+    expect(playCue.mock.calls.map(c => c[0])).toEqual(['start'])
+    await tick(3000) // every date has been played; the run is not over yet
+    expect(playCue.mock.calls.map(c => c[0])).toEqual(['start'])
+    await tick(1500)
+    expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument()
+    expect(playCue.mock.calls.map(c => c[0])).toEqual(['start', 'stop'])
+  })
+
+  it('does not sound start again when the listener resumes, and not stop when they pause', async () => {
+    const { user } = await renderReady()
+    await user.click(screen.getByRole('button', { name: 'Play' }))
+    await tick(0)
+    await user.click(screen.getByRole('button', { name: 'Pause' }))
+    await user.click(screen.getByRole('button', { name: 'Resume' }))
+    await tick(0)
+    expect(playCue.mock.calls.map(c => c[0])).toEqual(['start'])
+  })
+
+  it('sounds success when the link is copied', async () => {
+    const { user } = await renderReady()
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText: vi.fn(async (_text: string) => {}) }, configurable: true })
+    await user.click(screen.getByRole('button', { name: 'Copy link to this moment' }))
+    await tick(0)
+    expect(playCue.mock.calls.map(c => c[0])).toEqual(['success'])
+    expect(liveText()).toBe('Link copied')
   })
 })

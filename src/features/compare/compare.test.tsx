@@ -16,6 +16,8 @@ const visualization = fixture as Visualization
 const CATEGORIES = ['cold', 'mild', 'hot', 'insufficient'] as const
 
 const calls = vi.hoisted(() => [] as string[])
+// AU-UI: the interface cues, in the order they and the engine's sounds happened.
+const cueLog = vi.hoisted(() => [] as string[])
 const engine = vi.hoisted(() => ({
   unlock: vi.fn(async () => { calls.push('unlock') }),
   playCategory: vi.fn((id: string) => { calls.push(`category:${id}`) }),
@@ -25,6 +27,10 @@ const engine = vi.hoisted(() => ({
   setSpatial: vi.fn(),
 }))
 vi.mock('../../audio', () => ({ createSoundEngine: () => engine }))
+vi.mock('../../audio/cues', async importOriginal => ({
+  ...(await importOriginal<typeof import('../../audio/cues')>()),
+  playCue: vi.fn((cue: string) => { cueLog.push(cue); calls.push('cue'); return 0 }),
+}))
 
 const analyzeAll = vi.hoisted(() => vi.fn())
 vi.mock('../../analysis', () => ({ analyzeAll }))
@@ -33,6 +39,7 @@ const analysis = () => visualization.frames.map((frame, i) => ({ frameId: frame.
 
 beforeEach(() => {
   calls.length = 0
+  cueLog.length = 0
   vi.clearAllMocks()
   analyzeAll.mockImplementation(async () => analysis())
 })
@@ -43,7 +50,7 @@ async function renderReady() {
   await waitFor(() => expect(screen.getByRole('button', { name: 'Play date A' })).toBeEnabled())
   return { user, ...view }
 }
-const sounded = () => calls.filter(c => c !== 'stop' && c !== 'unlock')
+const sounded = () => calls.filter(c => c !== 'stop' && c !== 'unlock' && c !== 'cue')
 
 describe('Compare: the ready-made comparison', () => {
   it('shows the question, and the buttons are off until the analysis finishes', async () => {
@@ -61,7 +68,7 @@ describe('Compare: the ready-made comparison', () => {
     const { user } = await renderReady()
     await user.click(screen.getByRole('button', { name: 'Play date A' }))
     await user.click(screen.getByRole('button', { name: 'Play date B' }))
-    expect(calls.filter(c => c !== 'stop')).toEqual(['unlock', 'category:cold', 'unlock', 'category:hot'])
+    expect(calls.filter(c => c !== 'stop' && c !== 'cue')).toEqual(['unlock', 'category:cold', 'unlock', 'category:hot'])
   })
 
   it('keeps the images hidden until the answer is revealed', async () => {
@@ -339,5 +346,16 @@ describe('Compare: the test-mode flag', () => {
     rerender(<ComparePage visualization={visualization} testMode={false} />)
     expect(screen.queryByText('Listening test')).toBeNull()
     expect(screen.getByRole('button', { name: 'Play date A' })).toBeInTheDocument()
+  })
+})
+
+describe('Compare: interface cues (AU-UI)', () => {
+  it('blips once before date A and twice (as compareB) before date B, each ahead of its sound', async () => {
+    const { user } = await renderReady()
+    await user.click(screen.getByRole('button', { name: 'Play date A' }))
+    await user.click(screen.getByRole('button', { name: 'Play date B' }))
+    expect(cueLog).toEqual(['compareA', 'compareB'])
+    // Each cue comes after the unlock and before the date's own sound.
+    expect(calls.filter(c => c !== 'stop').map(c => c.replace(/^category:.*/, 'category'))).toEqual(['unlock', 'cue', 'category', 'unlock', 'cue', 'category'])
   })
 })
