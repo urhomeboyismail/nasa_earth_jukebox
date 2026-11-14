@@ -28,3 +28,18 @@ export const CHECK_STEPS = [
 export const NOT_HEARD = 'Check that your headphones or speakers are on and the volume is up, then press Replay. You can carry on without it.'
 
 export const VOLUME_QUESTION = 'Is this volume comfortable?'
+
+export const CHAT_GREETING = `Commander! Welcome to the Earth Information Jukebox. I'm ${MASCOT_NAME}, your sonic guide. Before we drop the needle on these NASA datasets, what should I call you?`
+
+export const tuneQuestion = (name: string) =>
+  `${name ? `Great to meet you, ${name}!` : 'Great to meet you!'} How are we tuning your sound frequencies today?`
+
+export const lockedLine = (name: string) => `Frequencies locked${name ? `, ${name}` : ''}! Let's explore the planet.`
+
+/** The four sounds offered in the chat. The ids are styles that already exist (src/sonify/presets.ts). */
+export const TUNE_CHIPS = [
+  { id: 'cinematic', label: 'Cinematic Orchestral' },
+  { id: 'chiptune', label: '8-Bit Arcade' },
+  { id: 'nature', label: 'Nature Ambient' },
+  { id: 'bass', label: 'Heavy Bass' },
+] as const
