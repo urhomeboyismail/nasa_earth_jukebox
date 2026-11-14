@@ -15,7 +15,7 @@ function Page({ missing = false }: { missing?: boolean }) {
     <main>
       <div data-tour="dataset-picker"><label>Data set<select><option>One</option></select></label></div>
       {!missing && <button type="button" data-tour="play">Play</button>}
-      <button type="button" data-tour="explore">Explore the map</button>
+      <div data-tour="mixer"><span>Speed</span><label>Volume<input type="range" /></label></div>
     </main>
   )
 }

@@ -317,7 +317,7 @@ function Player({ visualization, region }: { visualization: Visualization; regio
         />
       </div>
 
-      <div className="player__settings">
+      <div className="player__settings" data-tour="mixer">
         <div role="group" aria-label="Speed" className="player__speed">
           <span className="player__speed-label" aria-hidden="true">Speed</span>
           {SPEEDS.map(({ id, label }) => (

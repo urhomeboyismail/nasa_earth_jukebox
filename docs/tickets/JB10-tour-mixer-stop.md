@@ -64,4 +64,10 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Built by agent E, 14 Nov 2026. `data-tour="mixer"` is on the existing `player__settings` wrapper (holds Speed and Volume); the third `TOUR_STEPS` entry now points at it. `data-tour="explore"` is kept. The `TourOverlay` test page and a new `runDemo.test.ts` case follow the new stop.
+
+Checks (Windows, Node), on this branch merged with `chore/fusion-file-casing` (it fixes a `Fusion.ts`/`fusion.ts` casing clash on `main` that stops the build on Windows):
+- `npm test`: 206 files, 2963 tests passed.
+- `npm run build`: built.
+- `npm run lint`: 2 errors, both in `src/sonify/fuse.ts` (type assertions), a file this ticket does not touch; the same on `main`.
+- The tour was not opened in a browser; the tests cover that the third step targets `[data-tour="mixer"]`.
