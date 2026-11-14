@@ -14,6 +14,7 @@ import { dropoutTaps } from './dropout'
 import type { Graph } from './graph'
 import { midiToHz, planFrame, type VoiceAction } from './plan'
 import { TIME_PULSE_MIDI } from '../../sonify/ranges'
+import { cutoff, DEFAULT_TIMBRE, type Timbre } from './timbre'
 import type { HeldTone, NoteEvent } from './types'
 
 type ToneModule = typeof import('tone')
@@ -27,13 +28,18 @@ export type PlayerContext = {
   clock: () => number
   /** Whether the player may make sound now: live, only while the ensemble is on; offline, always. */
   canSound: () => boolean
+  /** The data set's timbre (SN14); absent is the default, today's sound. */
+  timbre?: Timbre
 }
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, Number.isFinite(value) ? value : 0))
-const lerp = (low: number, high: number, amount: number) => low + (high - low) * clamp01(amount)
 
 export function createPlayer(ctx: PlayerContext) {
   const { t, graph, preset } = ctx
+  const timbre = ctx.timbre ?? DEFAULT_TIMBRE
+  const holdHz = (brightness: number) => cutoff(timbre.filterHz ?? HOLD_FILTER_HZ, brightness, timbre.exponential)
+  const motionHz = (brightness: number) => cutoff(timbre.filterHz ?? MOTION_FILTER_HZ, brightness, timbre.exponential)
+  const wide = (pan: number) => pan * timbre.panWidth
   const transport = t.getTransport()
 
   let detail: DetailLevel = 'full'
@@ -136,8 +142,8 @@ export function createPlayer(ctx: PlayerContext) {
           slots[a.slot] = null
           return
         }
-        aimPanner(slot.panner, a.pan, a.elevation, at)
-        slot.filter.frequency.rampTo(lerp(HOLD_FILTER_HZ.low, HOLD_FILTER_HZ.high, a.brightness), PARAM_RAMP_S, at)
+        aimPanner(slot.panner, wide(a.pan), a.elevation, at)
+        slot.filter.frequency.rampTo(holdHz(a.brightness), PARAM_RAMP_S, at)
         const held = slots[a.slot]
         const midi = a.midis[0]
         // A slot that keeps following the same spot slides to the spot's new note.
@@ -153,7 +159,7 @@ export function createPlayer(ctx: PlayerContext) {
         clearRhythm()
         setLevel(graph.rhythm.out, a.level, at)
         if (!a.sounding || !a.midis.length) return
-        aimPanner(graph.rhythm.panner, a.pan, 0, at)
+        aimPanner(graph.rhythm.panner, wide(a.pan), 0, at)
         const perBeat = a.perBeat ?? 1
         const gap = 60 / frame.time.pulseBpm / perBeat
         const start = toTransport(at)
@@ -175,8 +181,8 @@ export function createPlayer(ctx: PlayerContext) {
           synth.triggerAttack(midiToHz(MOTION_PAD_MIDI + preset.tonic), at)
           motionOn = true
         }
-        filter.frequency.rampTo(lerp(MOTION_FILTER_HZ.low, MOTION_FILTER_HZ.high, a.brightness), PARAM_RAMP_S, at)
-        aimPanner(panner, a.pan, 0, at)
+        filter.frequency.rampTo(motionHz(a.brightness), PARAM_RAMP_S, at)
+        aimPanner(panner, wide(a.pan), 0, at)
         return
       }
       case 'time': {
@@ -236,8 +242,8 @@ export function createPlayer(ctx: PlayerContext) {
       setLevel(voice.out, 0, at)
       return
     }
-    aimPanner(voice.panner, tone.pan, tone.elevation ?? 0, at)
-    voice.filter.frequency.rampTo(lerp(HOLD_FILTER_HZ.low, HOLD_FILTER_HZ.high, tone.brightness), PARAM_RAMP_S, at)
+    aimPanner(voice.panner, wide(tone.pan), tone.elevation ?? 0, at)
+    voice.filter.frequency.rampTo(holdHz(tone.brightness), PARAM_RAMP_S, at)
     setLevel(voice.out, clamp01(tone.level), at)
     const hz = midiToHz(tone.midi)
     if (holdMidi === null) voice.synth.triggerAttack(hz, at)
@@ -250,8 +256,8 @@ export function createPlayer(ctx: PlayerContext) {
     const at = atTime ?? defaultTime()
     notes.slice(0, SCAN_VOICES).forEach((note, i) => {
       const voice = graph.scan[i]
-      aimPanner(voice.panner, note.pan, note.elevation ?? 0, at)
-      voice.filter.frequency.setValueAtTime(lerp(HOLD_FILTER_HZ.low, HOLD_FILTER_HZ.high, note.brightness ?? 0.5), at)
+      aimPanner(voice.panner, wide(note.pan), note.elevation ?? 0, at)
+      voice.filter.frequency.setValueAtTime(holdHz(note.brightness ?? 0.5), at)
       voice.synth.triggerAttackRelease(midiToHz(note.midi), note.seconds, at, clamp01(note.level))
     })
   }

@@ -12,6 +12,7 @@ import {
   CEILING_LINEAR, CLIP_CURVE_POINTS, COMPRESSOR, DROPOUT_GAIN_DB, GLIDE_S, HARMONY_POLYPHONY, HOLD_FILTER_HZ, MALLET_ENVELOPE, MASTER_LIMIT_DB, MAX_HOTSPOT_VOICES,
   MOTION_FILTER_HZ, SCAN_VOICES, SPACE, VOICE_GAIN_DB,
 } from './constants'
+import { oscillatorFor } from './timbre'
 
 type ToneModule = typeof import('tone')
 type Synth = InstanceType<ToneModule['Synth']>
@@ -55,6 +56,8 @@ export type GraphOptions = {
   kit?: Kit
   /** Added to the bass voice's level, −6 to +6 dB (the listener's Bass setting). */
   bassDb?: number
+  /** SN14: FM oscillators for every pitched voice. The time pulse and the dropout taps stay plain, so they always sound the same. */
+  fm?: boolean
 }
 
 const DEFAULT_KIT: Kit = { melody: 'triangle', bass: 'triangle', rhythm: 'triangle' }
@@ -79,7 +82,7 @@ export function buildGraph(t: ToneModule, options: GraphOptions): Graph {
   const gain = (target: Parameters<Gain['connect']>[0]) => track(new t.Gain(0).connect(target))
   const kit = options.kit ?? DEFAULT_KIT
   const synthFor = (voice: VoiceId, type: Waveform, envelope: object, extra: object = {}) =>
-    track(new t.Synth({ oscillator: { type }, envelope, volume: VOICE_GAIN_DB[voice], ...extra }))
+    track(new t.Synth({ oscillator: { type: oscillatorFor(type, options.fm === true && voice !== 'time') }, envelope, volume: VOICE_GAIN_DB[voice], ...extra }))
   const filterTo = (target: Gain | Panner, frequency: number) => track(new t.Filter({ type: 'lowpass', frequency, Q: 1, rolloff: -12 }).connect(target))
   const pannerTo = (target: Gain) => track(createPanner(t, options.spatial).connect(target))
   const PLUCK = { attack: 0.005, decay: 0.12, sustain: 0, release: 0.08 }

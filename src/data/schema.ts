@@ -99,11 +99,27 @@ const video = z
     frameStepDays: z.number().int('must be a whole number of days').min(1, 'must be 1 or more'),
   })
   .strict()
+// SN14: an optional, general timbre. Strict, so a misspelt field is reported. The limits keep the filter audible and inside the room the limiter expects.
+const FILTER_HZ_LIMITS = { min: 20, max: 12000 }
+const hz = z.number().min(FILTER_HZ_LIMITS.min, `must be ${FILTER_HZ_LIMITS.min} Hz or more`).max(FILTER_HZ_LIMITS.max, `must be ${FILTER_HZ_LIMITS.max} Hz or less`)
+const timbre = z
+  .object({
+    instrument: z.enum(['synth', 'fm'], { error: 'must be "synth" or "fm"' }).optional(),
+    filterHz: z
+      .object({ low: hz, high: hz })
+      .strict()
+      .refine(range => range.low < range.high, { message: 'low must be below high', path: ['high'] })
+      .optional(),
+    curve: z.enum(['linear', 'exponential'], { error: 'must be "linear" or "exponential"' }).optional(),
+    panWidth: z.number().min(0, 'must be 0 or more').max(1, 'must be 1 or less').optional(),
+  })
+  .strict()
 const sonification = z
   .object({
     preset: z.enum(PRESET_IDS, { error: `must be one of ${PRESET_IDS.join(', ')}` }),
     detail: z.enum(DETAIL_LEVELS, { error: `must be one of ${DETAIL_LEVELS.join(', ')}` }).optional(),
     voices: z.array(z.enum(VOICE_IDS, { error: `must be one of ${VOICE_IDS.join(', ')}` })).min(1, 'needs at least one voice; leave it out to use all seven').optional(),
+    timbre: timbre.optional(),
   })
   .strict()
 

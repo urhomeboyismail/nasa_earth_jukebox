@@ -416,6 +416,17 @@ describe('v3 fields: legend, video and sonification (SN05)', () => {
     expect(errorAfter(v => { v.sonification = { preset: 'major', voices: [] } })).toBe('sonification.voices: needs at least one voice; leave it out to use all seven')
     expect(errorAfter(v => { v.sonification = { preset: 'major', detial: 'calm' } })).toMatch(/^sonification: .*detial/)
   })
+
+  it('accepts a timbre (SN14) and reports one out of its limits', () => {
+    accepts(v => { v.sonification = { preset: 'major', timbre: { instrument: 'fm', filterHz: { low: 300, high: 4000 }, curve: 'exponential', panWidth: 0.5 } } })
+    accepts(v => { v.sonification = { preset: 'major', timbre: {} } })
+    expect(errorAfter(v => { v.sonification = { preset: 'major', timbre: { instrument: 'organ' } } })).toBe('sonification.timbre.instrument: must be "synth" or "fm"')
+    expect(errorAfter(v => { v.sonification = { preset: 'major', timbre: { filterHz: { low: 4000, high: 300 } } } })).toBe('sonification.timbre.filterHz.high: low must be below high')
+    expect(errorAfter(v => { v.sonification = { preset: 'major', timbre: { filterHz: { low: 10, high: 300 } } } })).toBe('sonification.timbre.filterHz.low: must be 20 Hz or more')
+    expect(errorAfter(v => { v.sonification = { preset: 'major', timbre: { panWidth: 2 } } })).toBe('sonification.timbre.panWidth: must be 1 or less')
+    expect(errorAfter(v => { v.sonification = { preset: 'major', timbre: { curve: 'log' } } })).toBe('sonification.timbre.curve: must be "linear" or "exponential"')
+    expect(errorAfter(v => { v.sonification = { preset: 'major', timbre: { flterHz: {} } } })).toMatch(/^sonification\.timbre: .*flterHz/)
+  })
 })
 
 describe("Echo's look: the mascot field (JB04)", () => {

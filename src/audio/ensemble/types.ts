@@ -1,5 +1,6 @@
 // The ensemble's public types (docs/PLAN.md §6.3, ticket SN04). Types only.
 
+import type { TimbreSpec } from '../../data/types'
 import type { DetailLevel, MusicFrame, VoiceId } from '../../sonify/types'
 import type { SpatialMode } from '../pan'
 
@@ -13,7 +14,8 @@ export type NoteEvent = { midi: number; level: number; pan: number; elevation?: 
 
 export type ScheduledFrame = { frame: MusicFrame; atSeconds: number }
 
-export type EnsembleOptions = { detail?: DetailLevel; volume?: number; spatial?: SpatialMode; bassDb?: number }
+/** `timbre` is the data set's `sonification.timbre` (SN14); absent is today's sound. */
+export type EnsembleOptions = { detail?: DetailLevel; volume?: number; spatial?: SpatialMode; bassDb?: number; timbre?: TimbreSpec }
 
 export type Ensemble = {
   /** Call from a click or key press only (WCAG 1.4.2). Starts the audio context and resumes it if the browser suspended it. */
