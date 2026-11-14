@@ -40,6 +40,7 @@ Files many tickets touch. Two agents must never be in the same hotspot at the sa
 | `ask` | `src/features/ask/AskPanel.tsx`, `ask.ts`, `facts.ts` |
 | `about` | `src/features/about/index.tsx` |
 | `catalogue` | `public/data/index.json`, `docs/data-sources.md` |
+| `theme` | `scripts/make_tokens.mjs`, `src/styles/tokens.css`, `src/styles/components.css`, `src/index.css` |
 
 ## The queue
 
@@ -122,6 +123,17 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [V01](tickets/V01-agent-panel-focus-undo.md) | Agent panel: focus not stolen, "Echo did" with Undo, Alt+E, Stop | M | agent | — | app, voice | done |
 | [V02](tickets/V02-mic-consent-text-only.md) | Mic consent first, text-only mode, push-to-talk, session warning | M | agent | — | app, voice | done |
 | [V03](tickets/V03-voice-client-hygiene.md) | Voice client: parsed messages, quieter status, shared icons | S | agent | — | voice | done |
+
+### P1: UI overhaul (the Muninn look; [`planning/UI-OVERHAUL.md`](planning/UI-OVERHAUL.md))
+
+| ID | Ticket | Size | Who | Needs | Hotspots | Status |
+|---|---|---|---|---|---|---|
+| [UI01](tickets/UI01-dark-glass-tokens.md) | Dark-glass tokens, telemetry accents, mono type, Night/Day switch and server pill | L | agent+👤 | — | theme, app | open |
+| [UI02](tickets/UI02-welcome-glass.md) | Welcome in glass: Echo's chat and the manual form | M | agent+👤 | UI01, JB11 | — | open |
+| [UI03](tickets/UI03-crate-records.md) | Vinyl Crate in glass, with a 10-second preview of the data | M | agent+👤 | UI01 | — | open |
+| [UI04](tickets/UI04-stage-transport.md) | Jukebox stage and transport in glass, with Loop and a mixer drawer | L | agent+👤 | UI01, JB10 | player | open |
+| [UI05](tickets/UI05-motion-layer.md) | Motion layer on Anime.js: press, drawers, sky, theme sweep and Echo's flight | M | agent+👤 | UI01, JB09 | — | open |
+| [UI06](tickets/UI06-compare-decks.md) | Compare and Remix as two glass decks, with a dual-handle date scrubber | M | agent+👤 | UI01 | compare | open |
 
 ### P2: quality and smaller features
 
