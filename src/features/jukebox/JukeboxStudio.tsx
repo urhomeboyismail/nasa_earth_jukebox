@@ -42,6 +42,12 @@ const ERRORS: Record<JukeboxErrorKind, string> = {
   unreachable: 'The server could not be reached. Is it running? You can still try the offline demo below.',
 }
 
+/** The message for an error, with the server's wait when it gave one. */
+function errorText(error: JukeboxErrorKind, retryAfter?: number): string {
+  if (error === 'rate' && retryAfter) return `Too many requests just now. Try again in about ${retryAfter} second${retryAfter === 1 ? '' : 's'}.`
+  return ERRORS[error]
+}
+
 type Answer = { audio: AudioPayload; vision: VisionPayload | null; approved: boolean; feedback: string }
 
 function readOffline(text: string): Answer | null {
@@ -60,7 +66,7 @@ export function JukeboxStudio() {
   const [contrast, setContrast] = useState<JukeboxRequest['contrast']>('high')
   const [detailLevel, setDetailLevel] = useState<JukeboxRequest['detailLevel']>('verbose')
   const [waiting, setWaiting] = useState(false)
-  const [error, setError] = useState<JukeboxErrorKind | null>(null)
+  const [error, setError] = useState<{ kind: JukeboxErrorKind; retryAfter?: number } | null>(null)
   const [nothing, setNothing] = useState(false)
   const [answer, setAnswer] = useState<Answer | null>(null)
   const [offlineText, setOfflineText] = useState(SAMPLE)
@@ -80,8 +86,8 @@ export function JukeboxStudio() {
     if (sent.current !== mine) return
     setWaiting(false)
     if (result.kind === 'error') {
-      setError(result.error)
-      announce(ERRORS[result.error])
+      setError({ kind: result.error, retryAfter: result.retryAfter })
+      announce(errorText(result.error, result.retryAfter))
     } else if (result.kind === 'nothing') setNothing(true)
     else setAnswer(result.answer)
   }
@@ -147,7 +153,7 @@ export function JukeboxStudio() {
       {waiting && <p role="status">Orchestrating NASA data and auditing accessibility...</p>}
       {error && (
         <Notice variant="error" action={{ label: 'Retry', onClick: () => last.current && void send(last.current), disabled: waiting }}>
-          {ERRORS[error]}
+          {errorText(error.kind, error.retryAfter)}
         </Notice>
       )}
       {nothing && <Notice variant="info">No data was found for that question, so nothing was made. Try another question.</Notice>}

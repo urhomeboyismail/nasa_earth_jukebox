@@ -67,6 +67,14 @@ describe('JukeboxStudio', () => {
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ query: 'Show wildfires', accessibilityProfile: { contrast: 'low', detailLevel: 'brief' } })
   })
 
+  it('says how long to wait when the server gives a Retry-After', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 429, headers: { 'Retry-After': '12' } })))
+    show()
+    await userEvent.click(screen.getByRole('button', { name: 'Demo: Amazon smoke' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Try again in about 12 seconds.')
+    expect(announced.at(-1)).toMatch('Try again in about 12 seconds.')
+  })
+
   it('limits the question to 300 characters', () => {
     show()
     expect(screen.getByRole('textbox', { name: 'Your question' })).toHaveAttribute('maxlength', '300')

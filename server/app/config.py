@@ -45,6 +45,7 @@ class Settings(BaseSettings):
     # it is off unless switched on, limited to a few runs a minute for the whole server, and each run has a time limit.
     jukebox_enabled: bool = False
     jukebox_runs_per_minute: int = Field(default=4, gt=0)
+    jukebox_runs_per_minute_per_visitor: int = Field(default=2, gt=0)  # so one visitor cannot use up everyone's runs
     jukebox_timeout_seconds: float = Field(default=120, gt=0)
 
     # Google ADK agent (G01 to G05). Nothing calls the model while agent_enabled is false.
@@ -53,6 +54,7 @@ class Settings(BaseSettings):
     # Seconds one agent request may take before it gives up.
     agent_timeout_seconds: float = Field(default=2.5, gt=0)
     agent_max_requests_per_minute: int = Field(default=5, gt=0)  # one token bucket for the whole server
+    agent_max_requests_per_minute_per_visitor: int = Field(default=3, gt=0)  # and one for each visitor
     # Which engine runs the voice guide: the old Gemini Live bridge or the ADK agent.
     assistant_engine: Literal["bridge", "adk"] = "bridge"  # G05 changes the default to "adk"
 

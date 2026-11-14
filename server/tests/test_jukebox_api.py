@@ -12,7 +12,8 @@ from pydantic import SecretStr
 from app.agent import orchestrator
 from app.agent.fake import FakeLlm, FunctionCallSpec
 from app.api import jukebox
-from app.api.jukebox import MAX_BODY_BYTES, MAX_QUERY_CHARS, TokenBucket
+from app.api.jukebox import MAX_BODY_BYTES, MAX_QUERY_CHARS
+from app.ratelimit import MAX_VISITORS, TokenBucket, VisitorBuckets
 from app.config import settings
 from app.main import app
 
@@ -57,9 +58,12 @@ def client(monkeypatch):
     monkeypatch.setattr(orchestrator, "_frame_parts", frames)
     monkeypatch.setattr(settings, "jukebox_enabled", True)
     monkeypatch.setattr(settings, "gemini_api_key", SecretStr("not-a-real-key"))
+    monkeypatch.setattr(settings, "jukebox_runs_per_minute_per_visitor", 100)  # Each test sets the limit it checks.
     jukebox._bucket.cache_clear()
+    jukebox._visitors.cache_clear()
     yield TestClient(app)
     jukebox._bucket.cache_clear()
+    jukebox._visitors.cache_clear()
 
 
 def _use(monkeypatch, model):
@@ -162,7 +166,9 @@ def test_runs_are_rate_limited_for_the_whole_server(client, monkeypatch):
     model = _use(monkeypatch, _model({"is_approved": True, "feedback": ""}))
     monkeypatch.setattr(settings, "jukebox_runs_per_minute", 2)
     jukebox._bucket.cache_clear()
-    assert [client.post(URL, json=BODY).status_code for _ in range(3)] == [200, 200, 429]
+    responses = [client.post(URL, json=BODY) for _ in range(3)]
+    assert [r.status_code for r in responses] == [200, 200, 429]
+    assert int(responses[2].headers["Retry-After"]) >= 1
     assert len([r for r in model.calls if "Accessibility Auditor" in str(r.config.system_instruction)]) == 2
 
 
@@ -221,3 +227,30 @@ def test_the_real_graph_is_built_once_and_only_when_asked_for():
     finally:
         jukebox._graph.cache_clear()
     assert asyncio.iscoroutinefunction(jukebox.generate)
+
+
+def test_one_visitor_cannot_use_up_everyone_s_runs(client, monkeypatch):
+    _use(monkeypatch, _model({"is_approved": True, "feedback": ""}))
+    monkeypatch.setattr(settings, "jukebox_runs_per_minute_per_visitor", 1)
+    jukebox._visitors.cache_clear()
+    one, other = {"X-Forwarded-For": "203.0.113.1"}, {"X-Forwarded-For": "203.0.113.2"}
+    assert [client.post(URL, json=BODY, headers=one).status_code for _ in range(2)] == [200, 429]
+    assert client.post(URL, json=BODY, headers=other).status_code == 200
+
+
+def test_retry_after_is_the_wait_for_the_next_token():
+    now = [0.0]
+    bucket = TokenBucket(2, clock=lambda: now[0])
+    bucket.take()
+    bucket.take()
+    assert bucket.retry_after() == 30
+    now[0] = 29.5
+    assert bucket.retry_after() == 1
+
+
+def test_visitors_are_capped_oldest_first():
+    visitors = VisitorBuckets(1, clock=lambda: 0.0)
+    assert visitors.get("first").take()
+    for i in range(MAX_VISITORS):
+        visitors.get(f"v{i}")
+    assert visitors.get("first").take()  # Forgotten, so it starts again full.

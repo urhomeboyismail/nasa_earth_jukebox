@@ -50,6 +50,19 @@ describe('generateJukebox', () => {
     expect(await generateJukebox(request)).toEqual({ kind: 'error', error })
   })
 
+  it.each([
+    ['12', 12],
+    ['soon', undefined],
+    ['0', undefined],
+    [null, undefined],
+  ])('reads Retry-After %s on a 429 as %s seconds', async (header, retryAfter) => {
+    const headers: Record<string, string> = header === null ? {} : { 'Retry-After': header }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 429, headers })))
+    const result = await generateJukebox(request)
+    expect(result).toEqual({ kind: 'error', error: 'rate', ...(retryAfter && { retryAfter }) })
+    expect('retryAfter' in result).toBe(retryAfter !== undefined)
+  })
+
   it('does not throw on a network failure', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('failed')))
     expect(await generateJukebox(request)).toEqual({ kind: 'error', error: 'unreachable' })
