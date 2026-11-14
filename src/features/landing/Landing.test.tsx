@@ -11,10 +11,13 @@ import { AUDIO_PREFERENCE_KEY, ONBOARDING_DONE_KEY, readLandingDone, USER_NAME_K
 
 vi.mock('../home/OrbitGlobe', () => ({ default: () => <canvas aria-hidden="true" /> }))
 
+const speak = vi.hoisted(() => vi.fn((_text: string) => Promise.resolve()))
+vi.mock('../welcome/speak', () => ({ speak, hush: vi.fn() }))
+
 const onDone = vi.fn()
 const show = () => render(<AnnouncerProvider><Landing onDone={onDone} /></AnnouncerProvider>)
 
-beforeEach(() => { localStorage.clear(); forgetKeptValues(); onDone.mockClear() })
+beforeEach(() => { localStorage.clear(); forgetKeptValues(); onDone.mockClear(); speak.mockClear() })
 afterEach(() => localStorage.clear())
 
 describe('Landing', () => {
@@ -76,6 +79,21 @@ describe('Landing', () => {
     expect(onDone).toHaveBeenCalledTimes(1)
     expect(readLandingDone()).toBe(true)
     expect(localStorage.getItem(USER_NAME_KEY)).toBeNull()
+  })
+
+  it('is silent until Hear Echo is pressed, then speaks the line and each one after', async () => {
+    const user = userEvent.setup()
+    show()
+    expect(speak).not.toHaveBeenCalled()
+    await user.click(screen.getByRole('button', { name: 'Hear Echo' }))
+    expect(screen.getByRole('button', { name: 'Hear Echo' })).toHaveAttribute('aria-pressed', 'true')
+    expect(speak).toHaveBeenLastCalledWith(expect.stringContaining('What should I call you?'))
+    await user.click(screen.getByRole('button', { name: 'Skip this question' }))
+    expect(speak).toHaveBeenLastCalledWith(expect.stringContaining('Great to meet you, Commander!'))
+    await user.click(screen.getByRole('button', { name: 'Hear Echo' }))
+    expect(screen.getByRole('button', { name: 'Hear Echo' })).toHaveAttribute('aria-pressed', 'false')
+    await user.click(screen.getByRole('button', { name: 'Back' }))
+    expect(speak).toHaveBeenCalledTimes(2)
   })
 
   it('has no accessibility violations in either step or the manual form', async () => {

@@ -1,5 +1,6 @@
 // The landing page (entry view, #welcome): the spinning Earth with Echo on it, and Echo asking two questions: your name, then the
-// sound vibe you like. Plain chat bubbles, no speech and no sound before a click. "Prefer manual setup?" swaps the chat for one form
+// sound vibe you like. Plain chat bubbles. Echo speaks each line aloud once "Hear Echo" is pressed (a click, which browsers need
+// before they allow speech; off by default, since a screen reader is that listener's voice). "Prefer manual setup?" swaps the chat for one form
 // with the same two fields. Finishing (or skipping) remembers it and calls onDone, which opens Home.
 
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
@@ -9,6 +10,7 @@ import { readAudioPrefs } from '../../audio/prefs'
 import OrbitGlobe from '../home/OrbitGlobe'
 import { NAME_MAX, readIntro } from '../intro/storage'
 import { CHAT_GREETING, MASCOT_NAME, soundQuestion, TUNE_CHIPS } from '../welcome/lines'
+import { hush, speak } from '../welcome/speak'
 import { saveLanding, skipLanding } from './storage'
 import './landing.css'
 
@@ -21,6 +23,7 @@ export default function Landing({ onDone }: { onDone: () => void }) {
   const [step, setStep] = useState<'name' | 'sound'>('name')
   const [manual, setManual] = useState(false)
   const [name, setName] = useState(() => readIntro().name ?? '')
+  const [voice, setVoice] = useState(false)
   const [style, setStyle] = useState<PresetId | null>(() => readAudioPrefs().style)
 
   useEffect(() => {
@@ -29,10 +32,23 @@ export default function Landing({ onDone }: { onDone: () => void }) {
     stepHeading.current?.focus()
   }, [step, manual])
 
+  useEffect(() => hush, [])
+
   function go(next: 'name' | 'sound', line: string) {
     moveFocus.current = true
     setStep(next)
     announce(line)
+    if (voice) void speak(line)
+  }
+
+  function toggleVoice() {
+    if (voice) {
+      hush()
+      announce(`${MASCOT_NAME}'s voice is off.`)
+    } else {
+      void speak(step === 'name' ? CHAT_GREETING : soundQuestion(name))
+    }
+    setVoice(!voice)
   }
 
   function sendName(skip: boolean) {
@@ -68,6 +84,7 @@ export default function Landing({ onDone }: { onDone: () => void }) {
         <div className="landing__top">
           {/* First in focus order, so anyone can skip at once. */}
           <Button variant="text" onClick={skip}>Skip the welcome</Button>
+          {!manual && <Button variant="text" pressed={voice} onClick={toggleVoice}>Hear {MASCOT_NAME}</Button>}
           <Button variant="text" onClick={toggleManual}>{manual ? `Chat with ${MASCOT_NAME} instead` : 'Prefer manual setup?'}</Button>
         </div>
         <h2 id={`${id}-welcome`} className="landing__heading">Welcome</h2>
