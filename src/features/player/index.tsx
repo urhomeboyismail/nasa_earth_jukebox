@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAssistantContext } from '../../assistant/context'
+import { playCue } from '../../audio/cues'
 import { Button, Dialog, Legend, LoadingIndicator, Notice, RegionPicker, Slider, useAnnounce } from '../../components'
 import { useRegionChoice } from '../../components/useRegionChoice'
 import { higherPhrase, variableWords, type Region, type Visualization } from '../../data'
@@ -142,6 +143,7 @@ function Player({ visualization, region }: { visualization: Visualization; regio
     try {
       await navigator.clipboard.writeText(link)
       setManualLink('')
+      playCue('success')
       announce('Link copied')
       setCopied('Link copied.')
       window.setTimeout(() => setCopied(''), 5000)

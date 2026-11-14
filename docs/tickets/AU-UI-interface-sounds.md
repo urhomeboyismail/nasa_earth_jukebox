@@ -91,4 +91,19 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Agent D, 2026-11-14, Windows laptop (`--pool=forks --maxWorkers=1`, low RAM).
+
+Built: `start`, `stop`, `compareA`, `compareB` and `success` in `src/audio/cues.ts` (same sine timbre, level 0.04, all under 400 ms; the existing four are unchanged). `playCue` now returns how long it sounded (0 if it did not play) and the five new cues stay quiet while any voice holds a duck (`duck.target() < 1`). `start` fires in `usePlayer.ts` only when playback goes from not-playing to playing (not on resume, a jump mid-run or the loop going round); `stop` fires when a run reaches its end. Compare plays `compareA` or `compareB` after the unlock, waits for the cue to finish, then sounds the date. `success` plays where the player's "Link copied" message shows. One help sentence in `SoundPrefs` covers all the sounds.
+
+Not wired (outside Touches): the other success messages, `MarksPanel.tsx` (Link copied), `MyMixControls.tsx` (My mix saved) and `Crate.tsx` (saved on this device). They each need a one-line `playCue('success')`; ask their owners or add them to a follow-up ticket.
+
+```
+npm run lint        -> 0 new problems. Two errors remain in src/sonify/fuse.ts:31 and :39
+                       (consistent-type-assertions); both are on clean main and not in this ticket's Touches.
+npm run build       -> exit 0 (built in 1.43s)
+npx vitest run --pool=forks --maxWorkers=1
+                    -> Test Files 1 failed | 209 passed (210); Tests 1 failed | 3056 passed (3057); 1085 s
+                       The one failure was src/data/change-regression.test.ts "gives the same Score every time",
+                       a 90 s timeout under load. Re-run alone with these changes: Tests 7 passed (7), 58 s.
+                       It also passes on clean main.
+```

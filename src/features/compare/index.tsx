@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrameAnalysis } from '../../analysis/useFrameAnalysis'
 import { hasChange } from '../../analysis/available'
+import { playCue } from '../../audio/cues'
 import { useSoundEngine } from '../../audio/useSoundEngine'
 import { styleFor, useSoundStyle } from '../../audio/style'
 import { voicingFor } from '../../audio/voicing'
@@ -134,6 +135,9 @@ function Compare({ visualization }: { visualization: Visualization }) {
     try {
       await engine.unlock()
       engine.stop()
+      // The cue comes before the date and finishes first, so it is never heard as part of the data.
+      const cueMs = playCue(which === 'A' ? 'compareA' : 'compareB')
+      if (cueMs) await new Promise(resolve => window.setTimeout(resolve, cueMs + 60))
       if (changeOn) {
         // The change bed of this date alone: the step and how far into it the date is. A date with no change to read plays the hiss.
         if (result.category === 'insufficient' || !result.changeStep || result.changeStep === 'insufficient') engine.playMissing()

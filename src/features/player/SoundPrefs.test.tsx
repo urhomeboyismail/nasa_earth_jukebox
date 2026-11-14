@@ -17,6 +17,10 @@ describe('SoundPrefs: interface sounds', () => {
     const box = screen.getByRole('checkbox', { name: 'Interface sounds' })
     expect(box).toBeChecked()
     expect(box).toHaveAccessibleDescription(/never carry data/)
+    // Every new sound has its words in the help.
+    expect(box).toHaveAccessibleDescription(/Playing starts.*finishes/)
+    expect(box).toHaveAccessibleDescription(/before date A.*date B/)
+    expect(box).toHaveAccessibleDescription(/save, copy or link/)
     await userEvent.click(box)
     expect(box).not.toBeChecked()
     expect(localStorage.getItem(CUES_KEY)).toBe('off')
