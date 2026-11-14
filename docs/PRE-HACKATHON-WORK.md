@@ -129,3 +129,4 @@ Add one line per piece of work, newest last.
 - **Libraries:** React, Vite, Tone.js, tonal, zod (front end); FastAPI and google-genai (server).
 - **AI:** Google Gemini Live runs the optional voice guide. Coding assistants (Claude Code, Codex) helped write code and docs; the team reviewed every change.
 - Planet intro (14 Nov, `feature/planet-intro`, on top of `feature/orbit-globe`): on a first visit a full-screen planet with Echo on top asks your name (typed, or said where the browser has speech recognition), then fades to Home (`src/features/intro/`; the name stays on this device).
+- Interface sounds (14 Nov, AU-UI, `feature/AU-UI-interface-sounds`, PR #76): five more quiet cues behind the existing "Interface sounds" switch: playback starts and ends, Compare date A (one blip) and date B (two), and a successful link copy (`src/audio/cues.ts`).
