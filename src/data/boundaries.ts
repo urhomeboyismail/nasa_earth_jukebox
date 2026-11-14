@@ -27,5 +27,7 @@ export const storedAudioPrefs = z.object({
   bassDb: z.number().min(-6).max(6).catch(0),
   speed: z.enum(['slow', 'normal', 'fast']).catch('normal'),
   muted: z.array(z.enum(VOICE_IDS)).catch([]).transform(voices => [...new Set(voices)].filter(voice => voice !== 'melody')),
+  /** The listener's left and right are swapped (the ear check, UI07). Older stored values have no such field. */
+  swapEars: z.boolean().catch(false),
 })
 

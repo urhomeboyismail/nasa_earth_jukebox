@@ -14,6 +14,8 @@ import type { Ensemble, EnsembleStatus } from '../../audio/ensemble/types'
 import { useEnsemble } from '../../audio/ensemble/useEnsemble'
 import { saveAudioPrefs, useAudioPrefs } from '../../audio/prefs'
 import { useAnnounce } from '../../components'
+import { useStoredValue } from '../../hooks/useStoredValue'
+import { DETAIL_KEY, parseDetail } from '../calibration/earCheckScore'
 import { VOICE_IDS, type DetailLevel, type Visualization, type VoiceId } from '../../data'
 import { DETAIL_VOICES, presetFor, toMusicFrame } from '../../sonify'
 import type { MusicFrame, Preset } from '../../sonify'
@@ -98,7 +100,9 @@ export function useSymphony(visualization: Visualization, video: HTMLVideoElemen
   const prefs = useAudioPrefs()
   const preset = artPreset ?? presetFor(prefs.style ?? spec?.preset ?? 'major')
   const allowed: readonly VoiceId[] = spec?.voices ?? VOICE_IDS
-  const [detail, setDetailState] = useState<DetailLevel>(spec?.detail ?? 'standard')
+  // The listener's own level (kept on this device, set in the ear check or the detail control) comes first, then the manifest's, then Standard.
+  const [storedDetail, storeDetail] = useStoredValue<DetailLevel | null>(DETAIL_KEY, parseDetail, null)
+  const detail: DetailLevel = storedDetail ?? spec?.detail ?? 'standard'
   const speed: SequenceSpeed = prefs.speed
   const muted = useMemo<ReadonlySet<VoiceId>>(() => new Set(prefs.muted), [prefs.muted])
   const [solo, setSolo] = useState<VoiceId | null>(null)
@@ -196,9 +200,9 @@ export function useSymphony(visualization: Visualization, video: HTMLVideoElemen
   }, [ensembleStatus, pause, resume, play])
 
   const setDetail = useCallback((level: DetailLevel) => {
-    setDetailState(level)
+    storeDetail(level)
     announce(detailSentence(level, allowed))
-  }, [announce, allowed])
+  }, [announce, allowed, storeDetail])
 
   const setSpeed = useCallback((next: SequenceSpeed) => saveAudioPrefs({ speed: next }), [])
 

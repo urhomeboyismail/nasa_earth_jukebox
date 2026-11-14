@@ -77,6 +77,46 @@ export function playCue(cue: Cue): number {
   }
 }
 
+const TONE_PEAK = 0.5 // −6 dBFS
+const TONE_FADE_S = 0.02
+
+/**
+ * One sine tone of `seconds` at `hz`, panned from -1 (left) to 1 (right) and starting `delay` seconds from now, for the ear check (UI07).
+ * Peak −6 dBFS, 20 ms fades. It is never flipped by the "swap ears" setting, because it measures the headphones. Plays only when called
+ * (from a button), whatever the interface-cues switch says. Returns how long it takes in ms (0 when it could not play). Never throws.
+ */
+export function playTone(hz: number, seconds: number, pan = 0, delay = 0): number {
+  if (typeof AudioContext === 'undefined') return 0
+  try {
+    context ??= new AudioContext()
+    if (context.state === 'suspended') void context.resume()
+    const start = context.currentTime + delay
+    const end = start + seconds
+    const oscillator = context.createOscillator()
+    const gain = context.createGain()
+    oscillator.type = 'sine'
+    oscillator.frequency.setValueAtTime(hz, start)
+    gain.gain.setValueAtTime(0, start)
+    gain.gain.linearRampToValueAtTime(TONE_PEAK, start + TONE_FADE_S)
+    gain.gain.setValueAtTime(TONE_PEAK, end - TONE_FADE_S)
+    gain.gain.linearRampToValueAtTime(0, end)
+    oscillator.connect(gain)
+    if (typeof context.createStereoPanner === 'function') {
+      const panner = context.createStereoPanner()
+      panner.pan.value = Math.min(1, Math.max(-1, pan))
+      gain.connect(panner)
+      panner.connect(context.destination)
+    } else {
+      gain.connect(context.destination)
+    }
+    oscillator.start(start)
+    oscillator.stop(end)
+    return Math.round(1000 * (delay + seconds))
+  } catch {
+    return 0
+  }
+}
+
 /** For tests: forget the AudioContext, so a new fake is picked up. */
 export function resetCues() {
   context = null

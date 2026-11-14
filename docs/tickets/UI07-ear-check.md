@@ -97,4 +97,16 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Branch `feature/UI07-ear-check`, agent C, 2026-11-14.
+
+```
+npm run lint   -> 0 errors (only existing warnings in src/features/compare/Fusion.tsx)
+npm test       -> Test Files 218 passed (218); Tests 3149 passed (3149)
+npm run build  -> built, no errors (the usual chunk-size notice)
+```
+
+Deviations from the ticket:
+- The scoring file is `earCheckScore.ts`, not `earCheck.ts`: next to `EarCheck.tsx` it differs only in letter case and breaks the TypeScript build on case-insensitive disks.
+- The swap is applied in `aimPanner` (`src/audio/pan.ts`), the one place every engine's pan is set, not in `createPanner`, which never sees a pan value. `createPanner` is unchanged.
+- `swapEars` is added to the stored-prefs schema in `src/data/boundaries.ts` (the prefs parser lives there). Two existing tests that compare the whole stored object (`prefs.test.ts`, `welcome.test.tsx`) now expect `swapEars: false`.
+- The "Check your ears" button in `SoundPrefs` shows on every use except the welcome (`!instruments`), because the welcome has its own link.

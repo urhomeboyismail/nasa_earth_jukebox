@@ -4,6 +4,7 @@
 // means "warmer".
 
 import type { Region } from '../data'
+import { readAudioPrefs } from './prefs'
 import { readStored, useStoredValue } from '../hooks/useStoredValue'
 
 type ToneModule = typeof import('tone')
@@ -68,7 +69,9 @@ export function createPanner(t: ToneModule, mode: SpatialMode): Panner {
 }
 
 /** Points a panner at a place: now, or at an audio-clock `time`. Stereo ignores `elevation`. */
-export function aimPanner(panner: Panner, pan: number, elevation: number, time?: number) {
+export function aimPanner(panner: Panner, rawPan: number, elevation: number, time?: number) {
+  // The one place every engine's pan passes through, so "swap ears" (the ear check, UI07) flips them all.
+  const pan = readAudioPrefs().swapEars ? 0 - rawPan : rawPan
   if ('pan' in panner) {
     if (time === undefined) panner.pan.value = clamp(pan)
     else panner.pan.setValueAtTime(clamp(pan), time)

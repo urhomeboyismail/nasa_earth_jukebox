@@ -372,7 +372,7 @@ describe('what do you love listening to?', () => {
     await user.click(screen.getByRole('button', { name: 'Fast' }))
     fireEvent.change(screen.getByRole('slider', { name: 'Bass' }), { target: { value: '-2' } })
     expect(screen.getByRole('checkbox', { name: 'melody' })).toBeDisabled()
-    expect(JSON.parse(localStorage.getItem('earth-jukebox:audio-prefs') ?? '{}')).toEqual({ style: 'nature', bassDb: -2, speed: 'fast', muted: ['rhythm'] })
+    expect(JSON.parse(localStorage.getItem('earth-jukebox:audio-prefs') ?? '{}')).toEqual({ style: 'nature', bassDb: -2, speed: 'fast', muted: ['rhythm'], swapEars: false })
   })
 
   it('plays a sample of the chosen style, or of the data set\'s own preset', async () => {

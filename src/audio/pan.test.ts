@@ -148,3 +148,20 @@ describe('the remembered spatial mode', () => {
     expect(readSpatialMode()).toBe('stereo')
   })
 })
+
+describe('swap ears (UI07)', () => {
+  it('flips every pan that aimPanner applies, and leaves the centre alone', async () => {
+    const { saveAudioPrefs, resetAudioPrefs } = await import('./prefs')
+    const panner = { pan: { value: 0, setValueAtTime: vi.fn() } } as unknown as Panner & { pan: { value: number; setValueAtTime: ReturnType<typeof vi.fn> } }
+    saveAudioPrefs({ swapEars: true })
+    aimPanner(panner, panForPoint(0), 0)
+    expect(panner.pan.value).toBe(1)
+    aimPanner(panner, 0, 0)
+    expect(panner.pan.value).toBe(0)
+    aimPanner(panner, -0.5, 0, 2)
+    expect(panner.pan.setValueAtTime).toHaveBeenCalledWith(0.5, 2)
+    resetAudioPrefs()
+    aimPanner(panner, panForPoint(0), 0)
+    expect(panner.pan.value).toBe(-1)
+  })
+})
