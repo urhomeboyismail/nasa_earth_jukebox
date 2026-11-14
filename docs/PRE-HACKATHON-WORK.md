@@ -110,6 +110,8 @@ Add one line per piece of work, newest last.
 | 13 Nov | UI/UX blueprint: five music styles, sound preferences in the welcome and mixer, the crate with save for offline, Compare "Two data sets" (`pairsWith`) | `feature/uiux-blueprint` |
 | 13 Nov | I11 Lint and CI rules: oxlint fails on `any`, type casts other than `as const`, `setState` in an effect and non-component exports from component files (tests, helpers and scripts exempt; three hotspot casts listed in the ticket); CI runs `npm run check-data` and `ruff check` (`server/ruff.toml`). The `!` rule is off: 30 in app code | `chore/I11-lint-ci-rules` (#66) |
 | 13 Nov | IX09 Echo points: E on the sound map points at the date's hot spots, largest first, then the centre, with three pings from the place (pan and height) and a line that says where, in the data set's own words; the voice guide's `point_to` sends the same action, checked on the server and in the browser, at the nine compass places. Pointing at a hot spot by voice waits on the explore context carrying the hot spots (board R-20261113-IX09-1); the ADK agent has no `point_to` yet (G05) | `feature/IX09-echo-points` (#67) |
+| 14 Nov | EIC04 Authoring workflow: `Consumption/` staging, `scripts/consume.py` (`new`, `parse`, `clean`) turns an SVS MP4 and its `.vtt` captions into `public/data/<id>/` with `caption-<n>` story chapters, `npm run view` on port 5180 reloads on data JSON edits, `npm run check` | `feature/EIC04-authoring-workflow` |
+| 14 Nov | SN14 Manifest timbre: optional `sonification.timbre` (FM oscillators, low-pass range and curve, pan width), defaults keep every data set's sound | `feature/SN14-manifest-timbre` |
 
 ## Outside resources used
 

@@ -75,7 +75,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [SN11](tickets/SN11-learn-v3.md) | Learn v3: one card per voice, played alone on the synthetic sets | M | agent | SN01, SN02, SN03, SN04, SN06 | learn | done |
 | [SN12](tickets/SN12-offline-render-playlist.md) | Offline render: byte-identical WAV, captions file, playlist of every data set | M | agent | SN01, SN03, SN04 | about | done |
 | [SN13](tickets/SN13-one-voice-at-a-time.md) | One voice at a time: real gain ducking under the guide and speech on every page | M | agent | SN04 | voice, engine | done |
-| [SN14](tickets/SN14-manifest-timbre.md) | Manifest timbre: optional `sonification.timbre` (instrument, low-pass range and curve, pan width) | M | agent+👤 | SN05 | schema, explorer | ready: feature/SN14-manifest-timbre |
+| [SN14](tickets/SN14-manifest-timbre.md) | Manifest timbre: optional `sonification.timbre` (instrument, low-pass range and curve, pan width) | M | agent+👤 | SN05 | schema, explorer | done |
 
 ### P1: interaction (the listener plays the map; `PLAN.md` §6.3)
 
@@ -101,7 +101,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [EIC01](tickets/EIC01-ingest-script.md) | `scripts/eic_ingest.py`: MP4 or PNG sequence in, frames, colour scale, web video and manifest out | L | agent | SN05 | catalogue | done |
 | [EIC02](tickets/EIC02-pick-visualisations.md) | Pick 3–5 EIC visualisations; check source, credit and licence | S | 👤 | — | — | open |
 | [EIC03](tickets/EIC03-ingest-datasets.md) | Ingest and tune each picked visualisation (manifest and data only) | M each | agent+👤 | EIC01, EIC02 | catalogue | open |
-| [EIC04](tickets/EIC04-authoring-workflow.md) | Authoring workflow: `Consumption/` staging, `.vtt` captions to story, `parse-nasa`, `view` with reload, `check` | M | agent | EIC01 | — | ready: feature/EIC04-authoring-workflow |
+| [EIC04](tickets/EIC04-authoring-workflow.md) | Authoring workflow: `Consumption/` staging, `.vtt` captions to story, `parse-nasa`, `view` with reload, `check` | M | agent | EIC01 | — | done |
 | [D04](tickets/D04-known-answer-check.md) | Known-answer check: decoded values against NASA's numbers | S | agent+👤 | — | catalogue | done |
 
 ### P1: Gemini on ADK and the voice panel

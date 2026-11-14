@@ -253,8 +253,8 @@ Our agents run on different laptops, so they talk through this file in git. When
 - From: EIC04 (agent E, Claude Code for Raghav, 14 Nov)
 - To: team leader (owner of `src/audio/`, `src/data/schema.ts` and `docs/PLAN.md` §6.3)
 - Needed by: SN14 sign-off (Raghav asked for it to be built on 14 Nov; your answer decides whether it merges as is).
-- Status: open
+- Status: answered
 - Context: The EIC04 brief asked for manifest-driven Tone.js mapping: an FM synth, low-pass cutoffs with exponential easing, and panning. PLAN §6.3 says instruments come from a general preset that a manifest only names. The engine already maps brightness to fixed low-pass ranges (`src/audio/ensemble/constants.ts:40,42`, linear) and position to panning (`aimPanner`). The proposal is in `docs/tickets/SN14-manifest-timbre.md`: optional and general, keyed to frame features (never to a named measure), and defaulting to today's sound.
 - Question: (a) add `sonification.timbre` as SN14 describes; (b) make it a fourth preset instead (e.g. an FM preset with an exponential filter), so a manifest still only names a preset; or (c) no: presets stay the only timbre control, and SN14 is cut.
-- Answer:
+- Answer: (a), 14 Nov, by Raghav (team leader): add `sonification.timbre` as SN14 describes, merged to `main` the same day. Still to do: listen to `fm` with `exponential` on a real data set before the demo. The asker sets `closed`.
 - Recorded in: `docs/tickets/SN14-manifest-timbre.md`
