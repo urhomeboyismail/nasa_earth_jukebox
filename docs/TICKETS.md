@@ -89,7 +89,6 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [G11](tickets/G11-planetary-computer-echo.md) | Echo fetches live Planetary Computer data in Jukebox Studio (`POST /api/v1/mascot/query`) | M | agent | — | — | ready: feature/G11-planetary-computer-echo |
 
 ### P2: Echo as Juke-Bot (the guide)
 
