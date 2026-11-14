@@ -76,4 +76,16 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Built on `main` at c3434fb. `Welcome.tsx` (glass classes and wrapper markup), `welcome.css`, `lines.ts` (first line), `welcome.test.tsx`.
+
+- The welcome section is `.ui-glass` (existing class, no local copy). Echo's lines are glass bubbles under a mono `ui-label` "Echo"; the listener's answers are `tertiary-container` bubbles on the right; the sound choices are pill-shaped toggle buttons (`aria-pressed`); the manual form sits on one `.ui-glass` card. Solid fallbacks under `prefers-contrast: more` and `prefers-reduced-transparency`.
+- First line: "Commander! Welcome to the Earth Information Jukebox. What should I call you?" (`CHAT_GREETING`). Flow, steps and storage unchanged.
+- One existing assertion was removed: `welcome.test.tsx` looked for `/I'm Echo/` in the first line, which the ticket's wording no longer contains (the ticket asks for both; the wording wins).
+- 4 new tests (first line and ECHO label, listener bubble, `aria-pressed` pills, manual card; axe on chat and form).
+
+```
+npx vitest run src/features/welcome   -> 3 files, 45 tests passed
+npm run lint    -> warnings only, all in src/features/compare/Fusion.tsx (not touched here)
+npm test        -> 216 files, 3137 tests passed
+npm run build   -> built (chunk-size warning only)
+```
