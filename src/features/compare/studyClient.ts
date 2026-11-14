@@ -99,6 +99,28 @@ export class StudyClient {
     await this.pump()
   }
 
+  /**
+   * The participant withdraws: nothing more is sent, and the session and its answers are deleted from the server.
+   * True when nothing of theirs is stored any more (a session the server does not know counts). False when the server
+   * could not be reached or refused, so the participant can try again.
+   */
+  async withdraw(): Promise<boolean> {
+    this.session = null
+    this.queue = []
+    window.clearTimeout(this.timer)
+    this.notify()
+    await this.busy // A session that was being created has its id by now.
+    if (!this.sessionId) return true
+    try {
+      const response = await this.fetchFn(this.url(`/${this.sessionId}`), { method: 'DELETE' })
+      if (!response.ok && response.status !== 404) return false
+    } catch {
+      return false
+    }
+    this.sessionId = null
+    return true
+  }
+
   dispose() {
     this.disposed = true
     window.clearTimeout(this.timer)

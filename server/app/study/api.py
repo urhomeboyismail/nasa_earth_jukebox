@@ -69,6 +69,17 @@ def add_response(session_id: str, body: ResponseIn) -> Response:
     return Response(status_code=204)
 
 
+@router.delete("/{session_id}", status_code=204)
+def withdraw(session_id: str) -> Response:
+    """The participant withdraws: their session and answers are deleted. The id is random and only their browser has it,
+    so knowing it is the permission."""
+    try:
+        db.delete_session(session_id)
+    except db.SessionNotFound:
+        raise HTTPException(404, "No such test session.") from None
+    return Response(status_code=204)
+
+
 def _safe_cell(value: object) -> object:
     """A cell that starts with = + - @ (or a tab/CR) would run as a formula in a spreadsheet."""
     if isinstance(value, str) and value[:1] in ("=", "+", "-", "@", "\t", "\r"):

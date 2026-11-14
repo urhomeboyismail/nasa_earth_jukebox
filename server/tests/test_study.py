@@ -196,3 +196,19 @@ def test_a_new_session_beyond_the_cap_gets_503_and_stores_nothing(client, monkey
     assert response.status_code == 503
     assert "full" in response.json()["detail"]
     assert len(rows(export(client))) == 2
+
+
+def test_withdrawing_deletes_the_session_and_its_answers_and_no_one_else_s(client):
+    mine, other = new_session(client), new_session(client)
+    for session_id in (mine, other):
+        assert client.post(f"/api/v1/tests/{session_id}/responses", json=ANSWER).status_code == 204
+    assert client.delete(f"/api/v1/tests/{mine}").status_code == 204
+    assert {row["session_id"] for row in rows(export(client))} == {other}
+    with sqlite3.connect(settings.study_db_path) as connection:
+        assert connection.execute("SELECT COUNT(*) FROM test_responses WHERE session_id = ?", (mine,)).fetchone() == (0,)
+    assert client.post(f"/api/v1/tests/{mine}/responses", json=ANSWER).status_code == 404
+    assert client.delete(f"/api/v1/tests/{mine}").status_code == 404  # Already gone.
+
+
+def test_withdrawing_an_unknown_session_is_not_found(client):
+    assert client.delete("/api/v1/tests/" + "0" * 32).status_code == 404

@@ -103,6 +103,14 @@ def add_response(
         )
 
 
+def delete_session(session_id: str) -> None:
+    """Deletes the session and every answer in it, when the participant withdraws."""
+    with connect() as db:
+        db.execute("DELETE FROM test_responses WHERE session_id = ?", (session_id,))
+        if db.execute("DELETE FROM test_sessions WHERE id = ?", (session_id,)).rowcount == 0:
+            raise SessionNotFound(session_id)
+
+
 def export_rows() -> list[tuple]:
     """One row per answer, in the order given. Sessions with no answers are included with empty answer columns."""
     with connect() as db:
