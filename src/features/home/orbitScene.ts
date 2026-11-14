@@ -40,8 +40,13 @@ type EchoRig = {
   head: THREE.Group
   armL: THREE.Group
   armR: THREE.Group
-  faces: { L: Record<string, THREE.Mesh>; R: Record<string, THREE.Mesh> }
+  faces: { L: Record<string, THREE.Mesh>; R: Record<string, THREE.Mesh>; mouth: Record<string, THREE.Mesh> }
 }
+
+/** Set by the page while Echo's voice is talking: the mouth then moves (the shapes cycle at about nine a second). */
+export type OrbitVoice = { talking: boolean }
+const MOUTH_CYCLE = ['o', 'smile', 'flat', 'smile'] as const
+const MOUTH_MS = 110
 type EchoModel = { buildRobot: (three: typeof THREE) => EchoRig }
 
 // Full URLs: Vite's dev server refuses a root-relative import of a public/ file.
@@ -76,7 +81,7 @@ async function loadPlanet() {
 }
 
 /** Starts the scene in `canvas` and returns a function that stops it and frees the GPU. Throws when WebGL or a file is missing. */
-export async function startOrbit(canvas: HTMLCanvasElement): Promise<() => void> {
+export async function startOrbit(canvas: HTMLCanvasElement, voice: OrbitVoice = { talking: false }): Promise<() => void> {
   const [{ planet, surface }, model] = await Promise.all([
     loadPlanet(),
     import(/* @vite-ignore */ publicUrl('robot/echo-model.js')).then((m: EchoModel) => m),
@@ -244,6 +249,9 @@ export async function startOrbit(canvas: HTMLCanvasElement): Promise<() => void>
       eye.dome.visible = !happy
       eye.arc.visible = happy
     }
+    // The mouth moves while Echo talks (not for people who asked for less motion); otherwise it is the smile.
+    const mouth = voice.talking && !still ? MOUTH_CYCLE[Math.floor(now / MOUTH_MS) % MOUTH_CYCLE.length] : 'smile'
+    for (const [name, shape] of Object.entries(rig.faces.mouth)) shape.visible = name === mouth
     shadow.scale.setScalar(1 - p.lift * 4)
 
     renderer.render(scene, camera)
