@@ -87,7 +87,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | [UI02](tickets/UI02-welcome-glass.md) | Welcome in glass: Echo's chat and the manual form | M | agent+👤 | — | welcome | open |
 | [UI05](tickets/UI05-motion-layer.md) | Motion layer on CSS and the Web Animations API (no Anime.js): press, drawers, sky, theme sweep and Echo's flight | M | agent+👤 | — | tour | open |
 | [UI07](tickets/UI07-ear-check.md) | Ear check: "Which is higher?" and "Left or right?" set the detail level and flip swapped ears | M | agent | — | welcome | open |
-| [UI08](tickets/UI08-chest-equaliser.md) | Echo's chest equaliser: bars from a real `AnalyserNode` on the music's output | M | agent | — | — | claimed: D, 2026-11-14 |
+| [UI08](tickets/UI08-chest-equaliser.md) | Echo's chest equaliser: bars from a real `AnalyserNode` on the music's output | M | agent | — | — | ready: feature/UI08-chest-equaliser |
 | [UI09](tickets/UI09-fusion-moments.md) | Remix: a chord when both decks peak together, and one caption strip | M | agent | — | — | claimed: E, 2026-11-14 |
 | [UI10](tickets/UI10-compare-summary.md) | Compare: a written and sounded summary of what changed from A to B | S | agent | — | compare | claimed: C, 2026-11-14 |
 | [UI11](tickets/UI11-about-keys.md) | About: keyboard shortcuts (from the shared list) and screen-reader help | S | agent | — | about | open |
