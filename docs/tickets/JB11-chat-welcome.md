@@ -81,4 +81,4 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+`feature/welcome-name` (b800997) does not exist in the repo, so this was built on `main` (user decision, 14 Nov): the name reuses the planet intro's store (`earth-jukebox:intro`) and is not asked again when the intro has it; no new storage keys, and `earth-jukebox:welcome` has no name. `npm run build`: built. `npx tsc -b` and `npx oxlint`: clean. `npx vitest run`: 216 files, 3118 tests passed. Not tried in a real browser (mouse, keyboard only, reduced motion).
