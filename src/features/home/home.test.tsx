@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
 import type { Visualization } from '../../data'
 import { expectNoA11yViolations } from '../../test/a11y'
+import { DisplaySettingsProvider } from '../../display/DisplaySettings'
+import { DISPLAY_STORAGE_KEY } from '../../display/flags'
 import HomePage from '.'
 
 const visualization = fixture as Visualization
@@ -50,6 +52,16 @@ describe('Home page', () => {
     expect(screen.getAllByRole('link')).not.toHaveLength(0)
     expect(screen.queryByText(/Now playing from/)).toBeNull()
     expect(screen.queryByText(/Imagery:/)).toBeNull()
+  })
+
+  it('hides the Crate when the display setting says so', () => {
+    localStorage.setItem(DISPLAY_STORAGE_KEY, JSON.stringify({ hideCrate: true }))
+    const { rerender } = render(<DisplaySettingsProvider><HomePage visualization={visualization} /></DisplaySettingsProvider>)
+    expect(screen.queryByText('Loading the data sets…')).toBeNull()
+    localStorage.clear()
+    rerender(<HomePage visualization={visualization} />)
+    expect(screen.getByText('Loading the data sets…')).toBeInTheDocument()
+    localStorage.clear()
   })
 
   it('has no accessibility violations', async () => {

@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { Card } from '../../components'
+import { useDisplaySettings } from '../../display/useDisplaySettings'
 import { higherPhrase, variableWords } from '../../data'
 import { pages, type Page } from '../../pages'
 import { currentDataParam, hashFor } from '../../route'
@@ -26,6 +27,7 @@ export default function HomePage({ visualization }: PageProps) {
   const data = currentDataParam()
   const welcome = useWelcome()
   const mascotOn = useMascotOn()
+  const { flags } = useDisplaySettings()
   return (
     <div className="home">
       <OrbitGlobe />
@@ -33,7 +35,7 @@ export default function HomePage({ visualization }: PageProps) {
       {!welcome.done && mascotOn && <Suspense fallback={null}><Welcome visualization={visualization} /></Suspense>}
       {visualization && <p>Now playing from: {visualization.title}. {visualization.summary}</p>}
 
-      <Crate currentId={visualization?.id ?? null} />
+      {!flags.hideCrate && <Crate currentId={visualization?.id ?? null} />}
 
       <Card title="What you will try" headingLevel={2}>
         <p>Can you hear, without seeing the image, which date shows {higherPhrase(variableWords(visualization?.variable))}, and when the change happened?</p>
