@@ -5,12 +5,14 @@ import fixture from '../../../public/data/fixture/manifest.json'
 import { publishContext } from '../../assistant/context'
 import { readDescriptionDetail } from '../../describe/detail'
 import type { Visualization } from '../../data'
+import { AnnouncerProvider } from '../../components'
+import { readIntro, saveIntro } from '../intro/storage'
 import { expectNoA11yViolations } from '../../test/a11y'
 import { TOUR_STEPS } from '../demo/script'
 import { getTour, stopTour } from '../mascot/tour'
 import { onPlayerCommand, type PlayerCommand } from '../player/controls'
 import HomePage from '../home'
-import { MASCOT_NAME } from './lines'
+import { CHAT_GREETING, lockedLine, MASCOT_NAME, tuneQuestion } from './lines'
 import { readWelcome, resetWelcome, WELCOME_KEY } from './storage'
 
 const visualization = fixture as Visualization
@@ -49,6 +51,12 @@ beforeEach(() => {
 })
 afterEach(() => { off(); act(() => stopTour()); vi.useRealTimers(); vi.unstubAllGlobals(); localStorage.clear(); window.location.hash = '' })
 
+/** Past the chat's name and sound questions, to the choice of path. */
+async function toPaths(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('button', { name: 'Skip this question' }))
+  await user.click(screen.getByRole('button', { name: 'Skip this question' }))
+}
+
 /** Home with the lazy welcome loaded. */
 async function renderHome() {
   const view = render(<HomePage visualization={visualization} />)
@@ -62,9 +70,8 @@ describe('the welcome on Home', () => {
     const { container } = await renderHome()
     expect(screen.getByRole('heading', { name: 'Welcome' })).toBeInTheDocument()
     expect(screen.getByText(new RegExp(`I'm ${MASCOT_NAME}`))).toBeInTheDocument()
-    for (const name of ['I use a screen reader', 'I can see the map', 'Just play me something']) {
-      expect(screen.getByRole('button', { name })).toBeInTheDocument()
-    }
+    expect(screen.getByText(CHAT_GREETING)).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: /What should I call you/ })).toBeInTheDocument()
     // The first thing a keyboard reaches is Skip.
     await user.tab()
     expect(screen.getByRole('button', { name: 'Skip the welcome' })).toHaveFocus()
@@ -112,10 +119,90 @@ describe('the welcome on Home', () => {
   })
 })
 
+describe('the chat', () => {
+  it('asks the name, greets by it, saves the sound chosen and the name, then asks for the path', async () => {
+    const user = userEvent.setup()
+    await renderHome()
+    await user.type(screen.getByRole('textbox', { name: /What should I call you/ }), 'Sam{Enter}')
+    expect(screen.getByRole('heading', { name: 'Your sound' })).toHaveFocus()
+    expect(screen.getByText(tuneQuestion('Sam'))).toBeInTheDocument()
+    expect(readIntro().name).toBe('Sam')
+    const group = screen.getByRole('group', { name: 'Sound style' })
+    expect(group.querySelectorAll('button')).toHaveLength(4)
+    await user.click(screen.getByRole('button', { name: 'Nature Ambient' }))
+    expect(JSON.parse(localStorage.getItem('earth-jukebox:audio-prefs') ?? '{}').style).toBe('nature')
+    expect(screen.getByRole('button', { name: 'I can see the map' })).toBeInTheDocument()
+  })
+
+  it('does not ask again for a name the planet intro already has', async () => {
+    saveIntro({ seen: true, name: 'Rae' })
+    await renderHome()
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+    expect(screen.getByText(tuneQuestion('Rae'))).toBeInTheDocument()
+  })
+
+  it('says the locked line when the welcome ends, and starts no tour on the other paths', async () => {
+    const user = userEvent.setup()
+    render(<AnnouncerProvider><HomePage visualization={visualization} /></AnnouncerProvider>)
+    await screen.findByRole('region', { name: 'Welcome' })
+    await user.type(screen.getByRole('textbox', { name: /What should I call you/ }), 'Sam{Enter}')
+    await user.click(screen.getByRole('button', { name: 'Heavy Bass' }))
+    await user.click(screen.getByRole('button', { name: 'I use a screen reader' }))
+    await user.click(screen.getByRole('button', { name: 'Skip the sound check' }))
+    expect(document.querySelector('[aria-live="polite"]')?.textContent).toContain(lockedLine('Sam'))
+    expect(readWelcome()).toMatchObject({ done: true, path: 'screen-reader' })
+    expect(window.location.hash).toBe('#learn')
+  })
+
+  it('has no accessibility violations on the chat', async () => {
+    const { container } = await renderHome()
+    await expectNoA11yViolations(container)
+  })
+})
+
+describe('manual setup', () => {
+  it('swaps to a form, keeps what was typed when switching back, and saves name, style and path', async () => {
+    const user = userEvent.setup()
+    await renderHome()
+    await user.type(screen.getByRole('textbox', { name: /What should I call you/ }), 'Sam')
+    await user.click(screen.getByRole('button', { name: 'Prefer manual setup?' }))
+    expect(screen.getByRole('heading', { name: 'Manual setup' })).toHaveFocus()
+    const field = screen.getByRole('textbox', { name: /What should I call you/ })
+    expect(field).toHaveValue('Sam')
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Audio preference' }), 'Heavy Bass')
+    await user.click(screen.getByRole('radio', { name: 'I use a screen reader' }))
+    await user.click(screen.getByRole('button', { name: 'Chat with Echo instead' }))
+    await user.click(screen.getByRole('button', { name: 'Prefer manual setup?' }))
+    expect(screen.getByRole('combobox', { name: 'Audio preference' })).toHaveValue('bass')
+    await user.click(screen.getByRole('button', { name: 'Save & Enter Jukebox' }))
+    expect(readIntro().name).toBe('Sam')
+    expect(JSON.parse(localStorage.getItem('earth-jukebox:audio-prefs') ?? '{}').style).toBe('bass')
+    expect(readWelcome()).toMatchObject({ done: true, path: 'screen-reader', speech: false })
+    expect(readDescriptionDetail()).toBe('concise')
+    expect(window.location.hash).toBe('#learn')
+  })
+
+  it('starts the tour on the map path', async () => {
+    const user = userEvent.setup()
+    await renderHome()
+    await user.click(screen.getByRole('button', { name: 'Prefer manual setup?' }))
+    await user.click(screen.getByRole('button', { name: 'Save & Enter Jukebox' }))
+    await waitFor(() => expect(getTour().active).toBe(true))
+  })
+
+  it('has no accessibility violations on the form', async () => {
+    const user = userEvent.setup()
+    const { container } = await renderHome()
+    await user.click(screen.getByRole('button', { name: 'Prefer manual setup?' }))
+    await expectNoA11yViolations(container)
+  })
+})
+
 describe('the sound check', () => {
   async function toCheck(path: string) {
     const user = userEvent.setup()
     const view = await renderHome()
+    await toPaths(user)
     await user.click(screen.getByRole('button', { name: path }))
     return { user, ...view }
   }
@@ -181,6 +268,7 @@ describe('the three paths', () => {
     const { user } = await (async () => {
       const user = userEvent.setup()
       await renderHome()
+      await toPaths(user)
       await user.click(screen.getByRole('button', { name: path }))
       return { user }
     })()
@@ -265,6 +353,7 @@ describe('what do you love listening to?', () => {
   async function toTaste() {
     const user = userEvent.setup()
     await renderHome()
+    await toPaths(user)
     await user.click(screen.getByRole('button', { name: 'I can see the map' }))
     for (let i = 0; i < 4; i++) {
       await user.click(screen.getByRole('button', { name: /^(Play|Replay)$/ }))

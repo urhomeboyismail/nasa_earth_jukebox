@@ -2,19 +2,23 @@
 // and sets sensible defaults. Inline, not a modal. Nothing sounds or speaks before a click, and the screen reader path never
 // uses speech: the screen reader is that listener's voice.
 
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { subscribeContext } from '../../assistant/context'
+import { saveAudioPrefs } from '../../audio/prefs'
 import { useSoundEngine } from '../../audio/useSoundEngine'
 import { Button, Slider, useAnnounce } from '../../components'
 import { RobotBadge } from '../../components/RobotBadge'
-import { playerUpdate, type Visualization } from '../../data'
+import { playerUpdate, type PresetId, type Visualization } from '../../data'
 import { useDescriptionDetail } from '../../describe/detail'
 import { currentDataParam, hashFor } from '../../route'
+import { NAME_MAX, readIntro, saveIntro, useIntro } from '../intro/storage'
+import { useMascotGuide } from '../mascot/useMascotGuide'
 import { startTour } from '../mascot/tour'
 import { resetOnboarding } from '../onboarding/store'
 import { sendPlayerCommand } from '../player/controls'
 import { SoundPrefs } from '../player/SoundPrefs'
-import { CHECK_STEPS, GREETING, NOT_HEARD, PATH_HINTS, PATH_LABELS, VOLUME_QUESTION } from './lines'
+import { CHAT_GREETING, CHECK_STEPS, GREETING, lockedLine, NOT_HEARD, PATH_HINTS, PATH_LABELS, TUNE_CHIPS, tuneQuestion, VOLUME_QUESTION } from './lines'
+import { ManualSetup } from './ManualSetup'
 import { hush, speak } from './speak'
 import { saveWelcome, type WelcomePath } from './storage'
 import './welcome.css'
@@ -40,7 +44,19 @@ const focusHeading = () => document.querySelector<HTMLElement>('main h1')?.focus
 export default function Welcome({ visualization }: { visualization: Visualization | null }) {
   const announce = useAnnounce()
   const [, setDetail] = useDescriptionDetail()
+  const guide = useMascotGuide()
+  const intro = useIntro()
   const [path, setPath] = useState<WelcomePath | null>(null)
+  /** The chat asks the name, then the sound, then the path. A name the planet intro already has is not asked again. */
+  const [phase, setPhase] = useState<'name' | 'tune' | 'path'>(intro.name ? 'tune' : 'name')
+  const [manual, setManual] = useState(false)
+  const [name, setName] = useState(intro.name ?? '')
+  const [style, setStyle] = useState<PresetId | null>(null)
+  /** The path chosen in the chat or the form, shared so that switching views keeps it. */
+  const [pick, setPick] = useState<WelcomePath>('map')
+  const stepHeading = useRef<HTMLHeadingElement>(null)
+  /** Set by the events that change the step, so focus moves then and never when the welcome first shows. */
+  const moveFocus = useRef(false)
   const [step, setStep] = useState(0)
   const [volume, setVolume] = useState(DEFAULT_VOLUME)
   const [missed, setMissed] = useState(false)
@@ -57,6 +73,11 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
 
   // The sound check opens with focus on its heading, so a keyboard or screen reader user lands on it.
   useEffect(() => { if (path) checkHeading.current?.focus() }, [path])
+  useEffect(() => {
+    if (!moveFocus.current) return
+    moveFocus.current = false
+    stepHeading.current?.focus()
+  }, [phase, manual])
 
   const talking = path === 'map'
   const say = (text: string) => {
@@ -108,8 +129,42 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
     window.setTimeout(focusHeading, 0)
   }
 
+  function saveName(value: string) {
+    if (value) saveIntro({ ...readIntro(), name: value })
+  }
+
+  function sendName(skip: boolean) {
+    const value = skip ? '' : name.trim()
+    setName(value)
+    saveName(value)
+    moveFocus.current = true
+    setPhase('tune')
+    announce(tuneQuestion(value))
+  }
+
+  function pickStyle(next: PresetId | null) {
+    setStyle(next)
+    saveAudioPrefs({ style: next })
+    moveFocus.current = true
+    setPhase('path')
+    announce(GREETING)
+  }
+
+  function toggleManual() {
+    moveFocus.current = true
+    setManual(value => !value)
+  }
+
+  function saveManual() {
+    const value = name.trim()
+    saveName(value)
+    saveAudioPrefs({ style })
+    finish(undefined, pick)
+  }
+
   function choose(next: WelcomePath) {
     setPath(next)
+    setPick(next)
     setStep(0)
     setMissed(false)
     setHeard(false)
@@ -120,18 +175,22 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
   }
 
   /** Applies the path's defaults, remembers that the welcome is done and goes to the page the path leads to. */
-  function finish(volumeToKeep?: number) {
-    if (!path) return
+  function finish(volumeToKeep?: number, chosen: WelcomePath | null = path) {
+    if (!chosen) return
     checkRun.current += 1
     hush()
     engine?.stop()
-    setDetail(path === 'screen-reader' ? 'concise' : 'rich')
-    saveWelcome({ done: true, path, speech: path === 'map', ...(volumeToKeep !== undefined && { volume: volumeToKeep / 100 }) })
-    const page = path === 'screen-reader' ? 'learn' : 'listen'
+    setDetail(chosen === 'screen-reader' ? 'concise' : 'rich')
+    saveWelcome({ done: true, path: chosen, speech: chosen === 'map', ...(volumeToKeep !== undefined && { volume: volumeToKeep / 100 }) })
+    const page = chosen === 'screen-reader' ? 'learn' : 'listen'
     window.location.hash = hashFor(page, { data: currentDataParam() })
-    if (path === 'play') { resetOnboarding(); playWhenReady() }
+    // Echo says it from the dock; the line is announced now, so a screen reader hears it too.
+    const locked = lockedLine(name.trim())
+    guide.offerTip({ text: locked })
+    announce(locked)
+    if (chosen === 'play') { resetOnboarding(); playWhenReady() }
     // The map path is the sighted one: show it around. The other paths already have sound or a screen reader talking.
-    if (path === 'map') startTour(announce)
+    if (chosen === 'map') startTour(announce)
   }
 
   function answerYes() {
@@ -155,14 +214,51 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
       <div className="welcome__top">
         {/* First in focus order, so anyone can skip the welcome at once. */}
         <Button variant="text" onClick={skipWelcome}>Skip the welcome</Button>
+        {!path && <Button variant="text" onClick={toggleManual}>{manual ? 'Chat with Echo instead' : 'Prefer manual setup?'}</Button>}
       </div>
       <div className="welcome__body">
         <RobotBadge size={128} className="welcome__mascot" />
         <div className="welcome__talk">
           <h2 id={titleId} className="welcome__title">Welcome</h2>
-          {!path ? (
+          {!path && manual ? (
             <>
-              <p>{GREETING}</p>
+              <h3 ref={stepHeading} tabIndex={-1} className="welcome__step-title">Manual setup</h3>
+              <ManualSetup name={name} onName={setName} style={style} onStyle={setStyle} path={pick} onPath={setPick} onSave={saveManual} />
+            </>
+          ) : !path ? (
+            <>
+              <ol className="welcome__transcript" aria-label="Conversation with Echo">
+                <li>{CHAT_GREETING}</li>
+                {phase !== 'name' && <li className="welcome__line--you">{name || '(No name)'}</li>}
+                {phase !== 'name' && <li>{tuneQuestion(name)}</li>}
+                {phase === 'path' && <li className="welcome__line--you">{TUNE_CHIPS.find(chip => chip.id === style)?.label ?? '(No preference)'}</li>}
+                {phase === 'path' && <li>{GREETING}</li>}
+              </ol>
+              {phase === 'name' && (
+                <form className="welcome__chat" onSubmit={(event: FormEvent) => { event.preventDefault(); sendName(false) }}>
+                  <h3 ref={stepHeading} tabIndex={-1} className="welcome__step-title">Your name</h3>
+                  <div className="welcome__name">
+                    <label className="welcome__field">
+                      What should I call you? (optional)
+                      <input type="text" maxLength={NAME_MAX} autoComplete="off" value={name} onChange={event => setName(event.target.value)} />
+                    </label>
+                    <Button type="submit" variant="filled">Send</Button>
+                  </div>
+                  <div className="welcome__buttons"><Button variant="text" onClick={() => sendName(true)}>Skip this question</Button></div>
+                </form>
+              )}
+              {phase === 'tune' && (
+                <div className="welcome__chat">
+                  <h3 ref={stepHeading} tabIndex={-1} className="welcome__step-title">Your sound</h3>
+                  <div className="welcome__buttons" role="group" aria-label="Sound style">
+                    {TUNE_CHIPS.map(chip => <Button key={chip.id} pressed={style === chip.id} onClick={() => pickStyle(chip.id)}>{chip.label}</Button>)}
+                  </div>
+                  <div className="welcome__buttons"><Button variant="text" onClick={() => pickStyle(null)}>Skip this question</Button></div>
+                </div>
+              )}
+              {phase === 'path' && (
+              <>
+              <h3 ref={stepHeading} tabIndex={-1} className="welcome__step-title">How you will use it</h3>
               <ul className="welcome__paths" aria-label="Ways to use the app">
                 {PATHS.map(option => {
                   const hint = `${titleId}-${option}`
@@ -176,6 +272,8 @@ export default function Welcome({ visualization }: { visualization: Visualizatio
                   )
                 })}
               </ul>
+              </>
+              )}
             </>
           ) : (
             <div className="welcome__check">
