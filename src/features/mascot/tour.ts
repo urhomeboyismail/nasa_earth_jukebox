@@ -4,6 +4,7 @@
 
 import { useSyncExternalStore } from 'react'
 import { currentDataParam, hashFor } from '../../route'
+import { reducedMotion } from '../../motion'
 import { runDemo, type DemoDeps } from '../demo/runDemo'
 import { TOUR_STEPS } from '../demo/script'
 import { anchorFor, flightPath, TOUR_ECHO_SIZE, type Point } from './flightPath'
@@ -66,9 +67,7 @@ export function useTour(): TourState {
   return useSyncExternalStore(subscribeTour, getTour, getTour)
 }
 
-export function prefersReducedMotion(): boolean {
-  return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-}
+export const prefersReducedMotion = reducedMotion
 
 /** Resolves after `ms`, or at once if the tour is stopped. */
 const wait = (ms: number, signal: AbortSignal): Promise<void> =>
