@@ -5,7 +5,7 @@
 | **Priority** | P3 |
 | **Size** | M (about a day) |
 | **Who** | 👤 |
-| **Needs** | S02 |
+| **Needs** | — |
 | **Hotspots** | — |
 | **Branch** | `chore/H08-final-check` |
 

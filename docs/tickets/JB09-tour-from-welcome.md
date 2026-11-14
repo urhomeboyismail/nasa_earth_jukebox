@@ -5,7 +5,7 @@
 | **Priority** | P2 |
 | **Size** | S (under half a day) |
 | **Who** | agent |
-| **Needs** | JB05 |
+| **Needs** | — |
 | **Hotspots** | — |
 | **Branch** | `feature/JB09-tour-from-welcome` |
 

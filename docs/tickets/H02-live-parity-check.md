@@ -5,7 +5,7 @@
 | **Priority** | P1 |
 | **Size** | S (under half a day) |
 | **Who** | 👤 |
-| **Needs** | G04 |
+| **Needs** | — |
 | **Hotspots** | — |
 | **Branch** | `chore/H02-live-parity-check` |
 

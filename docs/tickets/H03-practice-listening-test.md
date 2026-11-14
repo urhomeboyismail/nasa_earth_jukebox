@@ -5,7 +5,7 @@
 | **Priority** | P3 |
 | **Size** | M (about a day, plus the sessions) |
 | **Who** | 👤 |
-| **Needs** | SN07 |
+| **Needs** | — |
 | **Hotspots** | — |
 | **Branch** | `chore/H03-practice-listening-test` |
 

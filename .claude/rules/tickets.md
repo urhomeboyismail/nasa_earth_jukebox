@@ -31,5 +31,7 @@ Every agent checks which tickets are unclaimed **before it starts, and again bef
 
 ## Always
 
+- **Write independent tickets.** Every ticket must be buildable and mergeable alone, on `main` as it is today. Don't write a **Needs** on work that isn't done, and don't write a ticket that assumes another ticket's files, names or wording. If it truly can't stand alone, fold the shared part into it or merge the two tickets. Put everything the agent needs in the ticket itself (no "see ticket X"). A ticket whose **Needs** are all done has them removed; a done ticket's file is deleted.
+
 - Never edit another agent's claimed ticket file except its own row status when asked.
 - Nothing specific to one data set in `src/` (`phases.md`). No AI attribution (`git.md`).

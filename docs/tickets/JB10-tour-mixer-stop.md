@@ -5,7 +5,7 @@
 | **Priority** | P2 |
 | **Size** | S (under half a day) |
 | **Who** | agent |
-| **Needs** | JB05 |
+| **Needs** | — |
 | **Hotspots** | player |
 | **Branch** | `feature/JB10-tour-mixer-stop` |
 

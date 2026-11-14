@@ -69,7 +69,7 @@ Everything specific to one data set (colour scale, categories, words, comparison
 ## 7. Limits (as of 9 Nov 2026)
 
 - **Not yet tested with blind or low-vision users.** n = 0 (`docs/evidence/results-note.md`). Anything about how well it works for them is still a claim to test.
-- **The change style has not had its listening check**, so it stays opt-in (the sheet is in `docs/tickets/S05-salvage-t114-sheet.md`).
+- **The change style has not had its listening check**, so it stays opt-in (the sheet is `docs/tests/t114-listening-check.md`).
 - **Numbers are read from pictures.** The app reads colours from NASA's rendered maps, not NASA's data files, so values are "about" (within the colour scale's steps).
 - **One real data set so far:** sea surface temperature around Mauritius (`public/data/mur-sst-mauritius`). Its baseline is a reference date, so "change" there partly follows the season (`docs/data-sources.md`).
 - **Vibration does not work on iOS.** The music-pauses-for-the-guide behaviour and vibration have not been checked on a real phone.

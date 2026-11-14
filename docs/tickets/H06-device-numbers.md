@@ -5,7 +5,7 @@
 | **Priority** | P3 |
 | **Size** | S (under half a day) |
 | **Who** | 👤 |
-| **Needs** | SN06 |
+| **Needs** | — |
 | **Hotspots** | — |
 | **Branch** | `chore/H06-device-numbers` |
 

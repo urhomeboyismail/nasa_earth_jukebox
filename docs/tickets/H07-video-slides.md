@@ -5,7 +5,7 @@
 | **Priority** | P3 |
 | **Size** | M (about a day, plus recording) |
 | **Who** | 👤 |
-| **Needs** | H01, S02, H03 |
+| **Needs** | H03 |
 | **Hotspots** | — |
 | **Branch** | `chore/H07-video-slides` |
 
@@ -13,7 +13,6 @@
 
 A 30-second video with English subtitles, and a 7-slide deck, both made from the real data set and the shot list in `docs/submission/demo-script.md`. The video opens with an ocean-current animation in Symphony mode. Every number and every claim on screen is in the app, and the testing line says what the practice test really found.
 
-**Dependency note.** `docs/submission/demo-script.md` is on `feature/T88b-demo-script` until H01 merges it. Do not start until it is on `main`. The queue row for H07 does not list H01 under Needs; the team should add it.
 
 ## Why
 
