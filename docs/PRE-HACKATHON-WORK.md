@@ -119,6 +119,7 @@ Add one line per piece of work, newest last.
 | 14 Nov | Quiet interface sounds (voice guide connects, ends, fails; Ask answer ready) behind a switch | `feature/interface-earcons` |
 | 14 Nov | "Hey Echo" wake phrase opens the voice guide hands-free (opt-in) | `feature/hey-echo` |
 | 14 Nov | UI01 UI overhaul base: dark-glass tokens, four science accents, mono type, Night/Day switch, server pill (`docs/planning/UI-OVERHAUL.md`) | `feature/UI01-dark-glass-tokens` |
+| 14 Nov | UI06 Compare and Remix as two glass decks, with a two-handle date scrubber (new `RangeSlider`, on Radix Slider) | `feature/UI06-compare-decks` |
 
 ## Outside resources used
 
