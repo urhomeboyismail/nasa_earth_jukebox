@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 import { Card } from '../../components'
-import { loadQueue, type QueueEntry } from './comingNext'
+import { loadQueue, type QueueEntry } from './svsQueue'
 
 const FAMILY_ACCENT = { ocean: 'var(--md-sys-color-primary)', atmosphere: 'var(--md-sys-color-tertiary)', forest: 'var(--md-sys-color-secondary)' } as const
 const accentStyle = (entry: QueueEntry): CSSProperties & Record<'--accent', string> => ({ '--accent': FAMILY_ACCENT[entry.family] })
