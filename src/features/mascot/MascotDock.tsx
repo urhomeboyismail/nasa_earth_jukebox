@@ -11,6 +11,7 @@ import { currentContext, subscribeContext } from '../../assistant/context'
 import { Button, useAnnounce } from '../../components'
 import type { MascotPose } from '../../components/mascotTypes'
 import type { Visualization } from '../../data'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
 import type { AssistantStatus } from '../../hooks/useVoiceAssistant'
 import type { Page } from '../../pages'
 import { LANDING_HASH } from '../../route'
@@ -93,6 +94,8 @@ export default function MascotDock({ page, loading, voice, voiceOpen, line = '',
   // JB06: a notable event in the music puts Echo in alert for a few seconds (not while Echo is off or the voice guide is open).
   useDataAlerts(mascotOn && !voiceOpen)
   const touring = useTour().active
+  /** A phone's voice panel covers the robot (mascot-dock.css), but the robot's bubble would still show over the panel, so it gets no line there. */
+  const phone = useMediaQuery('(max-width: 767.98px)', false)
   const [open, setOpen] = useState(false)
   /** The page the bubble opened on: a new page closes it (the robot stays, so the dock is not remounted). */
   const [openOn, setOpenOn] = useState(page)
@@ -233,7 +236,7 @@ export default function MascotDock({ page, loading, voice, voiceOpen, line = '',
       onPointerLeave={() => setHint(false)}
       hidden={touring}
     >
-      <Ixia className="mascot-dock__robot" pose={poseFor(voice)} expression={expression} say={voiceOpen ? line : ''} onActivate={voiceOpen ? undefined : toggle} />
+      <Ixia className="mascot-dock__robot" pose={poseFor(voice)} expression={expression} say={voiceOpen && !phone ? line : ''} onActivate={voiceOpen ? undefined : toggle} />
       {open && !voiceOpen && (
         <section id={panelId} ref={panel} className="mascot-speech-bubble" aria-label={`${MASCOT_NAME}, your guide`}>
           <p>{shown}</p>
