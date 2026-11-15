@@ -2,7 +2,7 @@
 
 Hear NASA Earth data. The Earth Jukebox turns dated NASA maps into **sound and text at the same time**, so blind and low-vision people can explore Earth science that is usually only a picture. Entry for the 2026 NASA Space Apps Challenge (categories: Arts & Multimedia, Earth Science, Software).
 
-**Live site:** https://nasagurusmoonheist.vercel.app. It runs on phones and desktops and can be installed from the browser.
+**Live site:** https://nasa-earth-jukebox.vercel.app. It runs on phones and desktops and can be installed from the browser.
 
 > This project is not endorsed by NASA. It uses NASA data and imagery and credits them below.
 
