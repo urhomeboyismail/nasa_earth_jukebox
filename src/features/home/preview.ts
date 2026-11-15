@@ -7,7 +7,7 @@
 import { FrameSequenceSource } from '../../analysis/video/frameSequence'
 import type { FrameSequenceOptions, LiveFrame } from '../../analysis/video/types'
 import { createEnsemble, SCHEDULE_LOOKAHEAD_S, STOP_FADE_S, type Ensemble } from '../../audio/ensemble'
-import { readAudioPrefs } from '../../audio/prefs'
+import { presetIdFor, readAudioPrefs } from '../../audio/prefs'
 import { loadVisualization, VOICE_IDS, type Visualization } from '../../data'
 import { presetFor, toMusicFrame, type MusicFrame } from '../../sonify'
 
@@ -82,7 +82,7 @@ export function createPreview(visualization: Visualization, hooks: PreviewHooks,
     if (ended || ensemble) return
     const prefs = readAudioPrefs()
     const spec = visualization.sonification
-    const preset = presetFor(prefs.style ?? spec?.preset ?? 'major')
+    const preset = presetFor(presetIdFor(prefs, spec?.preset))
     const made = given ?? createEnsemble(preset, { timbre: spec?.timbre })
     ensemble = made
     made.setDetail(spec?.detail ?? 'standard')

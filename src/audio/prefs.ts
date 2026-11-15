@@ -2,12 +2,14 @@
 // Set in the welcome and in the Listen mixer, which read and write this one store. Kept on this device; storage can be blocked (private windows),
 // so every access is guarded and the choice is also kept in memory for this visit. Same pattern as src/features/welcome/storage.ts.
 // shortcut: one set of preferences for every data set; add a per-data-set override if listeners ask for it.
+// Which preset plays is one rule, `presetIdFor` (SN15): a data set's own preset wins over a style picked in the welcome, and only a style picked
+// in the Listen mixer (`styleEverywhere`) plays over every data set.
 
 import { useSyncExternalStore } from 'react'
 import { storedAudioPrefs, type PresetId, type VoiceId } from '../data'
 
 export type AudioPrefs = {
-  /** null: the data set's own preset. */
+  /** null: the data set's own preset. With `styleEverywhere` false it is only a default, for data sets without a preset of their own. */
   style: PresetId | null
   /** −6 to +6 dB, added to the bass voice. */
   bassDb: number
@@ -16,10 +18,21 @@ export type AudioPrefs = {
   muted: VoiceId[]
   /** The listener's left and right are swapped, so every pan is flipped (the ear check, UI07). */
   swapEars: boolean
+  /** The style plays over every data set's own preset: true once it is chosen in the Listen mixer (SN15). */
+  styleEverywhere: boolean
 }
 
 export const AUDIO_PREFS_KEY = 'earth-jukebox:audio-prefs'
-export const DEFAULT_AUDIO_PREFS: AudioPrefs = { style: null, bassDb: 0, speed: 'normal', muted: [], swapEars: false }
+export const DEFAULT_AUDIO_PREFS: AudioPrefs = { style: null, bassDb: 0, speed: 'normal', muted: [], swapEars: false, styleEverywhere: false }
+
+/**
+ * The preset that plays (SN15): a style chosen in the Listen mixer over every data set; otherwise the data set's own preset; otherwise the style
+ * chosen in the welcome, as a default; otherwise Major. A preset never carries data, so this only picks the artistic choice.
+ */
+export function presetIdFor(prefs: Pick<AudioPrefs, 'style' | 'styleEverywhere'>, own: PresetId | undefined): PresetId {
+  if (prefs.styleEverywhere && prefs.style) return prefs.style
+  return own ?? prefs.style ?? 'major'
+}
 
 let remembered: AudioPrefs = DEFAULT_AUDIO_PREFS
 const listeners = new Set<() => void>()

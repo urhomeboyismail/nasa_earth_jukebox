@@ -367,6 +367,15 @@ describe('Your sound (the listener\'s preferences)', () => {
     expect(fakes.presetId).toBe(v3.sonification?.preset ?? 'major')
   })
 
+  it("plays the data set's own preset over a style from the welcome, until a style is chosen in the mixer (SN15)", async () => {
+    // The welcome saves only the style: a default, not a choice for every data set.
+    localStorage.setItem('earth-jukebox:audio-prefs', JSON.stringify({ style: 'chiptune' }))
+    const { user } = mount(withV3(plain, { sonification: { preset: 'dorian' } }))
+    expect(fakes.presetId).toBe('dorian')
+    await user.click(screen.getByRole('radio', { name: '8-bit arcade' }))
+    expect(fakes.presetId).toBe('chiptune')
+  })
+
   it('sends the Bass setting to the ensemble', () => {
     mount()
     fireEvent.change(screen.getByRole('slider', { name: 'Bass' }), { target: { value: '3' } })

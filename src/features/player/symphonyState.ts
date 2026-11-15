@@ -12,7 +12,7 @@ import { useLiveSource } from '../../analysis/video/useLiveSource'
 import { SCHEDULE_LOOKAHEAD_S } from '../../audio/ensemble/constants'
 import type { Ensemble, EnsembleStatus } from '../../audio/ensemble/types'
 import { useEnsemble } from '../../audio/ensemble/useEnsemble'
-import { saveAudioPrefs, useAudioPrefs } from '../../audio/prefs'
+import { presetIdFor, saveAudioPrefs, useAudioPrefs } from '../../audio/prefs'
 import { useAnnounce } from '../../components'
 import { useStoredValue } from '../../hooks/useStoredValue'
 import { DETAIL_KEY, parseDetail } from '../calibration/earCheckScore'
@@ -98,7 +98,7 @@ export function useSymphony(visualization: Visualization, video: HTMLVideoElemen
   // The listener's preferences (welcome and mixer) choose the style, the bass, the speed and the muted voices; the manifest's preset is the default,
   // and art mode (IX12) plays instead of both.
   const prefs = useAudioPrefs()
-  const preset = artPreset ?? presetFor(prefs.style ?? spec?.preset ?? 'major')
+  const preset = artPreset ?? presetFor(presetIdFor(prefs, spec?.preset))
   const allowed: readonly VoiceId[] = spec?.voices ?? VOICE_IDS
   // The listener's own level (kept on this device, set in the ear check or the detail control) comes first, then the manifest's, then Standard.
   const [storedDetail, storeDetail] = useStoredValue<DetailLevel | null>(DETAIL_KEY, parseDetail, null)

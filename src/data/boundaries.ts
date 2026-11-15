@@ -29,5 +29,7 @@ export const storedAudioPrefs = z.object({
   muted: z.array(z.enum(VOICE_IDS)).catch([]).transform(voices => [...new Set(voices)].filter(voice => voice !== 'melody')),
   /** The listener's left and right are swapped (the ear check, UI07). Older stored values have no such field. */
   swapEars: z.boolean().catch(false),
+  /** The style plays over every data set (chosen in the Listen mixer, SN15); false: it is only a default (the welcome). Older stored values have no such field. */
+  styleEverywhere: z.boolean().catch(false),
 })
 
