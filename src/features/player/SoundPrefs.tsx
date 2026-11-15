@@ -1,7 +1,7 @@
 import { useId } from 'react'
 import { BASS_DB_RANGE } from '../../audio/ensemble'
 import { setCuesOn, useCuesOn } from '../../audio/cues'
-import { resetAudioPrefs, saveAudioPrefs, useAudioPrefs, type AudioPrefs } from '../../audio/prefs'
+import { presetIdFor, resetAudioPrefs, saveAudioPrefs, useAudioPrefs, type AudioPrefs } from '../../audio/prefs'
 import { Button, Slider, useAnnounce } from '../../components'
 import { STYLE_IDS, VOICE_IDS, type PresetId, type VoiceId } from '../../data'
 import { presetFor } from '../../sonify'
@@ -37,10 +37,13 @@ export function SoundPrefs({ ownPreset, instruments = false, sample = false, cue
   const cuesOn = useCuesOn()
   const announce = useAnnounce()
   const id = useId()
-  const chosen = prefs.style ? presetFor(prefs.style) : null
+  // A style chosen here plays over every data set (SN15); one from the welcome is only a default, so here it shows as the data set's own sound.
+  const everywhere = prefs.styleEverywhere && prefs.style !== null
+  const chosen = everywhere && prefs.style ? presetFor(prefs.style) : null
+  const welcomeDefault = !everywhere && prefs.style ? presetFor(prefs.style) : null
 
   function chooseStyle(style: PresetId | null) {
-    saveAudioPrefs({ style })
+    saveAudioPrefs({ style, styleEverywhere: style !== null })
     announce(style ? `Style: ${presetFor(style).label}. ${presetFor(style).sound ?? ''}`.trim() : 'Style: the data set\'s own sound.')
   }
 
@@ -54,18 +57,20 @@ export function SoundPrefs({ ownPreset, instruments = false, sample = false, cue
       <fieldset className="sound-prefs__styles" aria-describedby={`${id}-style`}>
         <legend>Music style</legend>
         <label className="player__style-option">
-          <input type="radio" name={`${id}-style`} checked={prefs.style === null} onChange={() => chooseStyle(null)} />
+          <input type="radio" name={`${id}-style`} checked={!everywhere} onChange={() => chooseStyle(null)} />
           <span>The data set's own sound</span>
         </label>
         {STYLE_IDS.map(style => (
           <label key={style} className="player__style-option">
-            <input type="radio" name={`${id}-style`} checked={prefs.style === style} onChange={() => chooseStyle(style)} />
+            <input type="radio" name={`${id}-style`} checked={everywhere && prefs.style === style} onChange={() => chooseStyle(style)} />
             <span>{presetFor(style).label}</span>
           </label>
         ))}
       </fieldset>
       <p id={`${id}-style`} className="sound-prefs__hint">
-        {chosen?.sound ? `${chosen.sound} ` : ''}Styles change the instruments, never what the data says.
+        {chosen ? `${chosen.sound ? `${chosen.sound} ` : ''}It plays over every data set. ` : ''}
+        {welcomeDefault ? `Each data set plays its own sound; where it has none, your welcome choice (${welcomeDefault.label}) plays. ` : ''}
+        Styles change the instruments, never what the data says.
       </p>
 
       <Slider label="Bass" min={-BASS_DB_RANGE} max={BASS_DB_RANGE} step={1} value={prefs.bassDb} onChange={bassDb => saveAudioPrefs({ bassDb })} describe={bassWords} />
@@ -105,7 +110,7 @@ export function SoundPrefs({ ownPreset, instruments = false, sample = false, cue
       {cues && <p id={`${id}-cues`} className="sound-prefs__hint">Short quiet tones, each with its words on screen: the voice guide connects (rising) or ends (falling), an answer is ready, or something fails (two low blips). Playing starts (two rising blips) and finishes (two falling blips). In Compare, one blip comes before date A and two before date B. A save, copy or link made gives three rising blips. They never carry data.</p>}
 
       <div className="sound-prefs__buttons">
-        {sample && <Button onClick={() => void playSample(presetFor(prefs.style ?? ownPreset))}>Play sample</Button>}
+        {sample && <Button onClick={() => void playSample(presetFor(presetIdFor(prefs, ownPreset)))}>Play sample</Button>}
         {!instruments && <EarCheckButton />}
         <Button variant="text" onClick={() => { resetAudioPrefs(); announce('Back to the data set\'s own sound.') }}>Reset to the data set's sound</Button>
       </div>

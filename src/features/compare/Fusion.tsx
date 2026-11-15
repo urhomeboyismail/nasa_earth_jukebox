@@ -4,7 +4,7 @@ import { FrameSequenceSource } from '../../analysis/video/frameSequence'
 import { readFrameFeatures } from '../../analysis/video/readFrame'
 import { SCHEDULE_LOOKAHEAD_S } from '../../audio/ensemble/constants'
 import { useEnsemble } from '../../audio/ensemble/useEnsemble'
-import { useAudioPrefs } from '../../audio/prefs'
+import { presetIdFor, useAudioPrefs } from '../../audio/prefs'
 import { Button, Notice, Slider, useAnnounce } from '../../components'
 import { loadCatalog, loadVisualization, variableWords, type CatalogEntry, type Visualization } from '../../data'
 import { fuseFrames, presetFor, toMusicFrame, type MusicFrame } from '../../sonify'
@@ -40,7 +40,7 @@ export function Fusion({ visualization }: { visualization: Visualization }) {
   const prefs = useAudioPrefs()
   const deckB = loaded?.id === bId ? loaded.v : null
   const [a, b] = swapped && deckB ? [deckB, visualization] : [visualization, deckB]
-  const preset = presetFor(prefs.style ?? a.sonification?.preset ?? 'major')
+  const preset = presetFor(presetIdFor(prefs, a.sonification?.preset))
   const { ensemble } = useEnsemble(preset, 'standard')
   useEffect(() => { ensemble.setBass(prefs.bassDb) }, [ensemble, prefs.bassDb])
 
