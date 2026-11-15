@@ -1,0 +1,591 @@
+{
+  "id": "hurricanes-2023-atlantic",
+  "title": "Hurricanes over warm water, Atlantic 2023",
+  "summary": "Thirty-one views of the North Atlantic, five days apart from June to October 2023: sea surface temperature, with the track and name of every storm of the season drawn as it happens.",
+  "description": "Sea surface temperature over the North Atlantic from NASA's MUR analysis (JPL PO DAAC), as drawn by NASA's Scientific Visualization Studio for the 2023 Atlantic hurricane season, on a scale from 20 to 30 degrees Celsius: blue for cooler water, through green and yellow, to red for the warmest. Hurricanes tend to form over water warmer than about 26.5 degrees Celsius. Each storm's track is drawn as a dotted line with its name and its strength (TD tropical depression, TS tropical storm, 1 to 5 hurricane category); the tracks and names come from NOAA's National Weather Service. The app reads the sea's colours as temperatures; the lines, names, land and space count as no data. The view is a fixed globe, so each place stays in one spot. Each frame is the one nearest noon of its day. The numbers are read from the colours, so they are about, not exact.",
+  "variable": {
+    "name": "Sea surface temperature",
+    "unit": "°C",
+    "words": {
+      "higher": "warmer",
+      "lower": "cooler",
+      "highest": "warmest",
+      "lowest": "coolest",
+      "edge": "warm edge",
+      "thing": "water"
+    }
+  },
+  "source": {
+    "name": "NASA Scientific Visualization Studio, 2023 Atlantic Hurricane Season (Sea Surface Temperature only; MUR SST, JPL PO DAAC; storm tracks NOAA)",
+    "url": "https://svs.gsfc.nasa.gov/5305",
+    "credit": "NASA/Goddard Space Flight Center Scientific Visualization Studio. Storm tracks and strengths courtesy of NOAA's National Weather Service. Blue Marble MODIS data composite courtesy of the MODIS Science Team NASA Goddard Space Flight Center and the NASA Earth Observatory. Data: MUR SST (Multi-scale Ultra-high Resolution Sea Surface Temperature Analysis), JPL PO DAAC.",
+    "license": "The SVS page states no licence of its own and asks that the item be credited to NASA/Goddard Space Flight Center Scientific Visualization Studio. NASA's media usage guidelines (https://www.nasa.gov/nasa-brand-center/images-and-media/) allow NASA content used in a factual manner that does not imply endorsement, with NASA acknowledged as the source. The storm tracks are NOAA National Weather Service information, which is in the public domain unless noted otherwise (https://www.weather.gov/disclaimer). The MUR data are CC0 under NASA's data use guidance. Not endorsed by NASA or NOAA.",
+    "retrievedOn": "2026-11-15"
+  },
+  "colorScale": {
+    "stops": [
+      {
+        "value": 20,
+        "rgb": [
+          0,
+          11,
+          50
+        ]
+      },
+      {
+        "value": 21,
+        "rgb": [
+          0,
+          34,
+          185
+        ]
+      },
+      {
+        "value": 22,
+        "rgb": [
+          0,
+          61,
+          255
+        ]
+      },
+      {
+        "value": 23,
+        "rgb": [
+          0,
+          101,
+          255
+        ]
+      },
+      {
+        "value": 24,
+        "rgb": [
+          39,
+          130,
+          158
+        ]
+      },
+      {
+        "value": 25,
+        "rgb": [
+          107,
+          155,
+          20
+        ]
+      },
+      {
+        "value": 26,
+        "rgb": [
+          201,
+          181,
+          0
+        ]
+      },
+      {
+        "value": 27,
+        "rgb": [
+          255,
+          168,
+          0
+        ]
+      },
+      {
+        "value": 28,
+        "rgb": [
+          239,
+          91,
+          0
+        ]
+      },
+      {
+        "value": 29,
+        "rgb": [
+          176,
+          37,
+          0
+        ]
+      },
+      {
+        "value": 30,
+        "rgb": [
+          77,
+          1,
+          0
+        ]
+      }
+    ],
+    "noData": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        255,
+        255,
+        255
+      ],
+      [
+        128,
+        128,
+        128
+      ]
+    ],
+    "maxColorDistance": 35
+  },
+  "regions": [
+    {
+      "id": "north-atlantic",
+      "name": "The North Atlantic",
+      "description": "The North Atlantic from the Gulf of Mexico and the Caribbean to Greenland, without the list of names on the right or the date box.",
+      "points": [
+        {
+          "x": 0.2059,
+          "y": 0.1119
+        },
+        {
+          "x": 0.3247,
+          "y": 0.1119
+        },
+        {
+          "x": 0.4435,
+          "y": 0.1119
+        },
+        {
+          "x": 0.5624,
+          "y": 0.1119
+        },
+        {
+          "x": 0.6812,
+          "y": 0.1119
+        },
+        {
+          "x": 0.8,
+          "y": 0.1119
+        },
+        {
+          "x": 0.2059,
+          "y": 0.2697
+        },
+        {
+          "x": 0.3247,
+          "y": 0.2697
+        },
+        {
+          "x": 0.4435,
+          "y": 0.2697
+        },
+        {
+          "x": 0.5624,
+          "y": 0.2697
+        },
+        {
+          "x": 0.6812,
+          "y": 0.2697
+        },
+        {
+          "x": 0.8,
+          "y": 0.2697
+        },
+        {
+          "x": 0.2059,
+          "y": 0.4276
+        },
+        {
+          "x": 0.3247,
+          "y": 0.4276
+        },
+        {
+          "x": 0.4435,
+          "y": 0.4276
+        },
+        {
+          "x": 0.5624,
+          "y": 0.4276
+        },
+        {
+          "x": 0.6812,
+          "y": 0.4276
+        },
+        {
+          "x": 0.8,
+          "y": 0.4276
+        },
+        {
+          "x": 0.2059,
+          "y": 0.5856
+        },
+        {
+          "x": 0.3247,
+          "y": 0.5856
+        },
+        {
+          "x": 0.4435,
+          "y": 0.5856
+        },
+        {
+          "x": 0.5624,
+          "y": 0.5856
+        },
+        {
+          "x": 0.6812,
+          "y": 0.5856
+        },
+        {
+          "x": 0.8,
+          "y": 0.5856
+        },
+        {
+          "x": 0.2059,
+          "y": 0.7435
+        },
+        {
+          "x": 0.3247,
+          "y": 0.7435
+        },
+        {
+          "x": 0.4435,
+          "y": 0.7435
+        },
+        {
+          "x": 0.5624,
+          "y": 0.7435
+        },
+        {
+          "x": 0.6812,
+          "y": 0.7435
+        },
+        {
+          "x": 0.8,
+          "y": 0.7435
+        }
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "id": "2023-06-01",
+      "date": "2023-06-01",
+      "image": "frames/2023-06-01.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-06-01: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-06-06",
+      "date": "2023-06-06",
+      "image": "frames/2023-06-06.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-06-06: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-06-11",
+      "date": "2023-06-11",
+      "image": "frames/2023-06-11.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-06-11: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-06-16",
+      "date": "2023-06-16",
+      "image": "frames/2023-06-16.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-06-16: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-06-21",
+      "date": "2023-06-21",
+      "image": "frames/2023-06-21.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-06-21: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-06-26",
+      "date": "2023-06-26",
+      "image": "frames/2023-06-26.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-06-26: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-07-01",
+      "date": "2023-07-01",
+      "image": "frames/2023-07-01.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-07-01: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-07-06",
+      "date": "2023-07-06",
+      "image": "frames/2023-07-06.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-07-06: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-07-11",
+      "date": "2023-07-11",
+      "image": "frames/2023-07-11.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-07-11: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-07-16",
+      "date": "2023-07-16",
+      "image": "frames/2023-07-16.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-07-16: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-07-21",
+      "date": "2023-07-21",
+      "image": "frames/2023-07-21.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-07-21: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-07-26",
+      "date": "2023-07-26",
+      "image": "frames/2023-07-26.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-07-26: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-07-31",
+      "date": "2023-07-31",
+      "image": "frames/2023-07-31.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-07-31: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-08-05",
+      "date": "2023-08-05",
+      "image": "frames/2023-08-05.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-08-05: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-08-10",
+      "date": "2023-08-10",
+      "image": "frames/2023-08-10.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-08-10: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-08-15",
+      "date": "2023-08-15",
+      "image": "frames/2023-08-15.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-08-15: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-08-20",
+      "date": "2023-08-20",
+      "image": "frames/2023-08-20.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-08-20: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-08-25",
+      "date": "2023-08-25",
+      "image": "frames/2023-08-25.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-08-25: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-08-30",
+      "date": "2023-08-30",
+      "image": "frames/2023-08-30.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-08-30: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-09-04",
+      "date": "2023-09-04",
+      "image": "frames/2023-09-04.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-09-04: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-09-09",
+      "date": "2023-09-09",
+      "image": "frames/2023-09-09.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-09-09: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-09-14",
+      "date": "2023-09-14",
+      "image": "frames/2023-09-14.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-09-14: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-09-19",
+      "date": "2023-09-19",
+      "image": "frames/2023-09-19.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-09-19: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-09-24",
+      "date": "2023-09-24",
+      "image": "frames/2023-09-24.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-09-24: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-09-29",
+      "date": "2023-09-29",
+      "image": "frames/2023-09-29.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-09-29: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-10-04",
+      "date": "2023-10-04",
+      "image": "frames/2023-10-04.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-10-04: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-10-09",
+      "date": "2023-10-09",
+      "image": "frames/2023-10-09.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-10-09: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-10-14",
+      "date": "2023-10-14",
+      "image": "frames/2023-10-14.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-10-14: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-10-19",
+      "date": "2023-10-19",
+      "image": "frames/2023-10-19.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-10-19: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-10-24",
+      "date": "2023-10-24",
+      "image": "frames/2023-10-24.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-10-24: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    },
+    {
+      "id": "2023-10-29",
+      "date": "2023-10-29",
+      "image": "frames/2023-10-29.png",
+      "width": 1024,
+      "height": 608,
+      "altText": "The North Atlantic on 2023-10-29: warm red and orange water in the tropics and the Gulf of Mexico, yellow and green further north, with the dotted tracks and names of the season's storms so far."
+    }
+  ],
+  "mapping": {
+    "scale": "C major arpeggio",
+    "summary": "median",
+    "minValidFraction": 0.35,
+    "categories": [
+      {
+        "id": "cold",
+        "label": "Coolest",
+        "range": [
+          20,
+          22
+        ],
+        "note": "C4"
+      },
+      {
+        "id": "cool",
+        "label": "Cooler",
+        "range": [
+          22,
+          24
+        ],
+        "note": "E4"
+      },
+      {
+        "id": "mild",
+        "label": "Middle",
+        "range": [
+          24,
+          26
+        ],
+        "note": "G4"
+      },
+      {
+        "id": "warm",
+        "label": "Warmer",
+        "range": [
+          26,
+          28
+        ],
+        "note": "C5"
+      },
+      {
+        "id": "hot",
+        "label": "Warmest",
+        "range": [
+          28,
+          30
+        ],
+        "note": "E5"
+      }
+    ],
+    "tick": {
+      "note": "C6",
+      "durationMs": 60
+    },
+    "missingCue": {
+      "type": "noise",
+      "durationMs": 300
+    }
+  },
+  "comparisons": [
+    {
+      "id": "june-vs-august",
+      "regionId": "north-atlantic",
+      "frameA": "2023-06-01",
+      "frameB": "2023-08-25",
+      "question": "Which date shows warmer water in the North Atlantic?",
+      "answer": "b",
+      "explanation": "Date B (25 August) reads about 29.1 degrees Celsius in the middle colour of the sea; date A (1 June) about 28.4. The sea warms through the summer, the height of the hurricane season. These numbers are read from the colours of the maps, so they are about, not exact."
+    }
+  ],
+  "mapArea": {
+    "x0": 0.1465,
+    "y0": 0.0329,
+    "x1": 0.8594,
+    "y1": 0.8224
+  }
+}

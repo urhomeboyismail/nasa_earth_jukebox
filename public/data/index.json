@@ -43,5 +43,10 @@
     "id": "global-temperature-anomaly",
     "title": "Global temperature change, 1880 to 2025",
     "summary": "Thirty world maps, one every five years from 1880 to 2025, showing how much warmer or cooler each place was than its 1951 to 1980 average."
+  },
+  {
+    "id": "hurricanes-2023-atlantic",
+    "title": "Hurricanes over warm water, Atlantic 2023",
+    "summary": "Thirty-one views of the North Atlantic, five days apart from June to October 2023: sea surface temperature, with the track and name of every storm of the season drawn as it happens."
   }
 ]
