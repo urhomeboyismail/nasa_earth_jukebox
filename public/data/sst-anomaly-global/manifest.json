@@ -511,5 +511,18 @@
     "fps": 5,
     "firstFrameDate": "2024-05-25",
     "frameStepDays": 38
+  },
+  "sonification": {
+    "preset": "dorian",
+    "detail": "standard",
+    "timbre": {
+      "instrument": "synth",
+      "filterHz": {
+        "low": 300,
+        "high": 4000
+      },
+      "curve": "exponential",
+      "panWidth": 1
+    }
   }
 }
