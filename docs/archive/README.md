@@ -6,6 +6,8 @@ Moved here on 9 Nov 2026, when the tickets were reorganised into one queue for t
 
 **14 Nov 2026:** the 71 done tickets (S, I, SN, IX, EIC01/04, G01–G10, V, VIS, F, JB01–JB08, D04, H01, H05) were deleted from `tickets/`; read them with `git log -- docs/tickets/<file>` or `git show faf36d9:docs/tickets/<file>`.
 
+**15 Nov 2026:** 9 more done tickets (H02, H03, H04, H06, H07, H08, JB09, JB10, JB11) were deleted from `tickets/` and the queue; read them with `git show 4ea2b64:docs/tickets/<file>`. EIC02 stays listed: it is marked done but its picks were never recorded (`AGENT-BOARD.md` R-20261114-EIC03-1).
+
 | File | What it was | Replaced by |
 |---|---|---|
 | [`TICKETS-pre-v3.md`](TICKETS-pre-v3.md) | The old board: everything built (T00–T120), the open T85, T87, T88b, T114 step 7 and T120 checks | `../TICKETS.md`: T85 → S02, EIC01–EIC03, D04; T87 → S03, H03, H08; T88b/F34 → H01, H07; T114.7 → S05, H04; T120 phone checks → H06 |

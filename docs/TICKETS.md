@@ -76,8 +76,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [H02](tickets/H02-live-parity-check.md) | Live parity check with a billed key | S | 👤 | — | — | done |
-| [G05](tickets/G05-adk-default.md) | ADK by default; retire the old bridge | S | agent | H02 | server-assistant | ready: feature/G05-adk-default |
+| [G05](tickets/G05-adk-default.md) | ADK by default; retire the old bridge | S | agent | — | server-assistant | ready: feature/G05-adk-default |
 | [G07](tickets/G07-agent-eval-drafter.md) | Agent evaluation (scoring bug fixed) and the offline drafter | M | agent+👤 | — | — | blocked: held-out questions |
 
 ### P1: UI overhaul (the Muninn look; [`planning/UI-OVERHAUL.md`](planning/UI-OVERHAUL.md))
@@ -91,21 +90,12 @@ The MC tickets branch from `chore/jpl-hud-theme` (the Mission Control look, not 
 | [MC03](tickets/MC03-backdrop-real-audio.md) | The backdrop follows real sound | S | agent | — | — | ready: no code change (findings in Result) |
 | [MC04](tickets/MC04-quality-gate-flaky-app-test.md) | Quality gate, and the flaky App test | S | agent | — | — | claimed: A, 2026-11-14 |
 | [MC05](tickets/MC05-pr-mission-control.md) | Pull request: the Mission Control look into main | S | agent+👤 | MC01, MC02, MC03, MC04 | — | open |
+| [LY01](tickets/LY01-phone-layout-pass.md) | The phone layout pass: the page, not the chrome, on the first screen | M | agent+👤 | MC05 | app, player | open |
 
 ### P2: quality and smaller features
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-
-### P2: Echo as Juke-Bot (the guide)
-
-Echo, the guide, redrawn as Juke-Bot (helmet visor, headphones, chest screen, air-booster boots) and brought to life. F58 first; the rest set its props. Nothing specific to one data set in `src/`: colours and trails come from each manifest (JB04).
-
-| ID | Ticket | Size | Who | Needs | Hotspots | Status |
-|---|---|---|---|---|---|---|
-| [JB09](tickets/JB09-tour-from-welcome.md) | The tour starts after the welcome (map path), and Echo flies home to the dock when it finishes | S | agent | — | tour | done |
-| [JB10](tickets/JB10-tour-mixer-stop.md) | The tour's third stop is the Speed and Volume mixer, not Explore the map | S | agent | — | player | done |
-| [JB11](tickets/JB11-chat-welcome.md) | Echo's chat welcome (name, four sound chips, then the path and sound check) with a "Prefer manual setup?" form | M | agent | JB09 | welcome | done |
 
 ### P2: Echo's weather (Meteomatics)
 
@@ -122,11 +112,6 @@ Echo fetches the weather for a place, shows every value it fetched, and plays it
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [H03](tickets/H03-practice-listening-test.md) | Practice listening test: Symphony against Simple, Find and Predict, with a blind or low-vision tester | M | 👤 | — | — | done |
-| [H04](tickets/H04-change-style-check.md) | Change-style check on real data | S | 👤 | — | — | done |
-| [H06](tickets/H06-device-numbers.md) | Device numbers, live-video CPU on a phone, real-phone checks | S | 👤 | — | — | done |
-| [H07](tickets/H07-video-slides.md) | 30 s video and 7 slides | M | 👤 | H03 | — | done |
-| [H08](tickets/H08-final-check.md) | Final check: keyboard, NVDA and VoiceOver, server off | M | 👤 | — | — | done |
 
 ## Parked
 
