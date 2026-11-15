@@ -184,6 +184,24 @@ describe('the datasets in public/data', () => {
   }
 })
 
+describe('visualizationSchema: events (SN17)', () => {
+  const event = (v: any, change: object = {}) => ({ id: 'e1', date: v.frames[1].date, label: 'A storm forms', place: { x: 0.9, y: 0.5 }, ...change })
+
+  it('accepts a list of events, and a manifest without one', () => {
+    const v: any = valid()
+    v.events = [event(v), { id: 'e2', date: v.frames[2].date, label: 'No place' }]
+    expect(visualizationSchema.safeParse(v).success).toBe(true)
+    expect(visualizationSchema.parse(valid())).not.toHaveProperty('events')
+  })
+
+  it('refuses a date outside the frames, a repeated id, a place outside 0 to 1, and an unknown field', () => {
+    expect(errorAfter(v => { v.events = [event(v, { date: '1900-01-01' })] })).toMatch(/^events\.0\.date: 1900-01-01 is outside the frames' dates/)
+    expect(errorAfter(v => { v.events = [event(v), event(v)] })).toMatch(/events\.1\.id: event id "e1" is used more than once/)
+    expect(errorAfter(v => { v.events = [event(v, { place: { x: 1.5, y: 0 } })] })).toMatch(/^events\.0\.place\.x: must be 1 or less/)
+    expect(errorAfter(v => { v.events = [event(v, { lable: 'typo' })] })).toMatch(/lable/)
+  })
+})
+
 describe('visualizationSchema: map area and story', () => {
   const withBoth = (v: any) => {
     v.mapArea = { x0: 0, y0: 0, x1: 1, y1: 0.88 }

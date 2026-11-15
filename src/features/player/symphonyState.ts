@@ -19,6 +19,7 @@ import { DETAIL_KEY, parseDetail } from '../calibration/earCheckScore'
 import { VOICE_IDS, type DetailLevel, type Visualization, type VoiceId } from '../../data'
 import { DETAIL_VOICES, presetFor, toMusicFrame } from '../../sonify'
 import type { MusicFrame, Preset } from '../../sonify'
+import { eventCues, eventSentence, eventsBetween } from '../../sonify/events'
 
 /** The voices in words, for buttons, captions and announcements. */
 export const VOICE_WORDS: Record<VoiceId, string> = {
@@ -113,12 +114,25 @@ export function useSymphony(visualization: Visualization, video: HTMLVideoElemen
   const previous = useRef<MusicFrame | null>(null)
 
   // Each frame the source reads becomes one frame of music. Set from the callback, not from an effect.
+  // SN17: the manifest's dated events. Each one reached while playing forward gives a short placed cue and is announced.
+  const events = visualization.events
+  const lastDate = useRef<string | null>(null)
+
   const onFrame = useCallback((frame: LiveFrame) => {
     const music = toMusicFrame(frame.features, preset, previous.current)
     previous.current = music
-    ensemble.apply(music, ensemble.now() + SCHEDULE_LOOKAHEAD_S)
+    const at = ensemble.now() + SCHEDULE_LOOKAHEAD_S
+    ensemble.apply(music, at)
+    if (events?.length) {
+      const reached = eventsBetween(events, lastDate.current, frame.date)
+      if (reached.length) {
+        for (const cue of eventCues(reached)) ensemble.playNotes(cue.notes, at + cue.offsetS)
+        announce(eventSentence(reached))
+      }
+    }
+    lastDate.current = frame.date
     setLatest({ music, features: frame.features, date: frame.date, confidence: frame.confidence })
-  }, [ensemble, preset])
+  }, [ensemble, preset, events, announce])
 
   const source = useLiveSource({ video, visualization, step: speed, onFrame })
   const { start: startSource, stop: stopSource } = source
