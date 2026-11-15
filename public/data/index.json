@@ -33,5 +33,10 @@
     "id": "synthetic-storm",
     "title": "Synthetic storm (made-up practice data)",
     "summary": "Ten made-up daily frames of a warm storm that travels a known path, a cold patch and a day with no data, for practice and tests."
+  },
+  {
+    "id": "sst-anomaly-global",
+    "title": "Sea surface temperature anomaly, worldwide, 2024 to 2026",
+    "summary": "Twenty-four maps of the whole ocean, 38 days apart from May 2024 to October 2026, showing how much warmer or cooler the sea surface is than normal."
   }
 ]
