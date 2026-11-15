@@ -4,6 +4,7 @@ import { higherPhrase, variableWords } from '../../data'
 import { pages, type Page } from '../../pages'
 import { currentDataParam, hashFor } from '../../route'
 import type { PageProps } from '../types'
+import { ComingNext } from './ComingNext'
 import { Crate } from './Crate'
 import './home.css'
 
@@ -25,6 +26,7 @@ export default function HomePage({ visualization }: PageProps) {
       {visualization && <p>Now playing from: {visualization.title}. {visualization.summary}</p>}
 
       {!flags.hideCrate && <Crate currentId={visualization?.id ?? null} />}
+      {!flags.hideCrate && <ComingNext />}
 
       <Card title="What you will try" headingLevel={2}>
         <p>Can you hear, without seeing the image, which date shows {higherPhrase(variableWords(visualization?.variable))}, and when the change happened?</p>

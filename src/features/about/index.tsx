@@ -5,6 +5,7 @@ import { listedShortcuts } from '../../interaction/shortcuts'
 import { presetFor } from '../../sonify'
 import { PlaylistPanel } from '../playlist/PlaylistPanel'
 import type { PageProps } from '../types'
+import { HowItWorks } from './HowItWorks'
 import { SoundRecipe } from './SoundRecipe'
 import './about.css'
 
@@ -136,6 +137,27 @@ function About({ visualization }: { visualization: Visualization }) {
           <li>Each date is one of {mapping.categories.length} sounds, so small changes inside a range cannot be heard.</li>
           <li>Missing data is left out, never counted as a low value.{missing.length > 0 && ` ${missing.length === 1 ? 'One date has' : `${missing.length} dates have`} missing data: ${missing.map(frame => formatFrameDate(frame.date)).join(', ')}.`}</li>
           <li>We listen to {region.name} only. Other places can behave differently.</li>
+        </ul>
+      </Card>
+
+      <Card title="Who this is for" headingLevel={2}>
+        <ul>
+          <li>Blind and low-vision people, who can follow NASA Earth imagery by ear and through words.</li>
+          <li>Students and learners, who can hear a change happen before they read about it.</li>
+          <li>Visitors to the NASA Earth Information Center and other museums, where a screen can also be listened to.</li>
+        </ul>
+      </Card>
+
+      <Card title="How a NASA image becomes sound" headingLevel={2}>
+        <HowItWorks />
+      </Card>
+
+      <Card title="What comes next" headingLevel={2}>
+        <ul>
+          <li>Live data: some NASA visualizations, such as the El Niño sea temperature and PACE ocean colour, are updated every day, so the Jukebox could play today&apos;s ocean.</li>
+          <li>The NASA visualizations on the Home page&apos;s &ldquo;Coming next&rdquo; shelf, sonified one by one. A new data set needs a manifest, not new code.</li>
+          <li>A museum kiosk mode that plays on its own and answers by voice.</li>
+          <li>More languages for the voice guide and the descriptions.</li>
         </ul>
       </Card>
 
