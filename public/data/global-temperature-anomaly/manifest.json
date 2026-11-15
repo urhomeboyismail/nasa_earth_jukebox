@@ -1,0 +1,576 @@
+{
+  "id": "global-temperature-anomaly",
+  "title": "Global temperature change, 1880 to 2025",
+  "summary": "Thirty world maps, one every five years from 1880 to 2025, showing how much warmer or cooler each place was than its 1951 to 1980 average.",
+  "description": "Surface temperature anomaly from NASA's GISS Surface Temperature Analysis (GISTEMP v4), as drawn by NASA's Scientific Visualization Studio: blue where a place was cooler than its 1951 to 1980 average, white where it was near that average, and red where it was warmer, on a scale from minus 4 to plus 4 degrees Celsius. Each map is a 12-month average. NASA labels each map only with its year, so this data set dates it 1 July of that year. Grey is no data: in the early years there were few measurements in many places. The map is flat, so the far north and south take up more of it than they do of the Earth. The numbers are read from the colours of the maps, so they are about, not exact, and the middle colour of a map is not NASA's global average.",
+  "variable": {
+    "name": "Surface temperature anomaly",
+    "unit": "°C",
+    "words": {
+      "higher": "warmer than normal",
+      "lower": "cooler than normal",
+      "highest": "furthest above normal",
+      "lowest": "furthest below normal",
+      "edge": "edge between warmer and cooler",
+      "thing": ""
+    }
+  },
+  "source": {
+    "name": "NASA Scientific Visualization Studio, Global Temperature Anomalies from 1880 to 2025 (GISTEMP v4, NASA GISS)",
+    "url": "https://svs.gsfc.nasa.gov/5603",
+    "credit": "NASA's Scientific Visualization Studio. Data provided by Robert B. Schmunk (NASA/GSFC GISS). Visualizer: Mark SubbaRao (NASA/GSFC). Data: GISS Surface Temperature Analysis (GISTEMP v4), NASA's Goddard Institute for Space Studies.",
+    "license": "The SVS page states no licence of its own and asks that the item be credited to NASA's Scientific Visualization Studio. The GISTEMP page states no licence for the data and says graphics need no permission to use elsewhere but their source should be acknowledged, under NASA's media guidance (https://www.nasa.gov/nasa-brand-center/images-and-media/): NASA content used in a factual manner that does not imply endorsement, with NASA acknowledged as the source. Not endorsed by NASA.",
+    "retrievedOn": "2026-11-15"
+  },
+  "colorScale": {
+    "stops": [
+      {
+        "value": -4,
+        "rgb": [
+          0,
+          4,
+          87
+        ]
+      },
+      {
+        "value": -3,
+        "rgb": [
+          3,
+          68,
+          129
+        ]
+      },
+      {
+        "value": -2,
+        "rgb": [
+          48,
+          125,
+          166
+        ]
+      },
+      {
+        "value": -1,
+        "rgb": [
+          147,
+          189,
+          210
+        ]
+      },
+      {
+        "value": 0,
+        "rgb": [
+          236,
+          230,
+          225
+        ]
+      },
+      {
+        "value": 1,
+        "rgb": [
+          220,
+          171,
+          142
+        ]
+      },
+      {
+        "value": 2,
+        "rgb": [
+          195,
+          114,
+          67
+        ]
+      },
+      {
+        "value": 3,
+        "rgb": [
+          148,
+          47,
+          6
+        ]
+      },
+      {
+        "value": 4,
+        "rgb": [
+          102,
+          20,
+          29
+        ]
+      }
+    ],
+    "noData": [
+      [
+        144,
+        144,
+        144
+      ],
+      [
+        136,
+        136,
+        136
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "maxColorDistance": 40
+  },
+  "regions": [
+    {
+      "id": "whole-world",
+      "name": "The whole world",
+      "description": "The whole map, land and sea, from pole to pole. Grey places have no data and count as missing.",
+      "points": [
+        {
+          "x": 0.1543,
+          "y": 0.5586
+        },
+        {
+          "x": 0.9629,
+          "y": 0.1367
+        },
+        {
+          "x": 0.8262,
+          "y": 0.8555
+        },
+        {
+          "x": 0.4121,
+          "y": 0.0664
+        },
+        {
+          "x": 0.5879,
+          "y": 0.4727
+        },
+        {
+          "x": 0.4121,
+          "y": 0.8867
+        },
+        {
+          "x": 0.0332,
+          "y": 0.1836
+        },
+        {
+          "x": 0.9629,
+          "y": 0.5117
+        },
+        {
+          "x": 0.0332,
+          "y": 0.8633
+        },
+        {
+          "x": 0.6777,
+          "y": 0.1836
+        },
+        {
+          "x": 0.334,
+          "y": 0.3398
+        },
+        {
+          "x": 0.6113,
+          "y": 0.7227
+        },
+        {
+          "x": 0.3848,
+          "y": 0.6367
+        },
+        {
+          "x": 0.8457,
+          "y": 0.3242
+        },
+        {
+          "x": 0.2285,
+          "y": 0.7773
+        },
+        {
+          "x": 0.7676,
+          "y": 0.582
+        },
+        {
+          "x": 0.0332,
+          "y": 0.3945
+        },
+        {
+          "x": 0.9707,
+          "y": 0.7148
+        },
+        {
+          "x": 0.2285,
+          "y": 0.1523
+        },
+        {
+          "x": 0.502,
+          "y": 0.2461
+        },
+        {
+          "x": 0.0332,
+          "y": 0.6836
+        },
+        {
+          "x": 0.4238,
+          "y": 0.4805
+        },
+        {
+          "x": 0.1895,
+          "y": 0.4023
+        },
+        {
+          "x": 0.6934,
+          "y": 0.3477
+        },
+        {
+          "x": 0.5801,
+          "y": 0.0664
+        },
+        {
+          "x": 0.8066,
+          "y": 0.1055
+        },
+        {
+          "x": 0.5605,
+          "y": 0.8633
+        },
+        {
+          "x": 0.9707,
+          "y": 0.8633
+        },
+        {
+          "x": 0.5254,
+          "y": 0.6055
+        },
+        {
+          "x": 0.7559,
+          "y": 0.7305
+        }
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "id": "1880-07-01",
+      "date": "1880-07-01",
+      "image": "frames/1880-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1880 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1885-07-01",
+      "date": "1885-07-01",
+      "image": "frames/1885-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1885 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1890-07-01",
+      "date": "1890-07-01",
+      "image": "frames/1890-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1890 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1895-07-01",
+      "date": "1895-07-01",
+      "image": "frames/1895-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1895 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1900-07-01",
+      "date": "1900-07-01",
+      "image": "frames/1900-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1900 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1905-07-01",
+      "date": "1905-07-01",
+      "image": "frames/1905-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1905 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1910-07-01",
+      "date": "1910-07-01",
+      "image": "frames/1910-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1910 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1915-07-01",
+      "date": "1915-07-01",
+      "image": "frames/1915-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1915 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1920-07-01",
+      "date": "1920-07-01",
+      "image": "frames/1920-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1920 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1925-07-01",
+      "date": "1925-07-01",
+      "image": "frames/1925-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1925 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1930-07-01",
+      "date": "1930-07-01",
+      "image": "frames/1930-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1930 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1935-07-01",
+      "date": "1935-07-01",
+      "image": "frames/1935-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1935 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1940-07-01",
+      "date": "1940-07-01",
+      "image": "frames/1940-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1940 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1945-07-01",
+      "date": "1945-07-01",
+      "image": "frames/1945-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1945 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1950-07-01",
+      "date": "1950-07-01",
+      "image": "frames/1950-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1950 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1955-07-01",
+      "date": "1955-07-01",
+      "image": "frames/1955-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1955 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1960-07-01",
+      "date": "1960-07-01",
+      "image": "frames/1960-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1960 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1965-07-01",
+      "date": "1965-07-01",
+      "image": "frames/1965-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1965 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1970-07-01",
+      "date": "1970-07-01",
+      "image": "frames/1970-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1970 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1975-07-01",
+      "date": "1975-07-01",
+      "image": "frames/1975-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1975 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1980-07-01",
+      "date": "1980-07-01",
+      "image": "frames/1980-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1980 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1985-07-01",
+      "date": "1985-07-01",
+      "image": "frames/1985-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1985 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1990-07-01",
+      "date": "1990-07-01",
+      "image": "frames/1990-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1990 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "1995-07-01",
+      "date": "1995-07-01",
+      "image": "frames/1995-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 1995 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "2000-07-01",
+      "date": "2000-07-01",
+      "image": "frames/2000-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 2000 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "2005-07-01",
+      "date": "2005-07-01",
+      "image": "frames/2005-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 2005 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "2010-07-01",
+      "date": "2010-07-01",
+      "image": "frames/2010-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 2010 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "2015-07-01",
+      "date": "2015-07-01",
+      "image": "frames/2015-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 2015 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "2020-07-01",
+      "date": "2020-07-01",
+      "image": "frames/2020-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 2020 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    },
+    {
+      "id": "2025-07-01",
+      "date": "2025-07-01",
+      "image": "frames/2025-07-01.png",
+      "width": 1024,
+      "height": 544,
+      "altText": "Map of the world for about 2025 (a 12-month average): blue where it was cooler than the 1951 to 1980 average, white near it, red warmer, and grey where there was no data."
+    }
+  ],
+  "mapping": {
+    "scale": "C major arpeggio",
+    "summary": "median",
+    "minValidFraction": 0.5,
+    "categories": [
+      {
+        "id": "cold",
+        "label": "Much cooler than normal",
+        "range": [
+          -4,
+          -2.4
+        ],
+        "note": "C4"
+      },
+      {
+        "id": "cool",
+        "label": "Cooler than normal",
+        "range": [
+          -2.4,
+          -0.8
+        ],
+        "note": "E4"
+      },
+      {
+        "id": "mild",
+        "label": "Near normal",
+        "range": [
+          -0.8,
+          0.8
+        ],
+        "note": "G4"
+      },
+      {
+        "id": "warm",
+        "label": "Warmer than normal",
+        "range": [
+          0.8,
+          2.4
+        ],
+        "note": "C5"
+      },
+      {
+        "id": "hot",
+        "label": "Much warmer than normal",
+        "range": [
+          2.4,
+          4
+        ],
+        "note": "E5"
+      }
+    ],
+    "tick": {
+      "note": "C6",
+      "durationMs": 60
+    },
+    "missingCue": {
+      "type": "noise",
+      "durationMs": 300
+    }
+  },
+  "comparisons": [
+    {
+      "id": "1880-vs-2025",
+      "regionId": "whole-world",
+      "frameA": "1880-07-01",
+      "frameB": "2025-07-01",
+      "question": "Which date shows the world warmer than its 1951 to 1980 average?",
+      "answer": "b",
+      "explanation": "Date B (about 2025) is mostly red: the middle colour of the map reads about 2 degrees Celsius above normal. Date A (about 1880) is mostly blue and white, about half a degree below normal, with many grey places that had no data. These numbers are read from the colours of the maps, so they are about, not exact."
+    },
+    {
+      "id": "1950-vs-2000",
+      "regionId": "whole-world",
+      "frameA": "1950-07-01",
+      "frameB": "2000-07-01",
+      "question": "Which date shows the world warmer than its 1951 to 1980 average?",
+      "answer": "b",
+      "explanation": "Date B (about 2000) reads about 1 degree Celsius above normal in the middle colour of the map; date A (about 1950) reads about half a degree below. These numbers are read from the colours of the maps, so they are about, not exact."
+    }
+  ],
+  "mapArea": {
+    "x0": 0,
+    "y0": 0,
+    "x1": 1,
+    "y1": 0.9412
+  }
+}

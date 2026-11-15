@@ -38,5 +38,10 @@
     "id": "sst-anomaly-global",
     "title": "Sea surface temperature anomaly, worldwide, 2024 to 2026",
     "summary": "Twenty-four maps of the whole ocean, 38 days apart from May 2024 to October 2026, showing how much warmer or cooler the sea surface is than normal."
+  },
+  {
+    "id": "global-temperature-anomaly",
+    "title": "Global temperature change, 1880 to 2025",
+    "summary": "Thirty world maps, one every five years from 1880 to 2025, showing how much warmer or cooler each place was than its 1951 to 1980 average."
   }
 ]
