@@ -43,5 +43,10 @@
     "id": "global-temperature-anomaly",
     "title": "Global temperature change, 1880 to 2025",
     "summary": "Thirty world maps, one every five years from 1880 to 2025, showing how much warmer or cooler each place was than its 1951 to 1980 average."
+  },
+  {
+    "id": "ocean-currents-temperature",
+    "title": "Ocean currents and temperature, 2007 to 2008",
+    "summary": "Thirty world maps, eleven days apart from March 2007 to February 2008, of the ocean surface currents drawn as streaks coloured by sea surface temperature, from blue (0 degrees Celsius) to red (32)."
   }
 ]
