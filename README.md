@@ -54,7 +54,7 @@ Each data set names its source, credit and licence in its own `manifest.json` an
 
 > We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS).
 
-The other data sets in the list (`fixture`, `synthetic-*`) are made-up practice data and say so on screen.
+The other data sets in the list (`fixture`) is made-up practice data and says so on screen.
 
 ## How it was made
 

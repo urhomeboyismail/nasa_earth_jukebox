@@ -1,6 +1,6 @@
 // Change regression baseline (docs/PLAN.md §5.9, T112 and T113). Records the `Score` (the change step and the contour lines) of made-up scenes with a known answer in
 // src/data/__golden__/change.json, so any change to the change maths shows in a diff. Data sets with a baseline are scored from their real
-// files and added to the same golden file under "<id>/<frame>" (T111 added synthetic-change); a data set in index.json with a `baseline`
+// files and added to the same golden file under "<id>/<frame>"; a data set in index.json with a `baseline`
 // and no entry here fails the last test.
 //
 // If this fails, the maths changed. A PR that rewrites change.json must say why, and the team leader approves it. To rewrite it after
@@ -59,12 +59,6 @@ const cases = {
   'land-in-the-east': () => scorePixels(scene({ season: 1.5, landFrom: 300 }), scene({ season: 0, landFrom: 300 }), input('land-in-the-east')),
   'mostly-land': () => scorePixels(scene({ season: 1.5, landFrom: 20 }), scene({ season: 0, landFrom: 20 }), input('mostly-land')),
   'anomaly-product': () => scorePixels(scene({ season: 0 }), null, input('anomaly-product', 0)),
-  // synthetic-change (T111): February is the warmest month but has no patch; the patch grows through August, September and October, then goes.
-  'synthetic-change/2024-02-15': () => datasetScore('synthetic-change', '2024-02-15'),
-  'synthetic-change/2024-08-15': () => datasetScore('synthetic-change', '2024-08-15'),
-  'synthetic-change/2024-09-15': () => datasetScore('synthetic-change', '2024-09-15'),
-  'synthetic-change/2024-10-15': () => datasetScore('synthetic-change', '2024-10-15'),
-  'synthetic-change/2024-11-15': () => datasetScore('synthetic-change', '2024-11-15'),
   // mur-sst-mauritius (T85): real NASA data, measured against 23 January 2023 (a reference-date baseline): the warmest date, the coolest, and 2 February, which has
   // no data at all. Only three, because reading a real picture takes about 3 s (see docs/AGENT-BOARD.md, R-20261109-T85-1) and each case runs three times in this file.
   'mur-sst-mauritius/2023-02-02': () => datasetScore('mur-sst-mauritius', '2023-02-02'),
@@ -138,7 +132,7 @@ describe('change regression baseline', () => {
     const withBaseline = catalog
       .filter(({ id }) => !id.startsWith('rehearsal-') && 'baseline' in JSON.parse(readFileSync(`${dataDir}/${id}/manifest.json`, 'utf8')))
       .map(({ id }) => id)
-    expect(withBaseline).toEqual(['synthetic-change', 'mur-sst-mauritius']) // add a data set with a baseline here, and record its Scores in `cases`
+    expect(withBaseline).toEqual(['mur-sst-mauritius']) // add a data set with a baseline here, and record its Scores in `cases`
     for (const id of withBaseline) expect(Object.keys(cases).some(key => key.startsWith(`${id}/`)), id).toBe(true)
   })
 })

@@ -163,8 +163,8 @@ function firstFrame(id: string): FrameFeatures {
 }
 
 describe('scan golden', () => {
-  it('plans the first frame of the fixture and of synthetic-storm as the committed baseline says', async () => {
-    const golden = Object.fromEntries(['fixture', 'synthetic-storm'].map(id => [
+  it('plans the first frame of the fixture and of mur-sst-mauritius as the committed baseline says', async () => {
+    const golden = Object.fromEntries(['fixture', 'mur-sst-mauritius'].map(id => [
       id,
       scanPlan(firstFrame(id), preset).map(column => ({
         column: column.column,

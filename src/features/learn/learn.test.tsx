@@ -2,7 +2,7 @@ import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
-import synthetic from '../../../public/data/synthetic-change/manifest.json'
+import mauritius from '../../../public/data/mur-sst-mauritius/manifest.json'
 import type { Visualization } from '../../data'
 import { expectNoA11yViolations } from '../../test/a11y'
 import LearnPage from '.'
@@ -222,15 +222,15 @@ describe('Learn page: explore the map', () => {
   })
 
   it('links to Listen, and keeps the chosen data set', () => {
-    window.location.hash = '#learn?data=synthetic-globe'
+    window.location.hash = '#learn?data=fixture'
     render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })
-    expect(screen.getByRole('link', { name: 'Try Explore the map on Listen' })).toHaveAttribute('href', '#listen?data=synthetic-globe')
-    expect(screen.getByRole('link', { name: 'Go to Listen' })).toHaveAttribute('href', '#listen?data=synthetic-globe')
+    expect(screen.getByRole('link', { name: 'Try Explore the map on Listen' })).toHaveAttribute('href', '#listen?data=fixture')
+    expect(screen.getByRole('link', { name: 'Go to Listen' })).toHaveAttribute('href', '#listen?data=fixture')
   })
 })
 
 describe('Learn page: the change style, the edge trace and the lock key (F38)', () => {
-  const withChange = synthetic as unknown as Visualization
+  const withChange = mauritius as unknown as Visualization
 
   it('shows neither new card for a data set with no baseline', () => {
     render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })

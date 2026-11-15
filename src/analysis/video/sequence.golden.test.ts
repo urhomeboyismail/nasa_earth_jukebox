@@ -1,4 +1,4 @@
-// Sequence regression baseline (docs/PLAN.md §6.3, ticket SN06). Runs the checked-frames path over the fixture and `synthetic-storm` with the real feature
+// Sequence regression baseline (docs/PLAN.md §6.3, ticket SN06). Runs the checked-frames path over the fixture and `mur-sst-mauritius` with the real feature
 // extractor behind the seam (the worker itself is SN01's), steps through every frame, and records what each `LiveFrame` carries other than the features
 // (their own golden file is SN01's): the date, the video fields, the confidence, and the video frame the frame's place in the sequence would be at 10 fps.
 //
@@ -21,7 +21,7 @@ import type { Extract, LiveFrame } from './types'
 vi.mock('../features', async importOriginal => ({ ...(await importOriginal<typeof import('../features')>()), resetStream: vi.fn() }))
 
 const dataDir = resolve(fileURLToPath(import.meta.url), '../../../../public/data')
-const DATA_SETS = ['fixture', 'synthetic-storm']
+const DATA_SETS = ['fixture', 'mur-sst-mauritius']
 const round = (value: number) => Number(value.toFixed(4))
 
 beforeEach(() => {
@@ -70,8 +70,9 @@ const plain = (frame: LiveFrame, index: number) => ({
   videoIndexAt10Fps: videoIndexFor(index / 10, 10),
 })
 
-describe('sequence regression baseline', () => {
-  it('steps the fixture and the synthetic storm as the committed baseline says', async () => {
+// Reading real pictures takes a few seconds a frame.
+describe('sequence regression baseline', { timeout: 60_000 }, () => {
+  it('steps the fixture and the Mauritius data set as the committed baseline says', async () => {
     const result = Object.fromEntries(await Promise.all(DATA_SETS.map(async id => [id, (await run(id)).map(plain)] as const)))
     await expect(JSON.stringify(result, null, 2) + '\n').toMatchFileSnapshot('__golden__/sequence.json')
   })
@@ -90,13 +91,13 @@ describe('sequence regression baseline', () => {
     expect(fixtureFrames.slice(0, 3).every(f => f.confidence === 1)).toBe(true)
     // The fourth fixture frame is all missing data.
     expect(fixtureFrames[3].confidence).toBe(0)
-    const storm = await run('synthetic-storm')
-    expect(storm.slice(0, 9).every(f => f.confidence === 1)).toBe(true)
-    expect(storm[9].confidence).toBe(0)
+    // 2 February 2023 has no Mauritius data at all.
+    const mur = await run('mur-sst-mauritius')
+    expect(mur[1].confidence).toBe(0)
   })
 
   it('numbers the frames by their place, which is what a 10 fps video would call them', async () => {
-    const frames = await run('synthetic-storm')
+    const frames = await run('mur-sst-mauritius')
     expect(frames.map((_, i) => plain(frames[i], i).videoIndexAt10Fps)).toEqual(frames.map((_, i) => i))
   })
 })

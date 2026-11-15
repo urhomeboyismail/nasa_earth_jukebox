@@ -32,8 +32,8 @@ Stack: React + TypeScript, built with Vite. A small FastAPI server (`server/`) d
 - Preview build: `npm run preview`
 - Check every data set in `public/data/index.json`: `npm run check-data` (schema, images, legend, no `TODO` left; see `docs/data-sources.md`)
 - Stage and convert an EIC/SVS video (EIC04, see `Consumption/README.md`): `npm run new-translation -- "<Category>/<Source>/<Item_ID>"`, then `npm run parse-nasa`, `npm run view` (port 5180, reloads on data JSON edits), `npm run check` (lint, test, check-data, script tests), `npm run clean-consumption`
+- Regenerate the Meteomatics sea animation (needs `METEOMATICS_USERNAME` and `METEOMATICS_PASSWORD` in `.env`, ffmpeg, Pillow and NumPy): `.venv/bin/python -I scripts/ingest_meteomatics_sea.py` (writes `public/data/meteomatics-sea-mauritius/`)
 - Regenerate the fixture dataset: `python3 -I scripts/make_fixture.py` (writes `public/data/fixture/`)
-- Regenerate the synthetic dataset (needs Pillow and NumPy): `python3 -m venv .venv && .venv/bin/pip install -r scripts/requirements.txt && .venv/bin/python -I scripts/make_synthetic.py` (writes `public/data/synthetic-ocean/`)
 
 Server (from `server/`):
 

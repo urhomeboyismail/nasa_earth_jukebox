@@ -20,7 +20,7 @@ from app.main import app
 URL = "/api/v1/mascot/query"
 S2 = "sentinel-2-l2a"
 SST = "noaa-cdr-sea-surface-temperature-optimum-interpolation"
-CATALOG = [{"id": "synthetic-ocean", "title": "Synthetic ocean"}]
+CATALOG = [{"id": "fixture", "title": "Fixture ocean"}]
 
 
 def _scene(day: int, cover: float, name: str = ""):
@@ -147,8 +147,8 @@ def test_reply_with_no_items():
 
 
 def test_reply_for_a_local_data_set_and_for_nothing():
-    local = planetary.answer_for({planetary.LOCAL_KEY: "synthetic-ocean"}, "normal", CATALOG)
-    assert local["local_dataset_id"] == "synthetic-ocean" and "Synthetic ocean" in local["mascot_reply"]
+    local = planetary.answer_for({planetary.LOCAL_KEY: "fixture"}, "normal", CATALOG)
+    assert local["local_dataset_id"] == "fixture" and "Fixture ocean" in local["mascot_reply"]
     assert planetary.answer_for({planetary.LOCAL_KEY: "not-sent"}, "normal", CATALOG)["mascot_reply"] == planetary.HELP_REPLY
     assert planetary.answer_for({planetary.ERROR_KEY: True}, "normal", [])["mascot_reply"] == planetary.ERROR_REPLY
 
@@ -257,7 +257,7 @@ def test_reply_and_answer_carry_the_pictures():
     [
         {},
         {planetary.ERROR_KEY: True},
-        {planetary.LOCAL_KEY: "synthetic-ocean"},
+        {planetary.LOCAL_KEY: "fixture"},
         {planetary.SERIES_KEY: planetary.series_of(SST, [])},
         {planetary.SERIES_KEY: planetary.series_of(SST, [(date(2026, 6, 1), 25.0)])},  # a series with no pictures
     ],
@@ -342,9 +342,9 @@ def test_planetary_computer_down_is_an_answer_too(client, monkeypatch):
 
 
 def test_local_data_set(client, monkeypatch):
-    _install(monkeypatch, tool_then_text(FunctionCallSpec("search_local_datasets", {"dataset_id": "synthetic-ocean"}), "done"))
+    _install(monkeypatch, tool_then_text(FunctionCallSpec("search_local_datasets", {"dataset_id": "fixture"}), "done"))
     body = _post(client).json()
-    assert body["local_dataset_id"] == "synthetic-ocean"
+    assert body["local_dataset_id"] == "fixture"
     assert body["sonification_json"] is None
     assert body["series"] is None
     assert (body["images"], body["image_legend"], body["image_area"]) == ([], None, None)

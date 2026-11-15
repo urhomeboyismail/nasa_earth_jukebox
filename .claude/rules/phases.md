@@ -15,6 +15,6 @@ Everything specific to one data set lives in **its own files**, never in `src/`:
 So:
 
 - Don't write a data set's name, place, unit, value range, category label or date into `src/`. Read it from the manifest. (Comments and test fixtures may use examples.)
-- Test new code on `fixture`, `synthetic-ocean`, `synthetic-globe` and `synthetic-change`, so it works for any manifest that passes `npm run check-data`.
+- Test new code on `fixture` and the committed NASA data sets, so it works for any manifest that passes `npm run check-data`.
 - In the hackathon phase, refining a data set means changing its data and manifest, not code. If a data set needs something no manifest field can express, add a **general** field to `src/data/schema.ts` and `src/data/types.ts`, document it in `docs/data-sources.md` → "Manifest fields", and give it a default so every other data set still validates and sounds the same.
 - A `rehearsal-*` data set is practice. Its folder is git-ignored, so don't commit its `index.json` entry either (`docs/data-sources.md`).
