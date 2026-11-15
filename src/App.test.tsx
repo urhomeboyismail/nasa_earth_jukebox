@@ -48,6 +48,7 @@ vi.mock('./analysis', () => ({
 
 beforeEach(() => {
   window.location.hash = ''
+  localStorage.setItem('ej_onboarding_done', 'true') // a returning visitor: Home, not the landing page
   // jsdom has no scrolling; the app scrolls to the top of each new page.
   vi.stubGlobal('scrollTo', vi.fn())
   vi.stubGlobal('fetch', vi.fn((input: RequestInfo | URL) => {
@@ -422,17 +423,34 @@ describe('Announcements reach the live region on every page (I01)', () => {
     expect(screen.getByText('Echo is off.', { selector: '[role="status"]' })).toBeInTheDocument()
   })
 
-  it('says so when the welcome is skipped', async () => {
-    const user = userEvent.setup()
+  it('opens a first visit on the landing page, without the nav or the data cards', async () => {
+    localStorage.clear()
     render(<App />)
-    await user.click(await screen.findByRole('button', { name: 'Skip the welcome' }))
-    expect(screen.getByText('Welcome skipped.', { selector: '[role="status"]' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Skip the welcome' })).toBeInTheDocument()
+    expect(window.location.hash).toBe('#welcome')
+    expect(screen.queryByRole('navigation', { name: 'Main' })).toBeNull()
+    expect(screen.queryByText('The crate')).toBeNull()
+    expect(document.title).toBe('Welcome · Earth Jukebox')
   })
 
-  it('has no accessibility violations on Home with the welcome shown', async () => {
-    const { container } = render(<App />)
-    await screen.findByRole('button', { name: 'Skip the welcome' })
-    await expectNoA11yViolations(container)
+  it('goes straight to Home for a returning visitor, and Replay welcome reopens the landing page', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    expect(await screen.findByRole('heading', { level: 1, name: 'Home' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Skip the welcome' })).toBeNull()
+    window.location.hash = '#welcome'
+    await user.click(await screen.findByRole('button', { name: 'Skip the welcome' }))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Home' })).toHaveFocus()
+    expect(window.location.hash).toBe('#home')
+  })
+
+  it('says so when the welcome is skipped', async () => {
+    const user = userEvent.setup()
+    localStorage.clear()
+    render(<App />)
+    await user.click(await screen.findByRole('button', { name: 'Skip the welcome' }))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Home' })).toBeInTheDocument()
+    expect(screen.getByText('Welcome skipped.', { selector: '[role="status"]' })).toBeInTheDocument()
   })
 })
 
@@ -455,7 +473,7 @@ describe('The voice guide moves the app without moving focus (V01)', () => {
     FakeSocket.instances = []
     vi.stubGlobal('WebSocket', FakeSocket)
     window.localStorage.clear() // each case answers the microphone question afresh (V02)
-    window.localStorage.setItem('earth-jukebox:intro', '{"seen":true}') // a returning visitor: no planet intro over Home
+    window.localStorage.setItem('ej_onboarding_done', 'true') // a returning visitor: Home, not the landing page
   })
 
   const toggle = () => screen.getByRole('button', { name: 'Voice guide' })
@@ -568,6 +586,7 @@ describe('"Hey Echo" opens the guide hands-free', () => {
     vi.stubGlobal('webkitSpeechRecognition', FakeRecognition)
     vi.stubGlobal('WebSocket', WakeSocket)
     localStorage.setItem('earth-jukebox:mic-consent', 'text')
+    localStorage.setItem('ej_onboarding_done', 'true')
   })
   afterEach(() => localStorage.clear())
 

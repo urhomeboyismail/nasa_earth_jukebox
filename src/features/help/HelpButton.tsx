@@ -5,9 +5,8 @@ import { useId, useRef, useState, type KeyboardEvent } from 'react'
 import { Button, useAnnounce } from '../../components'
 import { RobotBadge } from '../../components/RobotBadge'
 import type { Page } from '../../pages'
-import { currentDataParam, hashFor } from '../../route'
+import { LANDING_HASH } from '../../route'
 import { MASCOT_NAME } from '../welcome/lines'
-import { resetWelcome } from '../welcome/storage'
 import { setMascotOn, useMascotOn } from './mascotSetting'
 import { TIPS } from './tips'
 import './help.css'
@@ -30,10 +29,9 @@ export function HelpButton({ page }: { page: Page }) {
   }
 
   function showWelcome() {
-    resetWelcome()
     setMascotOn(true)
-    announce('The welcome is back on the Home page.')
-    window.location.hash = hashFor('home', { data: currentDataParam() })
+    announce('The welcome is open.')
+    window.location.hash = LANDING_HASH
     close()
   }
 
