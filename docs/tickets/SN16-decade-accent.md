@@ -68,4 +68,12 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Built by agent E (Claude Code, for Roni), 15 Nov 2026, on `feature/SN16-decade-accent`.
+
+- `src/sonify/types.ts`: `TimeAccent` (`'none' | 'month' | 'year' | 'decade'`), used by `plan.ts` and `voices.ts`.
+- `src/sonify/music.ts`: `'decade'` when the year's first three digits change, checked before `'year'`.
+- `src/sonify/ranges.ts`: `YEAR_ACCENT_SEMITONES` (12) and `DECADE_ACCENT_SEMITONES` (24); `voices.ts` clicks a decade two octaves above the pulse, with the same `ACCENT_DB`.
+- `src/sonify/captions.ts`: "Time: steady pulse, new decade". (The caption parts carry no date, so it does not name the decade.)
+- Tests: `music.test.ts` (1975 to 1980 decade, 1980 to 1985 year, 2029 to 2030 decade, a month), `voices.test.ts` (two octaves up, 3 dB), `captions.test.ts`. No golden file changed.
+
+Checks (Windows): `npm run lint` 0 errors; `npm run build` built; `npm test` 217 files, 3079 tests passed.

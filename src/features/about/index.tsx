@@ -104,16 +104,17 @@ function About({ visualization }: { visualization: Visualization }) {
 
       <Card title="Keyboard shortcuts" headingLevel={2}>
         <p>These are the keys on Listen. The single-letter keys work only while the sound map has focus, so they never act anywhere else on the page.</p>
-        <div className="about__table" role="region" aria-label="Keyboard shortcuts" tabIndex={0}>
-          <table>
+        {/* One card per key on a phone (about.css, LY02); the explicit roles keep it a table to screen readers then. */}
+        <div className="about__table about__table--stack" role="region" aria-label="Keyboard shortcuts" tabIndex={0}>
+          <table role="table">
             <caption>Every key, from the same list the Listen page reads.</caption>
-            <thead><tr><th scope="col">Key</th><th scope="col">What it does</th><th scope="col">Where</th></tr></thead>
+            <thead><tr role="row"><th role="columnheader" scope="col">Key</th><th role="columnheader" scope="col">What it does</th><th role="columnheader" scope="col">Where</th></tr></thead>
             <tbody>
               {shortcuts.map(shortcut => (
-                <tr key={shortcut.id}>
-                  <td><kbd>{shortcut.keys}</kbd></td>
-                  <td>{shortcut.does(words)}{shortcut.note && ` ${shortcut.note}`}</td>
-                  <td>{shortcut.scope === 'map' ? 'On the sound map' : 'Anywhere on Listen'}</td>
+                <tr key={shortcut.id} role="row">
+                  <td role="cell"><kbd>{shortcut.keys}</kbd></td>
+                  <td role="cell">{shortcut.does(words)}{shortcut.note && ` ${shortcut.note}`}</td>
+                  <td role="cell" data-label="Where">{shortcut.scope === 'map' ? 'On the sound map' : 'Anywhere on Listen'}</td>
                 </tr>
               ))}
             </tbody>

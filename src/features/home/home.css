@@ -140,3 +140,14 @@
   /* Play and Save across the card, so "Save … for offline" doesn't wrap to three lines. */
   .crate__buttons > .ui-button { flex: 1 1 100%; }
 }
+
+/* LY02: the crate's search field in the app's own field style (the same as the data set choice), not the browser's grey box. */
+.crate__filters input[type='search'] {
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+  color: var(--text-h);
+  background: var(--bg);
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-small);
+}
+.crate__filters input[type='search']:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }

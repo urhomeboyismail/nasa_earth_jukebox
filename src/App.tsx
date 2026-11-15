@@ -14,6 +14,7 @@ import { sendPlayerCommand } from './features/player/controls'
 import { dispatch } from './interaction/registry'
 import { loadAssistantAudio, useVoiceAssistant, type AssistantAction } from './hooks/useVoiceAssistant'
 import { useWakeWord } from './hooks/useWakeWord'
+import { useMediaQuery } from './hooks/useMediaQuery'
 import { useWakeSetting } from './assistant/wakeWord'
 import { WakeIndicator } from './WakeIndicator'
 import { MascotGuideProvider } from './features/mascot/MascotGuideProvider'
@@ -77,6 +78,9 @@ function App() {
   const [landing, setLanding] = useState(() => wantsLanding(window.location.hash))
   const wasLanding = useRef(landing)
   const [assistantOpen, setAssistantOpen] = useState(false)
+  // Echo's 3D robot needs room to sit clear of the page (LY02). On a phone it has none and rests on text, so there the
+  // Guide button and "Help from Echo" carry Echo instead, and the robot is not loaded at all.
+  const roomForEcho = useMediaQuery('(min-width: 768px) and (min-height: 500px)')
   const [catalog, setCatalog] = useState<CatalogEntry[] | null>(null)
   const [loaded, setLoaded] = useState<Visualization | null>(null)
   /** `id` is the data set that failed, or null when the list itself could not be read. */
@@ -325,7 +329,8 @@ function App() {
             <HelpButton key={page} page={page} />
             <DemoControl />
           </div>
-          {catalog && catalog.length > 1 && dataId && (
+          {/* The ocean view (?ocean=1) has its own crate of tracks, so the map data sets' crate steps aside. */}
+          {catalog && catalog.length > 1 && dataId && route.params.get('ocean') !== '1' && (
             <DataPicker catalog={catalog} value={dataId} onChange={id => { window.location.hash = hashFor(page, { data: id }) }} />
           )}
           {dataMissing && <Notice>The data set “{requestedData}” was not found, so this shows “{catalog?.[0].title}” instead.</Notice>}
@@ -342,10 +347,12 @@ function App() {
         )}
 
         {/* Echo, bottom right on every page. Not keyed by page: its 3D robot is set up once (the dock closes its bubble on a new page). */}
-        <Suspense fallback={null}>
-          <MascotDock page={page} loading={!visualization && !loadError} voice={assistant.status} voiceOpen={assistantOpen} line={spokenLine}
-            onTalk={() => setAssistantOpen(true)} />
-        </Suspense>
+        {roomForEcho && (
+          <Suspense fallback={null}>
+            <MascotDock page={page} loading={!visualization && !loadError} voice={assistant.status} voiceOpen={assistantOpen} line={spokenLine}
+              onTalk={() => setAssistantOpen(true)} />
+          </Suspense>
+        )}
       </MascotGuideProvider>
       </DisplaySettingsProvider>
     </AnnouncerProvider>

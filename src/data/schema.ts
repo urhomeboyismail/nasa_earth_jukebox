@@ -89,6 +89,10 @@ const mapFraction = z.number().min(0, 'must be between 0 and 1').max(1, 'must be
 const mapArea = z.object({ x0: mapFraction, y0: mapFraction, x1: mapFraction, y1: mapFraction })
 const storyChapter = z.object({ id: nonEmpty, title: nonEmpty, text: nonEmpty, fromFrame: nonEmpty, toFrame: nonEmpty })
 
+// SN17: dated events a data set marks with a short cue and a caption. Strict, so a misspelt field is reported. `place` is 0 to 1 of the map area.
+const unit = z.number().min(0, 'must be 0 or more').max(1, 'must be 1 or less')
+const manifestEvent = z.object({ id: nonEmpty, date: isoDate, label: nonEmpty, place: z.object({ x: unit, y: unit }).strict().optional() }).strict()
+
 // v3 (SN05). `video` and `sonification` are strict, so a typo inside them is reported instead of dropped.
 const legend = z.enum(['data', 'picture'], { error: 'must be "data" or "picture"' })
 const video = z
@@ -167,6 +171,7 @@ export const visualizationSchema = z
     sonification: sonification.optional(),
     mascot: mascot.optional(),
     pairsWith: pairsWith.optional(),
+    events: z.array(manifestEvent).optional(),
   })
   .superRefine((data, ctx) => {
     const problem = (path: (string | number)[], message: string) => ctx.addIssue({ code: 'custom', path, message })
@@ -196,6 +201,7 @@ export const visualizationSchema = z
     unique(data.mapping.categories.map(c => c.id), 'mapping.categories', 'category')
     unique(data.comparisons.map(c => c.id), 'comparisons', 'comparison')
     unique((data.story ?? []).map(c => c.id), 'story', 'chapter')
+    unique((data.events ?? []).map(e => e.id), 'events', 'event')
 
     if (data.mapArea) {
       const { x0, y0, x1, y1 } = data.mapArea
@@ -219,6 +225,14 @@ export const visualizationSchema = z
       const [from, to] = [dateOf.get(chapter.fromFrame), dateOf.get(chapter.toFrame)]
       if (from && to && to < from) {
         problem(['story', i, 'toFrame'], `"${chapter.toFrame}" (${to}) is earlier than "${chapter.fromFrame}" (${from}); a chapter runs forward in time`)
+      }
+    })
+
+    // An event sounds when playback reaches its date, so it must fall within the frames' dates.
+    const dates = data.frames.map(f => f.date).sort()
+    data.events?.forEach((event, i) => {
+      if (dates.length && (event.date < dates[0] || event.date > dates[dates.length - 1])) {
+        problem(['events', i, 'date'], `${event.date} is outside the frames' dates (${dates[0]} to ${dates[dates.length - 1]})`)
       }
     })
 

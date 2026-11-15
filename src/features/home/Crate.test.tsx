@@ -66,7 +66,7 @@ describe('the crate', () => {
   it('saves every file of a data set, shows it as saved, filters to it and removes it', async () => {
     const { user } = mount()
     await sleeves()
-    await user.click(screen.getByRole('button', { name: 'Save Fixture ocean for offline' }))
+    await user.click(screen.getByRole('button', { name: 'Save for offline: Fixture ocean' }))
     expect(await screen.findByText('Saved on this device')).toBeInTheDocument()
     const urls = [...caches.stored.keys()]
     expect(urls.some(url => url.endsWith('/data/fixture/manifest.json'))).toBe(true)
@@ -75,7 +75,7 @@ describe('the crate', () => {
     await user.click(screen.getByRole('checkbox', { name: 'Saved on this device only' }))
     expect((await sleeves()).map(item => within(item).getByRole('heading').textContent)).toEqual(['Fixture ocean'])
 
-    await user.click(screen.getByRole('button', { name: 'Remove Fixture ocean from this device' }))
+    await user.click(screen.getByRole('button', { name: 'Remove from this device: Fixture ocean' }))
     expect(caches.stored.size).toBe(0)
   })
 
@@ -83,7 +83,7 @@ describe('the crate', () => {
     caches.cache.add.mockImplementationOnce(async () => {}).mockRejectedValueOnce(new Error('network'))
     const { user } = mount()
     await sleeves()
-    await user.click(screen.getByRole('button', { name: 'Save Fixture ocean for offline' }))
+    await user.click(screen.getByRole('button', { name: 'Save for offline: Fixture ocean' }))
     expect(await screen.findByText(/could not be saved. The files could not be downloaded/)).toBeInTheDocument()
     expect(caches.stored.size).toBe(0)
   })

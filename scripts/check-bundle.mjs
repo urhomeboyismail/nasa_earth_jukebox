@@ -10,8 +10,12 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { gzipSync } from 'node:zlib'
 
-/** The entry chunk's gzip size after I10 (80,344 bytes, 13 Nov 2026), plus 5%. */
-const BUDGET_BYTES = 84_362
+/**
+ * The entry chunk's gzip size, plus 5%. Was 80,344 bytes after I10 (13 Nov 2026). Removing the Compare page (15 Nov)
+ * made the bundler move react-dom and the Radix primitives from the eagerly loaded components chunk into the entry
+ * (89,289 bytes), while the whole first load fell from 167,569 to 162,583 bytes.
+ */
+const BUDGET_BYTES = 93_753
 
 const assets = fileURLToPath(new URL('../dist/assets/', import.meta.url))
 let entries = []

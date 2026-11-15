@@ -91,14 +91,14 @@ The MC tickets branch from `chore/jpl-hud-theme` (the Mission Control look, not 
 | [MC03](tickets/MC03-backdrop-real-audio.md) | The backdrop follows real sound | S | agent | — | — | ready: no code change (findings in Result) |
 | [MC04](tickets/MC04-quality-gate-flaky-app-test.md) | Quality gate, and the flaky App test | S | agent | — | — | claimed: A, 2026-11-14 |
 | [MC05](tickets/MC05-pr-mission-control.md) | Pull request: the Mission Control look into main | S | agent+👤 | MC01, MC02, MC03, MC04 | — | open |
-| [LY01](tickets/LY01-phone-layout-pass.md) | The phone layout pass: the page, not the chrome, on the first screen | M | agent+👤 | — | app, player | ready: chore/LY01-phone-layout-pass |
+| [LY02](tickets/LY02-phone-visual-fixes.md) | Phone visual fixes from the 15 Nov visual audit | M | agent+👤 | — | app, about, learn | ready: chore/LY02-phone-visual-fixes |
 
 ### P2: quality and smaller features
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [SN16](tickets/SN16-decade-accent.md) | A decade accent on the time voice, so years-apart data sets feel the decades pass | S | agent | — | — | claimed: E, 2026-11-15 |
-| [SN17](tickets/SN17-event-cues.md) | Event cues: a short sound and a caption when a dated event in the manifest is reached | M | agent | — | schema | claimed: E, 2026-11-15 |
+| [SN16](tickets/SN16-decade-accent.md) | A decade accent on the time voice, so years-apart data sets feel the decades pass | S | agent | — | — | done |
+| [SN17](tickets/SN17-event-cues.md) | Event cues: a short sound and a caption when a dated event in the manifest is reached | M | agent | — | schema | done |
 
 ### P2: Echo's weather (Meteomatics)
 

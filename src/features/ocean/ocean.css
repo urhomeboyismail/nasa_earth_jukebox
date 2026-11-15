@@ -1,0 +1,21 @@
+/* EIC06 T4: the ocean tracks on /listen. Tokens only (src/styles/tokens.css). */
+.ocean { display: grid; gap: 1rem; text-align: left; inline-size: 100%; }
+.ocean__try { color: var(--text-h); }
+.ocean__credit { font-size: var(--md-sys-typescale-body-small-size); color: var(--md-sys-color-on-surface-variant); }
+
+.ocean-picker { display: grid; gap: 0.25rem; }
+.ocean-picker__label { color: var(--text-h); font-weight: 600; }
+
+.ocean-stage { display: grid; gap: 0.75rem; }
+.ocean-stage__screen { position: relative; inline-size: 100%; background: var(--md-sys-color-surface-container-lowest); border-radius: var(--md-sys-shape-corner-medium); overflow: hidden; }
+.ocean-stage__video { display: block; inline-size: 100%; block-size: 100%; object-fit: contain; background: var(--md-sys-color-surface-container-lowest); border-radius: var(--md-sys-shape-corner-medium); }
+.ocean-stage__explore { position: absolute; inset: 0; cursor: crosshair; touch-action: none; }
+.ocean-stage__explore:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+/* A plain box, no animation: it moves one cell at a time. */
+.ocean-stage__reticle { position: absolute; box-sizing: border-box; border: 2px solid var(--md-sys-color-on-surface); outline: 2px solid var(--md-sys-color-surface); pointer-events: none; }
+
+.ocean-stage__caption { margin: 0; padding: 0.5rem 0.75rem; border-radius: var(--md-sys-shape-corner-medium); background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); }
+.ocean-stage__now { margin: 0; font-family: var(--md-ref-typeface-mono); color: var(--text-h); }
+.ocean-stage__controls { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.ocean-stage__cell, .ocean-stage__text { margin: 0; }
+
