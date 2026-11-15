@@ -42,27 +42,25 @@ describe('interface cues', () => {
 
   it('has notes for every cue, and none is longer than 400 ms', () => {
     const cues = Object.keys(CUE_NOTES) as Cue[]
-    expect(cues).toEqual(expect.arrayContaining(['connected', 'ended', 'answer', 'error', 'start', 'stop', 'compareA', 'compareB', 'success']))
+    expect(cues).toEqual(expect.arrayContaining(['connected', 'ended', 'answer', 'error', 'start', 'stop', 'success']))
     for (const cue of cues) {
       expect(CUE_NOTES[cue].length).toBeGreaterThan(0)
       expect(cueMs(cue)).toBeLessThanOrEqual(400)
     }
   })
 
-  it('shapes the new cues: start rises, stop falls, A is one blip, B is two, success is three rising', () => {
+  it('shapes the new cues: start rises, stop falls, success is three rising', () => {
     const hz = (cue: Cue) => CUE_NOTES[cue].map(([f]) => f)
     expect(hz('start')[1]).toBeGreaterThan(hz('start')[0])
     expect(hz('stop')).toEqual([...hz('start')].reverse())
-    expect(hz('compareA')).toHaveLength(1)
-    expect(hz('compareB')).toHaveLength(2)
     expect(hz('success')).toEqual([...hz('success')].sort((a, b) => a - b))
     expect(hz('success')).toHaveLength(3)
   })
 
   it('plays every cue at the same quiet level, and says how long it sounded', () => {
-    const lengths = (['start', 'stop', 'compareA', 'compareB', 'success'] as Cue[]).map(cue => playCue(cue))
+    const lengths = (['start', 'stop', 'success'] as Cue[]).map(cue => playCue(cue))
     expect(lengths.every(ms => ms > 0 && ms <= 400)).toBe(true)
-    expect(context().oscillators).toHaveLength(2 + 2 + 1 + 2 + 3)
+    expect(context().oscillators).toHaveLength(2 + 2 + 3)
     const levels = context().oscillators.map(o => (o.connected[0] as FakeGainNode).gain.calls[0].args[0])
     expect(levels.every(level => level === 0.04)).toBe(true)
   })
@@ -73,11 +71,11 @@ describe('interface cues', () => {
     expect(audio.contexts).toHaveLength(0)
   })
 
-  it('keeps the playback, Compare and success cues from talking over a voice', () => {
+  it('keeps the playback and success cues from talking over a voice', () => {
     duck.begin('guide')
     try {
       expect(playCue('start')).toBe(0)
-      expect(playCue('compareA')).toBe(0)
+      expect(playCue('success')).toBe(0)
       expect(audio.contexts).toHaveLength(0)
     } finally {
       duck.reset()

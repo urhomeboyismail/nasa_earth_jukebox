@@ -4,7 +4,7 @@
 
 import { useEffect, useRef } from "react";
 
-export type ContextKey = "player" | "compare" | "facts" | "explore";
+export type ContextKey = "player" | "facts" | "explore";
 export type ContextUpdate = { key: ContextKey; data: unknown; announce?: string };
 type Listener = (update: ContextUpdate) => void;
 

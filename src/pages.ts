@@ -6,7 +6,6 @@ export const pages = [
   { id: "home", title: "Home", shortTitle: "Home" },
   { id: "learn", title: "Learn the sounds", shortTitle: "Learn" },
   { id: "listen", title: "Listen", shortTitle: "Listen" },
-  { id: "compare", title: "Compare two dates", shortTitle: "Compare" },
   { id: "about", title: "About the data", shortTitle: "About" },
 ] as const;
 

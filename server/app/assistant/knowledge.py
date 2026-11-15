@@ -34,15 +34,6 @@ PAGES: dict[str, dict] = {
             "Adjust the volume, or press Replay to hear the current date again.",
         ],
     },
-    "compare": {
-        "title": "Compare two dates",
-        "purpose": "Choose two dates, listen to each with the same sound scale, and decide which shows the change.",
-        "how_to": [
-            "Choose date A and date B.",
-            "Play each one and decide which sounds warmer.",
-            "Reveal the answer to see the images and an explanation.",
-        ],
-    },
     "about": {
         "title": "About the data",
         "purpose": "Where the imagery comes from, what the colours and sounds represent, and the limits of the method.",

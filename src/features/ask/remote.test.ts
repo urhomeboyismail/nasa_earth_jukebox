@@ -25,10 +25,10 @@ afterEach(() => {
 
 describe('askAgent', () => {
   it('sends the question, the facts and the dates, and returns the chosen IDs and the mapped action', async () => {
-    const fetch = reply({ factIds: ['F-first', 'F-last'], confidence: 'high', action: { kind: 'navigate', page: 'compare' } })
+    const fetch = reply({ factIds: ['F-first', 'F-last'], confidence: 'high', action: { kind: 'navigate', page: 'learn' } })
     vi.stubGlobal('fetch', fetch)
     const answer = await askAgent(input, { onSlow: vi.fn() })
-    expect(answer).toEqual({ factIds: ['F-first', 'F-last'], confidence: 'high', action: { action: 'navigate', page: 'compare' } })
+    expect(answer).toEqual({ factIds: ['F-first', 'F-last'], confidence: 'high', action: { action: 'navigate', page: 'learn' } })
     const [url, init] = fetch.mock.calls[0] as unknown as [string, RequestInit]
     expect(url).toBe('/api/v1/agent/ask')
     expect(init.method).toBe('POST')

@@ -25,7 +25,6 @@ import './App.css'
 
 // Home loads with the app; every other page is fetched the first time it is opened, so the first load stays small.
 const AboutPage = lazy(() => import('./features/about'))
-const ComparePage = lazy(() => import('./features/compare'))
 const LearnPage = lazy(() => import('./features/learn'))
 const PlayerPage = lazy(() => import('./features/player'))
 // Echo's corner widget is not needed to read the page, so it loads after it.
@@ -43,7 +42,6 @@ const pageComponents: Record<Page, ComponentType<PageProps>> = {
   home: HomePage,
   learn: LearnPage,
   listen: PlayerPage,
-  compare: ComparePage,
   about: AboutPage,
 }
 
@@ -52,12 +50,11 @@ const pageIcons: Record<Page, { current: IconName; other: IconName }> = {
   home: { current: 'home', other: 'home-outline' },
   learn: { current: 'school', other: 'school-outline' },
   listen: { current: 'headphones', other: 'headphones-outline' },
-  compare: { current: 'difference', other: 'difference-outline' },
   about: { current: 'info', other: 'info-outline' },
 }
 
-/** Pages built around a tool (player, comparison) get the wider column; the rest are text, kept to a readable width. */
-const wideTools = new Set<Page>(['listen', 'compare'])
+/** Pages built around a tool (the player) get the wider column; the rest are text, kept to a readable width. */
+const wideTools = new Set<Page>(['listen'])
 
 /** Opens a page by changing the hash, which adds a history entry so back and forward work. Used by the voice guide. A chosen data set stays chosen. */
 function goTo(page: Page) {
@@ -127,7 +124,6 @@ function App() {
   // A pages' data is only handed over once it is the chosen one, so the old set never shows under the new choice.
   const visualization = loaded && loaded.id === dataId ? loaded : null
   const loadError = failure && (failure.id === null || failure.id === dataId) ? failure.message : ''
-  const testMode = page === 'compare' && route.params.get('test') === '1'
   // Links carry the chosen data set so it survives a click; a missing one is swapped for the one showing, and none stays none.
   const linkData = dataMissing ? dataId : requestedData
   // Listen chooses its data set from a crate of records; the other pages keep the plain list.
@@ -329,13 +325,13 @@ function App() {
             <HelpButton key={page} page={page} />
             <DemoControl />
           </div>
-          {catalog && catalog.length > 1 && dataId && !testMode && (
+          {catalog && catalog.length > 1 && dataId && (
             <DataPicker catalog={catalog} value={dataId} onChange={id => { window.location.hash = hashFor(page, { data: id }) }} />
           )}
           {dataMissing && <Notice>The data set “{requestedData}” was not found, so this shows “{catalog?.[0].title}” instead.</Notice>}
           {loadError && <Notice variant="error">{loadError}</Notice>}
           <Suspense fallback={<div className="app-loading"><LoadingIndicator label="Loading…" /></div>}>
-            <CurrentPage visualization={visualization} testMode={testMode} />
+            <CurrentPage visualization={visualization} />
           </Suspense>
         </main>
 

@@ -126,10 +126,10 @@ describe('App shell', () => {
 
   it('keeps the page in the URL hash', async () => {
     render(<App />)
-    await userEvent.click(navLink('Compare two dates'))
-    expect(await screen.findByRole('heading', { level: 1, name: 'Compare two dates' })).toBeInTheDocument()
-    expect(window.location.hash).toBe('#compare')
-    expect(navLink('Compare two dates')).toHaveAttribute('aria-current', 'page')
+    await userEvent.click(navLink('About the data'))
+    expect(await screen.findByRole('heading', { level: 1, name: 'About the data' })).toBeInTheDocument()
+    expect(window.location.hash).toBe('#about')
+    expect(navLink('About the data')).toHaveAttribute('aria-current', 'page')
   })
 
   it('opens the page named by the hash on load, without moving focus', () => {
@@ -138,12 +138,6 @@ describe('App shell', () => {
     const heading = screen.getByRole('heading', { level: 1, name: 'About the data' })
     expect(heading).toBeInTheDocument()
     expect(heading).not.toHaveFocus()
-  })
-
-  it('opens #compare?test=1 on the Compare page', () => {
-    window.location.hash = '#compare?test=1'
-    render(<App />)
-    expect(screen.getByRole('heading', { level: 1, name: 'Compare two dates' })).toBeInTheDocument()
   })
 
   it('follows back and forward', async () => {
@@ -312,13 +306,6 @@ describe('Choosing a data set', () => {
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
-  it('does not offer a choice in listening-test mode, so nobody switches data in the middle of a test', async () => {
-    window.location.hash = '#compare?test=1'
-    render(<App />)
-    await waitFor(() => expect(vi.mocked(fetch).mock.calls.length).toBeGreaterThan(1))
-    expect(screen.queryByRole('combobox', { name: 'Data set' })).toBeNull()
-  })
-
   it('does not offer a choice when there is only one data set', async () => {
     vi.stubGlobal('fetch', vi.fn((input: RequestInfo | URL) => {
       const url = String(input)
@@ -332,8 +319,8 @@ describe('Choosing a data set', () => {
 
   it('leaves the address clean when nothing was chosen', async () => {
     render(<App />)
-    await userEvent.click(navLink('Compare two dates'))
-    expect(window.location.hash).toBe('#compare')
+    await userEvent.click(navLink('About the data'))
+    expect(window.location.hash).toBe('#about')
   })
 })
 
@@ -367,9 +354,9 @@ describe('Back to the top', () => {
 describe('App shell chrome (T116)', () => {
   it('names each nav link by its full title, shows a short label, and marks only the current page', () => {
     render(<App />)
-    const compare = navLink('Compare two dates')
-    expect(compare).toHaveAttribute('href', '#compare')
-    expect(compare).toHaveTextContent('Compare')
+    const learn = navLink('Learn the sounds')
+    expect(learn).toHaveAttribute('href', '#learn')
+    expect(learn).toHaveTextContent('Learn')
     expect(navLink('Home')).toHaveAttribute('aria-current', 'page')
     expect(within(screen.getByRole('navigation', { name: 'Main' })).getAllByRole('link').filter(link => link.hasAttribute('aria-current'))).toHaveLength(1)
   })

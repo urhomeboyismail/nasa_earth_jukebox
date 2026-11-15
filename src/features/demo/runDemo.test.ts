@@ -45,7 +45,7 @@ describe('runDemo', () => {
   })
 
   it('names only pages that exist and says nothing about a particular data set', () => {
-    for (const step of DEMO_STEPS) expect(['home', 'learn', 'listen', 'compare', 'about']).toContain(step.page)
+    for (const step of DEMO_STEPS) expect(['home', 'learn', 'listen', 'about']).toContain(step.page)
     expect(DEMO_STEPS.map(step => step.say).join(' ')).not.toMatch(/mauritius|ocean|sea ice|°C/i)
   })
 
@@ -84,7 +84,7 @@ describe('runDemo', () => {
     expect(await run).toBe(true)
     const names = DEMO_STEPS.map(step => step.page)
     expect(log.filter(entry => entry.startsWith('go:'))).toEqual(names.map(page => `go:${page}`))
-    expect(log.indexOf('predict')).toBeLessThan(log.lastIndexOf('go:compare'))
+    expect(log.indexOf('predict')).toBeLessThan(log.lastIndexOf('go:about'))
   })
 
   it('only holds on the question step when the page has no player to ask (IX05)', async () => {

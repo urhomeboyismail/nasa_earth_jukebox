@@ -1,16 +1,12 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import fixture from '../../public/data/fixture/manifest.json'
 import { describeSequence } from '../describe'
-import ComparePage from '../features/compare'
 import HomePage from '../features/home'
-import { answerText } from '../features/compare/judge'
 import { visualizationSchema } from './schema'
 import type { Visualization } from './types'
 import { DEFAULT_WORDS, higherPhrase, variableWords } from './words'
 
-// jsdom has no ResizeObserver, which the RangeSlider (Radix) in Compare uses to measure its handles.
-vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} })
 
 
 vi.mock('../audio', () => ({
@@ -57,16 +53,6 @@ describe('variable.words', () => {
     render(<HomePage visualization={ice} />)
     expect(screen.getByText(/which date shows more ice, and when/)).toBeInTheDocument()
     expect(screen.queryByText(/warmer/)).not.toBeInTheDocument()
-  })
-
-  it('reaches Compare: the question, the answers and the revealed answer text', async () => {
-    render(<ComparePage visualization={{ ...ice, comparisons: [] }} />)
-    await waitFor(() => expect(screen.getByRole('radio', { name: 'A is more ice' })).toBeInTheDocument())
-    expect(screen.getByText('Which date shows more ice?')).toBeInTheDocument()
-    expect(screen.getByRole('radio', { name: 'B is more ice' })).toBeInTheDocument()
-    expect(answerText('a', false, variableWords(ice.variable))).toBe('Date A is more ice')
-    expect(answerText('b')).toBe('Date B is higher')
-    expect(answerText('b', false, variableWords(base.variable))).toBe('Date B is warmer')
   })
 
   it('reaches describeSequence', () => {

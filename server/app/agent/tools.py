@@ -20,7 +20,7 @@ from app.assistant.tools import SessionState, run_tool
 
 logger = logging.getLogger(__name__)
 
-PageId = Literal["home", "learn", "listen", "compare", "about"]
+PageId = Literal["home", "learn", "listen", "about"]
 PlaybackCommand = Literal["play", "pause", "stop", "replay", "next", "previous"]
 
 

@@ -1,4 +1,4 @@
-// The current page lives in the URL hash: "#listen", "#compare", or "#compare?test=1" for listening-test mode (T13).
+// The current page lives in the URL hash: "#listen", "#learn" and so on.
 // "?data=<id>" names the data set (T54); every link the app builds carries it along.
 
 import type { SoundStyle } from './audio/style'
