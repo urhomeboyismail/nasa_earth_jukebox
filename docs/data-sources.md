@@ -214,6 +214,7 @@ Then run it again without `--detect-only` (add `--force` to overwrite an existin
 | `--max-width N` | Scale frames down, nearest-neighbour only. |
 | `--preset`, `--detail` | Write `sonification.preset` (and `.detail`, which needs a preset). |
 | `--legend picture` | Write `legend: "picture"`. The colour bar is still needed. |
+| `--legend-image PATH` | A picture of the colour bar, for frames that have none. The stops are sampled from that picture and passed to `convert_frames.py` as `--legend legend.json`. Needs `--legend-box` (in that picture's pixels) and `--map-area`. |
 
 What it does, in order: it checks every argument (nothing is written before they pass), makes the frames (`ffmpeg` for a video), dates them, finds the colour bar on the first frame, encodes the web video (`video/<id>.mp4`: H.264, yuv420p, even size, no sound, faststart), writes the frames and `manifest.json` through `convert_frames.py`, and adds the `video` field. The title, source, credit and licence stay `TODO` for a person to fill in from the NASA page.
 
@@ -289,6 +290,18 @@ Sea surface temperature around Mauritius, twenty 10-day maps from 23 January to 
 - NASA's data use guidance, that data from NASA-led missions are licensed as Creative Commons Zero (CC0) unless marked with a restriction or licence, from https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance.
 
 **Checks (T85 step 5):** (1) the PO.DAAC page states no licence of its own, so the CC0 licence rests on NASA's general data use guidance above; the CC0 line was confirmed by the team on 9 Nov 2026; (2) the PO.DAAC suggested citation ("JPL MUR MEaSUREs Project. 2015. ...", DOI 10.5067/GHGMR-4FJ04) was read on the live PO.DAAC page in a browser on 9 Nov 2026 (Citation tab) and is now in `source.credit`; the "accessed" date is the day the pictures were fetched (`retrievedOn`). (3) still to check by a person: the numbers and sentences in the story and comparisons, against the pictures.
+
+## Real data set: `atmospheric-rivers` (EIC05)
+
+NASA SVS 4960, "A 3D View of an Atmospheric River from an Earth System Model" (MERRA-2), the non-narrated version. 71 daily frames, 1 October to 10 December 2010, from the opening of the animation: a whole globe turning from the Americas to the Pacific, with clouds and precipitation; on the last three days the clouds fade and the blue water vapour transport fades in, and the view starts to close in. `legend: "picture"`: the frames are read by brightness and colour, never as measured values.
+
+- **Frames and dates.** The dates are on a separate overlay video (`atmos_river_DATE_ONLY_HD.webm`, 17,501 frames; the MP4 has 17,486). The overlay only runs forward in its opening (frames 0 to about 2,300); after that the edit lingers on 11 to 14 December and jumps back and forth between scenes, so nothing after 10 December is used. Each day's frame is the first overlay frame whose month and day change (found by comparing the date text frame by frame; 72 changes, matching 13 dates read by eye), mapped to the MP4 by the ratio of the two frame counts (at most 2 frames off). Three picks were read back: 2 Oct 00:23, 23 Nov 00:24, 10 Dec 00:04. The record is `picked.csv` in the staging folder (not committed).
+- **Colour scale.** The frames carry no colour bar. The stops come from the Liquid Precipitation bar of `atmo_rivers_cbars01.png` (`--legend-image`, box `184,595,1480,628`: the bar between its 0 and 0.001 ticks, inside the tick marks). The sheet's other layers (snow, snow depth, soil moisture, ocean) are stacked on the globe, and the blue vapour is on no bar, which is why the legend is a picture.
+- **Categories** are named by the bar's colours (dark blue, purple, pink, orange, yellow), not by amounts of rain: a pixel's colour is a blend of layers, so no amount is claimed.
+- **Region and map area.** One region of 30 points over the middle of the globe, inside its disc on every frame; `mapArea` is the globe's band (x 0.15 to 0.85). The black space around the globe is `noData`.
+- **Still for a person:** the 71 alt texts, the preset (and its reason) and any voices to leave out (the ticket suggests leaving out `motion`, because the globe turns), a comparison, and the listening pass.
+
+**Credit and licence.** Read on https://svs.gsfc.nasa.gov/4960/ on 14 Nov 2026: "Please give credit for this item to: NASA's Scientific Visualization Studio". The page links NASA's Images and Media Usage Guidelines (https://www.nasa.gov/multimedia/guidelines/index.html), which say NASA content is generally not subject to copyright in the United States, may be used for educational or informational purposes including web pages, and NASA should be acknowledged as the source. Full credits on the page: visualizers Greg Shirah, Horace Mitchell, Cindy Starr, Kel Elkins; scientists Allison Collow, Natalie Thomas, Michael Bosilovich; producers Jefferson Beck, LK Ward. Still to confirm by a person: the licence line in the manifest.
 
 ## Font: Atkinson Hyperlegible (VIS2)
 

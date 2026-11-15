@@ -33,5 +33,10 @@
     "id": "synthetic-storm",
     "title": "Synthetic storm (made-up practice data)",
     "summary": "Ten made-up daily frames of a warm storm that travels a known path, a cold patch and a day with no data, for practice and tests."
+  },
+  {
+    "id": "atmospheric-rivers",
+    "title": "A 3D View of an Atmospheric River from an Earth System Model",
+    "summary": "Features in Earth’s atmosphere, spawned by the heat of the Sun and the rotation of the Earth, transport water and energy around the globe."
   }
 ]

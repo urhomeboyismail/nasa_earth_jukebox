@@ -1,0 +1,874 @@
+{
+  "id": "atmospheric-rivers",
+  "title": "A 3D View of an Atmospheric River from an Earth System Model",
+  "summary": "Features in Earth’s atmosphere, spawned by the heat of the Sun and the rotation of the Earth, transport water and energy around the globe.",
+  "description": "Features in Earth’s atmosphere, spawned by the heat of the Sun and the rotation of the Earth, transport water and energy around the globe. Clouds and precipitation shown here are from NASA’s MERRA-2 reanalysis, a retrospective blend of a weather model and conventional and satellite observations. Within the mid-latitudes, winds move clouds from west to east. Within the tropics easterly trade winds converge along the equator to create a moisture rich cluster of clouds, convection, and precipitation called the intertropical convergence zone, or ITCZ. Disturbances in its flow transport immense amounts of moisture and energy from the tropics to the poles.",
+  "variable": {
+    "name": "Liquid Precipitation",
+    "unit": "kg / m^2 / s"
+  },
+  "source": {
+    "name": "NASA Scientific Visualization Studio, ID 4960: A 3D View of an Atmospheric River from an Earth System Model (MERRA-2)",
+    "url": "https://svs.gsfc.nasa.gov/4960/",
+    "credit": "NASA's Scientific Visualization Studio",
+    "license": "NASA content, generally not subject to copyright in the United States; used for educational and informational purposes with NASA acknowledged as the source (NASA Images and Media Usage Guidelines, https://www.nasa.gov/multimedia/guidelines/index.html)",
+    "retrievedOn": "2026-11-14"
+  },
+  "colorScale": {
+    "stops": [
+      {
+        "value": 0,
+        "rgb": [
+          24,
+          29,
+          128
+        ]
+      },
+      {
+        "value": 0.000125,
+        "rgb": [
+          55,
+          28,
+          145
+        ]
+      },
+      {
+        "value": 0.00025,
+        "rgb": [
+          95,
+          35,
+          153
+        ]
+      },
+      {
+        "value": 0.000375,
+        "rgb": [
+          134,
+          52,
+          133
+        ]
+      },
+      {
+        "value": 0.0005,
+        "rgb": [
+          168,
+          76,
+          107
+        ]
+      },
+      {
+        "value": 0.000625,
+        "rgb": [
+          195,
+          106,
+          85
+        ]
+      },
+      {
+        "value": 0.00075,
+        "rgb": [
+          221,
+          144,
+          69
+        ]
+      },
+      {
+        "value": 0.000875,
+        "rgb": [
+          236,
+          188,
+          62
+        ]
+      },
+      {
+        "value": 0.001,
+        "rgb": [
+          242,
+          241,
+          75
+        ]
+      }
+    ],
+    "noData": [
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "maxColorDistance": 40
+  },
+  "regions": [
+    {
+      "id": "globe-centre",
+      "name": "Centre of the globe",
+      "description": "30 points over the middle of the globe as it is shown. The globe turns and the view moves, so these points are a part of the picture, not a fixed place on Earth.",
+      "points": [
+        {
+          "x": 0.36,
+          "y": 0.2
+        },
+        {
+          "x": 0.42,
+          "y": 0.2
+        },
+        {
+          "x": 0.48,
+          "y": 0.2
+        },
+        {
+          "x": 0.54,
+          "y": 0.2
+        },
+        {
+          "x": 0.6,
+          "y": 0.2
+        },
+        {
+          "x": 0.66,
+          "y": 0.2
+        },
+        {
+          "x": 0.36,
+          "y": 0.35
+        },
+        {
+          "x": 0.42,
+          "y": 0.35
+        },
+        {
+          "x": 0.48,
+          "y": 0.35
+        },
+        {
+          "x": 0.54,
+          "y": 0.35
+        },
+        {
+          "x": 0.6,
+          "y": 0.35
+        },
+        {
+          "x": 0.66,
+          "y": 0.35
+        },
+        {
+          "x": 0.36,
+          "y": 0.5
+        },
+        {
+          "x": 0.42,
+          "y": 0.5
+        },
+        {
+          "x": 0.48,
+          "y": 0.5
+        },
+        {
+          "x": 0.54,
+          "y": 0.5
+        },
+        {
+          "x": 0.6,
+          "y": 0.5
+        },
+        {
+          "x": 0.66,
+          "y": 0.5
+        },
+        {
+          "x": 0.36,
+          "y": 0.65
+        },
+        {
+          "x": 0.42,
+          "y": 0.65
+        },
+        {
+          "x": 0.48,
+          "y": 0.65
+        },
+        {
+          "x": 0.54,
+          "y": 0.65
+        },
+        {
+          "x": 0.6,
+          "y": 0.65
+        },
+        {
+          "x": 0.66,
+          "y": 0.65
+        },
+        {
+          "x": 0.36,
+          "y": 0.8
+        },
+        {
+          "x": 0.42,
+          "y": 0.8
+        },
+        {
+          "x": 0.48,
+          "y": 0.8
+        },
+        {
+          "x": 0.54,
+          "y": 0.8
+        },
+        {
+          "x": 0.6,
+          "y": 0.8
+        },
+        {
+          "x": 0.66,
+          "y": 0.8
+        }
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "id": "2010-10-01",
+      "date": "2010-10-01",
+      "image": "frames/2010-10-01.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-02",
+      "date": "2010-10-02",
+      "image": "frames/2010-10-02.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-03",
+      "date": "2010-10-03",
+      "image": "frames/2010-10-03.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-04",
+      "date": "2010-10-04",
+      "image": "frames/2010-10-04.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-05",
+      "date": "2010-10-05",
+      "image": "frames/2010-10-05.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-06",
+      "date": "2010-10-06",
+      "image": "frames/2010-10-06.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-07",
+      "date": "2010-10-07",
+      "image": "frames/2010-10-07.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-08",
+      "date": "2010-10-08",
+      "image": "frames/2010-10-08.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-09",
+      "date": "2010-10-09",
+      "image": "frames/2010-10-09.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-10",
+      "date": "2010-10-10",
+      "image": "frames/2010-10-10.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-11",
+      "date": "2010-10-11",
+      "image": "frames/2010-10-11.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-12",
+      "date": "2010-10-12",
+      "image": "frames/2010-10-12.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-13",
+      "date": "2010-10-13",
+      "image": "frames/2010-10-13.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-14",
+      "date": "2010-10-14",
+      "image": "frames/2010-10-14.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-15",
+      "date": "2010-10-15",
+      "image": "frames/2010-10-15.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-16",
+      "date": "2010-10-16",
+      "image": "frames/2010-10-16.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-17",
+      "date": "2010-10-17",
+      "image": "frames/2010-10-17.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-18",
+      "date": "2010-10-18",
+      "image": "frames/2010-10-18.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-19",
+      "date": "2010-10-19",
+      "image": "frames/2010-10-19.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-20",
+      "date": "2010-10-20",
+      "image": "frames/2010-10-20.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-21",
+      "date": "2010-10-21",
+      "image": "frames/2010-10-21.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-22",
+      "date": "2010-10-22",
+      "image": "frames/2010-10-22.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-23",
+      "date": "2010-10-23",
+      "image": "frames/2010-10-23.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-24",
+      "date": "2010-10-24",
+      "image": "frames/2010-10-24.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-25",
+      "date": "2010-10-25",
+      "image": "frames/2010-10-25.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-26",
+      "date": "2010-10-26",
+      "image": "frames/2010-10-26.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-27",
+      "date": "2010-10-27",
+      "image": "frames/2010-10-27.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-28",
+      "date": "2010-10-28",
+      "image": "frames/2010-10-28.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-29",
+      "date": "2010-10-29",
+      "image": "frames/2010-10-29.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-30",
+      "date": "2010-10-30",
+      "image": "frames/2010-10-30.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-10-31",
+      "date": "2010-10-31",
+      "image": "frames/2010-10-31.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-01",
+      "date": "2010-11-01",
+      "image": "frames/2010-11-01.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-02",
+      "date": "2010-11-02",
+      "image": "frames/2010-11-02.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-03",
+      "date": "2010-11-03",
+      "image": "frames/2010-11-03.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-04",
+      "date": "2010-11-04",
+      "image": "frames/2010-11-04.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-05",
+      "date": "2010-11-05",
+      "image": "frames/2010-11-05.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-06",
+      "date": "2010-11-06",
+      "image": "frames/2010-11-06.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-07",
+      "date": "2010-11-07",
+      "image": "frames/2010-11-07.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-08",
+      "date": "2010-11-08",
+      "image": "frames/2010-11-08.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-09",
+      "date": "2010-11-09",
+      "image": "frames/2010-11-09.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-10",
+      "date": "2010-11-10",
+      "image": "frames/2010-11-10.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-11",
+      "date": "2010-11-11",
+      "image": "frames/2010-11-11.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-12",
+      "date": "2010-11-12",
+      "image": "frames/2010-11-12.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-13",
+      "date": "2010-11-13",
+      "image": "frames/2010-11-13.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-14",
+      "date": "2010-11-14",
+      "image": "frames/2010-11-14.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-15",
+      "date": "2010-11-15",
+      "image": "frames/2010-11-15.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-16",
+      "date": "2010-11-16",
+      "image": "frames/2010-11-16.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-17",
+      "date": "2010-11-17",
+      "image": "frames/2010-11-17.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-18",
+      "date": "2010-11-18",
+      "image": "frames/2010-11-18.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-19",
+      "date": "2010-11-19",
+      "image": "frames/2010-11-19.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-20",
+      "date": "2010-11-20",
+      "image": "frames/2010-11-20.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-21",
+      "date": "2010-11-21",
+      "image": "frames/2010-11-21.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-22",
+      "date": "2010-11-22",
+      "image": "frames/2010-11-22.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-23",
+      "date": "2010-11-23",
+      "image": "frames/2010-11-23.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-24",
+      "date": "2010-11-24",
+      "image": "frames/2010-11-24.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-25",
+      "date": "2010-11-25",
+      "image": "frames/2010-11-25.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-26",
+      "date": "2010-11-26",
+      "image": "frames/2010-11-26.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-27",
+      "date": "2010-11-27",
+      "image": "frames/2010-11-27.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-28",
+      "date": "2010-11-28",
+      "image": "frames/2010-11-28.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-29",
+      "date": "2010-11-29",
+      "image": "frames/2010-11-29.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-11-30",
+      "date": "2010-11-30",
+      "image": "frames/2010-11-30.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-12-01",
+      "date": "2010-12-01",
+      "image": "frames/2010-12-01.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-12-02",
+      "date": "2010-12-02",
+      "image": "frames/2010-12-02.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-12-03",
+      "date": "2010-12-03",
+      "image": "frames/2010-12-03.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-12-04",
+      "date": "2010-12-04",
+      "image": "frames/2010-12-04.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-12-05",
+      "date": "2010-12-05",
+      "image": "frames/2010-12-05.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-12-06",
+      "date": "2010-12-06",
+      "image": "frames/2010-12-06.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-12-07",
+      "date": "2010-12-07",
+      "image": "frames/2010-12-07.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-12-08",
+      "date": "2010-12-08",
+      "image": "frames/2010-12-08.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-12-09",
+      "date": "2010-12-09",
+      "image": "frames/2010-12-09.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    },
+    {
+      "id": "2010-12-10",
+      "date": "2010-12-10",
+      "image": "frames/2010-12-10.png",
+      "width": 960,
+      "height": 540,
+      "altText": "TODO: from the source page"
+    }
+  ],
+  "mapping": {
+    "scale": "C major arpeggio",
+    "summary": "median",
+    "minValidFraction": 0.5,
+    "categories": [
+      {
+        "id": "dark-blue",
+        "label": "Dark blue",
+        "range": [
+          0,
+          0.0002
+        ],
+        "note": "C4"
+      },
+      {
+        "id": "purple",
+        "label": "Purple",
+        "range": [
+          0.0002,
+          0.0004
+        ],
+        "note": "E4"
+      },
+      {
+        "id": "pink",
+        "label": "Pink",
+        "range": [
+          0.0004,
+          0.0006
+        ],
+        "note": "G4"
+      },
+      {
+        "id": "orange",
+        "label": "Orange",
+        "range": [
+          0.0006,
+          0.0008
+        ],
+        "note": "C5"
+      },
+      {
+        "id": "yellow",
+        "label": "Yellow",
+        "range": [
+          0.0008,
+          0.001
+        ],
+        "note": "E5"
+      }
+    ],
+    "tick": {
+      "note": "C6",
+      "durationMs": 60
+    },
+    "missingCue": {
+      "type": "noise",
+      "durationMs": 300
+    }
+  },
+  "comparisons": [],
+  "mapArea": {
+    "x0": 0.15,
+    "y0": 0,
+    "x1": 0.85,
+    "y1": 1
+  },
+  "video": {
+    "src": "video/atmospheric-rivers.mp4",
+    "fps": 5,
+    "firstFrameDate": "2010-10-01",
+    "frameStepDays": 1
+  },
+  "legend": "picture"
+}
