@@ -53,6 +53,11 @@ class SeriesOut(BaseModel):
     values: list[float]
 
 
+class LiveImage(BaseModel):
+    date: str  # YYYY-MM-DD
+    url: str  # built by the server only (app/agent/planetary.py `image_url`), never by the model
+
+
 class MascotAnswer(BaseModel):
     mascot_reply: str
     dataset_theme: Literal["ocean", "atmosphere", "forest", "default"]
@@ -62,6 +67,12 @@ class MascotAnswer(BaseModel):
     local_dataset_id: str | None
     #: WX02: every value behind the sound, one per step, for the "Show the numbers" table. None when nothing was found.
     series: SeriesOut | None = None
+    #: G12: up to six pictures of the area, in date order, for the browser to download and play. [] when none.
+    images: list[LiveImage] = Field(default_factory=list)
+    #: What the pictures' colours mean: {"kind": "data", "unit", "stops"} or {"kind": "picture"}. None without pictures.
+    image_legend: dict[str, Any] | None = None
+    #: [west, south, east, north] of the pictures. None without pictures.
+    image_area: list[float] | None = None
 
 
 @lru_cache(maxsize=1)

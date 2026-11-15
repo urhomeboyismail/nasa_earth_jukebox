@@ -15,11 +15,14 @@ Manual check against the live API, with no model: `.venv/bin/python -m app.agent
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
+import urllib.parse
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from functools import lru_cache
+from itertools import pairwise
 from typing import Awaitable, Callable
 
 import httpx
@@ -36,7 +39,8 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 STAC_URL = "https://planetarycomputer.microsoft.com/api/stac/v1"
-STATISTICS_URL = "https://planetarycomputer.microsoft.com/api/data/v1/item/statistics"
+DATA_URL = "https://planetarycomputer.microsoft.com/api/data/v1"
+STATISTICS_URL = f"{DATA_URL}/item/statistics"
 APP_NAME = "mascot"
 USER_ID = "anonymous"
 SERIES_KEY = "pc_series"
@@ -45,6 +49,7 @@ ERROR_KEY = "pc_error"
 #: "off" when no Meteomatics login is set, "down" when Meteomatics refused or did not answer.
 WEATHER_ERROR_KEY = "weather_error"
 WEATHER_SOURCE = "meteomatics-t_2m"
+IMAGES_KEY = "pc_images"
 
 #: The most values a series keeps (and so the most statistics calls one request makes), spread from the first day to the last.
 MAX_POINTS = 31
@@ -56,6 +61,15 @@ MAX_SPAN_DEGREES = 10.0
 MAX_LLM_CALLS = 4
 PARALLEL_READS = 8
 READ_TIMEOUT_SECONDS = 15.0
+#: Pictures of the area (G12): at most one a day, spread over the period. The browser downloads them, not the server.
+MAX_IMAGES = 6
+#: Sentinel-2 only: the cloudiest scene a picture may come from, in %.
+MAX_IMAGE_CLOUD = 30
+#: The least share of the picture area a Sentinel-2 scene must cover to be shown.
+MIN_IMAGE_COVER = 0.5
+#: Sentinel-2 only: the largest picture, in degrees each way. 10 m pixels: a bigger area is slow and blurs to nothing at 512 px.
+MAX_IMAGE_SPAN_DEGREES = 0.5
+IMAGE_WIDTH = 512
 
 Point = tuple[date, float]
 Reader = Callable[[list, list[float]], Awaitable[list[Point]]]
@@ -110,6 +124,75 @@ async def _sst_mean(items: list, bbox: list[float]) -> list[Point]:
     return [point for point in points if point]
 
 
+#: The OISST ramp: (°C, rgb) anchors, interpolated. Fixed, so a colour always means the same temperature.
+SST_ANCHORS = [(-2, (49, 54, 149)), (7, (116, 173, 209)), (16, (255, 255, 191)), (26, (244, 109, 67)), (35, (165, 0, 38))]
+
+
+def _ramp(value: float) -> list[int]:
+    for (low, start), (high, end) in pairwise(SST_ANCHORS):
+        if value <= high:
+            t = (value - low) / (high - low)
+            return [round(a + t * (b - a)) for a, b in zip(start, end, strict=True)]
+    return list(SST_ANCHORS[-1][1])
+
+
+def sst_bands() -> tuple[list, list[dict]]:
+    """One band per degree from -2 to 35 °C, coloured at its centre: the data API's interval colormap (raw int16, scale
+    0.01) and the legend's stops. Built together so they cannot drift. Kept short: a long colormap gets 414 URI Too Long."""
+    colormap, stops = [], []
+    for degree in range(-2, 35):
+        rgb = _ramp(degree + 0.5)
+        colormap.append([[degree * 100, (degree + 1) * 100], [*rgb, 255]])
+        stops.append({"value": degree + 0.5, "rgb": rgb})
+    return colormap, stops
+
+
+def _whole_area(bbox: list[float]) -> list[float]:
+    return bbox
+
+
+def _centre(bbox: list[float]) -> list[float]:
+    """The bbox's centre, at most MAX_IMAGE_SPAN_DEGREES each way."""
+    west, south, east, north = bbox
+    x, y = (west + east) / 2, (south + north) / 2
+    half_x, half_y = min(east - west, MAX_IMAGE_SPAN_DEGREES) / 2, min(north - south, MAX_IMAGE_SPAN_DEGREES) / 2
+    return [round(x - half_x, 4), round(y - half_y, 4), round(x + half_x, 4), round(y + half_y, 4)]
+
+
+def _one_a_day(items: list, area: list[float] | None = None) -> list:
+    """One item a day, in date order: of several on one day, the last one given."""
+    by_day = {_day(item): item for item in items}
+    return [by_day[day] for day in sorted(by_day)]
+
+
+def _overlap(item, area: list[float]) -> float:
+    """The share of the picture area inside the scene's footprint, 0 to 1. A scene with no bbox is taken on trust."""
+    box = getattr(item, "bbox", None)
+    if not box:
+        return 1.0
+    west, south, east, north = area
+    width = max(0.0, min(box[2], east) - max(box[0], west))
+    height = max(0.0, min(box[3], north) - max(box[1], south))
+    return width * height / ((east - west) * (north - south))
+
+
+def _clearest_a_day(items: list, area: list[float]) -> list:
+    """Sentinel-2: each day's scene that covers most of the picture area (at least MIN_IMAGE_COVER), then the least cloudy, of those
+    at or under MAX_IMAGE_CLOUD. The area often crosses a tile edge; the part outside the tile comes back transparent, which the
+    browser does not read, so a partly covered picture is shown with an empty strip and is not heard as dark ground."""
+    clear = [
+        item for item in items
+        if isinstance(cover := item.properties.get("eo:cloud_cover"), (int, float)) and cover <= MAX_IMAGE_CLOUD
+        and _overlap(item, area) >= MIN_IMAGE_COVER
+    ]
+    # Best last, so it wins: most of the area, then least cloud.
+    return _one_a_day(sorted(clear, key=lambda item: (_overlap(item, area), -item.properties["eo:cloud_cover"])))
+
+
+Area = Callable[[list[float]], list[float]]
+Choose = Callable[[list, list[float]], list]
+
+
 @dataclass(frozen=True)
 class Collection:
     label: str  # what the reply calls the values, e.g. "days of sea surface temperature"
@@ -117,13 +200,24 @@ class Collection:
     unit: str
     theme: str
     read: Reader | None = None  # None for a source with its own tool (weather)
+    render: dict[str, str] | None = None  # the data API's query for a picture, besides the item and the size (None: no pictures)
+    legend: dict | None = None  # what a picture's colours mean, for the browser
+    area: Area | None = None  # the picture's area, from the checked bbox
+    choose: Choose | None = None  # the items worth a picture, at most one a day, in date order
 
+
+_SST_COLORMAP, _SST_STOPS = sst_bands()
 
 #: The only collections the model may ask for. (OISST, not the WHOI collection: its `sst` asset is a COG the data API reads.)
 COLLECTIONS: dict[str, Collection] = {
-    "sentinel-2-l2a": Collection("days of Sentinel-2 scenes", "Cloud cover", "%", "atmosphere", _cloud_cover),
+    "sentinel-2-l2a": Collection(
+        "days of Sentinel-2 scenes", "Cloud cover", "%", "atmosphere", _cloud_cover,
+        {"assets": "visual"}, {"kind": "picture"}, _centre, _clearest_a_day,
+    ),
     "noaa-cdr-sea-surface-temperature-optimum-interpolation": Collection(
-        "days of sea surface temperature", "Sea surface temperature", " °C", "ocean", _sst_mean
+        "days of sea surface temperature", "Sea surface temperature", " °C", "ocean", _sst_mean,
+        {"assets": "sst", "nodata": "-999", "colormap": json.dumps(_SST_COLORMAP, separators=(",", ":"))},
+        {"kind": "data", "unit": "°C", "stops": _SST_STOPS}, _whole_area, _one_a_day,
     ),
 }
 #: The labels for every series the reply may describe. Separate from COLLECTIONS, so the model cannot ask Planetary Computer for weather.
@@ -131,6 +225,23 @@ SOURCES: dict[str, Collection] = {
     **COLLECTIONS,
     WEATHER_SOURCE: Collection("hours of air temperature", "Air temperature", " °C", "atmosphere"),
 }
+
+
+def image_url(collection: str, item_id: str, area: list[float]) -> str:
+    """A PNG of exactly this area from one STAC item. `item/bbox`, not `item/crop`: crop 404s for Sentinel-2."""
+    west, south, east, north = area
+    height = min(1024, max(64, round(IMAGE_WIDTH * (north - south) / (east - west))))
+    query = {"collection": collection, "item": item_id, **COLLECTIONS[collection].render, "width": IMAGE_WIDTH, "height": height}
+    return f"{DATA_URL}/item/bbox/{west:g},{south:g},{east:g},{north:g}.png?" + urllib.parse.urlencode(query)
+
+
+def images_of(collection: str, items: list, bbox: list[float]) -> dict:
+    """Up to MAX_IMAGES pictures, spread over the period, with their legend and area. No network: only URLs."""
+    spec = COLLECTIONS[collection]
+    area = spec.area(bbox)
+    chosen = _spread(spec.choose(items, area), MAX_IMAGES)
+    images = [{"date": _day(item).isoformat(), "url": image_url(collection, item.id, area)} for item in chosen]
+    return {"images": images, "legend": spec.legend, "area": area}
 
 
 @lru_cache(maxsize=1)
@@ -213,6 +324,10 @@ async def fetch_planetary_computer_data(
         tool_context.state[ERROR_KEY] = True
         return {"error": "Planetary Computer did not answer. Do not try again."}
     tool_context.state[SERIES_KEY] = series_of(collection, points)
+    try:
+        tool_context.state[IMAGES_KEY] = images_of(collection, items, area)
+    except Exception:  # noqa: BLE001 - an odd item: the pictures never cost the answer
+        pass
     return {"ok": True, "points": len(points)}
 
 
@@ -281,7 +396,10 @@ def answer_for(state: dict, preference: str, catalog: list[dict]) -> dict:
     """The route's answer, built from what the tools left in the state. No model text reaches it."""
     series = state.get(SERIES_KEY)
     local = next((entry for entry in catalog if entry["id"] == state.get(LOCAL_KEY)), None)
-    answer = {"mascot_reply": HELP_REPLY, "dataset_theme": "default", "sonification_json": None, "local_dataset_id": None, "series": None}
+    answer = {
+        "mascot_reply": HELP_REPLY, "dataset_theme": "default", "sonification_json": None, "local_dataset_id": None, "series": None,
+        "images": [], "image_legend": None, "image_area": None,
+    }
     if series and series["values"]:
         spec = SOURCES[series["collection"]]
         values, dates = series["values"], series["dates"]
@@ -295,6 +413,11 @@ def answer_for(state: dict, preference: str, catalog: list[dict]) -> dict:
         answer["sonification_json"] = build_audio(series, preference)
         # One value per step of the sound, so the table's row i is the note i (build_audio keeps the order).
         answer["series"] = {"metric": spec.metric, "unit": spec.unit.strip(), "times": dates, "values": values}
+        pictures = state.get(IMAGES_KEY) or {}
+        if pictures.get("images"):
+            count = len(pictures["images"])
+            answer["mascot_reply"] += f" I also have {count} picture{'' if count == 1 else 's'} of the area."
+            answer["images"], answer["image_legend"], answer["image_area"] = pictures["images"], pictures["legend"], pictures["area"]
     elif local:
         answer["mascot_reply"] = f"I already have '{local['title']}' in the app. Open it to hear it."
         answer["local_dataset_id"] = local["id"]
@@ -362,8 +485,6 @@ class MascotService:
 
 
 if __name__ == "__main__":
-    import json
-
     async def _check() -> None:
         for collection, area, first, last in (
             ("noaa-cdr-sea-surface-temperature-optimum-interpolation", [57, -21, 58.5, -19.5], date(2026, 6, 1), date(2026, 6, 30)),
@@ -371,7 +492,9 @@ if __name__ == "__main__":
         ):
             items = await asyncio.to_thread(search_items, collection, area, first, last)
             points = await COLLECTIONS[collection].read(items, area)
-            answer = answer_for({SERIES_KEY: series_of(collection, points)}, "normal", [])
-            print(json.dumps({**answer, "sonification_json": bool(answer["sonification_json"])}, indent=2))
+            state = {SERIES_KEY: series_of(collection, points), IMAGES_KEY: images_of(collection, items, area)}
+            answer = answer_for(state, "normal", [])
+            shown = {**answer, "sonification_json": bool(answer["sonification_json"]), "image_legend": bool(answer["image_legend"])}
+            print(json.dumps(shown, indent=2))
 
     asyncio.run(_check())

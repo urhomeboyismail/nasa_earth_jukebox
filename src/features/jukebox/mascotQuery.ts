@@ -26,6 +26,8 @@ export type MascotAnswer = {
   localId: string | null
   /** WX02: every value behind the sound, one per step. Null when none was sent, or it did not pass. */
   series: Series | null
+  /** G12: the dated pictures of the area, or null when there are none or they did not pass. */
+  pictures: LivePictures | null
 }
 
 /** More than the server ever sends (a week of hours, or a year of days). */
@@ -47,12 +49,44 @@ export type MascotResult =
   | { kind: 'answer'; answer: MascotAnswer }
   | { kind: 'error'; error: JukeboxErrorKind; retryAfter?: number }
 
+/** Trust boundary (G12): the page loads pictures from this one place only. The server builds the URLs; the model never sees them. */
+export const IMAGE_URL_PREFIX = 'https://planetarycomputer.microsoft.com/api/data/v1/item/bbox/'
+export const MAX_IMAGES = 6
+
+const byte = z.number().int().min(0).max(255)
+const stopsSchema = z
+  .array(z.object({ value: z.number(), rgb: z.tuple([byte, byte, byte]) }))
+  .min(2)
+  .refine(stops => stops.every((stop, i) => i === 0 || stop.value > stops[i - 1].value), 'stops must rise')
+
+const picturesSchema = z.object({
+  images: z
+    .array(z.object({ date: z.iso.date(), url: z.string().startsWith(IMAGE_URL_PREFIX) }))
+    .min(1)
+    .max(MAX_IMAGES),
+  legend: z.discriminatedUnion('kind', [
+    z.object({ kind: z.literal('data'), unit: z.string().min(1).max(20), stops: stopsSchema }),
+    z.object({ kind: z.literal('picture') }),
+  ]),
+  area: z
+    .tuple([z.number().min(-180).max(180), z.number().min(-90).max(90), z.number().min(-180).max(180), z.number().min(-90).max(90)])
+    .refine(([west, south, east, north]) => west < east && south < north, 'west must be below east and south below north'),
+})
+
+export type LivePictures = z.infer<typeof picturesSchema>
+export type ImageLegend = LivePictures['legend']
+export type LiveImage = LivePictures['images'][number]
+
 const answerSchema = z.object({
   mascot_reply: z.string().min(1),
   dataset_theme: z.enum(['ocean', 'atmosphere', 'forest', 'default']).catch('default'),
   sonification_json: z.unknown(),
   local_dataset_id: z.string().nullish(),
   series: z.unknown().optional(),
+  // G12. Missing (an older server) or anything invalid: no pictures, and the rest of the answer still shows.
+  images: z.unknown().optional(),
+  image_legend: z.unknown().optional(),
+  image_area: z.unknown().optional(),
 })
 
 function errorFor(status: number): JukeboxErrorKind {
@@ -81,13 +115,21 @@ export async function queryMascot(
     }
     const parsed = answerSchema.safeParse(await response.json())
     if (!parsed.success) return { kind: 'error', error: 'model' }
-    const { mascot_reply, dataset_theme, sonification_json, local_dataset_id } = parsed.data
+    const { mascot_reply, dataset_theme, sonification_json, local_dataset_id, images, image_legend, image_area } = parsed.data
     const audio = audioPayloadSchema.safeParse(sonification_json)
     const series = seriesSchema.safeParse(parsed.data.series)
     const localId = catalog.some(entry => entry.id === local_dataset_id) ? (local_dataset_id ?? null) : null
+    const pictures = picturesSchema.safeParse({ images, legend: image_legend, area: image_area })
     return {
       kind: 'answer',
-      answer: { reply: mascot_reply, theme: dataset_theme, audio: audio.success ? audio.data : null, localId, series: series.success ? series.data : null },
+      answer: {
+        reply: mascot_reply,
+        theme: dataset_theme,
+        audio: audio.success ? audio.data : null,
+        localId,
+        series: series.success ? series.data : null,
+        pictures: pictures.success ? pictures.data : null,
+      },
     }
   } catch {
     return { kind: 'error', error: 'unreachable' }
