@@ -71,10 +71,10 @@ const toText = (baseline: unknown) => JSON.stringify(baseline, null, 2) + '\n'
 const catalog = catalogSchema.parse(readJson('index.json'))
 const load = (id: string) => visualizationSchema.parse(readJson(`${id}/manifest.json`)) as Visualization
 
-const BASELINED = ['fixture', 'synthetic-ocean', 'synthetic-globe']
+const BASELINED = ['fixture']
 
 describe('sound regression baseline', () => {
-  it('covers the three data sets', () => {
+  it('covers the committed data sets', () => {
     expect(catalog.map(entry => entry.id).slice(0, BASELINED.length)).toEqual(BASELINED)
   })
 

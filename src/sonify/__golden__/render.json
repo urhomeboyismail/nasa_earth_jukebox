@@ -62,12 +62,12 @@
       ]
     }
   },
-  "synthetic-storm": {
-    "wavSha256": "89004cc888523e5fd89d3e3e31e4d80b217a053903d52b92285836baf604f553",
-    "vtt": "WEBVTT\n\n2026-03-01\n00:00:00.000 --> 00:00:01.000\nThe overall level is middle; 1 hot spot, the largest in the west.\nMelody: middle Harmony: thin chord, 1 note Bass: middle Hot spots: 1, the largest is a high one in the west Time: steady pulse\n\n2026-03-02\n00:00:01.000 --> 00:00:02.000\nThe overall level is middle and steady; 1 hot spot, the largest in the west; movement towards the east.\nMelody: middle, steady Harmony: thin chord, 1 note Bass: middle, steady Hot spots: 1, the largest is a high one in the west Motion: high, towards the east Time: steady pulse\n\n2026-03-03\n00:00:02.000 --> 00:00:03.000\nThe overall level is middle and steady; 1 hot spot, the largest in the centre; movement towards the east.\nMelody: middle, steady Harmony: thin chord, 1 note Bass: middle, steady Hot spots: 1, the largest is a high one in the centre Motion: high, towards the east Time: steady pulse\n\n2026-03-04\n00:00:03.000 --> 00:00:04.000\nThe overall level is middle and steady; 1 hot spot, the largest in the centre; movement towards the east.\nMelody: middle, steady Harmony: thin chord, 1 note Bass: middle, steady Hot spots: 1, the largest is a high one in the centre Motion: high, towards the east Time: steady pulse\n\n2026-03-05\n00:00:04.000 --> 00:00:05.000\nThe overall level is middle and steady; 1 hot spot, the largest in the centre; movement towards the east.\nMelody: middle, steady Harmony: thin chord, 1 note Bass: middle, steady Hot spots: 1, the largest is a high one in the centre Motion: high, towards the east Time: steady pulse\n\n2026-03-06\n00:00:05.000 --> 00:00:06.000\nThe overall level is middle and steady; 2 hot spots, the largest in the centre; sparse edges; movement towards the east.\nMelody: middle, steady Harmony: thin chord, 1 note Bass: middle, steady Hot spots: 2, the largest is a high one in the centre Rhythm: sparse Motion: high, towards the east Time: steady pulse\n\n2026-03-07\n00:00:06.000 --> 00:00:07.000\nThe overall level is middle and steady; 2 hot spots, the largest in the centre; sparse edges; movement towards the east.\nMelody: middle, steady Harmony: thin chord, 1 note Bass: middle, steady Hot spots: 2, the largest is a high one in the centre Rhythm: sparse Motion: high, towards the east Time: steady pulse\n\n2026-03-08\n00:00:07.000 --> 00:00:08.000\nThe overall level is middle and steady; 2 hot spots, the largest in the centre; sparse edges; movement towards the east.\nMelody: middle, steady Harmony: thin chord, 1 note Bass: middle, steady Hot spots: 2, the largest is a high one in the centre Rhythm: sparse Motion: high, towards the east Time: steady pulse\n\n2026-03-09\n00:00:08.000 --> 00:00:09.000\nThe overall level is middle and steady; 1 hot spot, the largest in the centre; movement towards the east.\nMelody: middle, steady Harmony: thin chord, 1 note Bass: middle, steady Hot spots: 1, the largest is a high one in the centre Motion: middle, towards the east Time: steady pulse\n\n2026-03-10\n00:00:09.000 --> 00:00:10.000\nNot enough readable data on this date: only the time pulse sounds.\nMelody: not enough data Harmony: not enough data Bass: not enough data Time: steady pulse\n",
+  "mur-sst-mauritius": {
+    "wavSha256": "ba1b6b8c93f5b6cd4a36cc3fab6dd26c148152a700fb27da432bf424cb8b9c82",
+    "vtt": "WEBVTT\n\n2023-01-23\n00:00:00.000 --> 00:00:01.000\nThe overall level is high; sparse edges.\nMelody: high Harmony: medium chord, 2 notes Bass: middle Rhythm: sparse Time: steady pulse\n\n2023-02-02\n00:00:01.000 --> 00:00:02.000\nNot enough readable data on this date: only the time pulse sounds.\nMelody: not enough data Harmony: not enough data Bass: not enough data Time: steady pulse, new month\n\n2023-02-12\n00:00:02.000 --> 00:00:03.000\nThe overall level is high; 2 hot spots, the largest in the west; sparse edges.\nMelody: high Harmony: thin chord, 1 note Bass: high Hot spots: 2, the largest is a high one in the west Rhythm: sparse Time: steady pulse\n\n2023-02-22\n00:00:03.000 --> 00:00:04.000\nThe overall level is high and steady; 3 hot spots, the largest in the south-west; sparse edges; the picture is still.\nMelody: high, steady Harmony: thin chord, 1 note Bass: high, steady Hot spots: 3, the largest is a high one in the south-west Rhythm: sparse Motion: still Time: steady pulse\n\n2023-03-04\n00:00:04.000 --> 00:00:05.000\nThe overall level is high and steady; 3 hot spots, the largest in the centre; sparse edges; the picture is still; a new month.\nMelody: high, steady Harmony: medium chord, 2 notes Bass: high, rising Hot spots: 3, the largest is a high one in the centre Rhythm: sparse Motion: still Time: steady pulse, new month\n\n2023-03-14\n00:00:05.000 --> 00:00:06.000\nThe overall level is high and steady; 3 hot spots, the largest in the west; sparse edges; the picture is still.\nMelody: high, steady Harmony: medium chord, 2 notes Bass: high, falling Hot spots: 3, the largest is a high one in the west Rhythm: sparse Motion: still Time: steady pulse\n\n2023-03-24\n00:00:06.000 --> 00:00:07.000\nThe overall level is high and steady; 2 hot spots, the largest in the centre; sparse edges; the picture is still.\nMelody: high, steady Harmony: medium chord, 2 notes Bass: high, rising Hot spots: 2, the largest is a high one in the centre Rhythm: sparse Motion: still Time: steady pulse\n\n2023-04-03\n00:00:07.000 --> 00:00:08.000\nThe overall level is high and steady; 2 hot spots, the largest in the centre; sparse edges; the picture is still; a new month.\nMelody: high, steady Harmony: thin chord, 1 note Bass: high, steady Hot spots: 2, the largest is a high one in the centre Rhythm: sparse Motion: still Time: steady pulse, new month\n\n2023-04-13\n00:00:08.000 --> 00:00:09.000\nThe overall level is high and steady; 3 hot spots, the largest in the centre; sparse edges; the picture is still.\nMelody: high, steady Harmony: medium chord, 2 notes Bass: high, steady Hot spots: 3, the largest is a high one in the centre Rhythm: sparse Motion: still Time: steady pulse\n\n2023-04-23\n00:00:09.000 --> 00:00:10.000\nThe overall level is high and steady; 3 hot spots, the largest in the south; sparse edges; the picture is still.\nMelody: high, steady Harmony: medium chord, 2 notes Bass: high, steady Hot spots: 3, the largest is a high one in the south Rhythm: sparse Motion: still Time: steady pulse\n\n2023-05-03\n00:00:10.000 --> 00:00:11.000\nThe overall level is high and steady; 2 hot spots, the largest in the north-east; sparse edges; the picture is still; a new month.\nMelody: high, steady Harmony: thin chord, 1 note Bass: high, falling Hot spots: 2, the largest is a high one in the north-east Rhythm: sparse Motion: still Time: steady pulse, new month\n\n2023-05-13\n00:00:11.000 --> 00:00:12.000\nThe overall level is high and steady; sparse edges; the picture is still.\nMelody: high, steady Harmony: thin chord, 1 note Bass: middle, falling Rhythm: sparse Motion: still Time: steady pulse\n\n2023-05-23\n00:00:12.000 --> 00:00:13.000\nThe overall level is high and steady; 2 hot spots, the largest in the north; sparse edges; the picture is still.\nMelody: high, steady Harmony: thin chord, 1 note Bass: high, rising Hot spots: 2, the largest is a high one in the north Rhythm: sparse Motion: still Time: steady pulse\n\n2023-06-02\n00:00:13.000 --> 00:00:14.000\nThe overall level is high and steady; sparse edges; the picture is still; a new month.\nMelody: high, steady Harmony: medium chord, 2 notes Bass: middle, falling Rhythm: sparse Motion: still Time: steady pulse, new month\n\n2023-06-12\n00:00:14.000 --> 00:00:15.000\nThe overall level is high and steady; sparse edges; the picture is still.\nMelody: high, steady Harmony: thin chord, 1 note Bass: low, falling Rhythm: sparse Motion: still Time: steady pulse\n\n2023-06-22\n00:00:15.000 --> 00:00:16.000\nThe overall level is high and steady; sparse edges; the picture is still.\nMelody: high, steady Harmony: medium chord, 2 notes Bass: low, falling Rhythm: sparse Motion: still Time: steady pulse\n\n2023-07-02\n00:00:16.000 --> 00:00:17.000\nThe overall level is high and steady; 2 hot spots, the largest in the south-east; sparse edges; the picture is still; a new month.\nMelody: high, steady Harmony: thin chord, 1 note Bass: low, steady Hot spots: 2, the largest is a low one in the south-east Rhythm: sparse Motion: still Time: steady pulse, new month\n\n2023-07-12\n00:00:17.000 --> 00:00:18.000\nThe overall level is high and steady; 3 hot spots, the largest in the south; sparse edges; the picture is still.\nMelody: high, steady Harmony: medium chord, 2 notes Bass: low, steady Hot spots: 3, the largest is a low one in the south Rhythm: sparse Motion: still Time: steady pulse\n\n2023-07-22\n00:00:18.000 --> 00:00:19.000\nThe overall level is high and steady; 1 hot spot, the largest in the centre; sparse edges; the picture is still.\nMelody: high, steady Harmony: thin chord, 1 note Bass: low, steady Hot spots: 1, the largest is a low one in the centre Rhythm: sparse Motion: still Time: steady pulse\n\n2023-08-01\n00:00:19.000 --> 00:00:20.000\nThe overall level is high and steady; 3 hot spots, the largest in the centre; sparse edges; the picture is still; a new month.\nMelody: high, steady Harmony: medium chord, 2 notes Bass: low, steady Hot spots: 3, the largest is a low one in the centre Rhythm: sparse Motion: still Time: steady pulse, new month\n",
     "sidecar": {
-      "id": "synthetic-storm",
-      "title": "Synthetic storm (made-up practice data)",
+      "id": "mur-sst-mauritius",
+      "title": "Sea surface temperature around Mauritius, 2023",
       "preset": "major",
       "detail": "full",
       "sampleRate": 44100,
@@ -75,120 +75,19 @@
       "dropoutSeed": 20261109,
       "frames": [
         {
-          "frameId": "2026-03-01",
-          "date": "2026-03-01",
+          "frameId": "2023-01-23",
+          "date": "2023-01-23",
           "atSeconds": 0,
           "confidence": 1,
           "dropout": false,
           "missing": [],
-          "summary": "The overall level is middle; 1 hot spot, the largest in the west.",
-          "hotspotIds": [
-            "h1"
-          ]
+          "summary": "The overall level is high; sparse edges.",
+          "hotspotIds": []
         },
         {
-          "frameId": "2026-03-02",
-          "date": "2026-03-02",
+          "frameId": "2023-02-02",
+          "date": "2023-02-02",
           "atSeconds": 1,
-          "confidence": 1,
-          "dropout": false,
-          "missing": [],
-          "summary": "The overall level is middle and steady; 1 hot spot, the largest in the west; movement towards the east.",
-          "hotspotIds": [
-            "h1"
-          ]
-        },
-        {
-          "frameId": "2026-03-03",
-          "date": "2026-03-03",
-          "atSeconds": 2,
-          "confidence": 1,
-          "dropout": false,
-          "missing": [],
-          "summary": "The overall level is middle and steady; 1 hot spot, the largest in the centre; movement towards the east.",
-          "hotspotIds": [
-            "h1"
-          ]
-        },
-        {
-          "frameId": "2026-03-04",
-          "date": "2026-03-04",
-          "atSeconds": 3,
-          "confidence": 1,
-          "dropout": false,
-          "missing": [],
-          "summary": "The overall level is middle and steady; 1 hot spot, the largest in the centre; movement towards the east.",
-          "hotspotIds": [
-            "h1"
-          ]
-        },
-        {
-          "frameId": "2026-03-05",
-          "date": "2026-03-05",
-          "atSeconds": 4,
-          "confidence": 1,
-          "dropout": false,
-          "missing": [],
-          "summary": "The overall level is middle and steady; 1 hot spot, the largest in the centre; movement towards the east.",
-          "hotspotIds": [
-            "h1"
-          ]
-        },
-        {
-          "frameId": "2026-03-06",
-          "date": "2026-03-06",
-          "atSeconds": 5,
-          "confidence": 1,
-          "dropout": false,
-          "missing": [],
-          "summary": "The overall level is middle and steady; 2 hot spots, the largest in the centre; sparse edges; movement towards the east.",
-          "hotspotIds": [
-            "h1",
-            "h2"
-          ]
-        },
-        {
-          "frameId": "2026-03-07",
-          "date": "2026-03-07",
-          "atSeconds": 6,
-          "confidence": 1,
-          "dropout": false,
-          "missing": [],
-          "summary": "The overall level is middle and steady; 2 hot spots, the largest in the centre; sparse edges; movement towards the east.",
-          "hotspotIds": [
-            "h1",
-            "h2"
-          ]
-        },
-        {
-          "frameId": "2026-03-08",
-          "date": "2026-03-08",
-          "atSeconds": 7,
-          "confidence": 1,
-          "dropout": false,
-          "missing": [],
-          "summary": "The overall level is middle and steady; 2 hot spots, the largest in the centre; sparse edges; movement towards the east.",
-          "hotspotIds": [
-            "h1",
-            "h2"
-          ]
-        },
-        {
-          "frameId": "2026-03-09",
-          "date": "2026-03-09",
-          "atSeconds": 8,
-          "confidence": 1,
-          "dropout": false,
-          "missing": [],
-          "summary": "The overall level is middle and steady; 1 hot spot, the largest in the centre; movement towards the east.",
-          "hotspotIds": [
-            "h1"
-          ]
-        },
-        {
-          "frameId": "2026-03-10",
-          "date": "2026-03-10",
-          "atSeconds": 9,
           "confidence": 0,
           "dropout": true,
           "missing": [
@@ -198,6 +97,240 @@
           ],
           "summary": "Not enough readable data on this date: only the time pulse sounds.",
           "hotspotIds": []
+        },
+        {
+          "frameId": "2023-02-12",
+          "date": "2023-02-12",
+          "atSeconds": 2,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is high; 2 hot spots, the largest in the west; sparse edges.",
+          "hotspotIds": [
+            "h1",
+            "h2"
+          ]
+        },
+        {
+          "frameId": "2023-02-22",
+          "date": "2023-02-22",
+          "atSeconds": 3,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is high and steady; 3 hot spots, the largest in the south-west; sparse edges; the picture is still.",
+          "hotspotIds": [
+            "h3",
+            "h4",
+            "h5"
+          ]
+        },
+        {
+          "frameId": "2023-03-04",
+          "date": "2023-03-04",
+          "atSeconds": 4,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is high and steady; 3 hot spots, the largest in the centre; sparse edges; the picture is still; a new month.",
+          "hotspotIds": [
+            "h6",
+            "h7",
+            "h8"
+          ]
+        },
+        {
+          "frameId": "2023-03-14",
+          "date": "2023-03-14",
+          "atSeconds": 5,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is high and steady; 3 hot spots, the largest in the west; sparse edges; the picture is still.",
+          "hotspotIds": [
+            "h9",
+            "h10",
+            "h7",
+            "h8",
+            "h11",
+            "h12"
+          ]
+        },
+        {
+          "frameId": "2023-03-24",
+          "date": "2023-03-24",
+          "atSeconds": 6,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is high and steady; 2 hot spots, the largest in the centre; sparse edges; the picture is still.",
+          "hotspotIds": [
+            "h13",
+            "h14"
+          ]
+        },
+        {
+          "frameId": "2023-04-03",
+          "date": "2023-04-03",
+          "atSeconds": 7,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is high and steady; 2 hot spots, the largest in the centre; sparse edges; the picture is still; a new month.",
+          "hotspotIds": [
+            "h13",
+            "h15"
+          ]
+        },
+        {
+          "frameId": "2023-04-13",
+          "date": "2023-04-13",
+          "atSeconds": 8,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is high and steady; 3 hot spots, the largest in the centre; sparse edges; the picture is still.",
+          "hotspotIds": [
+            "h13",
+            "h16",
+            "h17"
+          ]
+        },
+        {
+          "frameId": "2023-04-23",
+          "date": "2023-04-23",
+          "atSeconds": 9,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is high and steady; 3 hot spots, the largest in the south; sparse edges; the picture is still.",
+          "hotspotIds": [
+            "h18",
+            "h17",
+            "h19",
+            "h20"
+          ]
+        },
+        {
+          "frameId": "2023-05-03",
+          "date": "2023-05-03",
+          "atSeconds": 10,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is high and steady; 2 hot spots, the largest in the north-east; sparse edges; the picture is still; a new month.",
+          "hotspotIds": [
+            "h21",
+            "h20"
+          ]
+        },
+        {
+          "frameId": "2023-05-13",
+          "date": "2023-05-13",
+          "atSeconds": 11,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is high and steady; sparse edges; the picture is still.",
+          "hotspotIds": []
+        },
+        {
+          "frameId": "2023-05-23",
+          "date": "2023-05-23",
+          "atSeconds": 12,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is high and steady; 2 hot spots, the largest in the north; sparse edges; the picture is still.",
+          "hotspotIds": [
+            "h22",
+            "h23"
+          ]
+        },
+        {
+          "frameId": "2023-06-02",
+          "date": "2023-06-02",
+          "atSeconds": 13,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is high and steady; sparse edges; the picture is still; a new month.",
+          "hotspotIds": []
+        },
+        {
+          "frameId": "2023-06-12",
+          "date": "2023-06-12",
+          "atSeconds": 14,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is high and steady; sparse edges; the picture is still.",
+          "hotspotIds": []
+        },
+        {
+          "frameId": "2023-06-22",
+          "date": "2023-06-22",
+          "atSeconds": 15,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is high and steady; sparse edges; the picture is still.",
+          "hotspotIds": []
+        },
+        {
+          "frameId": "2023-07-02",
+          "date": "2023-07-02",
+          "atSeconds": 16,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is high and steady; 2 hot spots, the largest in the south-east; sparse edges; the picture is still; a new month.",
+          "hotspotIds": [
+            "h24",
+            "h25"
+          ]
+        },
+        {
+          "frameId": "2023-07-12",
+          "date": "2023-07-12",
+          "atSeconds": 17,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is high and steady; 3 hot spots, the largest in the south; sparse edges; the picture is still.",
+          "hotspotIds": [
+            "h26",
+            "h27",
+            "h28",
+            "h29"
+          ]
+        },
+        {
+          "frameId": "2023-07-22",
+          "date": "2023-07-22",
+          "atSeconds": 18,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is high and steady; 1 hot spot, the largest in the centre; sparse edges; the picture is still.",
+          "hotspotIds": [
+            "h30"
+          ]
+        },
+        {
+          "frameId": "2023-08-01",
+          "date": "2023-08-01",
+          "atSeconds": 19,
+          "confidence": 1,
+          "dropout": false,
+          "missing": [],
+          "summary": "The overall level is high and steady; 3 hot spots, the largest in the centre; sparse edges; the picture is still; a new month.",
+          "hotspotIds": [
+            "h30",
+            "h31",
+            "h32",
+            "h33"
+          ]
         }
       ]
     }

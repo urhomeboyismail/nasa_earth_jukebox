@@ -49,6 +49,6 @@ describe('record', () => {
   })
 
   it('names the file from the data set id and the time', () => {
-    expect(downloadName('synthetic-ocean', new Date('2026-11-13T09:05:07Z'))).toBe('synthetic-ocean-20261113-090507.wav')
+    expect(downloadName('fixture', new Date('2026-11-13T09:05:07Z'))).toBe('fixture-20261113-090507.wav')
   })
 })

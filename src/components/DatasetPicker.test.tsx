@@ -7,16 +7,16 @@ import { DatasetPicker } from './DatasetPicker'
 
 describe('DatasetPicker', () => {
   it('has a labelled choice with every data set, showing the current one', () => {
-    render(<DatasetPicker catalog={catalog} value="synthetic-ocean" onChange={() => {}} />)
+    render(<DatasetPicker catalog={catalog} value="mur-sst-mauritius" onChange={() => {}} />)
     const select = screen.getByRole('combobox', { name: 'Data set' })
-    expect(select).toHaveValue('synthetic-ocean')
-    expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual(['Fixture ocean', 'Synthetic ocean', 'Synthetic globe (made-up practice data)', 'Synthetic change (made-up practice data)', 'Sea surface temperature around Mauritius, 2023', 'Synthetic motion (made-up practice data)', 'Synthetic storm (made-up practice data)', 'Sea surface temperature anomaly, worldwide, 2024 to 2026'])
+    expect(select).toHaveValue('mur-sst-mauritius')
+    expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual(catalog.map(entry => entry.title))
   })
 
   it('describes the chosen data set', () => {
     const { rerender } = render(<DatasetPicker catalog={catalog} value="fixture" onChange={() => {}} />)
     expect(screen.getByText(catalog[0].summary)).toBeInTheDocument()
-    rerender(<DatasetPicker catalog={catalog} value="synthetic-ocean" onChange={() => {}} />)
+    rerender(<DatasetPicker catalog={catalog} value="mur-sst-mauritius" onChange={() => {}} />)
     expect(screen.getByText(catalog[1].summary)).toBeInTheDocument()
     expect(screen.queryByText(catalog[0].summary)).toBeNull()
   })
@@ -30,8 +30,8 @@ describe('DatasetPicker', () => {
   it('says which one was chosen, by keyboard or pointer', async () => {
     const onChange = vi.fn()
     render(<DatasetPicker catalog={catalog} value="fixture" onChange={onChange} />)
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Data set' }), 'Synthetic ocean')
-    expect(onChange).toHaveBeenCalledWith('synthetic-ocean')
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Data set' }), catalog[1].title)
+    expect(onChange).toHaveBeenCalledWith('mur-sst-mauritius')
   })
 
   it('has no accessibility violations', async () => {

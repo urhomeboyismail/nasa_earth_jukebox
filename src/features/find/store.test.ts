@@ -12,9 +12,9 @@ describe('the find game record', () => {
   })
 
   it('round-trips a valid record', () => {
-    saveResult(bestKey('synthetic-motion', 2), { score: 1500, seconds: 12.5 })
-    expect(JSON.parse(localStorage.getItem(FIND_KEY)!)).toEqual({ best: { 'synthetic-motion:2': { score: 1500, seconds: 12.5 } } })
-    expect(readFindRecord()).toEqual({ best: { 'synthetic-motion:2': { score: 1500, seconds: 12.5 } } })
+    saveResult(bestKey('fixture', 2), { score: 1500, seconds: 12.5 })
+    expect(JSON.parse(localStorage.getItem(FIND_KEY)!)).toEqual({ best: { 'fixture:2': { score: 1500, seconds: 12.5 } } })
+    expect(readFindRecord()).toEqual({ best: { 'fixture:2': { score: 1500, seconds: 12.5 } } })
   })
 
   it.each(['not json', '{"best":5}', '{"best":{"a:1":{"score":-1,"seconds":2}}}', '{"best":{"a:1":{"score":1.5,"seconds":2}}}', 'null'])('ignores a corrupt record: %s', raw => {

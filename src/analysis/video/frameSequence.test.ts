@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
-import syntheticChange from '../../../public/data/synthetic-change/manifest.json'
+import mur from '../../../public/data/mur-sst-mauritius/manifest.json'
 import type { Visualization } from '../../data'
 import { resetStream } from '../features'
 import { SEQUENCE_STEP_MS } from './clock'
@@ -112,7 +112,11 @@ describe('the reading', () => {
   it('reads the frame\'s own normal when the data set has one', async () => {
     const loaded: string[] = []
     const live = instantExtract()
-    const climatology = syntheticChange as unknown as Visualization
+    const climatology: Visualization = ({
+      ...(mur as unknown as Visualization),
+      baseline: { kind: 'climatology', label: 'the normal for each date', noiseFloor: 0.2 },
+      frames: (mur as unknown as Visualization).frames.map(f => ({ ...f, baselineImage: `baselines/${f.date}.png` })),
+    })
     const { source } = setup({ visualization: climatology, extract: live.extract, loadPixels: async url => { loaded.push(url); return tinyPixels() } })
     source.start()
     await flush()

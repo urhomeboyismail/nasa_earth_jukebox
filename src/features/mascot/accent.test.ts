@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
-import change from '../../../public/data/synthetic-change/manifest.json'
-import globe from '../../../public/data/synthetic-globe/manifest.json'
-import ocean from '../../../public/data/synthetic-ocean/manifest.json'
+import change from '../../../public/data/mur-sst-mauritius/manifest.json'
 import type { ColorScale, RGB, Visualization } from '../../data'
 import { visualizationSchema } from '../../data/schema'
 import {
@@ -67,19 +65,17 @@ describe('mascotTheme', () => {
   })
 
   it('gives every reference data set an accent with enough contrast, from its own manifest', () => {
-    const themes = Object.fromEntries([fixture, ocean, globe, change].map(m => parse(m)).map(v => [v.id, mascotTheme(v)]))
+    const themes = Object.fromEntries([fixture, change].map(m => parse(m)).map(v => [v.id, mascotTheme(v)]))
     expect(themes).toEqual({
       // Three fully saturated stops: the tie goes to the highest.
       fixture: { accent: '#ff0000', trail: 'sparks' },
-      'synthetic-ocean': { accent: '#00ffcc', trail: 'bubbles' },
-      'synthetic-globe': { accent: '#faa028', trail: 'sparks' },
-      'synthetic-change': { accent: '#faa028', trail: 'sparks' },
+      'mur-sst-mauritius': { accent: '#00ffcc', trail: 'bubbles' },
     })
     for (const { accent } of Object.values(themes)) expect(contrastRatio(rgbOfHex(accent)!, VISOR_RGB)).toBeGreaterThanOrEqual(MIN_ACCENT_CONTRAST)
   })
 
   it('is the same every time for the same manifest', () => {
-    const v = parse(globe)
+    const v = parse(change)
     expect(mascotTheme(v)).toEqual(mascotTheme(v))
   })
 })
