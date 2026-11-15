@@ -7,7 +7,7 @@
 import { duck } from './duck'
 import { readStored, useStoredValue, writeStoredText } from '../hooks/useStoredValue'
 
-export type Cue = 'connected' | 'ended' | 'answer' | 'error' | 'start' | 'stop' | 'compareA' | 'compareB' | 'success'
+export type Cue = 'connected' | 'ended' | 'answer' | 'error' | 'start' | 'stop' | 'success'
 
 export const CUES_KEY = 'earth-jukebox:interface-cues'
 
@@ -20,14 +20,11 @@ export const CUE_NOTES: Record<Cue, [number, number][]> = {
   // Playback: a rising pair when a sequence starts, a falling pair when it ends.
   start: [[587.33, 0], [880, 0.09]],
   stop: [[880, 0], [587.33, 0.09]],
-  // Compare: one soft blip before date A, two before date B. Lower and softer than the others, so they are heard as "A" and "B", not as news.
-  compareA: [[493.88, 0]],
-  compareB: [[493.88, 0], [493.88, 0.12]],
   // A save, copy or link was made: three short rising blips.
   success: [[523.25, 0], [659.25, 0.08], [783.99, 0.16]],
 }
-/** The cues of playback, Compare and success wait for the voice guide (and any other voice) to stop: they must not talk over a sentence. */
-const WAIT_FOR_VOICE: ReadonlySet<Cue> = new Set<Cue>(['start', 'stop', 'compareA', 'compareB', 'success'])
+/** The cues of playback and success wait for the voice guide (and any other voice) to stop: they must not talk over a sentence. */
+const WAIT_FOR_VOICE: ReadonlySet<Cue> = new Set<Cue>(['start', 'stop', 'success'])
 const BLIP_S = 0.09
 const LEVEL = 0.04
 

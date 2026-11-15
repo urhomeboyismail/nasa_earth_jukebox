@@ -127,17 +127,17 @@ def _open(ws, page="home"):
 
 def test_tools_only_navigate_or_read():
     home = SessionState(page="home")
-    assert run_tool("navigate_to", {"page": "compare"}, home).client_action == {"action": "navigate", "page": "compare"}
+    assert run_tool("navigate_to", {"page": "listen"}, home).client_action == {"action": "navigate", "page": "listen"}
     assert "error" in run_tool("navigate_to", {"page": "admin"}, home).response
     assert run_tool("explain_section", {"page": "learn"}, home).client_action is None
     assert "error" in run_tool("delete_data", {}, home).response
 
 
 def test_screen_context():
-    state = SessionState(page="listen", screens={"player": {"date": "2026-01-01"}, "compare": None})
+    state = SessionState(page="listen", screens={"player": {"date": "2026-01-01"}, "facts": None})
     context = run_tool("get_screen_context", {}, state).response
     assert context["current_page"]["id"] == "listen"
-    assert context["player"] == {"date": "2026-01-01"} and "compare" not in context
+    assert context["player"] == {"date": "2026-01-01"} and "facts" not in context
 
 
 LISTEN = SessionState(page="listen")
@@ -172,7 +172,7 @@ def test_set_date_rejects_anything_but_a_real_iso_date(value):
     assert result.client_action is None and "error" in result.response
 
 
-@pytest.mark.parametrize("page", ["home", "learn", "compare", "about"])
+@pytest.mark.parametrize("page", ["home", "learn", "about"])
 def test_playback_tools_only_work_on_the_listen_page(page):
     state = SessionState(page=page)
     for name, args in (("control_playback", {"command": "play"}), ("set_date", {"date": "2024-07-15"})):
@@ -222,7 +222,7 @@ def test_point_to_checks_the_argument_type(args):
     assert "Unknown target" in result.response["error"]
 
 
-@pytest.mark.parametrize("page", ["home", "learn", "compare", "about"])
+@pytest.mark.parametrize("page", ["home", "learn", "about"])
 def test_point_to_only_works_on_the_listen_page(page):
     result = run_tool("point_to", {"target": "centre"}, SessionState(page=page))
     assert result.client_action is None
@@ -389,10 +389,10 @@ def test_bad_json_and_unknown_types_are_ignored(live):
         ws.send_json({"type": "nonsense"})
         ws.send_json(["a", "list"])
         ws.send_json({"type": "page", "page": "not-a-page"})
-        ws.send_json({"type": "page", "page": "compare"})
+        ws.send_json({"type": "page", "page": "about"})
         ws.send_json({"type": "stop"})
         assert ws.receive_json()["type"] == "ended"
-    assert live.state["page"] == "compare" and live.state["page_title"] == PAGES["compare"]["title"]
+    assert live.state["page"] == "about" and live.state["page_title"] == PAGES["about"]["title"]
 
 
 def test_oversized_context_is_ignored(live):

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { parseHash, replaceParams } from '../../route'
 import { loadOceanIndex, loadOceanTrack, type OceanIndexEntry, type OceanTrack } from './schema'
 
-/** `#listen?ocean=1` and `#compare?ocean=1` open the ocean tracks instead of the map data sets. */
+/** `#listen?ocean=1` opens the ocean tracks instead of the map data sets. */
 export const OCEAN_PARAM = 'ocean'
 export const isOceanView = () => parseHash(window.location.hash).params.get(OCEAN_PARAM) === '1'
 

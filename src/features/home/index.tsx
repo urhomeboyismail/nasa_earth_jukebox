@@ -12,7 +12,6 @@ import './home.css'
 const STEPS: { page: Page; text: string }[] = [
   { page: 'learn', text: 'Hear what each sound means before you start.' },
   { page: 'listen', text: 'Play the dates one after another and follow the change by ear.' },
-  { page: 'compare', text: 'Pick two dates, listen to each, and say which one shows the change.' },
 ]
 
 const titleOf = (page: Page) => pages.find(item => item.id === page)?.title ?? page

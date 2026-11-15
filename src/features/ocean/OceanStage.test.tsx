@@ -1,11 +1,10 @@
 import { readFileSync } from 'node:fs'
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AnnouncerContext } from '../../components/announcerContext'
 import { expectNoA11yViolations } from '../../test/a11y'
 import { installFakeAudioContext } from '../../test/fakes'
-import OceanCompare from './OceanCompare'
 import OceanListen from './OceanListen'
 import { indexSchema, trackSchema } from './schema'
 import type { OceanSound } from './sound'
@@ -137,27 +136,8 @@ describe('the ocean track on Listen', () => {
   })
 })
 
-describe('the ocean track on Compare', () => {
-  it('shows two dates side by side, picked by date, and plays each on its button', async () => {
-    const user = userEvent.setup()
-    const { container } = renderWith(<OceanCompare />)
-    const second = await screen.findByRole('combobox', { name: 'Second date' })
-    expect(container.querySelectorAll('video')).toHaveLength(2)
-    const target = gulfTrack.timeline[100]
-    await user.selectOptions(second, target.iso_date)
-    const side = screen.getByRole('region', { name: 'Second date' })
-    expect(within(side).getByText(`${target.metrics!.sst_celsius_mean.toFixed(1)} °C`)).toBeInTheDocument()
-    expect(fake.made).toHaveLength(0)
-    await user.click(within(side).getByRole('button', { name: `Hear ${target.display_date}` }))
-    await waitFor(() => expect(fake.made).toHaveLength(1))
-    expect(fake.made[0].preview).toHaveBeenCalledWith(100, 2.5)
-    expect(announce).toHaveBeenCalledWith(target.accessibility_text)
-    await expectNoA11yViolations(container)
-  })
-})
-
 const weather = index.datasets.find(d => d.dataset_id === 'meteomatics_mauritius_weather')!
-const weatherTrack = trackSchema.parse(JSON.parse(read(weather.data_url)))
+const weatherTrack =trackSchema.parse(JSON.parse(read(weather.data_url)))
 
 describe('a track made of numbers, with no video', () => {
   beforeEach(() => {
@@ -203,15 +183,5 @@ describe('a track made of numbers, with no video', () => {
     expect(fake.made[0].probe).toHaveBeenLastCalledWith({ sst: cell[0], pan: (8 / 15) * 2 - 1 })
     expect(screen.getByText(/Row 5 of 8, column 9 of 16: about [\d.]+ °C, wind speed \d+ percent from the [a-z-]+\./)).toBeInTheDocument()
   })
-
-  it('Compare shows each date as a held map, in the words of the weather', async () => {
-    const { container } = renderWith(<OceanCompare />)
-    await screen.findByRole('combobox', { name: 'Second date' })
-    expect(container.querySelectorAll('video')).toHaveLength(0)
-    expect(container.querySelectorAll('canvas')).toHaveLength(2)
-    expect(screen.getAllByText('Wind speed')).toHaveLength(2)
-    expect(screen.getAllByText('Rain')).toHaveLength(2)
-    expect(screen.queryByText('Current speed')).toBeNull()
-    await expectNoA11yViolations(container)
-  })
 })
+

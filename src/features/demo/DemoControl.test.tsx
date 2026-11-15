@@ -52,8 +52,7 @@ describe('DemoControl', () => {
     // The question step: no player is mounted here to ask it, so the tour gives up on it after five seconds.
     expect(window.location.hash).toBe('#listen')
     await tick(5000)
-    expect(window.location.hash).toBe('#compare')
-    await tick(7000)
+    expect(window.location.hash).toBe('#about')
     await tick(7000)
     await tick(4000)
     expect(caption()).toBe('The demo has finished.')
@@ -75,7 +74,7 @@ describe('DemoControl', () => {
     expect(window.location.hash).toBe('#listen')
     act(() => reportPredictDone())
     await tick(0)
-    expect(window.location.hash).toBe('#compare')
+    expect(window.location.hash).toBe('#about')
     stopListening()
   })
 

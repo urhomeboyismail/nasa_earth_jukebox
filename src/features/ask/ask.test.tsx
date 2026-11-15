@@ -223,13 +223,13 @@ describe('AskPanel', () => {
   })
 
   it('offers a page from the agent as a button, and goes there only when it is pressed', async () => {
-    window.location.hash = '#compare?data=fixture'
+    window.location.hash = '#learn?data=fixture'
     vi.stubGlobal('fetch', agentReply({ factIds: ['F-dates'], confidence: 'high', action: { kind: 'navigate', page: 'listen' } }))
     const user = userEvent.setup()
     setup()
     await askTyped(user, UNMATCHED)
     const go = await screen.findByRole('button', { name: 'Go to Listen' })
-    expect(window.location.hash).toBe('#compare?data=fixture')
+    expect(window.location.hash).toBe('#learn?data=fixture')
     await user.click(go)
     expect(window.location.hash).toBe('#listen?data=fixture')
   })

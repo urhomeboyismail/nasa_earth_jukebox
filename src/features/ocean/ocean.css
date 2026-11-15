@@ -1,4 +1,4 @@
-/* EIC06 T4: the ocean tracks on /listen and /compare. Tokens only (src/styles/tokens.css). */
+/* EIC06 T4: the ocean tracks on /listen. Tokens only (src/styles/tokens.css). */
 .ocean { display: grid; gap: 1rem; text-align: left; inline-size: 100%; }
 .ocean__try { color: var(--text-h); }
 .ocean__credit { font-size: var(--md-sys-typescale-body-small-size); color: var(--md-sys-color-on-surface-variant); }
@@ -19,8 +19,3 @@
 .ocean-stage__controls { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .ocean-stage__cell, .ocean-stage__text { margin: 0; }
 
-.ocean-compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr)); gap: 0.75rem; }
-.ocean-compare__side { display: grid; gap: 0.5rem; align-content: start; }
-.ocean-compare__metrics { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 0.75rem; margin: 0; }
-.ocean-compare__metrics dt { color: var(--text-h); font-weight: 600; }
-.ocean-compare__metrics dd { margin: 0; }

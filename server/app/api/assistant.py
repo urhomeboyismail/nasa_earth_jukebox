@@ -5,7 +5,7 @@ The API key never leaves the server. Browser protocol:
     client -> server  text   {"type":"start","language":"en","page":"home"}   (first message, a JSON object)
                       binary 16 kHz mono PCM16 microphone audio (frames over MAX_AUDIO_FRAME_BYTES are dropped)
                       text   {"type":"page","page":...} | {"type":"text","text":...} | {"type":"mic_off"}
-                             | {"type":"context","key":"player"|"compare","data":...,"announce":...} | {"type":"stop"}
+                             | {"type":"context","key":"player"|"facts"|"explore","data":...,"announce":...} | {"type":"stop"}
     server -> client  text   {"type":"ready"} | {"type":"transcript","role":"user"|"assistant","text":...}
                              {"type":"action","action":"navigate","page":...}
                              {"type":"action","action":"player","command":...}   (only allow-listed commands)

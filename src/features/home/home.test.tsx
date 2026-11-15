@@ -29,20 +29,20 @@ describe('Home page', () => {
     expect(screen.getByText(/which date shows warmer water/i)).toBeInTheDocument()
   })
 
-  it('lists the three steps in order, each a link to its page', () => {
+  it('lists the two steps in order, each a link to its page', () => {
     render(<HomePage visualization={visualization} />)
     const steps = within(screen.getByRole('list', { name: 'Steps' })).getAllByRole('listitem')
-    expect(steps).toHaveLength(3)
+    expect(steps).toHaveLength(2)
     const links = steps.map(step => within(step).getByRole('link'))
-    expect(links.map(link => link.textContent)).toEqual(['Learn the sounds', 'Listen', 'Compare two dates'])
-    expect(links.map(link => link.getAttribute('href'))).toEqual(['#learn', '#listen', '#compare'])
+    expect(links.map(link => link.textContent)).toEqual(['Learn the sounds', 'Listen'])
+    expect(links.map(link => link.getAttribute('href'))).toEqual(['#learn', '#listen'])
   })
 
   it('keeps the chosen data set on its links', () => {
     window.location.hash = '#home?data=fixture'
     render(<HomePage visualization={visualization} />)
     const hrefs = within(screen.getByRole('list', { name: 'Steps' })).getAllByRole('link').map(link => link.getAttribute('href'))
-    expect(hrefs).toEqual(['#learn?data=fixture', '#listen?data=fixture', '#compare?data=fixture'])
+    expect(hrefs).toEqual(['#learn?data=fixture', '#listen?data=fixture'])
     expect(screen.getByRole('link', { name: 'About the data' })).toHaveAttribute('href', '#about?data=fixture')
     window.location.hash = ''
   })

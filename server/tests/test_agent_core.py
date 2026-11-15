@@ -49,7 +49,7 @@ PARITY_CASES = [
     ("navigate_to", {"page": ""}),
     ("navigate_to", {"page": None}),
     ("navigate_to", {"page": 3}),
-    ("explain_section", {"page": "compare"}),
+    ("explain_section", {"page": "about"}),
     ("explain_section", {"page": "nowhere"}),
     ("control_playback", {"command": "pause"}),
     ("control_playback", {"command": "rewind"}),
@@ -144,15 +144,6 @@ def test_set_date_must_be_a_known_date_when_the_dates_are_known():
     assert guard_tool(_tool("set_date"), {"date": "2024-07-15"}, _context("listen", facts)) is None
     # No facts context yet (G06): run_tool's own date check is the only one.
     assert guard_tool(_tool("set_date"), {"date": "2024-03-01"}, _context("listen")) is None
-
-
-def test_leaving_compare_is_refused_during_the_listening_test():
-    testing = {"compare": {"testInProgress": True}}
-    refused = {"error": "The listening test is in progress. Finish it before leaving the page."}
-    assert guard_tool(_tool("navigate_to"), {"page": "home"}, _context("compare", testing)) == refused
-    assert guard_tool(_tool("navigate_to"), {"page": "compare"}, _context("compare", testing)) is None
-    assert guard_tool(_tool("navigate_to"), {"page": "home"}, _context("compare", {"compare": {"testInProgress": False}})) is None
-    assert guard_tool(_tool("navigate_to"), {"page": "home"}, _context("compare")) is None
 
 
 def test_an_unknown_tool_is_refused():

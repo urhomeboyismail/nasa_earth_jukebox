@@ -19,14 +19,14 @@ describe('parseHash', () => {
   })
 
   it('ignores case', () => {
-    expect(parseHash('#Compare').page).toBe('compare')
+    expect(parseHash('#Learn').page).toBe('learn')
   })
 
-  it('keeps the query, for listening-test mode', () => {
-    const route = parseHash('#compare?test=1')
-    expect(route.page).toBe('compare')
+  it('keeps the query', () => {
+    const route = parseHash('#learn?test=1')
+    expect(route.page).toBe('learn')
     expect(route.params.get('test')).toBe('1')
-    expect(parseHash('#compare').params.has('test')).toBe(false)
+    expect(parseHash('#learn').params.has('test')).toBe(false)
   })
 
   it('does not keep a query from an unknown page', () => {
@@ -46,8 +46,8 @@ describe('hashFor', () => {
 
   it('carries the chosen data set, and parseHash reads it back', () => {
     expect(hashFor('listen', { data: 'fixture' })).toBe('#listen?data=fixture')
-    const route = parseHash(hashFor('compare', { data: 'fixture' }))
-    expect(route).toMatchObject({ page: 'compare', known: true })
+    const route = parseHash(hashFor('learn', { data: 'fixture' }))
+    expect(route).toMatchObject({ page: 'learn', known: true })
     expect(route.params.get('data')).toBe('fixture')
   })
 
@@ -58,7 +58,7 @@ describe('hashFor', () => {
   })
 
   it('keeps several parameters together, in a form parseHash reads', () => {
-    const route = parseHash(hashFor('compare', { test: '1', data: 'fixture' }))
+    const route = parseHash(hashFor('learn', { test: '1', data: 'fixture' }))
     expect(route.params.get('test')).toBe('1')
     expect(route.params.get('data')).toBe('fixture')
   })

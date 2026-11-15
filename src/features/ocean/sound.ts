@@ -33,7 +33,7 @@ export type OceanSound = {
   mediaTime(): number
   probe(next: Probe): void
   duck(on: boolean): void
-  /** Sounds one step for `seconds` on its own (Compare's "Hear" button). */
+  /** Sounds one step for `seconds` on its own (a "Hear" button). */
   preview(step: number, seconds: number): void
   dispose(): void
 }

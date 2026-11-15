@@ -29,15 +29,6 @@ class PlayerContext(_Context):
     changeStep: str | None = Field(default=None, max_length=40)
 
 
-class CompareContext(_Context):
-    frameA: str = Field(max_length=40)
-    frameB: str = Field(max_length=40)
-    answered: bool
-    revealed: bool
-    #: True while the listening test is open (`#compare?test=1`), so the guide does not help with the questions.
-    testInProgress: bool = False
-
-
 class FactModel(_Context):
     id: str = Field(max_length=20)
     kind: Literal["data", "text"]
@@ -63,7 +54,6 @@ class ExploreContext(_Context):
 
 CONTEXT_SCHEMAS: dict[str, type[BaseModel]] = {
     "player": PlayerContext,
-    "compare": CompareContext,
     "facts": FactsContext,
     "explore": ExploreContext,
 }

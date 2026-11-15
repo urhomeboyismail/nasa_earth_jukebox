@@ -67,7 +67,7 @@ class Settings(BaseSettings):
     agent_max_requests_per_minute: int = Field(default=5, gt=0)  # one token bucket for the whole server
     agent_max_requests_per_minute_per_visitor: int = Field(default=3, gt=0)  # and one for each visitor
 
-    # Listening-test results (src/features/compare/TestMode.tsx, docs/PLAN.md §5.5). On Render the file needs a persistent
+    # Listening-test results (docs/PLAN.md §5.5; its browser client went with the Compare page and is in git history). On Render the file needs a persistent
     # disk to survive restarts; without one, download the CSV after every session.
     study_db_path: Path = SERVER_DIR / "study.db"
     # Sent as the X-Team-Token header to download the CSV. Left unset, the export is switched off.

@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 
 // The guarded source files, read as text at build time (no Node needed). Tests are left out: they may name what they forbid.
 const sources = import.meta.glob(
-  ['./analysis/**/*.{ts,tsx}', './audio/**/*.{ts,tsx}', './describe/**/*.{ts,tsx}', './sonify/**/*.{ts,tsx}', './features/compare/judge.ts', '!./**/*.test.*'],
+  ['./analysis/**/*.{ts,tsx}', './audio/**/*.{ts,tsx}', './describe/**/*.{ts,tsx}', './sonify/**/*.{ts,tsx}', '!./**/*.test.*'],
   { query: '?raw', import: 'default', eager: true },
 ) as Record<string, string>
 
@@ -31,7 +31,7 @@ const files = Object.entries(sources).map(([path, text]) => ({ file: path.replac
 describe('the boundary: no voice guide, server or network in the analysis, sound, descriptions or scoring', () => {
   it('actually looks at the files it guards', () => {
     const names = files.map(entry => entry.file)
-    for (const expected of ['analysis/analyze.ts', 'analysis/index.ts', 'audio/engine.ts', 'describe/index.ts', 'sonify/music.ts', 'features/compare/judge.ts']) {
+    for (const expected of ['analysis/analyze.ts', 'analysis/index.ts', 'audio/engine.ts', 'describe/index.ts', 'sonify/music.ts']) {
       expect(names).toContain(expected)
     }
     expect(names.some(name => name.endsWith('.test.ts') || name.endsWith('.test.tsx'))).toBe(false)

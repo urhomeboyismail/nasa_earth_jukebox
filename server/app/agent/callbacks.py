@@ -37,9 +37,6 @@ def guard_tool(tool: BaseTool, args: dict[str, Any], tool_context: ToolContext) 
         known = _screen(state, "facts").get("knownDates")
         if isinstance(known, list) and args.get("date") not in known:
             return {"error": "That date is not in this data set."}
-    if tool.name == "navigate_to" and page == "compare" and _screen(state, "compare").get("testInProgress") is True:
-        if args.get("page") != "compare":
-            return {"error": "The listening test is in progress. Finish it before leaving the page."}
     return None
 
 
