@@ -370,3 +370,54 @@ def test_a_missing_ffmpeg_says_how_to_get_it(tmp_path, monkeypatch):
     code, _, err = ingest(tmp_path, *LEGEND, *DATES, source=["--frames", str(folder)])
     assert code == 1 and "Install ffmpeg, which provides ffmpeg and ffprobe, then run this again." in err
     assert not (tmp_path / "out").exists()
+
+
+# --- a colour bar in its own picture (--legend-image) --------------------------------------------------------------
+
+
+def bar_image(tmp_path):
+    """A 50 x 12 picture holding only a blue-to-red bar at x 4..44, y 3..8, so its colour at each pixel is known."""
+    pixels = np.full((12, 50, 3), 255, dtype=np.uint8)
+    pixels[3:9, 4:45] = blue_to_red(41)[None, :, :]
+    return save(tmp_path / "legend", "bar.png", pixels)
+
+
+def bar_folder(tmp_path):
+    folder = tmp_path / "in"
+    for k in range(3):
+        save(folder, f"anim_{k}.png", frame(0.2 + 0.1 * k, bar=False))
+    return folder
+
+
+LEGEND_IMAGE_BOX = ["--legend-box", "4,3,44,8"]
+WHOLE_MAP = ["--map-area", "0,0,80,48"]
+
+
+@needs_ffmpeg
+def test_the_legend_is_sampled_from_the_legend_image_when_the_frames_have_no_bar(tmp_path):
+    folder, image = bar_folder(tmp_path), bar_image(tmp_path)
+    code, out, err = ingest(tmp_path, *LEGEND, *DATES, "--legend-ticks", "5", "--legend-image", str(image), *LEGEND_IMAGE_BOX,
+                            *WHOLE_MAP, source=["--frames", str(folder)])
+    assert code == 0, err
+    colours = blue_to_red(41)
+    expected = [{"value": v, "rgb": colours[p].tolist()} for v, p in ((0, 0), (7.5, 10), (15, 20), (22.5, 30), (30, 40))]
+    assert manifest(tmp_path)["colorScale"]["stops"] == expected
+    assert "Colour bar (from --legend-image)" in out
+    code, out, err = ingest(tmp_path, "--detect-only", "--legend-image", str(image), *LEGEND_IMAGE_BOX, *WHOLE_MAP,
+                            out="detect", source=["--frames", str(folder)])
+    assert code == 0, err
+    assert "Colour bar (from --legend-image)" in out and not (tmp_path / "detect").exists()
+
+
+def test_a_legend_image_needs_a_map_area(tmp_path):
+    folder, image = bar_folder(tmp_path), bar_image(tmp_path)
+    code, _, err = ingest(tmp_path, *LEGEND, *DATES, "--legend-image", str(image), *LEGEND_IMAGE_BOX, source=["--frames", str(folder)])
+    assert code == 1 and "--legend-image needs --map-area" in err
+    assert not (tmp_path / "out").exists()
+
+
+def test_a_legend_image_needs_a_legend_box(tmp_path):
+    folder, image = bar_folder(tmp_path), bar_image(tmp_path)
+    code, _, err = ingest(tmp_path, *LEGEND, *DATES, "--legend-image", str(image), *WHOLE_MAP, source=["--frames", str(folder)])
+    assert code == 1 and "--legend-image needs --legend-box" in err
+    assert not (tmp_path / "out").exists()

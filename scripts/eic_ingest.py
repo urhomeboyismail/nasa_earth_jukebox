@@ -70,6 +70,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--legend-ticks", type=int, default=cf.DEFAULT_LEGEND_STEPS,
                    help=f"how many stops to sample along the bar (default {cf.DEFAULT_LEGEND_STEPS})")
     p.add_argument("--legend-box", help="x0,y0,x1,y1: the colour bar's pixels in the original frame, instead of finding it")
+    p.add_argument("--legend-image", type=Path, help="a picture of the colour bar, when the frames have none. --legend-box is then in "
+                                                     "this picture's pixels, and both --legend-box and --map-area are needed")
     p.add_argument("--map-area", help="x0,y0,x1,y1: the map without bar, titles or logos, instead of the rule (as convert_frames.py)")
     p.add_argument("--fps", type=float, help="frames per second of the video. Default: the video's own, or "
                                              f"{DEFAULT_FRAME_FPS} for a frame folder")
@@ -131,6 +133,16 @@ def check_args(args: argparse.Namespace) -> None:
             raise cf.ConvertError("--legend-min and --legend-max must differ")
     elif (args.legend_min is None) != (args.legend_max is None):
         raise cf.ConvertError("give both --legend-min and --legend-max, or neither")
+    if args.legend_image is not None:
+        if args.legend_box is None:
+            raise cf.ConvertError("--legend-image needs --legend-box x0,y0,x1,y1: the colour bar's pixels in that picture")
+        if args.map_area is None:
+            raise cf.ConvertError("--legend-image needs --map-area x0,y0,x1,y1: the frames have no colour bar to leave out, "
+                                  "so the map area cannot be worked out")
+        if not args.legend_image.is_file():
+            raise cf.ConvertError(f"--legend-image {args.legend_image}: there is no such file")
+        legend_rgb = cf.read_rgb(args.legend_image)
+        cf.box_in_pixels(args.legend_box, legend_rgb.shape[1], legend_rgb.shape[0])
     if args.video is not None and not args.video.is_file():
         raise cf.ConvertError(f"--video {args.video}: there is no such file")
     if args.frames is not None and not args.frames.is_dir():
@@ -390,12 +402,14 @@ class Plan:
     area: str  # as convert_frames.py --map-area takes it
     stops_text: list[str]
     bar_found: bool
+    stops: list[dict]
 
 
 def describe_bar(rgb: np.ndarray, args: argparse.Namespace) -> Plan:
     height, width = rgb.shape[0], rgb.shape[1]
+    bar_rgb = cf.read_rgb(args.legend_image) if args.legend_image else rgb
     if args.legend_box:
-        box = cf.box_in_pixels(args.legend_box, width, height)
+        box = cf.box_in_pixels(args.legend_box, bar_rgb.shape[1], bar_rgb.shape[0])
         found = False
     else:
         detected = detect_colour_bar(rgb)
@@ -408,17 +422,18 @@ def describe_bar(rgb: np.ndarray, args: argparse.Namespace) -> Plan:
     else:
         area_text = box_text(map_area_for_bar(box, width, height))
     low, high = (args.legend_min, args.legend_max) if args.legend_min is not None else (0.0, 1.0)
-    stops = cf.sample_legend(cf.bar_profile(rgb, box), low, high, args.legend_ticks)
+    stops = cf.sample_legend(cf.bar_profile(bar_rgb, box), low, high, args.legend_ticks)
     label = "value" if args.legend_min is not None else "position along the bar (0 = low end, 1 = high end)"
     lines = [f"    {label} {s['value']}: rgb({s['rgb'][0]}, {s['rgb'][1]}, {s['rgb'][2]})" for s in stops]
-    return Plan(box, area_text, lines, found)
+    return Plan(box, area_text, lines, found, stops)
 
 
 def describe_text(plan: Plan, width: int, height: int, args: argparse.Namespace) -> list[str]:
     direction = "low end on the left, high end on the right" if orientation_of(plan.box) == "horizontal" else "low end at the bottom, high end at the top"
-    how = "found" if plan.bar_found else "given by --legend-box"
+    how = "from --legend-image" if args.legend_image else "found" if plan.bar_found else "given by --legend-box"
+    where = f"in {args.legend_image}" if args.legend_image else f"in a {width} x {height} frame"
     return [
-        f"Colour bar ({how}): {box_text(plan.box)} in a {width} x {height} frame, {orientation_of(plan.box)} ({direction}).",
+        f"Colour bar ({how}): {box_text(plan.box)} {where}, {orientation_of(plan.box)} ({direction}).",
         "  Check this against NASA's legend: if the low end of the legend is at the other end, the values will be reversed.",
         f"Map area{' (from --map-area)' if args.map_area else ''}: {plan.area} (the frame without the bar; pixels unless every number is 1 or less).",
         f"Stops it would sample ({len(plan.stops_text)}):",
@@ -500,9 +515,14 @@ def ingest(args: argparse.Namespace, work: Path) -> tuple[Plan, Ingested | None,
     for source in kept:
         suffix = ".png" if is_video else source.path.suffix.lower()
         shutil.copyfile(source.path, dated / f"{source.date}{suffix}")
+    if args.legend_image:  # the bar is not in the frames, so convert_frames.py gets the stops, not a box to sample
+        legend_json = work / "legend.json"
+        legend_json.write_text(json.dumps(plan.stops), encoding="utf-8")
+        legend_args = ["--legend", str(legend_json)]
+    else:
+        legend_args = ["--legend-box", box_text(plan.box), "--legend-values", f"{args.legend_min!r},{args.legend_max!r}"]
     cf_args = cf.parse_args([
-        "--id", args.id, "--frames", str(dated), "--out", str(args.out),
-        "--legend-box", box_text(plan.box), "--legend-values", f"{args.legend_min!r},{args.legend_max!r}",
+        "--id", args.id, "--frames", str(dated), "--out", str(args.out), *legend_args,
         "--legend-steps", str(args.legend_ticks), "--map-area", plan.area,
         *(["--max-width", str(args.max_width)] if args.max_width is not None else []),
         *(["--force"] if args.force else []),
