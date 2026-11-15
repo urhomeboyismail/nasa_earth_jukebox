@@ -76,4 +76,16 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent.
+Built by agent E (Claude Code, for Roni), 15 Nov 2026, on `feature/SN15-own-sound-first`.
+
+- `src/audio/prefs.ts`: `styleEverywhere` (default `false`) and `presetIdFor(prefs, own)`, the one rule: a mixer style over every data set; else the data set's own preset; else the welcome's style; else Major.
+- `src/data/boundaries.ts`: the stored-prefs parser accepts `styleEverywhere` (`.catch(false)`, so an old stored value reads as `false`). This file was not under Touches: the parser lives here, not in `prefs.ts` as the ticket said.
+- `symphonyState.ts:101`, `Fusion.tsx:43`, `preview.ts:85` and the sample in `SoundPrefs.tsx` use `presetIdFor`.
+- `SoundPrefs.tsx`: a style picked in the mixer saves `styleEverywhere: true`; "The data set's own sound" saves `{ style: null, styleEverywhere: false }`; a welcome style shows as "The data set's own sound" with the hint "Each data set plays its own sound; where it has none, your welcome choice (...) plays."
+- Tests: `prefs.test.ts` (the rule's four cases, an old stored value), `SoundPrefs.test.tsx` (mixer sets and clears the flag, the hint, a11y), `Symphony.test.tsx` (a welcome style no longer replaces a data set's preset; a mixer style does).
+
+Checks (Windows):
+- `npm run lint`: 0 errors (3 warnings in `Fusion.tsx`, there before this change).
+- `npm test`: first run 11 failed (App, compare, useEcho), second run 3 failed (Legend, sequence golden, playlist golden), all different files, none touched here; each failing file passes when run alone (101 and 27 tests passed). The full suite is flaky under load on this machine. 3065 of 3068 passed on the second run.
+- `npm run build`: built.
+- The changed tests alone: `prefs.test.ts`, `SoundPrefs.test.tsx`, `Symphony.test.tsx`: 51 passed.

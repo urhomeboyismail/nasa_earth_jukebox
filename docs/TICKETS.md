@@ -58,7 +58,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [SN15](tickets/SN15-own-sound-first.md) | Each data set keeps its own sound unless the listener chooses a style on purpose | S | agent | — | — | claimed: E, 2026-11-15 |
+| [SN15](tickets/SN15-own-sound-first.md) | Each data set keeps its own sound unless the listener chooses a style on purpose | S | agent | — | — | ready: feature/SN15-own-sound-first |
 
 ### P1: interaction (the listener plays the map; `PLAN.md` §6.3)
 
@@ -97,6 +97,8 @@ The MC tickets branch from `chore/jpl-hud-theme` (the Mission Control look, not 
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
+| [SN16](tickets/SN16-decade-accent.md) | A decade accent on the time voice, so years-apart data sets feel the decades pass | S | agent | — | — | open |
+| [SN17](tickets/SN17-event-cues.md) | Event cues: a short sound and a caption when a dated event in the manifest is reached | M | agent | — | schema | open |
 
 ### P2: Echo's weather (Meteomatics)
 
