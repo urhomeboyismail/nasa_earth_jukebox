@@ -38,5 +38,10 @@
     "id": "sst-anomaly-global",
     "title": "Sea surface temperature anomaly, worldwide, 2024 to 2026",
     "summary": "Twenty-four maps of the whole ocean, 38 days apart from May 2024 to October 2026, showing how much warmer or cooler the sea surface is than normal."
+  },
+  {
+    "id": "meteomatics-sea-mauritius",
+    "title": "Sea around Mauritius, animated, last 60 days",
+    "summary": "60 daily maps of sea surface temperature around Mauritius up to 14 November 2026, from the Meteomatics weather API, played as a smooth animation."
   }
 ]
