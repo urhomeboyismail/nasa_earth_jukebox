@@ -11,35 +11,80 @@
         "There is not enough readable data on this date."
       ]
     ],
-    "synthetic-storm": [
-      [
-        "The hot area moved east."
-      ],
-      [
-        "The hot area moved east."
-      ],
-      [
-        "The hot area moved east."
-      ],
-      [
-        "The hot area moved east."
-      ],
-      [
-        "The hot area moved east.",
-        "A new cold area appeared in the south-east."
-      ],
-      [
-        "The hot area moved east."
-      ],
-      [
-        "The hot area moved east."
-      ],
-      [
-        "The hot area moved east.",
-        "The cold area in the south-east has gone."
-      ],
+    "mur-sst-mauritius": [
       [
         "There is not enough readable data on this date."
+      ],
+      [
+        "Readable data is back."
+      ],
+      [
+        "The hot area in the west has gone.",
+        "The hot area in the north-west has gone.",
+        "A new hot area appeared in the south-west.",
+        "A new hot area appeared in the south-west.",
+        "A new hot area appeared in the west."
+      ],
+      [
+        "The hot area in the south-west has gone.",
+        "The hot area in the south-west has gone.",
+        "The hot area in the west has gone.",
+        "A new hot area appeared in the centre.",
+        "A new hot area appeared in the south-east.",
+        "A new hot area appeared in the south-east."
+      ],
+      [
+        "The hot area in the centre has gone.",
+        "The hot area moved west.",
+        "The hot area in the south-east grew.",
+        "The hot area moved west.",
+        "The hot area in the south-east grew.",
+        "A new hot area appeared in the west.",
+        "A new hot area appeared in the north.",
+        "A new hot area appeared in the south-west.",
+        "A new hot area appeared in the centre."
+      ],
+      [
+        "The hot area in the south-east has gone.",
+        "The hot area in the south-east has gone.",
+        "The hot area in the west has gone.",
+        "The hot area in the north has gone.",
+        "The hot area in the south-west has gone.",
+        "The hot area in the centre has gone.",
+        "A new hot area appeared in the centre.",
+        "A new hot area appeared in the north-east."
+      ],
+      [
+        "The hot area moved north.",
+        "The hot area in the north-east has gone.",
+        "A new hot area appeared in the south."
+      ],
+      [
+        "The hot area moved south.",
+        "The hot area in the south has gone.",
+        "A new hot area appeared in the north-east.",
+        "A new hot area appeared in the north."
+      ],
+      [
+        "The hot area in the centre has gone.",
+        "The hot area in the north-east has gone.",
+        "The hot area moved east.",
+        "The hot area in the north-east grew.",
+        "A new hot area appeared in the south.",
+        "A new hot area appeared in the north-west.",
+        "A new hot area appeared in the north."
+      ],
+      [
+        "The hot area in the north-east has gone.",
+        "The hot area in the south has gone.",
+        "The hot area in the north-west has gone.",
+        "The hot area moved north.",
+        "The hot area in the north grew.",
+        "A new hot area appeared in the north-east."
+      ],
+      [
+        "The hot area in the north has gone.",
+        "The hot area in the north-east has gone."
       ]
     ]
   },
@@ -47,9 +92,7 @@
     "fixture": [
       "Cold area h1 in the centre, about 100% of the map."
     ],
-    "synthetic-storm": [
-      "Hot area h1 in the west, about 4% of the map."
-    ]
+    "mur-sst-mauritius": []
   },
   "recipe": {
     "major": [

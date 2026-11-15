@@ -24,7 +24,7 @@ export function parseHash(hash: string): Route {
 export const LANDING_HASH = '#welcome'
 export const isLandingHash = (hash: string): boolean => hash.replace(/^#/, '').split('?', 1)[0].toLowerCase() === 'welcome'
 
-/** "#listen", or "#listen?data=synthetic-ocean" when a data set is chosen. Empty and missing parameters are left out. */
+/** "#listen", or "#listen?data=fixture" when a data set is chosen. Empty and missing parameters are left out. */
 export function hashFor(page: Page, params: Record<string, string | null | undefined> = {}): string {
   const query = new URLSearchParams()
   for (const [key, value] of Object.entries(params)) if (value) query.set(key, value)

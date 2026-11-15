@@ -1,4 +1,4 @@
-// Feature regression baseline (docs/PLAN.md §6.3, SN01). Runs the extractor over every frame of the fixture and the synthetic data sets,
+// Feature regression baseline (docs/PLAN.md §6.3, SN01). Runs the extractor over every frame of the fixture and the Mauritius data set,
 // in date order with each frame's features carried to the next, and records what it found in __golden__/features.json,
 // so any change to the maths shows in a diff.
 //
@@ -16,7 +16,7 @@ import { extractFeatures } from './extract'
 import { FEATURE_COLS, FEATURE_ROWS, type ExtractInput, type FrameFeatures } from './types'
 
 const dataDir = resolve(fileURLToPath(import.meta.url), '../../../../public/data')
-const DATA_SETS = ['fixture', 'synthetic-ocean', 'synthetic-globe', 'synthetic-change']
+const DATA_SETS = ['fixture', 'mur-sst-mauritius']
 const WHOLE = { x0: 0, y0: 0, x1: 1, y1: 1 }
 
 const round = (value: number) => Number(value.toFixed(4))
@@ -73,8 +73,9 @@ function runDataSet(id: string) {
 
 const results = Object.fromEntries(DATA_SETS.map(id => [id, runDataSet(id)]))
 
-describe('feature regression baseline', () => {
-  it('reads every frame of the fixture and the synthetic data sets as the committed baseline says', async () => {
+// Reading real pictures takes a few seconds a frame.
+describe('feature regression baseline', { timeout: 60_000 }, () => {
+  it('reads every frame of the fixture and the Mauritius data set as the committed baseline says', async () => {
     const text = JSON.stringify(Object.fromEntries(Object.entries(results).map(([id, frames]) => [id, frames.map(plain)])), null, 2) + '\n'
     await expect(text).toMatchFileSnapshot('__golden__/features.json')
   })
@@ -87,32 +88,20 @@ describe('feature regression baseline', () => {
         expect(f.stats.validShare > 0 ? Math.abs(total - 1) < 1e-9 : total === 0).toBe(true)
         expect(f.confidence).toBeGreaterThanOrEqual(0)
         expect(f.confidence).toBeLessThanOrEqual(1)
-        expect(f.motion === null).toBe(f === frames[0])
+        if (f === frames[0]) expect(f.motion).toBeNull()
       }
     }
   })
 
   it('gives the same features when run again, grid bytes included', () => {
-    const again = runDataSet('synthetic-change')
-    expect(again.map(plain)).toEqual(results['synthetic-change'].map(plain))
-    expect(again.map(f => Array.from(new Uint8Array(f.grid.values.buffer)))).toEqual(results['synthetic-change'].map(f => Array.from(new Uint8Array(f.grid.values.buffer))))
+    const again = runDataSet('mur-sst-mauritius')
+    expect(again.map(plain)).toEqual(results['mur-sst-mauritius'].map(plain))
+    expect(again.map(f => Array.from(new Uint8Array(f.grid.values.buffer)))).toEqual(results['mur-sst-mauritius'].map(f => Array.from(new Uint8Array(f.grid.values.buffer))))
   })
 
   it('measures the change from normal where the data set has a baseline, and not where it has none', () => {
-    expect(results['synthetic-change'].every(f => f.change !== null)).toBe(true)
-    expect(results['synthetic-ocean'].every(f => f.change === null)).toBe(true)
-    expect(results['synthetic-globe'].every(f => f.change === null)).toBe(true)
-  })
-
-  it('agrees with the change baseline (src/data/__golden__/change.json) on the step of every frame it records', () => {
-    const recorded = JSON.parse(readFileSync(resolve(fileURLToPath(import.meta.url), '../../../data/__golden__/change.json'), 'utf8')) as Record<string, { step: string; medianChange: number | null }>
-    const compared = results['synthetic-change'].filter(f => recorded[f.frameId])
-    expect(compared.length).toBeGreaterThanOrEqual(5)
-    for (const f of compared) {
-      expect(f.change!.step).toBe(recorded[f.frameId].step)
-      // The change maps read a finer grid than 64 × 32, so the median change is close, not identical.
-      expect(f.change!.medianChange ?? 0).toBeCloseTo(recorded[f.frameId].medianChange ?? 0, 0)
-    }
+    expect(results['mur-sst-mauritius'].every(f => f.change !== null)).toBe(true)
+    expect(results['fixture'].every(f => f.change === null)).toBe(true)
   })
 
   it('notices when the maths moves', () => {

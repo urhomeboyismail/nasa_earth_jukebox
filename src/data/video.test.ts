@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fixture from '../../public/data/fixture/manifest.json'
-import syntheticChange from '../../public/data/synthetic-change/manifest.json'
-import syntheticGlobe from '../../public/data/synthetic-globe/manifest.json'
-import syntheticOcean from '../../public/data/synthetic-ocean/manifest.json'
+import mur from '../../public/data/mur-sst-mauritius/manifest.json'
 import type { VideoSpec } from './types'
 import { dateOfVideoFrame, dayNumber, videoFrameOf } from './video'
 
@@ -55,7 +53,7 @@ describe('the video grid of every committed data set (golden)', () => {
   // Any change to the date arithmetic shows in the diff of src/data/__golden__/video-grid.json. To rewrite it after a change you
   // meant to make: `npx vitest run -u src/data/video.test.ts`, then read the diff before you commit it.
   it('matches the golden file', async () => {
-    const sets = { fixture, 'synthetic-ocean': syntheticOcean, 'synthetic-globe': syntheticGlobe, 'synthetic-change': syntheticChange }
+    const sets = { fixture, 'mur-sst-mauritius': mur }
     const grids = Object.fromEntries(
       Object.entries(sets).map(([id, v]) => {
         const video: VideoSpec = { src: `video/${id}.mp4`, fps: 1, firstFrameDate: v.frames[0].date, frameStepDays: 1 }

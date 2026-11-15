@@ -24,7 +24,7 @@ const expectedFor = (id: string) => expectations[`../../public/data/${id}/expect
 
 describe('the data sets on disk', () => {
   it('lists each one in the catalog, and each catalog entry has a manifest', () => {
-    // stress-* and rehearsal-* folders are local, gitignored data (scripts/make_synthetic_globe.py, the T91 rehearsal). They need not
+    // stress-* and rehearsal-* folders are local, gitignored data (the T91 rehearsal). They need not
     // be listed, but a rehearsal set may be, so the T85 checklist (add it to index.json, then npm run check-data) works on it.
     const listed = new Set(catalog.map(entry => entry.id))
     const onDisk = Object.keys(manifests).map(path => path.split('/').at(-2)!).filter(id => listed.has(id) || !/^(stress|rehearsal)-/.test(id)).sort()
@@ -115,46 +115,4 @@ describe('the data sets on disk', () => {
       }
     })
   }
-})
-
-describe('the synthetic globe', () => {
-  const globe = visualizationSchema.parse(manifestFor('synthetic-globe')) as Visualization
-  const expected = expectedFor('synthetic-globe')
-
-  it('is labelled as made-up practice data, in the catalog and in its first chapter', () => {
-    expect(catalog.find(entry => entry.id === 'synthetic-globe')?.title).toMatch(/made-up/i)
-    expect(globe.story![0].text).toMatch(/made-up/i)
-  })
-
-  it('has twelve monthly frames of 1200 by 600 pixels, with the legend bar left out of the map', () => {
-    expect(globe.frames).toHaveLength(12)
-    globe.frames.forEach(frame => expect([frame.width, frame.height]).toEqual([1200, 600]))
-    expect(globe.mapArea).toEqual({ x0: 0, y0: 0, x1: 1, y1: 0.88 })
-  })
-
-  it('listens to the heatwave patch first, then the tropics, 30 points each', () => {
-    expect(globe.regions.map(region => region.id)).toEqual(['north-east-patch', 'tropics'])
-    globe.regions.forEach(region => expect(region.points).toHaveLength(30))
-  })
-
-  it('tells a four-chapter story that runs forward in time', () => {
-    expect(globe.story!.map(chapter => chapter.title)).toEqual(['A normal spring', 'The patch warms', 'Cloud hides the sea', 'It fades, for now'])
-  })
-
-  it('has three comparisons in the patch: warmer later, cooler later, and about the same', () => {
-    expect(globe.comparisons.map(c => c.answer).sort()).toEqual(['a', 'b', 'same'])
-    globe.comparisons.forEach(c => expect(c.regionId).toBe('north-east-patch'))
-  })
-
-  it('has one frame where cloud hides most of the patch, which must not be read as cold', () => {
-    const hidden = expected.frames.filter(e => e.regionId === 'north-east-patch' && e.category === 'insufficient')
-    expect(hidden).toHaveLength(1)
-    expect(hidden[0].valid).toBeLessThan(15)
-  })
-
-  it('has real variation: the patch spans at least three categories over the year, and the tropics stay hot', () => {
-    const categories = (region: string) => new Set(expected.frames.filter(e => e.regionId === region && e.category !== 'insufficient').map(e => e.category))
-    expect(categories('north-east-patch').size).toBeGreaterThanOrEqual(3)
-    expect([...categories('tropics')]).toEqual(['hot'])
-  })
 })

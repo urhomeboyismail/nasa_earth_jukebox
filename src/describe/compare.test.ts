@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import fixture from '../../public/data/fixture/manifest.json'
-import synthetic from '../../public/data/synthetic-change/manifest.json'
+import mur from '../../public/data/mur-sst-mauritius/manifest.json'
 import type { FrameAnalysis } from '../analysis'
 import type { Visualization } from '../data'
 import { deltaBetween, describeDelta, littleChange } from './compare'
 
 const fix = fixture as unknown as Visualization
-const change = synthetic as unknown as Visualization
+const murViz = mur as unknown as Visualization
+// Two regions, so the sentence can name the one that changed most.
+const change: Visualization = { ...murViz, regions: [{ ...murViz.regions[0], id: 'east-patch', name: 'East patch' }, { ...murViz.regions[0], id: 'open-sea', name: 'Open sea' }] }
 
 const result = (regionId: string, medianValue: number | undefined, category = 'mild'): FrameAnalysis => ({
   frameId: 'f', regionId, sampled: 9, valid: medianValue === undefined ? 0 : 9, category, ...(medianValue !== undefined && { medianValue }),

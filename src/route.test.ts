@@ -45,10 +45,10 @@ describe('hashFor', () => {
   })
 
   it('carries the chosen data set, and parseHash reads it back', () => {
-    expect(hashFor('listen', { data: 'synthetic-ocean' })).toBe('#listen?data=synthetic-ocean')
-    const route = parseHash(hashFor('compare', { data: 'synthetic-ocean' }))
+    expect(hashFor('listen', { data: 'fixture' })).toBe('#listen?data=fixture')
+    const route = parseHash(hashFor('compare', { data: 'fixture' }))
     expect(route).toMatchObject({ page: 'compare', known: true })
-    expect(route.params.get('data')).toBe('synthetic-ocean')
+    expect(route.params.get('data')).toBe('fixture')
   })
 
   it('leaves out parameters that are empty or missing', () => {
@@ -58,9 +58,9 @@ describe('hashFor', () => {
   })
 
   it('keeps several parameters together, in a form parseHash reads', () => {
-    const route = parseHash(hashFor('compare', { test: '1', data: 'synthetic-ocean' }))
+    const route = parseHash(hashFor('compare', { test: '1', data: 'fixture' }))
     expect(route.params.get('test')).toBe('1')
-    expect(route.params.get('data')).toBe('synthetic-ocean')
+    expect(route.params.get('data')).toBe('fixture')
   })
 
   it('escapes anything that would break the address', () => {
@@ -97,10 +97,10 @@ describe('parseStyleParam (F40)', () => {
 
 describe('withParams (F40)', () => {
   it('sets parameters and keeps the ones it is not told about', () => {
-    const next = withParams('#listen?data=synthetic-ocean&test=1', { date: '2024-01-15', cell: '3,5' })
+    const next = withParams('#listen?data=fixture&test=1', { date: '2024-01-15', cell: '3,5' })
     const route = parseHash(next)
     expect(route.page).toBe('listen')
-    expect(route.params.get('data')).toBe('synthetic-ocean')
+    expect(route.params.get('data')).toBe('fixture')
     expect(route.params.get('test')).toBe('1')
     expect(route.params.get('date')).toBe('2024-01-15')
     expect(parseCell(route.params.get('cell'))).toEqual({ col: 3, row: 5 })

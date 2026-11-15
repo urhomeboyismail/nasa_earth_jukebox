@@ -1,8 +1,7 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import globe from '../../../public/data/synthetic-globe/manifest.json'
-import change from '../../../public/data/synthetic-change/manifest.json'
+import mur from '../../../public/data/mur-sst-mauritius/manifest.json'
 import fixture from '../../../public/data/fixture/manifest.json'
 import { AnnouncerProvider } from '../../components'
 import type { Visualization } from '../../data'
@@ -34,14 +33,17 @@ vi.mock('../../analysis/video/frameSequence', () => ({
 }))
 vi.mock('../../analysis/video/readFrame', () => ({ readFrameFeatures: async (v: { id: string }, frame: { date: string }) => features({ date: frame.date, position: fakes.reading(v.id, frame.date) }) }))
 
-const a = globe as Visualization
-const b = change as Visualization
+const base = mur as Visualization
+// A second deck on the same dates, so the two overlap.
+const b: Visualization = { ...base, id: 'mur-copy', title: 'Mauritius copy' }
+const a: Visualization = { ...base, pairsWith: [{ id: b.id, note: 'Both cover the same ten-day dates, so each date of one lines up with the same date of the other.' }] }
+const [first, , peak, quiet, split] = a.frames.map(f => f.date)
 
 beforeEach(() => {
   fakes.ensemble = createFakeEnsemble()
   fakes.sources = []
-  // Both decks peak high on 15 April and are one high, one low on 15 September; every other date is in the middle.
-  fakes.reading = (deck, date) => (date === '2024-04-15' ? 1 : date === '2024-09-15' ? (deck === a.id ? 1 : 0) : 0.5)
+  // Both decks peak high on the third date and are one high, one low on the fifth; every other date is in the middle.
+  fakes.reading = (deck, date) => (date === peak ? 1 : date === split ? (deck === a.id ? 1 : 0) : 0.5)
   vi.stubGlobal('fetch', vi.fn(async (url: string) => {
     const body = url.endsWith('index.json') ? [{ id: b.id, title: b.title, summary: '' }] : url.includes(`${b.id}/manifest.json`) ? b : null
     return body ? new Response(JSON.stringify(body)) : new Response('', { status: 404 })
@@ -53,10 +55,10 @@ const mount = (v: Visualization = a) => ({ user: userEvent.setup(), ...render(<F
 
 describe('overlap', () => {
   it('keeps the dates both data sets cover, and nothing when they share none', () => {
-    const later = { ...b, frames: b.frames.map(f => ({ ...f, date: f.date.replace('2024', '2030') })) }
+    const later = { ...b, frames: b.frames.map(f => ({ ...f, date: f.date.replace('2023', '2030') })) }
     expect(overlap(a, b).a).toHaveLength(a.frames.length)
     expect(overlap(a, later)).toEqual({ a: [], b: [] })
-    expect(frameOn(b.frames, '2024-03-20').date).toBe('2024-03-15')
+    expect(frameOn(b.frames, '2023-02-17').date).toBe('2023-02-12')
   })
 })
 
@@ -68,9 +70,9 @@ describe('Compare: two data sets', () => {
 
   it('offers the paired data set as deck B with the reason, and the shared dates', async () => {
     mount()
-    expect(await screen.findByText(/Linked time: the 12 dates/)).toBeInTheDocument()
+    expect(await screen.findByText(new RegExp(`Linked time: the ${a.frames.length} dates`))).toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: 'Deck B' })).toHaveValue(b.id)
-    expect(screen.getByText(/Why these two: Both are made-up monthly practice frames/)).toBeInTheDocument()
+    expect(screen.getByText(/Why these two: Both cover the same ten-day dates/)).toBeInTheDocument()
   })
 
   it('plays both as one piece: each frame of A with B\'s frame for that date, the deck named in the caption', async () => {
@@ -79,7 +81,7 @@ describe('Compare: two data sets', () => {
     await user.click(screen.getByRole('button', { name: 'Play both' }))
     const source = fakes.sources.at(-1)!
     expect(source.start).toHaveBeenCalled()
-    await act(async () => { source.options.onFrame({ features: features({ position: 0.2 }), date: '2024-01-15', confidence: 1 }) })
+    await act(async () => { source.options.onFrame({ features: features({ position: 0.2 }), date: first, confidence: 1 }) })
     const applied = vi.mocked(fakes.ensemble!.ensemble.apply).mock.calls.at(-1)![0] as MusicFrame
     expect(applied.summary).toMatch(/^A: .* B: /)
     expect(applied.bass).not.toBeNull()
@@ -105,7 +107,7 @@ describe('Compare: two data sets', () => {
     it('sounds a major chord and shows one caption when both decks peak together', async () => {
       const { source } = await play()
       await waitFor(async () => {
-        await act(async () => { source.options.onFrame(frame('2024-04-15')) })
+        await act(async () => { source.options.onFrame(frame(peak)) })
         expect(fakes.ensemble!.ensemble.playNotes).toHaveBeenCalled()
       })
       const notes = vi.mocked(fakes.ensemble!.ensemble.playNotes).mock.calls[0][0]
@@ -118,7 +120,7 @@ describe('Compare: two data sets', () => {
     it('adds the minor second and says so when one deck is high and the other low', async () => {
       const { source } = await play()
       await waitFor(async () => {
-        await act(async () => { source.options.onFrame(frame('2024-09-15')) })
+        await act(async () => { source.options.onFrame(frame(split)) })
         expect(fakes.ensemble!.ensemble.playNotes).toHaveBeenCalled()
       })
       expect(vi.mocked(fakes.ensemble!.ensemble.playNotes).mock.calls[0][0]).toHaveLength(4)
@@ -127,7 +129,7 @@ describe('Compare: two data sets', () => {
 
     it('stays quiet on dates that are not shared moments', async () => {
       const { source } = await play()
-      await act(async () => { source.options.onFrame(frame('2024-02-15')) })
+      await act(async () => { source.options.onFrame(frame(quiet)) })
       expect(fakes.ensemble!.ensemble.playNotes).not.toHaveBeenCalled()
       expect(screen.getByText(/None yet/)).toBeInTheDocument()
     })
@@ -138,7 +140,7 @@ describe('Compare: two data sets', () => {
       expect(toggle).toHaveAttribute('aria-pressed', 'true')
       await user.click(toggle)
       expect(toggle).toHaveAttribute('aria-pressed', 'false')
-      await act(async () => { source.options.onFrame(frame('2024-04-15')) })
+      await act(async () => { source.options.onFrame(frame(peak)) })
       expect(fakes.ensemble!.ensemble.playNotes).not.toHaveBeenCalled()
       expect(screen.getByText('Off.')).toBeInTheDocument()
     })

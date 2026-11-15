@@ -183,453 +183,57 @@
       "grid": "566fddc5"
     }
   ],
-  "synthetic-ocean": [
+  "mur-sst-mauritius": [
     {
-      "frameId": "synthetic-ocean/2024-01-15",
-      "date": "2024-01-15",
+      "frameId": "mur-sst-mauritius/2023-01-23",
+      "date": "2023-01-23",
       "stats": {
-        "validShare": 0.752,
-        "median": 2.9899,
-        "position": 0.0997,
-        "iqr": 0.3086,
+        "validShare": 0.938,
+        "median": 27.075,
+        "position": 0.8445,
+        "iqr": 0.3,
         "min": {
-          "value": 2.5,
-          "x": 0.4766,
-          "y": 0.0138
+          "value": 26.475,
+          "x": 0.9141,
+          "y": 0.8906
         },
         "max": {
-          "value": 3.4797,
-          "x": 0.1328,
-          "y": 0.0138
+          "value": 27.675,
+          "x": 0.0078,
+          "y": 0.2031
         }
       },
       "histogram": [
-        1,
         0,
         0,
-        0,
+        0.2863,
+        0.7137,
         0
       ],
-      "hotspots": [
-        {
-          "id": "h1",
-          "band": "low",
-          "cells": 1540,
-          "centroid": [
-            0.3979,
-            0.4762
-          ],
-          "peak": 2.5,
-          "peakPosition": 0.0833
-        }
-      ],
+      "hotspots": [],
       "edges": {
         "density": 0,
         "strongest": {
-          "level": 0.0997,
-          "closed": true,
+          "level": 0.8445,
+          "closed": false,
           "points": 64
         }
       },
       "motion": null,
-      "change": null,
-      "reference": 0.0997,
+      "change": {
+        "step": "normal",
+        "shift": 0,
+        "medianChange": 0
+      },
+      "reference": 0.8445,
       "confidence": 1,
-      "grid": "d7e07420"
+      "grid": "ced6aa35"
     },
     {
-      "frameId": "synthetic-ocean/2024-02-15",
-      "date": "2024-02-15",
+      "frameId": "mur-sst-mauritius/2023-02-02",
+      "date": "2023-02-02",
       "stats": {
-        "validShare": 0.752,
-        "median": 5,
-        "position": 0.1667,
-        "iqr": 0.2984,
-        "min": {
-          "value": 4.5101,
-          "x": 0.4609,
-          "y": 0.0138
-        },
-        "max": {
-          "value": 5.5,
-          "x": 0.1328,
-          "y": 0.0138
-        }
-      },
-      "histogram": [
-        1,
-        0,
-        0,
-        0,
-        0
-      ],
-      "hotspots": [
-        {
-          "id": "h1",
-          "band": "low",
-          "cells": 1540,
-          "centroid": [
-            0.3979,
-            0.4762
-          ],
-          "peak": 4.5101,
-          "peakPosition": 0.1503
-        }
-      ],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.1667,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": 0,
-        "speed": 0,
-        "direction": null,
-        "changedShare": 0
-      },
-      "change": null,
-      "reference": 0.0997,
-      "confidence": 1,
-      "grid": "c300aad8"
-    },
-    {
-      "frameId": "synthetic-ocean/2024-03-15",
-      "date": "2024-03-15",
-      "stats": {
-        "validShare": 0.752,
-        "median": 8,
-        "position": 0.2667,
-        "iqr": 0.2881,
-        "min": {
-          "value": 7.5,
-          "x": 0.4766,
-          "y": 0.0138
-        },
-        "max": {
-          "value": 8.5,
-          "x": 0.1328,
-          "y": 0.0138
-        }
-      },
-      "histogram": [
-        0,
-        1,
-        0,
-        0,
-        0
-      ],
-      "hotspots": [],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.2667,
-          "closed": true,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": 0,
-        "speed": 0,
-        "direction": null,
-        "changedShare": 0
-      },
-      "change": null,
-      "reference": 0.0997,
-      "confidence": 1,
-      "grid": "080ce692"
-    },
-    {
-      "frameId": "synthetic-ocean/2024-04-15",
-      "date": "2024-04-15",
-      "stats": {
-        "validShare": 0.752,
-        "median": 10.4941,
-        "position": 0.3498,
-        "iqr": 0.3129,
-        "min": {
-          "value": 10,
-          "x": 0.4766,
-          "y": 0.0138
-        },
-        "max": {
-          "value": 11,
-          "x": 0.1328,
-          "y": 0.0138
-        }
-      },
-      "histogram": [
-        0,
-        1,
-        0,
-        0,
-        0
-      ],
-      "hotspots": [],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.3498,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": 0,
-        "speed": 0,
-        "direction": null,
-        "changedShare": 0
-      },
-      "change": null,
-      "reference": 0.0997,
-      "confidence": 1,
-      "grid": "5da3b494"
-    },
-    {
-      "frameId": "synthetic-ocean/2024-05-15",
-      "date": "2024-05-15",
-      "stats": {
-        "validShare": 0.752,
-        "median": 14.4941,
-        "position": 0.4831,
-        "iqr": 0.3129,
-        "min": {
-          "value": 14,
-          "x": 0.4766,
-          "y": 0.0138
-        },
-        "max": {
-          "value": 15,
-          "x": 0.1328,
-          "y": 0.0138
-        }
-      },
-      "histogram": [
-        0,
-        0,
-        1,
-        0,
-        0
-      ],
-      "hotspots": [],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.4831,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": 0,
-        "speed": 0,
-        "direction": null,
-        "changedShare": 0
-      },
-      "change": null,
-      "reference": 0.0997,
-      "confidence": 1,
-      "grid": "4a13bc94"
-    },
-    {
-      "frameId": "synthetic-ocean/2024-06-15",
-      "date": "2024-06-15",
-      "stats": {
-        "validShare": 0.752,
-        "median": 19.4985,
-        "position": 0.65,
-        "iqr": 0.2983,
-        "min": {
-          "value": 19,
-          "x": 0.4766,
-          "y": 0.0138
-        },
-        "max": {
-          "value": 20,
-          "x": 0.1484,
-          "y": 0.0138
-        }
-      },
-      "histogram": [
-        0,
-        0,
-        0,
-        1,
-        0
-      ],
-      "hotspots": [],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.65,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": 0,
-        "speed": 0,
-        "direction": null,
-        "changedShare": 0
-      },
-      "change": null,
-      "reference": 0.0997,
-      "confidence": 1,
-      "grid": "457e1c93"
-    },
-    {
-      "frameId": "synthetic-ocean/2024-07-15",
-      "date": "2024-07-15",
-      "stats": {
-        "validShare": 0.752,
-        "median": 16,
-        "position": 0.5333,
-        "iqr": 0.2953,
-        "min": {
-          "value": 15.5015,
-          "x": 0.4766,
-          "y": 0.0138
-        },
-        "max": {
-          "value": 16.4985,
-          "x": 0.1484,
-          "y": 0.0138
-        }
-      },
-      "histogram": [
-        0,
-        0,
-        1,
-        0,
-        0
-      ],
-      "hotspots": [],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.5333,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": 0,
-        "speed": 0,
-        "direction": null,
-        "changedShare": 0
-      },
-      "change": null,
-      "reference": 0.0997,
-      "confidence": 1,
-      "grid": "d5eec909"
-    },
-    {
-      "frameId": "synthetic-ocean/2024-08-15",
-      "date": "2024-08-15",
-      "stats": {
-        "validShare": 0.752,
-        "median": 13,
-        "position": 0.4333,
-        "iqr": 0.3247,
-        "min": {
-          "value": 12.5059,
-          "x": 0.4766,
-          "y": 0.0138
-        },
-        "max": {
-          "value": 13.4941,
-          "x": 0.1328,
-          "y": 0.0138
-        }
-      },
-      "histogram": [
-        0,
-        0,
-        1,
-        0,
-        0
-      ],
-      "hotspots": [],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.4333,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": 0,
-        "speed": 0,
-        "direction": null,
-        "changedShare": 0
-      },
-      "change": null,
-      "reference": 0.0997,
-      "confidence": 1,
-      "grid": "c8db1225"
-    },
-    {
-      "frameId": "synthetic-ocean/2024-09-15",
-      "date": "2024-09-15",
-      "stats": {
-        "validShare": 0.752,
-        "median": 9.5,
-        "position": 0.3167,
-        "iqr": 0.2881,
-        "min": {
-          "value": 9,
-          "x": 0.4766,
-          "y": 0.0138
-        },
-        "max": {
-          "value": 10,
-          "x": 0.1328,
-          "y": 0.0138
-        }
-      },
-      "histogram": [
-        0,
-        1,
-        0,
-        0,
-        0
-      ],
-      "hotspots": [],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.3167,
-          "closed": true,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": 0,
-        "speed": 0,
-        "direction": null,
-        "changedShare": 0
-      },
-      "change": null,
-      "reference": 0.0997,
-      "confidence": 1,
-      "grid": "0814e4ca"
-    },
-    {
-      "frameId": "synthetic-ocean/2024-10-15",
-      "date": "2024-10-15",
-      "stats": {
-        "validShare": 0.3574,
+        "validShare": 0,
         "median": null,
         "position": null,
         "iqr": null,
@@ -639,7 +243,7 @@
       "histogram": [
         0,
         0,
-        1,
+        0,
         0,
         0
       ],
@@ -655,291 +259,148 @@
         "direction": null,
         "changedShare": 0
       },
-      "change": null,
-      "reference": 0.0997,
-      "confidence": 1,
-      "grid": "cda40f85"
+      "change": {
+        "step": "insufficient",
+        "shift": null,
+        "medianChange": null
+      },
+      "reference": 0.8445,
+      "confidence": 0,
+      "grid": "566fddc5"
     },
     {
-      "frameId": "synthetic-ocean/2024-11-15",
-      "date": "2024-11-15",
+      "frameId": "mur-sst-mauritius/2023-02-12",
+      "date": "2023-02-12",
       "stats": {
-        "validShare": 0.752,
-        "median": 15,
-        "position": 0.5,
-        "iqr": 0.3199,
+        "validShare": 0.938,
+        "median": 27.825,
+        "position": 0.8678,
+        "iqr": 0.3,
         "min": {
-          "value": 14.5059,
-          "x": 0.4766,
-          "y": 0.0138
+          "value": 27.225,
+          "x": 0.4297,
+          "y": 0.4219
         },
         "max": {
-          "value": 15.4985,
-          "x": 0.1484,
-          "y": 0.0138
-        }
-      },
-      "histogram": [
-        0,
-        0,
-        1,
-        0,
-        0
-      ],
-      "hotspots": [],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.5,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": 0,
-        "speed": 0,
-        "direction": null,
-        "changedShare": 0
-      },
-      "change": null,
-      "reference": 0.0997,
-      "confidence": 1,
-      "grid": "17d182b6"
-    },
-    {
-      "frameId": "synthetic-ocean/2024-12-15",
-      "date": "2024-12-15",
-      "stats": {
-        "validShare": 0.752,
-        "median": 15.3855,
-        "position": 0.5129,
-        "iqr": 0.3162,
-        "min": {
-          "value": 14.8965,
-          "x": 0.4922,
-          "y": 0.0138
-        },
-        "max": {
-          "value": 15.887,
-          "x": 0.1328,
-          "y": 0.0138
-        }
-      },
-      "histogram": [
-        0,
-        0,
-        1,
-        0,
-        0
-      ],
-      "hotspots": [],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.5129,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": 0,
-        "speed": 0,
-        "direction": null,
-        "changedShare": 0
-      },
-      "change": null,
-      "reference": 0.0997,
-      "confidence": 1,
-      "grid": "16081a0b"
-    }
-  ],
-  "synthetic-globe": [
-    {
-      "frameId": "synthetic-globe/2024-01-15",
-      "date": "2024-01-15",
-      "stats": {
-        "validShare": 0.8003,
-        "median": 16.1853,
-        "position": 0.5395,
-        "iqr": 13.4494,
-        "min": {
-          "value": 0,
+          "value": 28.275,
           "x": 0.0078,
-          "y": 0.0138
-        },
-        "max": {
-          "value": 29.0636,
-          "x": 0.3359,
-          "y": 0.4537
+          "y": 0.3906
         }
       },
       "histogram": [
-        0.169,
-        0.1702,
-        0.2172,
-        0.2434,
-        0.2001
+        0,
+        0,
+        0,
+        0.9131,
+        0.0869
       ],
       "hotspots": [
         {
           "id": "h1",
           "band": "high",
-          "cells": 249,
+          "cells": 153,
           "centroid": [
-            0.488,
-            0.4796
+            0.1289,
+            0.5005
           ],
-          "peak": 29.0636,
-          "peakPosition": 0.9688
+          "peak": 28.275,
+          "peakPosition": 0.8818
         },
         {
           "id": "h2",
-          "band": "low",
-          "cells": 212,
-          "centroid": [
-            0.5681,
-            0.0607
-          ],
-          "peak": 0,
-          "peakPosition": 0
-        },
-        {
-          "id": "h3",
-          "band": "low",
-          "cells": 64,
-          "centroid": [
-            0.5,
-            0.8662
-          ],
-          "peak": 4.9288,
-          "peakPosition": 0.1643
-        },
-        {
-          "id": "h4",
           "band": "high",
-          "cells": 43,
+          "cells": 10,
           "centroid": [
-            0.9577,
-            0.4723
+            0.0625,
+            0.1656
           ],
-          "peak": 26.1454,
-          "peakPosition": 0.8715
-        },
-        {
-          "id": "h5",
-          "band": "high",
-          "cells": 36,
-          "centroid": [
-            0.036,
-            0.4759
-          ],
-          "peak": 26.1454,
-          "peakPosition": 0.8715
+          "peak": 28.125,
+          "peakPosition": 0.8771
         }
       ],
       "edges": {
         "density": 0,
         "strongest": {
-          "level": 0.5395,
+          "level": 0.8678,
           "closed": false,
           "points": 64
         }
       },
       "motion": null,
-      "change": null,
-      "reference": 0.5395,
+      "change": {
+        "step": "above",
+        "shift": 0.5,
+        "medianChange": 0.75
+      },
+      "reference": 0.8445,
       "confidence": 1,
-      "grid": "8917cf1e"
+      "grid": "6a29b0b5"
     },
     {
-      "frameId": "synthetic-globe/2024-02-15",
-      "date": "2024-02-15",
+      "frameId": "mur-sst-mauritius/2023-02-22",
+      "date": "2023-02-22",
       "stats": {
-        "validShare": 0.8003,
-        "median": 15.7275,
-        "position": 0.5242,
-        "iqr": 13.3088,
+        "validShare": 0.938,
+        "median": 27.525,
+        "position": 0.8585,
+        "iqr": 0.3,
         "min": {
-          "value": 0,
-          "x": 0.0078,
-          "y": 0.0138
+          "value": 26.625,
+          "x": 0.2891,
+          "y": 0.0156
         },
         "max": {
-          "value": 29.0636,
-          "x": 0.3359,
-          "y": 0.4537
+          "value": 28.425,
+          "x": 0.2422,
+          "y": 0.6719
         }
       },
       "histogram": [
-        0.169,
-        0.1952,
-        0.2251,
-        0.2135,
-        0.1971
+        0,
+        0,
+        0.089,
+        0.8839,
+        0.0271
       ],
       "hotspots": [
         {
-          "id": "h1",
-          "band": "high",
-          "cells": 244,
-          "centroid": [
-            0.4867,
-            0.4748
-          ],
-          "peak": 29.0636,
-          "peakPosition": 0.9688
-        },
-        {
-          "id": "h2",
-          "band": "low",
-          "cells": 212,
-          "centroid": [
-            0.5681,
-            0.0607
-          ],
-          "peak": 0,
-          "peakPosition": 0
-        },
-        {
           "id": "h3",
-          "band": "low",
-          "cells": 64,
+          "band": "high",
+          "cells": 36,
           "centroid": [
-            0.5,
-            0.8662
+            0.1814,
+            0.6936
           ],
-          "peak": 4.317,
-          "peakPosition": 0.1439
+          "peak": 28.425,
+          "peakPosition": 0.8865
         },
         {
           "id": "h4",
           "band": "high",
-          "cells": 43,
+          "cells": 8,
           "centroid": [
-            0.9577,
-            0.4723
+            0.0332,
+            0.7773
           ],
-          "peak": 26.0546,
-          "peakPosition": 0.8685
+          "peak": 28.425,
+          "peakPosition": 0.8865
         },
         {
           "id": "h5",
           "band": "high",
-          "cells": 36,
+          "cells": 4,
           "centroid": [
-            0.036,
-            0.4759
+            0.0234,
+            0.625
           ],
-          "peak": 26.0956,
-          "peakPosition": 0.8699
+          "peak": 28.125,
+          "peakPosition": 0.8771
         }
       ],
       "edges": {
         "density": 0,
         "strongest": {
-          "level": 0.5242,
+          "level": 0.8585,
           "closed": false,
           "points": 64
         }
@@ -951,1141 +412,1049 @@
         "direction": null,
         "changedShare": 0
       },
-      "change": null,
-      "reference": 0.5395,
+      "change": {
+        "step": "above",
+        "shift": 0.5,
+        "medianChange": 0.45
+      },
+      "reference": 0.8445,
       "confidence": 1,
-      "grid": "af7311e5"
+      "grid": "7624cc68"
     },
     {
-      "frameId": "synthetic-globe/2024-03-15",
-      "date": "2024-03-15",
+      "frameId": "mur-sst-mauritius/2023-03-04",
+      "date": "2023-03-04",
       "stats": {
-        "validShare": 0.8003,
-        "median": 15.8434,
-        "position": 0.5281,
-        "iqr": 13.923,
+        "validShare": 0.938,
+        "median": 28.275,
+        "position": 0.8818,
+        "iqr": 0.45,
         "min": {
-          "value": 0,
-          "x": 0.0078,
-          "y": 0.0138
+          "value": 27.675,
+          "x": 0.8828,
+          "y": 0.9219
         },
         "max": {
-          "value": 29.0168,
-          "x": 0.3359,
-          "y": 0.4537
+          "value": 29.325,
+          "x": 0.8203,
+          "y": 0.2344
         }
       },
       "histogram": [
-        0.1745,
-        0.1897,
-        0.2239,
-        0.2196,
-        0.1922
+        0,
+        0,
+        0,
+        0.126,
+        0.874
       ],
       "hotspots": [
-        {
-          "id": "h1",
-          "band": "high",
-          "cells": 244,
-          "centroid": [
-            0.4875,
-            0.4585
-          ],
-          "peak": 29.0168,
-          "peakPosition": 0.9672
-        },
-        {
-          "id": "h2",
-          "band": "low",
-          "cells": 157,
-          "centroid": [
-            0.5897,
-            0.0483
-          ],
-          "peak": 0,
-          "peakPosition": 0
-        },
-        {
-          "id": "h3",
-          "band": "low",
-          "cells": 128,
-          "centroid": [
-            0.5,
-            0.8525
-          ],
-          "peak": 2.5,
-          "peakPosition": 0.0833
-        },
-        {
-          "id": "h4",
-          "band": "high",
-          "cells": 39,
-          "centroid": [
-            0.9597,
-            0.4629
-          ],
-          "peak": 26.0137,
-          "peakPosition": 0.8671
-        },
-        {
-          "id": "h5",
-          "band": "high",
-          "cells": 32,
-          "centroid": [
-            0.0327,
-            0.4649
-          ],
-          "peak": 26.0137,
-          "peakPosition": 0.8671
-        }
-      ],
-      "edges": {
-        "density": 0.0003,
-        "strongest": {
-          "level": 0.5281,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0.2222,
-        "dy": -1,
-        "speed": 1.0244,
-        "direction": 1.3521,
-        "changedShare": 0.1607
-      },
-      "change": null,
-      "reference": 0.5395,
-      "confidence": 1,
-      "grid": "b14bc29b"
-    },
-    {
-      "frameId": "synthetic-globe/2024-04-15",
-      "date": "2024-04-15",
-      "stats": {
-        "validShare": 0.8003,
-        "median": 15.3855,
-        "position": 0.5129,
-        "iqr": 14.0759,
-        "min": {
-          "value": 0,
-          "x": 0.0078,
-          "y": 0.0138
-        },
-        "max": {
-          "value": 28.9196,
-          "x": 0.3359,
-          "y": 0.4537
-        }
-      },
-      "histogram": [
-        0.2026,
-        0.1617,
-        0.2306,
-        0.2196,
-        0.1855
-      ],
-      "hotspots": [
-        {
-          "id": "h1",
-          "band": "high",
-          "cells": 227,
-          "centroid": [
-            0.4899,
-            0.4409
-          ],
-          "peak": 28.9196,
-          "peakPosition": 0.964
-        },
-        {
-          "id": "h3",
-          "band": "low",
-          "cells": 192,
-          "centroid": [
-            0.5,
-            0.8387
-          ],
-          "peak": 0.1219,
-          "peakPosition": 0.0041
-        },
-        {
-          "id": "h2",
-          "band": "low",
-          "cells": 130,
-          "centroid": [
-            0.6341,
-            0.0421
-          ],
-          "peak": 0,
-          "peakPosition": 0
-        },
-        {
-          "id": "h4",
-          "band": "high",
-          "cells": 42,
-          "centroid": [
-            0.9587,
-            0.4439
-          ],
-          "peak": 25.9317,
-          "peakPosition": 0.8644
-        },
-        {
-          "id": "h5",
-          "band": "high",
-          "cells": 35,
-          "centroid": [
-            0.0346,
-            0.442
-          ],
-          "peak": 25.9317,
-          "peakPosition": 0.8644
-        },
         {
           "id": "h6",
-          "band": "low",
-          "cells": 9,
-          "centroid": [
-            0.0703,
-            0.0688
-          ],
-          "peak": 5.5593,
-          "peakPosition": 0.1853
-        }
-      ],
-      "edges": {
-        "density": 0.0026,
-        "strongest": {
-          "level": 0.5129,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": -0.125,
-        "dy": -1,
-        "speed": 1.0078,
-        "direction": 1.6952,
-        "changedShare": 0.5714
-      },
-      "change": null,
-      "reference": 0.5395,
-      "confidence": 1,
-      "grid": "e43e2c52"
-    },
-    {
-      "frameId": "synthetic-globe/2024-05-15",
-      "date": "2024-05-15",
-      "stats": {
-        "validShare": 0.8003,
-        "median": 16,
-        "position": 0.5333,
-        "iqr": 13.7705,
-        "min": {
-          "value": 0,
-          "x": 0.0078,
-          "y": 0.8662
-        },
-        "max": {
-          "value": 29.0168,
-          "x": 0.3359,
-          "y": 0.4263
-        }
-      },
-      "histogram": [
-        0.169,
-        0.1952,
-        0.2068,
-        0.2355,
-        0.1934
-      ],
-      "hotspots": [
-        {
-          "id": "h1",
           "band": "high",
-          "cells": 245,
+          "cells": 1662,
           "centroid": [
-            0.491,
-            0.4247
+            0.463,
+            0.459
           ],
-          "peak": 29.0168,
-          "peakPosition": 0.9672
-        },
-        {
-          "id": "h3",
-          "band": "low",
-          "cells": 192,
-          "centroid": [
-            0.5,
-            0.8387
-          ],
-          "peak": 0,
-          "peakPosition": 0
-        },
-        {
-          "id": "h2",
-          "band": "low",
-          "cells": 84,
-          "centroid": [
-            0.6719,
-            0.0275
-          ],
-          "peak": 2.3457,
-          "peakPosition": 0.0782
-        },
-        {
-          "id": "h4",
-          "band": "high",
-          "cells": 39,
-          "centroid": [
-            0.9609,
-            0.4199
-          ],
-          "peak": 26.0137,
-          "peakPosition": 0.8671
-        },
-        {
-          "id": "h5",
-          "band": "high",
-          "cells": 33,
-          "centroid": [
-            0.0329,
-            0.4163
-          ],
-          "peak": 26.0137,
-          "peakPosition": 0.8671
-        }
-      ],
-      "edges": {
-        "density": 0.0048,
-        "strongest": {
-          "level": 0.5333,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": -0.2703,
-        "dy": -1,
-        "speed": 1.0359,
-        "direction": 1.8348,
-        "changedShare": 0.6607
-      },
-      "change": null,
-      "reference": 0.5395,
-      "confidence": 1,
-      "grid": "cf113751"
-    },
-    {
-      "frameId": "synthetic-globe/2024-06-15",
-      "date": "2024-06-15",
-      "stats": {
-        "validShare": 0.8003,
-        "median": 16.1853,
-        "position": 0.5395,
-        "iqr": 13.3034,
-        "min": {
-          "value": 0,
-          "x": 0.0078,
-          "y": 0.8387
-        },
-        "max": {
-          "value": 29.0636,
-          "x": 0.3359,
-          "y": 0.4263
-        }
-      },
-      "histogram": [
-        0.1824,
-        0.1696,
-        0.2129,
-        0.2416,
-        0.1934
-      ],
-      "hotspots": [
-        {
-          "id": "h3",
-          "band": "low",
-          "cells": 256,
-          "centroid": [
-            0.5,
-            0.825
-          ],
-          "peak": 0,
-          "peakPosition": 0
-        },
-        {
-          "id": "h1",
-          "band": "high",
-          "cells": 240,
-          "centroid": [
-            0.4865,
-            0.418
-          ],
-          "peak": 29.0636,
-          "peakPosition": 0.9688
-        },
-        {
-          "id": "h2",
-          "band": "low",
-          "cells": 42,
-          "centroid": [
-            0.6719,
-            0.0138
-          ],
-          "peak": 4.1627,
-          "peakPosition": 0.1388
-        },
-        {
-          "id": "h4",
-          "band": "high",
-          "cells": 42,
-          "centroid": [
-            0.9587,
-            0.4125
-          ],
-          "peak": 26.0956,
-          "peakPosition": 0.8699
-        },
-        {
-          "id": "h5",
-          "band": "high",
-          "cells": 35,
-          "centroid": [
-            0.0346,
-            0.4105
-          ],
-          "peak": 26.0956,
-          "peakPosition": 0.8699
-        }
-      ],
-      "edges": {
-        "density": 0.0045,
-        "strongest": {
-          "level": 0.5395,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": -0.5455,
-        "dy": -1,
-        "speed": 1.1391,
-        "direction": 2.0701,
-        "changedShare": 0.1964
-      },
-      "change": null,
-      "reference": 0.5395,
-      "confidence": 1,
-      "grid": "af7e4f3d"
-    },
-    {
-      "frameId": "synthetic-globe/2024-07-15",
-      "date": "2024-07-15",
-      "stats": {
-        "validShare": 0.8003,
-        "median": 16.5709,
-        "position": 0.5524,
-        "iqr": 13.1199,
-        "min": {
-          "value": 0,
-          "x": 0.0078,
-          "y": 0.8387
-        },
-        "max": {
-          "value": 29.0897,
-          "x": 0.3359,
-          "y": 0.4263
-        }
-      },
-      "histogram": [
-        0.1824,
-        0.1446,
-        0.2123,
-        0.2605,
-        0.2001
-      ],
-      "hotspots": [
-        {
-          "id": "h3",
-          "band": "low",
-          "cells": 256,
-          "centroid": [
-            0.5,
-            0.825
-          ],
-          "peak": 0,
-          "peakPosition": 0
-        },
-        {
-          "id": "h1",
-          "band": "high",
-          "cells": 251,
-          "centroid": [
-            0.4875,
-            0.4042
-          ],
-          "peak": 29.0897,
-          "peakPosition": 0.9697
-        },
-        {
-          "id": "h2",
-          "band": "low",
-          "cells": 42,
-          "centroid": [
-            0.6719,
-            0.0138
-          ],
-          "peak": 4.8781,
-          "peakPosition": 0.1626
-        },
-        {
-          "id": "h4",
-          "band": "high",
-          "cells": 42,
-          "centroid": [
-            0.9587,
-            0.4125
-          ],
-          "peak": 26.1454,
-          "peakPosition": 0.8715
-        },
-        {
-          "id": "h5",
-          "band": "high",
-          "cells": 35,
-          "centroid": [
-            0.0346,
-            0.4105
-          ],
-          "peak": 26.1454,
-          "peakPosition": 0.8715
-        }
-      ],
-      "edges": {
-        "density": 0.0112,
-        "strongest": {
-          "level": 0.5524,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": -1,
-        "speed": 1,
-        "direction": 1.5708,
-        "changedShare": 0.0179
-      },
-      "change": null,
-      "reference": 0.5395,
-      "confidence": 1,
-      "grid": "2697e00d"
-    },
-    {
-      "frameId": "synthetic-globe/2024-08-15",
-      "date": "2024-08-15",
-      "stats": {
-        "validShare": 0.8003,
-        "median": 16.7711,
-        "position": 0.559,
-        "iqr": 13.2705,
-        "min": {
-          "value": 0,
-          "x": 0.0078,
-          "y": 0.8387
-        },
-        "max": {
-          "value": 29.0636,
-          "x": 0.3359,
-          "y": 0.4263
-        }
-      },
-      "histogram": [
-        0.1824,
-        0.166,
-        0.2087,
-        0.2495,
-        0.1934
-      ],
-      "hotspots": [
-        {
-          "id": "h3",
-          "band": "low",
-          "cells": 256,
-          "centroid": [
-            0.5,
-            0.825
-          ],
-          "peak": 0,
-          "peakPosition": 0
-        },
-        {
-          "id": "h1",
-          "band": "high",
-          "cells": 240,
-          "centroid": [
-            0.4865,
-            0.418
-          ],
-          "peak": 29.0636,
-          "peakPosition": 0.9688
-        },
-        {
-          "id": "h2",
-          "band": "low",
-          "cells": 42,
-          "centroid": [
-            0.6719,
-            0.0138
-          ],
-          "peak": 4.2458,
-          "peakPosition": 0.1415
-        },
-        {
-          "id": "h4",
-          "band": "high",
-          "cells": 42,
-          "centroid": [
-            0.9587,
-            0.4125
-          ],
-          "peak": 26.0956,
-          "peakPosition": 0.8699
-        },
-        {
-          "id": "h5",
-          "band": "high",
-          "cells": 35,
-          "centroid": [
-            0.0346,
-            0.4105
-          ],
-          "peak": 26.0956,
-          "peakPosition": 0.8699
-        }
-      ],
-      "edges": {
-        "density": 0.0135,
-        "strongest": {
-          "level": 0.559,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": 0,
-        "speed": 0,
-        "direction": null,
-        "changedShare": 0
-      },
-      "change": null,
-      "reference": 0.5395,
-      "confidence": 1,
-      "grid": "f01fbb7c"
-    },
-    {
-      "frameId": "synthetic-globe/2024-09-15",
-      "date": "2024-09-15",
-      "stats": {
-        "validShare": 0.8003,
-        "median": 16.0436,
-        "position": 0.5348,
-        "iqr": 13.7705,
-        "min": {
-          "value": 0,
-          "x": 0.0078,
-          "y": 0.8662
-        },
-        "max": {
-          "value": 29.0168,
-          "x": 0.3359,
-          "y": 0.4263
-        }
-      },
-      "histogram": [
-        0.169,
-        0.1922,
-        0.2062,
-        0.2392,
-        0.1934
-      ],
-      "hotspots": [
-        {
-          "id": "h1",
-          "band": "high",
-          "cells": 245,
-          "centroid": [
-            0.491,
-            0.4247
-          ],
-          "peak": 29.0168,
-          "peakPosition": 0.9672
-        },
-        {
-          "id": "h3",
-          "band": "low",
-          "cells": 192,
-          "centroid": [
-            0.5,
-            0.8387
-          ],
-          "peak": 0,
-          "peakPosition": 0
-        },
-        {
-          "id": "h2",
-          "band": "low",
-          "cells": 84,
-          "centroid": [
-            0.6719,
-            0.0275
-          ],
-          "peak": 2.4288,
-          "peakPosition": 0.081
-        },
-        {
-          "id": "h4",
-          "band": "high",
-          "cells": 39,
-          "centroid": [
-            0.9609,
-            0.4199
-          ],
-          "peak": 26.0137,
-          "peakPosition": 0.8671
-        },
-        {
-          "id": "h5",
-          "band": "high",
-          "cells": 33,
-          "centroid": [
-            0.0329,
-            0.4163
-          ],
-          "peak": 26.0137,
-          "peakPosition": 0.8671
-        }
-      ],
-      "edges": {
-        "density": 0.0106,
-        "strongest": {
-          "level": 0.5348,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0.6667,
-        "dy": 1,
-        "speed": 1.2019,
-        "direction": -0.9828,
-        "changedShare": 0.1607
-      },
-      "change": null,
-      "reference": 0.5395,
-      "confidence": 1,
-      "grid": "cf4fd6fa"
-    },
-    {
-      "frameId": "synthetic-globe/2024-10-15",
-      "date": "2024-10-15",
-      "stats": {
-        "validShare": 0.7725,
-        "median": 15.6274,
-        "position": 0.5209,
-        "iqr": 14.3702,
-        "min": {
-          "value": 0,
-          "x": 0.0078,
-          "y": 0.0138
-        },
-        "max": {
-          "value": 28.9196,
-          "x": 0.3359,
-          "y": 0.4537
-        }
-      },
-      "histogram": [
-        0.1991,
-        0.1612,
-        0.2193,
-        0.2282,
-        0.1922
-      ],
-      "hotspots": [
-        {
-          "id": "h1",
-          "band": "high",
-          "cells": 227,
-          "centroid": [
-            0.4899,
-            0.4409
-          ],
-          "peak": 28.9196,
-          "peakPosition": 0.964
-        },
-        {
-          "id": "h3",
-          "band": "low",
-          "cells": 192,
-          "centroid": [
-            0.5,
-            0.8387
-          ],
-          "peak": 0.1219,
-          "peakPosition": 0.0041
-        },
-        {
-          "id": "h2",
-          "band": "low",
-          "cells": 113,
-          "centroid": [
-            0.635,
-            0.0381
-          ],
-          "peak": 0,
-          "peakPosition": 0
-        },
-        {
-          "id": "h4",
-          "band": "high",
-          "cells": 42,
-          "centroid": [
-            0.9587,
-            0.4439
-          ],
-          "peak": 25.9317,
-          "peakPosition": 0.8644
-        },
-        {
-          "id": "h5",
-          "band": "high",
-          "cells": 35,
-          "centroid": [
-            0.0346,
-            0.442
-          ],
-          "peak": 25.9317,
-          "peakPosition": 0.8644
+          "peak": 29.325,
+          "peakPosition": 0.9145
         },
         {
           "id": "h7",
-          "band": "low",
-          "cells": 9,
+          "band": "high",
+          "cells": 13,
           "centroid": [
-            0.0703,
-            0.0688
+            0.9766,
+            0.7392
           ],
-          "peak": 5.5593,
-          "peakPosition": 0.1853
+          "peak": 28.275,
+          "peakPosition": 0.8818
+        },
+        {
+          "id": "h8",
+          "band": "high",
+          "cells": 4,
+          "centroid": [
+            0.9883,
+            0.9609
+          ],
+          "peak": 28.125,
+          "peakPosition": 0.8771
         }
       ],
       "edges": {
-        "density": 0.0017,
+        "density": 0,
         "strongest": {
-          "level": 0.5209,
+          "level": 0.8818,
           "closed": false,
           "points": 64
         }
       },
       "motion": {
-        "dx": 0.2,
-        "dy": 1,
-        "speed": 1.0198,
-        "direction": -1.3734,
-        "changedShare": 0.5455
+        "dx": 0,
+        "dy": 0,
+        "speed": 0,
+        "direction": null,
+        "changedShare": 0
       },
-      "change": null,
-      "reference": 0.5395,
+      "change": {
+        "step": "much-above",
+        "shift": 1,
+        "medianChange": 1.2
+      },
+      "reference": 0.8445,
       "confidence": 1,
-      "grid": "1d7d1950"
+      "grid": "8b59b4c0"
     },
     {
-      "frameId": "synthetic-globe/2024-11-15",
-      "date": "2024-11-15",
+      "frameId": "mur-sst-mauritius/2023-03-14",
+      "date": "2023-03-14",
       "stats": {
-        "validShare": 0.8003,
-        "median": 15.8434,
-        "position": 0.5281,
-        "iqr": 13.923,
+        "validShare": 0.938,
+        "median": 27.975,
+        "position": 0.8725,
+        "iqr": 0.3,
         "min": {
-          "value": 0,
-          "x": 0.0078,
-          "y": 0.0138
+          "value": 27.225,
+          "x": 0.3828,
+          "y": 0.7344
         },
         "max": {
-          "value": 29.0168,
-          "x": 0.3359,
-          "y": 0.4537
+          "value": 28.725,
+          "x": 0.3203,
+          "y": 0.3906
         }
       },
       "histogram": [
-        0.1745,
-        0.1897,
-        0.2239,
-        0.2196,
-        0.1922
+        0,
+        0,
+        0,
+        0.6039,
+        0.3961
       ],
       "hotspots": [
         {
-          "id": "h1",
+          "id": "h9",
           "band": "high",
-          "cells": 244,
+          "cells": 359,
           "centroid": [
-            0.4875,
-            0.4585
+            0.1737,
+            0.4027
           ],
-          "peak": 29.0168,
-          "peakPosition": 0.9672
+          "peak": 28.725,
+          "peakPosition": 0.8958
         },
         {
-          "id": "h2",
-          "band": "low",
-          "cells": 157,
+          "id": "h10",
+          "band": "high",
+          "cells": 322,
           "centroid": [
-            0.5897,
-            0.0483
+            0.6457,
+            0.139
           ],
-          "peak": 0,
-          "peakPosition": 0
+          "peak": 28.575,
+          "peakPosition": 0.8911
         },
         {
-          "id": "h3",
-          "band": "low",
-          "cells": 128,
+          "id": "h7",
+          "band": "high",
+          "cells": 28,
           "centroid": [
-            0.5,
-            0.8525
+            0.9208,
+            0.7422
           ],
-          "peak": 2.5,
-          "peakPosition": 0.0833
+          "peak": 28.275,
+          "peakPosition": 0.8818
         },
         {
-          "id": "h4",
+          "id": "h8",
+          "band": "high",
+          "cells": 21,
+          "centroid": [
+            0.9036,
+            0.9531
+          ],
+          "peak": 28.125,
+          "peakPosition": 0.8771
+        },
+        {
+          "id": "h11",
+          "band": "high",
+          "cells": 8,
+          "centroid": [
+            0.0469,
+            0.8047
+          ],
+          "peak": 28.275,
+          "peakPosition": 0.8818
+        },
+        {
+          "id": "h12",
+          "band": "high",
+          "cells": 6,
+          "centroid": [
+            0.6563,
+            0.526
+          ],
+          "peak": 28.125,
+          "peakPosition": 0.8771
+        }
+      ],
+      "edges": {
+        "density": 0,
+        "strongest": {
+          "level": 0.8725,
+          "closed": false,
+          "points": 64
+        }
+      },
+      "motion": {
+        "dx": 0,
+        "dy": 0,
+        "speed": 0,
+        "direction": null,
+        "changedShare": 0
+      },
+      "change": {
+        "step": "above",
+        "shift": 0.5,
+        "medianChange": 0.9
+      },
+      "reference": 0.8445,
+      "confidence": 1,
+      "grid": "0355bb11"
+    },
+    {
+      "frameId": "mur-sst-mauritius/2023-03-24",
+      "date": "2023-03-24",
+      "stats": {
+        "validShare": 0.938,
+        "median": 28.275,
+        "position": 0.8818,
+        "iqr": 0.45,
+        "min": {
+          "value": 27.825,
+          "x": 0.8672,
+          "y": 0.2031
+        },
+        "max": {
+          "value": 29.175,
+          "x": 0.0078,
+          "y": 0.7031
+        }
+      },
+      "histogram": [
+        0,
+        0,
+        0,
+        0.1338,
+        0.8662
+      ],
+      "hotspots": [
+        {
+          "id": "h13",
+          "band": "high",
+          "cells": 1481,
+          "centroid": [
+            0.4175,
+            0.5642
+          ],
+          "peak": 29.175,
+          "peakPosition": 0.9098
+        },
+        {
+          "id": "h14",
+          "band": "high",
+          "cells": 183,
+          "centroid": [
+            0.8294,
+            0.1659
+          ],
+          "peak": 28.425,
+          "peakPosition": 0.8865
+        }
+      ],
+      "edges": {
+        "density": 0,
+        "strongest": {
+          "level": 0.8818,
+          "closed": false,
+          "points": 64
+        }
+      },
+      "motion": {
+        "dx": 0,
+        "dy": 0,
+        "speed": 0,
+        "direction": null,
+        "changedShare": 0
+      },
+      "change": {
+        "step": "much-above",
+        "shift": 1,
+        "medianChange": 1.2
+      },
+      "reference": 0.8445,
+      "confidence": 1,
+      "grid": "343d7559"
+    },
+    {
+      "frameId": "mur-sst-mauritius/2023-04-03",
+      "date": "2023-04-03",
+      "stats": {
+        "validShare": 0.938,
+        "median": 28.425,
+        "position": 0.8865,
+        "iqr": 0.6,
+        "min": {
+          "value": 27.675,
+          "x": 0.7734,
+          "y": 0.8281
+        },
+        "max": {
+          "value": 29.175,
+          "x": 0.1484,
+          "y": 0.4844
+        }
+      },
+      "histogram": [
+        0,
+        0,
+        0,
+        0.0973,
+        0.9027
+      ],
+      "hotspots": [
+        {
+          "id": "h13",
+          "band": "high",
+          "cells": 1728,
+          "centroid": [
+            0.4651,
+            0.4876
+          ],
+          "peak": 29.175,
+          "peakPosition": 0.9098
+        },
+        {
+          "id": "h15",
+          "band": "high",
+          "cells": 4,
+          "centroid": [
+            0.6563,
+            0.9844
+          ],
+          "peak": 28.125,
+          "peakPosition": 0.8771
+        }
+      ],
+      "edges": {
+        "density": 0,
+        "strongest": {
+          "level": 0.8865,
+          "closed": false,
+          "points": 64
+        }
+      },
+      "motion": {
+        "dx": 0,
+        "dy": 0,
+        "speed": 0,
+        "direction": null,
+        "changedShare": 0
+      },
+      "change": {
+        "step": "much-above",
+        "shift": 1,
+        "medianChange": 1.35
+      },
+      "reference": 0.8445,
+      "confidence": 1,
+      "grid": "e38e07a8"
+    },
+    {
+      "frameId": "mur-sst-mauritius/2023-04-13",
+      "date": "2023-04-13",
+      "stats": {
+        "validShare": 0.938,
+        "median": 28.275,
+        "position": 0.8818,
+        "iqr": 0.3,
+        "min": {
+          "value": 27.525,
+          "x": 0.6953,
+          "y": 0.0156
+        },
+        "max": {
+          "value": 28.725,
+          "x": 0.1953,
+          "y": 0.5781
+        }
+      },
+      "histogram": [
+        0,
+        0,
+        0,
+        0.1286,
+        0.8714
+      ],
+      "hotspots": [
+        {
+          "id": "h13",
+          "band": "high",
+          "cells": 1650,
+          "centroid": [
+            0.4628,
+            0.5473
+          ],
+          "peak": 28.725,
+          "peakPosition": 0.8958
+        },
+        {
+          "id": "h16",
+          "band": "high",
+          "cells": 12,
+          "centroid": [
+            0.9648,
+            0.1823
+          ],
+          "peak": 28.275,
+          "peakPosition": 0.8818
+        },
+        {
+          "id": "h17",
+          "band": "high",
+          "cells": 11,
+          "centroid": [
+            0.5774,
+            0.044
+          ],
+          "peak": 28.125,
+          "peakPosition": 0.8771
+        }
+      ],
+      "edges": {
+        "density": 0,
+        "strongest": {
+          "level": 0.8818,
+          "closed": false,
+          "points": 64
+        }
+      },
+      "motion": {
+        "dx": 0,
+        "dy": 0,
+        "speed": 0,
+        "direction": null,
+        "changedShare": 0
+      },
+      "change": {
+        "step": "much-above",
+        "shift": 1,
+        "medianChange": 1.2
+      },
+      "reference": 0.8445,
+      "confidence": 1,
+      "grid": "5a4126ad"
+    },
+    {
+      "frameId": "mur-sst-mauritius/2023-04-23",
+      "date": "2023-04-23",
+      "stats": {
+        "validShare": 0.938,
+        "median": 28.125,
+        "position": 0.8771,
+        "iqr": 0.3,
+        "min": {
+          "value": 27.225,
+          "x": 0.3047,
+          "y": 0.3281
+        },
+        "max": {
+          "value": 29.025,
+          "x": 0.1328,
+          "y": 0.7031
+        }
+      },
+      "histogram": [
+        0,
+        0,
+        0,
+        0.4623,
+        0.5377
+      ],
+      "hotspots": [
+        {
+          "id": "h18",
+          "band": "high",
+          "cells": 958,
+          "centroid": [
+            0.4924,
+            0.695
+          ],
+          "peak": 29.025,
+          "peakPosition": 0.9051
+        },
+        {
+          "id": "h17",
+          "band": "high",
+          "cells": 38,
+          "centroid": [
+            0.6883,
+            0.0436
+          ],
+          "peak": 28.125,
+          "peakPosition": 0.8771
+        },
+        {
+          "id": "h19",
+          "band": "high",
+          "cells": 20,
+          "centroid": [
+            0.0672,
+            0.0375
+          ],
+          "peak": 28.125,
+          "peakPosition": 0.8771
+        },
+        {
+          "id": "h20",
+          "band": "high",
+          "cells": 12,
+          "centroid": [
+            0.4219,
+            0.1745
+          ],
+          "peak": 28.125,
+          "peakPosition": 0.8771
+        }
+      ],
+      "edges": {
+        "density": 0,
+        "strongest": {
+          "level": 0.8771,
+          "closed": false,
+          "points": 64
+        }
+      },
+      "motion": {
+        "dx": 0,
+        "dy": 0,
+        "speed": 0,
+        "direction": null,
+        "changedShare": 0
+      },
+      "change": {
+        "step": "much-above",
+        "shift": 1,
+        "medianChange": 1.05
+      },
+      "reference": 0.8445,
+      "confidence": 1,
+      "grid": "b3159d3a"
+    },
+    {
+      "frameId": "mur-sst-mauritius/2023-05-03",
+      "date": "2023-05-03",
+      "stats": {
+        "validShare": 0.938,
+        "median": 27.675,
+        "position": 0.8631,
+        "iqr": 0.15,
+        "min": {
+          "value": 27.225,
+          "x": 0.4922,
+          "y": 0.3594
+        },
+        "max": {
+          "value": 28.425,
+          "x": 0.9141,
+          "y": 0.0469
+        }
+      },
+      "histogram": [
+        0,
+        0,
+        0,
+        0.9401,
+        0.0599
+      ],
+      "hotspots": [
+        {
+          "id": "h21",
+          "band": "high",
+          "cells": 73,
+          "centroid": [
+            0.8653,
+            0.064
+          ],
+          "peak": 28.425,
+          "peakPosition": 0.8865
+        },
+        {
+          "id": "h20",
           "band": "high",
           "cells": 39,
           "centroid": [
-            0.9597,
-            0.4629
+            0.485,
+            0.0789
           ],
-          "peak": 26.0137,
-          "peakPosition": 0.8671
-        },
-        {
-          "id": "h5",
-          "band": "high",
-          "cells": 32,
-          "centroid": [
-            0.0327,
-            0.4649
-          ],
-          "peak": 26.0137,
-          "peakPosition": 0.8671
+          "peak": 28.125,
+          "peakPosition": 0.8771
         }
       ],
       "edges": {
-        "density": 0.0003,
+        "density": 0,
         "strongest": {
-          "level": 0.5281,
+          "level": 0.8631,
           "closed": false,
           "points": 64
         }
       },
       "motion": {
-        "dx": 0.0588,
-        "dy": 1,
-        "speed": 1.0017,
-        "direction": -1.512,
-        "changedShare": 0.6071
+        "dx": 0,
+        "dy": 0,
+        "speed": 0,
+        "direction": null,
+        "changedShare": 0
       },
-      "change": null,
-      "reference": 0.5395,
+      "change": {
+        "step": "above",
+        "shift": 0.5,
+        "medianChange": 0.6
+      },
+      "reference": 0.8445,
       "confidence": 1,
-      "grid": "b14bc29b"
+      "grid": "07f35234"
     },
     {
-      "frameId": "synthetic-globe/2024-12-15",
-      "date": "2024-12-15",
+      "frameId": "mur-sst-mauritius/2023-05-13",
+      "date": "2023-05-13",
       "stats": {
-        "validShare": 0.8003,
-        "median": 15.7275,
-        "position": 0.5242,
-        "iqr": 13.3088,
+        "validShare": 0.938,
+        "median": 27.375,
+        "position": 0.8538,
+        "iqr": 0.3,
         "min": {
-          "value": 0,
-          "x": 0.0078,
-          "y": 0.0138
+          "value": 27.075,
+          "x": 0.6953,
+          "y": 0.5781
         },
         "max": {
-          "value": 29.0636,
-          "x": 0.3359,
-          "y": 0.4537
+          "value": 27.825,
+          "x": 0.9922,
+          "y": 0.5781
         }
       },
       "histogram": [
-        0.169,
-        0.1952,
-        0.2251,
-        0.2135,
-        0.1971
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "hotspots": [],
+      "edges": {
+        "density": 0,
+        "strongest": {
+          "level": 0.8538,
+          "closed": false,
+          "points": 64
+        }
+      },
+      "motion": {
+        "dx": 0,
+        "dy": 0,
+        "speed": 0,
+        "direction": null,
+        "changedShare": 0
+      },
+      "change": {
+        "step": "normal",
+        "shift": 0,
+        "medianChange": 0
+      },
+      "reference": 0.8445,
+      "confidence": 1,
+      "grid": "4a5b1530"
+    },
+    {
+      "frameId": "mur-sst-mauritius/2023-05-23",
+      "date": "2023-05-23",
+      "stats": {
+        "validShare": 0.938,
+        "median": 27.525,
+        "position": 0.8585,
+        "iqr": 0.45,
+        "min": {
+          "value": 26.925,
+          "x": 0.4922,
+          "y": 0.3594
+        },
+        "max": {
+          "value": 28.125,
+          "x": 0.6641,
+          "y": 0.0156
+        }
+      },
+      "histogram": [
+        0,
+        0,
+        0.0026,
+        0.9906,
+        0.0068
       ],
       "hotspots": [
         {
-          "id": "h1",
+          "id": "h22",
           "band": "high",
-          "cells": 244,
+          "cells": 7,
           "centroid": [
-            0.4867,
-            0.4748
+            0.6663,
+            0.0781
           ],
-          "peak": 29.0636,
-          "peakPosition": 0.9688
+          "peak": 28.125,
+          "peakPosition": 0.8771
         },
         {
-          "id": "h2",
+          "id": "h23",
+          "band": "high",
+          "cells": 4,
+          "centroid": [
+            0.707,
+            0.1719
+          ],
+          "peak": 28.125,
+          "peakPosition": 0.8771
+        }
+      ],
+      "edges": {
+        "density": 0,
+        "strongest": {
+          "level": 0.8585,
+          "closed": false,
+          "points": 64
+        }
+      },
+      "motion": {
+        "dx": 0,
+        "dy": 0,
+        "speed": 0,
+        "direction": null,
+        "changedShare": 0
+      },
+      "change": {
+        "step": "above",
+        "shift": 0.5,
+        "medianChange": 0.45
+      },
+      "reference": 0.8445,
+      "confidence": 1,
+      "grid": "313671d9"
+    },
+    {
+      "frameId": "mur-sst-mauritius/2023-06-02",
+      "date": "2023-06-02",
+      "stats": {
+        "validShare": 0.938,
+        "median": 27.225,
+        "position": 0.8491,
+        "iqr": 0.15,
+        "min": {
+          "value": 26.175,
+          "x": 0.5859,
+          "y": 0.6094
+        },
+        "max": {
+          "value": 27.675,
+          "x": 0.8359,
+          "y": 0.2969
+        }
+      },
+      "histogram": [
+        0,
+        0,
+        0.2145,
+        0.7855,
+        0
+      ],
+      "hotspots": [],
+      "edges": {
+        "density": 0,
+        "strongest": {
+          "level": 0.8491,
+          "closed": false,
+          "points": 64
+        }
+      },
+      "motion": {
+        "dx": 0,
+        "dy": 0,
+        "speed": 0,
+        "direction": null,
+        "changedShare": 0
+      },
+      "change": {
+        "step": "normal",
+        "shift": 0,
+        "medianChange": 0
+      },
+      "reference": 0.8445,
+      "confidence": 1,
+      "grid": "1851dbe8"
+    },
+    {
+      "frameId": "mur-sst-mauritius/2023-06-12",
+      "date": "2023-06-12",
+      "stats": {
+        "validShare": 0.938,
+        "median": 26.475,
+        "position": 0.8258,
+        "iqr": 0.15,
+        "min": {
+          "value": 25.875,
+          "x": 0.6328,
+          "y": 0.5156
+        },
+        "max": {
+          "value": 26.775,
+          "x": 0.0859,
+          "y": 0.0156
+        }
+      },
+      "histogram": [
+        0,
+        0.0026,
+        0.9974,
+        0,
+        0
+      ],
+      "hotspots": [],
+      "edges": {
+        "density": 0,
+        "strongest": {
+          "level": 0.8258,
+          "closed": false,
+          "points": 64
+        }
+      },
+      "motion": {
+        "dx": 0,
+        "dy": 0,
+        "speed": 0,
+        "direction": null,
+        "changedShare": 0
+      },
+      "change": {
+        "step": "below",
+        "shift": -0.5,
+        "medianChange": -0.75
+      },
+      "reference": 0.8445,
+      "confidence": 1,
+      "grid": "c59c9761"
+    },
+    {
+      "frameId": "mur-sst-mauritius/2023-06-22",
+      "date": "2023-06-22",
+      "stats": {
+        "validShare": 0.938,
+        "median": 25.875,
+        "position": 0.8072,
+        "iqr": 0.15,
+        "min": {
+          "value": 25.425,
+          "x": 0.1328,
+          "y": 0.1094
+        },
+        "max": {
+          "value": 26.325,
+          "x": 0.2422,
+          "y": 0.2031
+        }
+      },
+      "histogram": [
+        0,
+        0.6377,
+        0.3623,
+        0,
+        0
+      ],
+      "hotspots": [],
+      "edges": {
+        "density": 0,
+        "strongest": {
+          "level": 0.8072,
+          "closed": false,
+          "points": 64
+        }
+      },
+      "motion": {
+        "dx": 0,
+        "dy": 0,
+        "speed": 0,
+        "direction": null,
+        "changedShare": 0
+      },
+      "change": {
+        "step": "much-below",
+        "shift": -1,
+        "medianChange": -1.2
+      },
+      "reference": 0.8445,
+      "confidence": 1,
+      "grid": "4cce7469"
+    },
+    {
+      "frameId": "mur-sst-mauritius/2023-07-02",
+      "date": "2023-07-02",
+      "stats": {
+        "validShare": 0.938,
+        "median": 25.575,
+        "position": 0.7978,
+        "iqr": 0.3,
+        "min": {
+          "value": 24.525,
+          "x": 0.9453,
+          "y": 0.9844
+        },
+        "max": {
+          "value": 25.875,
+          "x": 0.6484,
+          "y": 0.0469
+        }
+      },
+      "histogram": [
+        0.0828,
+        0.9172,
+        0,
+        0,
+        0
+      ],
+      "hotspots": [
+        {
+          "id": "h24",
           "band": "low",
-          "cells": 212,
+          "cells": 128,
           "centroid": [
-            0.5681,
-            0.0607
+            0.8428,
+            0.8816
           ],
-          "peak": 0,
-          "peakPosition": 0
+          "peak": 24.525,
+          "peakPosition": 0.7652
         },
         {
-          "id": "h3",
+          "id": "h25",
           "band": "low",
-          "cells": 64,
+          "cells": 26,
           "centroid": [
-            0.5,
-            0.8662
+            0.5901,
+            0.9375
           ],
-          "peak": 4.317,
-          "peakPosition": 0.1439
+          "peak": 24.825,
+          "peakPosition": 0.7745
+        }
+      ],
+      "edges": {
+        "density": 0,
+        "strongest": {
+          "level": 0.7978,
+          "closed": false,
+          "points": 64
+        }
+      },
+      "motion": {
+        "dx": 0,
+        "dy": 0,
+        "speed": 0,
+        "direction": null,
+        "changedShare": 0
+      },
+      "change": {
+        "step": "much-below",
+        "shift": -1,
+        "medianChange": -1.65
+      },
+      "reference": 0.8445,
+      "confidence": 1,
+      "grid": "8a54d675"
+    },
+    {
+      "frameId": "mur-sst-mauritius/2023-07-12",
+      "date": "2023-07-12",
+      "stats": {
+        "validShare": 0.938,
+        "median": 24.975,
+        "position": 0.7792,
+        "iqr": 0.3,
+        "min": {
+          "value": 24.225,
+          "x": 0.2266,
+          "y": 0.9844
+        },
+        "max": {
+          "value": 25.425,
+          "x": 0.1016,
+          "y": 0.0156
+        }
+      },
+      "histogram": [
+        0.5279,
+        0.4721,
+        0,
+        0,
+        0
+      ],
+      "hotspots": [
+        {
+          "id": "h26",
+          "band": "low",
+          "cells": 962,
+          "centroid": [
+            0.5447,
+            0.685
+          ],
+          "peak": 24.225,
+          "peakPosition": 0.7558
         },
         {
-          "id": "h4",
-          "band": "high",
-          "cells": 43,
+          "id": "h27",
+          "band": "low",
+          "cells": 21,
           "centroid": [
-            0.9577,
-            0.4723
+            0.2794,
+            0.3847
           ],
-          "peak": 26.0546,
-          "peakPosition": 0.8685
+          "peak": 24.825,
+          "peakPosition": 0.7745
         },
         {
-          "id": "h5",
-          "band": "high",
-          "cells": 36,
+          "id": "h28",
+          "band": "low",
+          "cells": 12,
           "centroid": [
-            0.036,
-            0.4759
+            0.9766,
+            0.4323
           ],
-          "peak": 26.0956,
-          "peakPosition": 0.8699
-        }
-      ],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.5242,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": -0.2222,
-        "dy": 1,
-        "speed": 1.0244,
-        "direction": -1.7895,
-        "changedShare": 0.1607
-      },
-      "change": null,
-      "reference": 0.5395,
-      "confidence": 1,
-      "grid": "af7311e5"
-    }
-  ],
-  "synthetic-change": [
-    {
-      "frameId": "synthetic-change/2024-01-15",
-      "date": "2024-01-15",
-      "stats": {
-        "validShare": 0.8315,
-        "median": 20.3472,
-        "position": 0.6782,
-        "iqr": 0.5736,
-        "min": {
-          "value": 19.7711,
-          "x": 0.0234,
-          "y": 0.8662
+          "peak": 24.975,
+          "peakPosition": 0.7792
         },
-        "max": {
-          "value": 20.9736,
-          "x": 0.0078,
-          "y": 0.0138
+        {
+          "id": "h29",
+          "band": "low",
+          "cells": 9,
+          "centroid": [
+            0.9141,
+            0.349
+          ],
+          "peak": 24.975,
+          "peakPosition": 0.7792
         }
-      },
-      "histogram": [
-        0,
-        0,
-        0,
-        1,
-        0
       ],
-      "hotspots": [],
       "edges": {
         "density": 0,
         "strongest": {
-          "level": 0.6782,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": null,
-      "change": {
-        "step": "normal",
-        "shift": 0,
-        "medianChange": 0
-      },
-      "reference": 0.6782,
-      "confidence": 1,
-      "grid": "08d856bd"
-    },
-    {
-      "frameId": "synthetic-change/2024-02-15",
-      "date": "2024-02-15",
-      "stats": {
-        "validShare": 0.8315,
-        "median": 20.8528,
-        "position": 0.6951,
-        "iqr": 0.6264,
-        "min": {
-          "value": 20.2943,
-          "x": 0.0234,
-          "y": 0.8662
-        },
-        "max": {
-          "value": 21.4792,
-          "x": 0.0078,
-          "y": 0.0138
-        }
-      },
-      "histogram": [
-        0,
-        0,
-        0,
-        1,
-        0
-      ],
-      "hotspots": [],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.6951,
+          "level": 0.7792,
           "closed": false,
           "points": 64
         }
@@ -2098,45 +1467,57 @@
         "changedShare": 0
       },
       "change": {
-        "step": "normal",
-        "shift": 0,
-        "medianChange": 0
+        "step": "much-below",
+        "shift": -1,
+        "medianChange": -2.1
       },
-      "reference": 0.6782,
+      "reference": 0.8445,
       "confidence": 1,
-      "grid": "5ca6744f"
+      "grid": "eb54a133"
     },
     {
-      "frameId": "synthetic-change/2024-03-15",
-      "date": "2024-03-15",
+      "frameId": "mur-sst-mauritius/2023-07-22",
+      "date": "2023-07-22",
       "stats": {
-        "validShare": 0.8315,
-        "median": 20.3472,
-        "position": 0.6782,
-        "iqr": 0.5736,
+        "validShare": 0.938,
+        "median": 24.675,
+        "position": 0.7698,
+        "iqr": 0.3,
         "min": {
-          "value": 19.7711,
-          "x": 0.0234,
-          "y": 0.8662
+          "value": 24.225,
+          "x": 0.5078,
+          "y": 0.3594
         },
         "max": {
-          "value": 20.9736,
-          "x": 0.0078,
-          "y": 0.0138
+          "value": 25.275,
+          "x": 0.9766,
+          "y": 0.8594
         }
       },
       "histogram": [
+        0.9901,
+        0.0099,
         0,
         0,
-        0,
-        1,
         0
       ],
-      "hotspots": [],
+      "hotspots": [
+        {
+          "id": "h30",
+          "band": "low",
+          "cells": 1902,
+          "centroid": [
+            0.4975,
+            0.4955
+          ],
+          "peak": 24.225,
+          "peakPosition": 0.7558
+        }
+      ],
       "edges": {
         "density": 0,
         "strongest": {
-          "level": 0.6782,
+          "level": 0.7698,
           "closed": false,
           "points": 64
         }
@@ -2149,45 +1530,90 @@
         "changedShare": 0
       },
       "change": {
-        "step": "normal",
-        "shift": 0,
-        "medianChange": 0
+        "step": "much-below",
+        "shift": -1,
+        "medianChange": -2.4
       },
-      "reference": 0.6782,
+      "reference": 0.8445,
       "confidence": 1,
-      "grid": "08d856bd"
+      "grid": "b70232ad"
     },
     {
-      "frameId": "synthetic-change/2024-04-15",
-      "date": "2024-04-15",
+      "frameId": "mur-sst-mauritius/2023-08-01",
+      "date": "2023-08-01",
       "stats": {
-        "validShare": 0.8315,
-        "median": 18.887,
-        "position": 0.6296,
-        "iqr": 0.6145,
+        "validShare": 0.938,
+        "median": 24.825,
+        "position": 0.7745,
+        "iqr": 0.3,
         "min": {
-          "value": 18.3162,
+          "value": 24.075,
           "x": 0.0234,
-          "y": 0.8662
+          "y": 0.5781
         },
         "max": {
-          "value": 19.4985,
-          "x": 0.0078,
-          "y": 0.0138
+          "value": 25.275,
+          "x": 0.9766,
+          "y": 0.1094
         }
       },
       "histogram": [
+        0.8938,
+        0.1062,
         0,
         0,
-        0,
-        1,
         0
       ],
-      "hotspots": [],
+      "hotspots": [
+        {
+          "id": "h30",
+          "band": "low",
+          "cells": 1702,
+          "centroid": [
+            0.4561,
+            0.5101
+          ],
+          "peak": 24.075,
+          "peakPosition": 0.7512
+        },
+        {
+          "id": "h31",
+          "band": "low",
+          "cells": 6,
+          "centroid": [
+            0.9818,
+            0.3177
+          ],
+          "peak": 24.975,
+          "peakPosition": 0.7792
+        },
+        {
+          "id": "h32",
+          "band": "low",
+          "cells": 4,
+          "centroid": [
+            0.9883,
+            0.4531
+          ],
+          "peak": 24.975,
+          "peakPosition": 0.7792
+        },
+        {
+          "id": "h33",
+          "band": "low",
+          "cells": 4,
+          "centroid": [
+            0.75,
+            0.6094
+          ],
+          "peak": 24.975,
+          "peakPosition": 0.7792
+        }
+      ],
       "edges": {
         "density": 0,
         "strongest": {
-          "level": 0.6296,
+          "level": 0.7745,
           "closed": false,
           "points": 64
         }
@@ -2200,421 +1626,13 @@
         "changedShare": 0
       },
       "change": {
-        "step": "normal",
-        "shift": 0,
-        "medianChange": 0
+        "step": "much-below",
+        "shift": -1,
+        "medianChange": -2.25
       },
-      "reference": 0.6782,
+      "reference": 0.8445,
       "confidence": 1,
-      "grid": "23e28923"
-    },
-    {
-      "frameId": "synthetic-change/2024-05-15",
-      "date": "2024-05-15",
-      "stats": {
-        "validShare": 0.8315,
-        "median": 16.887,
-        "position": 0.5629,
-        "iqr": 0.6145,
-        "min": {
-          "value": 16.3162,
-          "x": 0.0234,
-          "y": 0.8662
-        },
-        "max": {
-          "value": 17.4985,
-          "x": 0.0078,
-          "y": 0.0138
-        }
-      },
-      "histogram": [
-        0,
-        0,
-        1,
-        0,
-        0
-      ],
-      "hotspots": [],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.5629,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": 0,
-        "speed": 0,
-        "direction": null,
-        "changedShare": 0
-      },
-      "change": {
-        "step": "normal",
-        "shift": 0,
-        "medianChange": 0
-      },
-      "reference": 0.6782,
-      "confidence": 1,
-      "grid": "f9701cd3"
-    },
-    {
-      "frameId": "synthetic-change/2024-06-15",
-      "date": "2024-06-15",
-      "stats": {
-        "validShare": 0.8315,
-        "median": 14.8847,
-        "position": 0.4962,
-        "iqr": 0.6136,
-        "min": {
-          "value": 14.3247,
-          "x": 0.0234,
-          "y": 0.8662
-        },
-        "max": {
-          "value": 15.4985,
-          "x": 0.0078,
-          "y": 0.0138
-        }
-      },
-      "histogram": [
-        0,
-        0,
-        1,
-        0,
-        0
-      ],
-      "hotspots": [],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.4962,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": 0,
-        "speed": 0,
-        "direction": null,
-        "changedShare": 0
-      },
-      "change": {
-        "step": "normal",
-        "shift": 0,
-        "medianChange": 0
-      },
-      "reference": 0.6782,
-      "confidence": 1,
-      "grid": "ec73be4d"
-    },
-    {
-      "frameId": "synthetic-change/2024-07-15",
-      "date": "2024-07-15",
-      "stats": {
-        "validShare": 0.8315,
-        "median": 13.4282,
-        "position": 0.4476,
-        "iqr": 0.6376,
-        "min": {
-          "value": 12.8188,
-          "x": 0.0234,
-          "y": 0.8662
-        },
-        "max": {
-          "value": 14.0188,
-          "x": 0.0234,
-          "y": 0.0138
-        }
-      },
-      "histogram": [
-        0,
-        0,
-        1,
-        0,
-        0
-      ],
-      "hotspots": [],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.4476,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": 0,
-        "speed": 0,
-        "direction": null,
-        "changedShare": 0
-      },
-      "change": {
-        "step": "normal",
-        "shift": 0,
-        "medianChange": 0
-      },
-      "reference": 0.6782,
-      "confidence": 1,
-      "grid": "bc1e0a12"
-    },
-    {
-      "frameId": "synthetic-change/2024-08-15",
-      "date": "2024-08-15",
-      "stats": {
-        "validShare": 0.8315,
-        "median": 12.9341,
-        "position": 0.4311,
-        "iqr": 0.7529,
-        "min": {
-          "value": 12.3247,
-          "x": 0.0234,
-          "y": 0.8662
-        },
-        "max": {
-          "value": 13.8188,
-          "x": 0.7734,
-          "y": 0.0963
-        }
-      },
-      "histogram": [
-        0,
-        0,
-        1,
-        0,
-        0
-      ],
-      "hotspots": [],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.4311,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": 0,
-        "speed": 0,
-        "direction": null,
-        "changedShare": 0
-      },
-      "change": {
-        "step": "normal",
-        "shift": 0,
-        "medianChange": 0
-      },
-      "reference": 0.6782,
-      "confidence": 1,
-      "grid": "c9b0dafd"
-    },
-    {
-      "frameId": "synthetic-change/2024-09-15",
-      "date": "2024-09-15",
-      "stats": {
-        "validShare": 0.8315,
-        "median": 13.4941,
-        "position": 0.4498,
-        "iqr": 0.7412,
-        "min": {
-          "value": 12.8188,
-          "x": 0.0234,
-          "y": 0.8662
-        },
-        "max": {
-          "value": 14.5718,
-          "x": 0.7422,
-          "y": 0.1237
-        }
-      },
-      "histogram": [
-        0,
-        0,
-        1,
-        0,
-        0
-      ],
-      "hotspots": [],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.4498,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": 0,
-        "speed": 0,
-        "direction": null,
-        "changedShare": 0
-      },
-      "change": {
-        "step": "normal",
-        "shift": 0,
-        "medianChange": 0
-      },
-      "reference": 0.6782,
-      "confidence": 1,
-      "grid": "7bb75fb6"
-    },
-    {
-      "frameId": "synthetic-change/2024-10-15",
-      "date": "2024-10-15",
-      "stats": {
-        "validShare": 0.8315,
-        "median": 14.9341,
-        "position": 0.4978,
-        "iqr": 0.792,
-        "min": {
-          "value": 14.3247,
-          "x": 0.0234,
-          "y": 0.8662
-        },
-        "max": {
-          "value": 16.8147,
-          "x": 0.7578,
-          "y": 0.1237
-        }
-      },
-      "histogram": [
-        0,
-        0,
-        1,
-        0,
-        0
-      ],
-      "hotspots": [],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.4978,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": 0,
-        "speed": 0,
-        "direction": null,
-        "changedShare": 0
-      },
-      "change": {
-        "step": "normal",
-        "shift": 0,
-        "medianChange": 0
-      },
-      "reference": 0.6782,
-      "confidence": 1,
-      "grid": "a4154eee"
-    },
-    {
-      "frameId": "synthetic-change/2024-11-15",
-      "date": "2024-11-15",
-      "stats": {
-        "validShare": 0.8315,
-        "median": 16.887,
-        "position": 0.5629,
-        "iqr": 0.6145,
-        "min": {
-          "value": 16.3162,
-          "x": 0.0234,
-          "y": 0.8662
-        },
-        "max": {
-          "value": 17.4985,
-          "x": 0.0078,
-          "y": 0.0138
-        }
-      },
-      "histogram": [
-        0,
-        0,
-        1,
-        0,
-        0
-      ],
-      "hotspots": [],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.5629,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": 1,
-        "speed": 1,
-        "direction": -1.5708,
-        "changedShare": 0.0714
-      },
-      "change": {
-        "step": "normal",
-        "shift": 0,
-        "medianChange": 0
-      },
-      "reference": 0.6782,
-      "confidence": 1,
-      "grid": "f9701cd3"
-    },
-    {
-      "frameId": "synthetic-change/2024-12-15",
-      "date": "2024-12-15",
-      "stats": {
-        "validShare": 0.8315,
-        "median": 18.887,
-        "position": 0.6296,
-        "iqr": 0.6145,
-        "min": {
-          "value": 18.3162,
-          "x": 0.0234,
-          "y": 0.8662
-        },
-        "max": {
-          "value": 19.4985,
-          "x": 0.0078,
-          "y": 0.0138
-        }
-      },
-      "histogram": [
-        0,
-        0,
-        0,
-        1,
-        0
-      ],
-      "hotspots": [],
-      "edges": {
-        "density": 0,
-        "strongest": {
-          "level": 0.6296,
-          "closed": false,
-          "points": 64
-        }
-      },
-      "motion": {
-        "dx": 0,
-        "dy": 0,
-        "speed": 0,
-        "direction": null,
-        "changedShare": 0
-      },
-      "change": {
-        "step": "normal",
-        "shift": 0,
-        "medianChange": 0
-      },
-      "reference": 0.6782,
-      "confidence": 1,
-      "grid": "23e28923"
+      "grid": "29831fd0"
     }
   ]
 }

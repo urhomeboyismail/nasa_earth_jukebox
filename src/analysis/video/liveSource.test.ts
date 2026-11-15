@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
-import syntheticChange from '../../../public/data/synthetic-change/manifest.json'
+import mur from '../../../public/data/mur-sst-mauritius/manifest.json'
 import type { Visualization, VideoSpec } from '../../data'
 import { LIVE_COLOUR_TOLERANCE } from '../features/types'
 import { resetStream } from '../features'
@@ -150,7 +150,12 @@ describe('the reading', () => {
 })
 
 describe('the normal, when the data set has one', () => {
-  const climatology = (): Visualization => ({ ...(syntheticChange as unknown as Visualization), video: { ...SPEC, firstFrameDate: '2024-08-15' } })
+  const climatology = (): Visualization => ({
+    ...(mur as unknown as Visualization),
+    baseline: { kind: 'climatology', label: 'the normal for each date', noiseFloor: 0.2 },
+    frames: (mur as unknown as Visualization).frames.map(f => ({ ...f, baselineImage: `baselines/${f.date}.png` })),
+    video: { ...SPEC, firstFrameDate: '2023-02-12' },
+  })
 
   it('is read from the checked files for the frame of the same date', async () => {
     const live = instantExtract()
@@ -159,7 +164,7 @@ describe('the normal, when the data set has one', () => {
     source.start()
     video.present(0, 0)
     await flush()
-    expect(loaded).toEqual(['baselines/2024-08-15.png'])
+    expect(loaded).toEqual(['baselines/2023-02-12.png'])
     expect(live.calls[0].input.baseline?.pixels).not.toBeNull()
     expect(live.calls[0].input.baseline?.noiseFloor).toBe(0.2)
     source.dispose()
@@ -171,7 +176,7 @@ describe('the normal, when the data set has one', () => {
     source.start()
     video.present(0, 0.1)
     await flush()
-    expect(live.calls[0].input.date).toBe('2024-08-16')
+    expect(live.calls[0].input.date).toBe('2023-02-13')
     expect(live.calls[0].input.baseline).toBeUndefined()
     source.dispose()
   })

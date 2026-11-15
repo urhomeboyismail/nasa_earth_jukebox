@@ -4,8 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import type { z } from 'zod'
 import fixture from '../../public/data/fixture/manifest.json'
-import globe from '../../public/data/synthetic-globe/manifest.json'
-import synthetic from '../../public/data/synthetic-ocean/manifest.json'
+import mur from '../../public/data/mur-sst-mauritius/manifest.json'
 import catalogJson from '../../public/data/index.json'
 import { catalogSchema, describeIssues, visualizationSchema } from './schema'
 import type { CatalogEntry, Visualization } from './types'
@@ -109,7 +108,7 @@ describe('visualizationSchema', () => {
   })
 
   it('accepts the committed manifests, each with the noise cue', () => {
-    for (const manifest of [fixture, synthetic, globe]) {
+    for (const manifest of [fixture, mur]) {
       const result = visualizationSchema.safeParse(manifest)
       expect(result.success ? '' : describeIssues(result.error, 10)).toBe('')
       expect(result.data?.mapping.missingCue.type).toBe('noise')
@@ -272,7 +271,7 @@ describe('baselines (v2)', () => {
   })
 
   it('still accepts every manifest that has none of the new fields', () => {
-    for (const manifest of [fixture, synthetic, globe]) expect(visualizationSchema.safeParse(manifest).success).toBe(true)
+    for (const manifest of [fixture, mur]) expect(visualizationSchema.safeParse(manifest).success).toBe(true)
     expect(visualizationSchema.parse(fixture)).not.toHaveProperty('baseline')
   })
 
@@ -360,7 +359,7 @@ describe('v3 fields: legend, video and sonification (SN05)', () => {
   }
 
   it('leaves every committed manifest exactly as it was: none of the three fields, so the defaults apply', () => {
-    for (const manifest of [fixture, synthetic, globe]) {
+    for (const manifest of [fixture, mur]) {
       const parsed = visualizationSchema.parse(manifest)
       for (const field of ['legend', 'video', 'sonification']) expect(parsed).not.toHaveProperty(field)
     }

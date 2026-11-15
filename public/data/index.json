@@ -5,34 +5,9 @@
     "summary": "Four test frames with obvious answers, for development."
   },
   {
-    "id": "synthetic-ocean",
-    "title": "Synthetic ocean",
-    "summary": "Twelve made-up frames with known answers, for testing."
-  },
-  {
-    "id": "synthetic-globe",
-    "title": "Synthetic globe (made-up practice data)",
-    "summary": "Twelve made-up monthly frames of a pretend globe with a marine heatwave, for practice."
-  },
-  {
-    "id": "synthetic-change",
-    "title": "Synthetic change (made-up practice data)",
-    "summary": "Twelve made-up monthly frames, each with its own normal, where a warm patch grows in the east, for practice."
-  },
-  {
     "id": "mur-sst-mauritius",
     "title": "Sea surface temperature around Mauritius, 2023",
     "summary": "Twenty 10-day maps of sea surface temperature around Mauritius, January to August 2023, from NASA's MUR product."
-  },
-  {
-    "id": "synthetic-motion",
-    "title": "Synthetic motion (made-up practice data)",
-    "summary": "Twelve made-up daily frames of a pretend current that moves east by exactly two grid cells a step, for practice and tests."
-  },
-  {
-    "id": "synthetic-storm",
-    "title": "Synthetic storm (made-up practice data)",
-    "summary": "Ten made-up daily frames of a warm storm that travels a known path, a cold patch and a day with no data, for practice and tests."
   },
   {
     "id": "sst-anomaly-global",
@@ -43,6 +18,11 @@
     "id": "global-temperature-anomaly",
     "title": "Global temperature change, 1880 to 2025",
     "summary": "Thirty world maps, one every five years from 1880 to 2025, showing how much warmer or cooler each place was than its 1951 to 1980 average."
+  },
+  {
+    "id": "meteomatics-sea-mauritius",
+    "title": "Sea around Mauritius, animated, last 60 days",
+    "summary": "60 daily maps of sea surface temperature around Mauritius up to 14 November 2026, from the Meteomatics weather API, played as a smooth animation."
   },
   {
     "id": "ocean-currents-temperature",

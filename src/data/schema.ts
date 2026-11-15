@@ -148,7 +148,7 @@ export const visualizationSchema = z
     }),
     source: z.object({
       name: nonEmpty,
-      /** Empty for synthetic data, which has no web page. */
+      /** Empty for data with no web page. */
       url: z.string(),
       credit: nonEmpty,
       license: nonEmpty,
