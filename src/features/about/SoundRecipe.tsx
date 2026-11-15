@@ -10,19 +10,20 @@ export function SoundRecipe({ preset }: { preset: Preset }) {
   return (
     <>
       <p>The key is <strong>{preset.label}</strong>. {preset.note}</p>
-      <div className="about__table" role="region" aria-label="Sound recipe" tabIndex={0}>
-        <table>
+      {/* On a phone each row becomes a card (about.css, LY02); the explicit roles keep it a table to screen readers then. */}
+      <div className="about__table about__table--stack" role="region" aria-label="Sound recipe" tabIndex={0}>
+        <table role="table">
           <caption>The seven voices, in the order the captions list them.</caption>
           <thead>
-            <tr><th scope="col">Voice</th><th scope="col">What drives it</th><th scope="col">What it sounds like</th><th scope="col">Plays from</th></tr>
+            <tr role="row"><th role="columnheader" scope="col">Voice</th><th role="columnheader" scope="col">What drives it</th><th role="columnheader" scope="col">What it sounds like</th><th role="columnheader" scope="col">Plays from</th></tr>
           </thead>
           <tbody>
             {rows.map(row => (
-              <tr key={row.voice}>
-                <th scope="row">{row.name}</th>
-                <td>{row.drivenBy}</td>
-                <td>{row.sounds}</td>
-                <td>{LEVEL_WORDS[row.detailLevel]}</td>
+              <tr key={row.voice} role="row">
+                <th role="rowheader" scope="row">{row.name}</th>
+                <td role="cell" data-label="What drives it">{row.drivenBy}</td>
+                <td role="cell" data-label="What it sounds like">{row.sounds}</td>
+                <td role="cell" data-label="Plays from">{LEVEL_WORDS[row.detailLevel]}</td>
               </tr>
             ))}
           </tbody>

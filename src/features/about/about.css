@@ -40,3 +40,31 @@
 
 /* The pipeline diagram scales to the card; the list under it says the same in words. */
 .about__pipeline { display: block; inline-size: 100%; block-size: auto; max-inline-size: 48rem; }
+
+/* LY02: on a phone the wide tables (the sound recipe, the keyboard shortcuts) become one card per row, each value under
+   its column's name, instead of three or four columns of one or two words a line. Their roles (in the markup) keep them a
+   table to screen readers; the labels drawn here are hidden from them, since the column headers already name each cell. */
+@media (max-width: 767.98px) {
+  .about__table--stack { overflow-x: visible; }
+  .about__table--stack table { min-inline-size: 0; }
+  .about__table--stack :is(table, caption, tbody, tr, th, td) { display: block; }
+  .about__table--stack thead {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .about__table--stack tr { padding-block: 0.75rem; border-bottom: 1px solid var(--border); }
+  .about__table--stack :is(th, td) { padding: 0.125rem 0; border: 0; }
+  .about__table--stack tbody th { font-size: 1.0625rem; }
+  .about__table--stack td[data-label] { margin-block-start: 0.375rem; }
+  .about__table--stack td[data-label]::before {
+    content: attr(data-label) / '';
+    display: block;
+    color: var(--text-h);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+}

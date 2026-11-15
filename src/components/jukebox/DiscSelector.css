@@ -221,3 +221,9 @@
   .disc-platter .disc__spin { animation: none; }
   .disc-platter__arm { transition: none; }
 }
+
+/* LY02: on a phone the turntable (a picture: screen readers skip it) is smaller, so the record crate and the player come
+   up the screen; the crate under it is unchanged. */
+@media (max-width: 767.98px) {
+  .disc-platter { inline-size: min(100%, 12rem); }
+}

@@ -178,3 +178,9 @@
 .shortcuts th:first-child,
 .shortcuts td:first-child { white-space: nowrap; }
 .shortcuts kbd { font: inherit; font-weight: 600; padding: 0.1rem 0.5rem; border: 1px solid var(--ui-outline); border-radius: var(--ui-corner-small); }
+
+/* LY02: in a narrow player, Play across the top and Stop, Loop and Mixer as one row of three, not Mixer alone on a row. */
+@container (max-width: 35.99rem) {
+  .player__controls--main { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .player__controls--main .ui-button { padding-inline: 0.5rem; }
+}
