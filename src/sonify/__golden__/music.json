@@ -337,18 +337,19 @@
       }
     ]
   },
-  "synthetic-ocean": {
+  "mur-sst-mauritius": {
     "major": [
       {
-        "frameId": "synthetic-ocean/2024-01-15",
+        "frameId": "mur-sst-mauritius/2023-01-23",
         "melody": [
-          50,
+          74,
           false,
           0.8
         ],
         "harmony": [
           [
-            48
+            53,
+            57
           ],
           0.5
         ],
@@ -356,24 +357,16 @@
           36,
           0.4
         ],
-        "hotspots": [
-          [
-            "h1",
-            "low",
-            62,
-            -0.2042,
-            0.0476,
-            1
-          ]
-        ],
+        "hotspots": [],
         "rhythm": [
           [
-            60,
-            62,
-            64
+            67,
+            69,
+            71,
+            72
           ],
           1,
-          -0.6609
+          0.5618
         ],
         "motion": null,
         "time": [
@@ -383,91 +376,150 @@
         "missing": [],
         "dropout": false,
         "caption": {
-          "melody": "Melody: low",
-          "harmony": "Harmony: thin chord, 1 note",
+          "melody": "Melody: high",
+          "harmony": "Harmony: medium chord, 2 notes",
           "bass": "Bass: middle",
-          "hotspots": "Hot spots: 1, the largest is a low one in the centre",
+          "hotspots": "",
           "rhythm": "Rhythm: sparse",
           "motion": "",
           "time": "Time: steady pulse"
         },
-        "summary": "The overall level is low; 1 hot spot, the largest in the centre; sparse edges."
+        "summary": "The overall level is high; sparse edges."
       },
       {
-        "frameId": "synthetic-ocean/2024-02-15",
-        "melody": [
-          52,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            48
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4536
-        ],
-        "hotspots": [
-          [
-            "h1",
-            "low",
-            64,
-            -0.2042,
-            0.0476,
-            1
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64
-          ],
-          1,
-          -0.6513
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
+        "frameId": "mur-sst-mauritius/2023-02-02",
+        "melody": null,
+        "harmony": null,
+        "bass": null,
+        "hotspots": [],
+        "rhythm": null,
+        "motion": null,
         "time": [
           "month",
           84
         ],
-        "missing": [],
-        "dropout": false,
+        "missing": [
+          "melody",
+          "harmony",
+          "bass"
+        ],
+        "dropout": true,
         "caption": {
-          "melody": "Melody: low, rising",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, rising",
-          "hotspots": "Hot spots: 1, the largest is a low one in the centre",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
+          "melody": "Melody: not enough data",
+          "harmony": "Harmony: not enough data",
+          "bass": "Bass: not enough data",
+          "hotspots": "",
+          "rhythm": "",
+          "motion": "",
           "time": "Time: steady pulse, new month"
         },
-        "summary": "The overall level is low and rising; 1 hot spot, the largest in the centre; sparse edges; the picture is still; a new month."
+        "summary": "Not enough readable data on this date: only the time pulse sounds."
       },
       {
-        "frameId": "synthetic-ocean/2024-03-15",
+        "frameId": "mur-sst-mauritius/2023-02-12",
         "melody": [
-          53,
-          true,
+          74,
+          false,
           0.8
         ],
         "harmony": [
           [
-            52
+            57
           ],
           0.5
         ],
         "bass": [
           38,
-          0.5336
+          0.6
         ],
-        "hotspots": [],
+        "hotspots": [
+          [
+            "h1",
+            "high",
+            81,
+            -0.7421,
+            -0.001,
+            0.8643
+          ],
+          [
+            "h2",
+            "high",
+            81,
+            -0.875,
+            0.6687,
+            0.221
+          ]
+        ],
+        "rhythm": [
+          [
+            64,
+            65,
+            69
+          ],
+          1,
+          -0.0238
+        ],
+        "motion": null,
+        "time": [
+          "none",
+          84
+        ],
+        "missing": [],
+        "dropout": false,
+        "caption": {
+          "melody": "Melody: high",
+          "harmony": "Harmony: thin chord, 1 note",
+          "bass": "Bass: high",
+          "hotspots": "Hot spots: 2, the largest is a high one in the west",
+          "rhythm": "Rhythm: sparse",
+          "motion": "",
+          "time": "Time: steady pulse"
+        },
+        "summary": "The overall level is high; 2 hot spots, the largest in the west; sparse edges."
+      },
+      {
+        "frameId": "mur-sst-mauritius/2023-02-22",
+        "melody": [
+          74,
+          false,
+          0.8
+        ],
+        "harmony": [
+          [
+            57
+          ],
+          0.5
+        ],
+        "bass": [
+          38,
+          0.6
+        ],
+        "hotspots": [
+          [
+            "h3",
+            "high",
+            81,
+            -0.6372,
+            -0.3872,
+            0.4193
+          ],
+          [
+            "h4",
+            "high",
+            81,
+            -0.9336,
+            -0.5547,
+            0.1976
+          ],
+          [
+            "h5",
+            "high",
+            81,
+            -0.9531,
+            -0.25,
+            0.1398
+          ]
+        ],
         "rhythm": [
           [
             60,
@@ -475,7 +527,7 @@
             64
           ],
           1,
-          -0.6603
+          -0.642
         ],
         "motion": [
           0,
@@ -483,128 +535,33 @@
           0.2
         ],
         "time": [
-          "month",
+          "none",
           84
         ],
         "missing": [],
         "dropout": false,
         "caption": {
-          "melody": "Melody: low, rising",
+          "melody": "Melody: high, steady",
           "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: high, rising",
-          "hotspots": "",
+          "bass": "Bass: high, steady",
+          "hotspots": "Hot spots: 3, the largest is a high one in the south-west",
           "rhythm": "Rhythm: sparse",
           "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
+          "time": "Time: steady pulse"
         },
-        "summary": "The overall level is low and rising; sparse edges; the picture is still; a new month."
+        "summary": "The overall level is high and steady; 3 hot spots, the largest in the south-west; sparse edges; the picture is still."
       },
       {
-        "frameId": "synthetic-ocean/2024-04-15",
+        "frameId": "mur-sst-mauritius/2023-03-04",
         "melody": [
-          57,
-          true,
+          74,
+          false,
           0.8
         ],
         "harmony": [
           [
-            52
-          ],
-          0.5
-        ],
-        "bass": [
-          38,
-          0.6001
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            60,
-            64
-          ],
-          1,
-          -0.6334
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: low, rising",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: high, rising",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is low and rising; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-ocean/2024-05-15",
-        "melody": [
-          59,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            53
-          ],
-          0.5
-        ],
-        "bass": [
-          40,
-          0.7068
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            60,
-            64
-          ],
-          1,
-          -0.6334
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, rising",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: high, rising",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and rising; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-ocean/2024-06-15",
-        "melody": [
-          64,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            57
+            57,
+            59
           ],
           0.5
         ],
@@ -612,14 +569,41 @@
           41,
           0.8
         ],
-        "hotspots": [],
+        "hotspots": [
+          [
+            "h6",
+            "high",
+            81,
+            -0.074,
+            0.0821,
+            1
+          ],
+          [
+            "h7",
+            "high",
+            81,
+            0.9531,
+            -0.4784,
+            0.2519
+          ],
+          [
+            "h8",
+            "high",
+            81,
+            0.9766,
+            -0.9219,
+            0.1398
+          ]
+        ],
         "rhythm": [
           [
-            60,
-            64
+            65,
+            69,
+            71,
+            72
           ],
           1,
-          -0.597
+          0.5048
         ],
         "motion": [
           0,
@@ -633,41 +617,200 @@
         "missing": [],
         "dropout": false,
         "caption": {
-          "melody": "Melody: middle, rising",
-          "harmony": "Harmony: thin chord, 1 note",
+          "melody": "Melody: high, steady",
+          "harmony": "Harmony: medium chord, 2 notes",
           "bass": "Bass: high, rising",
-          "hotspots": "",
+          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
           "rhythm": "Rhythm: sparse",
           "motion": "Motion: still",
           "time": "Time: steady pulse, new month"
         },
-        "summary": "The overall level is middle and rising; sparse edges; the picture is still; a new month."
+        "summary": "The overall level is high and steady; 3 hot spots, the largest in the centre; sparse edges; the picture is still; a new month."
       },
       {
-        "frameId": "synthetic-ocean/2024-07-15",
+        "frameId": "mur-sst-mauritius/2023-03-14",
         "melody": [
-          64,
+          74,
           false,
           0.8
         ],
         "harmony": [
           [
-            53
+            57,
+            59
           ],
           0.5
         ],
         "bass": [
-          40,
-          0.7469
+          38,
+          0.6
         ],
-        "hotspots": [],
+        "hotspots": [
+          [
+            "h9",
+            "high",
+            81,
+            -0.6526,
+            0.1946,
+            1
+          ],
+          [
+            "h10",
+            "high",
+            81,
+            0.2913,
+            0.722,
+            1
+          ],
+          [
+            "h7",
+            "high",
+            81,
+            0.8415,
+            -0.4844,
+            0.3698
+          ]
+        ],
         "rhythm": [
           [
-            60,
-            64
+            67,
+            69,
+            72
           ],
           1,
-          -0.5961
+          0.561
+        ],
+        "motion": [
+          0,
+          0,
+          0.2
+        ],
+        "time": [
+          "none",
+          84
+        ],
+        "missing": [],
+        "dropout": false,
+        "caption": {
+          "melody": "Melody: high, steady",
+          "harmony": "Harmony: medium chord, 2 notes",
+          "bass": "Bass: high, falling",
+          "hotspots": "Hot spots: 3, the largest is a high one in the west",
+          "rhythm": "Rhythm: sparse",
+          "motion": "Motion: still",
+          "time": "Time: steady pulse"
+        },
+        "summary": "The overall level is high and steady; 3 hot spots, the largest in the west; sparse edges; the picture is still."
+      },
+      {
+        "frameId": "mur-sst-mauritius/2023-03-24",
+        "melody": [
+          74,
+          false,
+          0.8
+        ],
+        "harmony": [
+          [
+            57,
+            59
+          ],
+          0.5
+        ],
+        "bass": [
+          41,
+          0.8
+        ],
+        "hotspots": [
+          [
+            "h13",
+            "high",
+            81,
+            -0.165,
+            -0.1283,
+            1
+          ],
+          [
+            "h14",
+            "high",
+            81,
+            0.6589,
+            0.6682,
+            0.9453
+          ]
+        ],
+        "rhythm": [
+          [
+            67,
+            69
+          ],
+          1,
+          0.4194
+        ],
+        "motion": [
+          0,
+          0,
+          0.2
+        ],
+        "time": [
+          "none",
+          84
+        ],
+        "missing": [],
+        "dropout": false,
+        "caption": {
+          "melody": "Melody: high, steady",
+          "harmony": "Harmony: medium chord, 2 notes",
+          "bass": "Bass: high, rising",
+          "hotspots": "Hot spots: 2, the largest is a high one in the centre",
+          "rhythm": "Rhythm: sparse",
+          "motion": "Motion: still",
+          "time": "Time: steady pulse"
+        },
+        "summary": "The overall level is high and steady; 2 hot spots, the largest in the centre; sparse edges; the picture is still."
+      },
+      {
+        "frameId": "mur-sst-mauritius/2023-04-03",
+        "melody": [
+          74,
+          false,
+          0.8
+        ],
+        "harmony": [
+          [
+            59
+          ],
+          0.5
+        ],
+        "bass": [
+          41,
+          0.8
+        ],
+        "hotspots": [
+          [
+            "h13",
+            "high",
+            81,
+            -0.0697,
+            0.0247,
+            1
+          ],
+          [
+            "h15",
+            "high",
+            81,
+            0.3125,
+            -0.9688,
+            0.1398
+          ]
+        ],
+        "rhythm": [
+          [
+            65,
+            67,
+            69
+          ],
+          1,
+          0.2305
         ],
         "motion": [
           0,
@@ -681,82 +824,60 @@
         "missing": [],
         "dropout": false,
         "caption": {
-          "melody": "Melody: middle, steady",
+          "melody": "Melody: high, steady",
           "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: high, falling",
-          "hotspots": "",
+          "bass": "Bass: high, steady",
+          "hotspots": "Hot spots: 2, the largest is a high one in the centre",
           "rhythm": "Rhythm: sparse",
           "motion": "Motion: still",
           "time": "Time: steady pulse, new month"
         },
-        "summary": "The overall level is middle and steady; sparse edges; the picture is still; a new month."
+        "summary": "The overall level is high and steady; 2 hot spots, the largest in the centre; sparse edges; the picture is still; a new month."
       },
       {
-        "frameId": "synthetic-ocean/2024-08-15",
+        "frameId": "mur-sst-mauritius/2023-04-13",
         "melody": [
-          62,
-          true,
+          74,
+          false,
           0.8
         ],
         "harmony": [
           [
-            53
+            57,
+            59
           ],
           0.5
         ],
         "bass": [
-          38,
-          0.6669
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            60,
-            64
-          ],
-          1,
-          -0.6314
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, falling",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: high, falling",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and falling; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-ocean/2024-09-15",
-        "melody": [
-          60,
-          true,
+          41,
           0.8
         ],
-        "harmony": [
+        "hotspots": [
           [
-            52
+            "h13",
+            "high",
+            81,
+            -0.0744,
+            -0.0945,
+            1
           ],
-          0.5
+          [
+            "h16",
+            "high",
+            81,
+            0.9297,
+            0.6354,
+            0.2421
+          ],
+          [
+            "h17",
+            "high",
+            81,
+            0.1548,
+            0.9119,
+            0.2318
+          ]
         ],
-        "bass": [
-          38,
-          0.5736
-        ],
-        "hotspots": [],
         "rhythm": [
           [
             60,
@@ -764,7 +885,7 @@
             64
           ],
           1,
-          -0.6603
+          -0.5716
         ],
         "motion": [
           0,
@@ -772,124 +893,75 @@
           0.2
         ],
         "time": [
-          "month",
+          "none",
           84
         ],
         "missing": [],
         "dropout": false,
         "caption": {
-          "melody": "Melody: middle, falling",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: high, falling",
-          "hotspots": "",
+          "melody": "Melody: high, steady",
+          "harmony": "Harmony: medium chord, 2 notes",
+          "bass": "Bass: high, steady",
+          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
           "rhythm": "Rhythm: sparse",
           "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
+          "time": "Time: steady pulse"
         },
-        "summary": "The overall level is middle and falling; sparse edges; the picture is still; a new month."
+        "summary": "The overall level is high and steady; 3 hot spots, the largest in the centre; sparse edges; the picture is still."
       },
       {
-        "frameId": "synthetic-ocean/2024-10-15",
-        "melody": null,
-        "harmony": null,
-        "bass": null,
-        "hotspots": [],
-        "rhythm": null,
-        "motion": null,
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [
-          "melody",
-          "harmony",
-          "bass"
-        ],
-        "dropout": true,
-        "caption": {
-          "melody": "Melody: not enough data",
-          "harmony": "Harmony: not enough data",
-          "bass": "Bass: not enough data",
-          "hotspots": "",
-          "rhythm": "",
-          "motion": "",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "Not enough readable data on this date: only the time pulse sounds."
-      },
-      {
-        "frameId": "synthetic-ocean/2024-11-15",
+        "frameId": "mur-sst-mauritius/2023-04-23",
         "melody": [
-          62,
+          74,
           false,
           0.8
         ],
         "harmony": [
           [
-            53
+            57,
+            59
           ],
           0.5
         ],
         "bass": [
-          40,
-          0.7203
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            60,
-            64
-          ],
-          1,
-          -0.6314
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: high",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-ocean/2024-12-15",
-        "melody": [
-          64,
-          true,
+          41,
           0.8
         ],
-        "harmony": [
+        "hotspots": [
           [
-            53
+            "h18",
+            "high",
+            81,
+            -0.0152,
+            -0.3901,
+            1
           ],
-          0.5
+          [
+            "h17",
+            "high",
+            81,
+            0.3766,
+            0.9128,
+            0.4308
+          ],
+          [
+            "h19",
+            "high",
+            81,
+            -0.8656,
+            0.925,
+            0.3125
+          ]
         ],
-        "bass": [
-          40,
-          0.7306
-        ],
-        "hotspots": [],
         "rhythm": [
           [
             60,
-            64
+            62,
+            64,
+            65
           ],
           1,
-          -0.6557
+          -0.6068
         ],
         "motion": [
           0,
@@ -897,28 +969,26 @@
           0.2
         ],
         "time": [
-          "month",
+          "none",
           84
         ],
         "missing": [],
         "dropout": false,
         "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: high, rising",
-          "hotspots": "",
+          "melody": "Melody: high, steady",
+          "harmony": "Harmony: medium chord, 2 notes",
+          "bass": "Bass: high, steady",
+          "hotspots": "Hot spots: 3, the largest is a high one in the south",
           "rhythm": "Rhythm: sparse",
           "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
+          "time": "Time: steady pulse"
         },
-        "summary": "The overall level is middle and steady; sparse edges; the picture is still; a new month."
-      }
-    ],
-    "pentatonic": [
+        "summary": "The overall level is high and steady; 3 hot spots, the largest in the south; sparse edges; the picture is still."
+      },
       {
-        "frameId": "synthetic-ocean/2024-01-15",
+        "frameId": "mur-sst-mauritius/2023-05-03",
         "melody": [
-          50,
+          74,
           false,
           0.8
         ],
@@ -929,27 +999,138 @@
           0.5
         ],
         "bass": [
-          45,
-          0.4
+          38,
+          0.6
         ],
         "hotspots": [
           [
-            "h1",
-            "low",
-            62,
-            -0.2042,
-            0.0476,
-            1
+            "h21",
+            "high",
+            81,
+            0.7305,
+            0.872,
+            0.597
+          ],
+          [
+            "h20",
+            "high",
+            81,
+            -0.03,
+            0.8421,
+            0.4364
           ]
         ],
         "rhythm": [
           [
             60,
-            62,
-            64
+            64,
+            69,
+            71
           ],
           1,
-          -0.6609
+          0.0318
+        ],
+        "motion": [
+          0,
+          0,
+          0.2
+        ],
+        "time": [
+          "month",
+          84
+        ],
+        "missing": [],
+        "dropout": false,
+        "caption": {
+          "melody": "Melody: high, steady",
+          "harmony": "Harmony: thin chord, 1 note",
+          "bass": "Bass: high, falling",
+          "hotspots": "Hot spots: 2, the largest is a high one in the north-east",
+          "rhythm": "Rhythm: sparse",
+          "motion": "Motion: still",
+          "time": "Time: steady pulse, new month"
+        },
+        "summary": "The overall level is high and steady; 2 hot spots, the largest in the north-east; sparse edges; the picture is still; a new month."
+      },
+      {
+        "frameId": "mur-sst-mauritius/2023-05-13",
+        "melody": [
+          74,
+          false,
+          0.8
+        ],
+        "harmony": [
+          [
+            57
+          ],
+          0.5
+        ],
+        "bass": [
+          36,
+          0.4
+        ],
+        "hotspots": [],
+        "rhythm": [
+          [
+            67,
+            69,
+            71,
+            72
+          ],
+          1,
+          0.6444
+        ],
+        "motion": [
+          0,
+          0,
+          0.2
+        ],
+        "time": [
+          "none",
+          84
+        ],
+        "missing": [],
+        "dropout": false,
+        "caption": {
+          "melody": "Melody: high, steady",
+          "harmony": "Harmony: thin chord, 1 note",
+          "bass": "Bass: middle, falling",
+          "hotspots": "",
+          "rhythm": "Rhythm: sparse",
+          "motion": "Motion: still",
+          "time": "Time: steady pulse"
+        },
+        "summary": "The overall level is high and steady; sparse edges; the picture is still."
+      }
+    ],
+    "pentatonic": [
+      {
+        "frameId": "mur-sst-mauritius/2023-01-23",
+        "melody": [
+          74,
+          false,
+          0.8
+        ],
+        "harmony": [
+          [
+            50,
+            52
+          ],
+          0.5
+        ],
+        "bass": [
+          45,
+          0.4
+        ],
+        "hotspots": [],
+        "rhythm": [
+          [
+            67,
+            69,
+            72
+          ],
+          1,
+          0.5618
         ],
         "motion": null,
         "time": [
@@ -959,413 +1140,18 @@
         "missing": [],
         "dropout": false,
         "caption": {
-          "melody": "Melody: low",
-          "harmony": "Harmony: thin chord, 1 note",
+          "melody": "Melody: high",
+          "harmony": "Harmony: medium chord, 2 notes",
           "bass": "Bass: middle",
-          "hotspots": "Hot spots: 1, the largest is a low one in the centre",
+          "hotspots": "",
           "rhythm": "Rhythm: sparse",
           "motion": "",
           "time": "Time: steady pulse"
         },
-        "summary": "The overall level is low; 1 hot spot, the largest in the centre; sparse edges."
+        "summary": "The overall level is high; sparse edges."
       },
       {
-        "frameId": "synthetic-ocean/2024-02-15",
-        "melody": [
-          52,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            57
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4536
-        ],
-        "hotspots": [
-          [
-            "h1",
-            "low",
-            64,
-            -0.2042,
-            0.0476,
-            1
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64
-          ],
-          1,
-          -0.6513
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: low, rising",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, rising",
-          "hotspots": "Hot spots: 1, the largest is a low one in the centre",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is low and rising; 1 hot spot, the largest in the centre; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-ocean/2024-03-15",
-        "melody": [
-          55,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            48
-          ],
-          0.5
-        ],
-        "bass": [
-          48,
-          0.5336
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            60,
-            62,
-            64
-          ],
-          1,
-          -0.6603
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: low, rising",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: high, rising",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is low and rising; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-ocean/2024-04-15",
-        "melody": [
-          57,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            48
-          ],
-          0.5
-        ],
-        "bass": [
-          48,
-          0.6001
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            60,
-            64
-          ],
-          1,
-          -0.6334
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: low, rising",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: high, rising",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is low and rising; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-ocean/2024-05-15",
-        "melody": [
-          60,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            50
-          ],
-          0.5
-        ],
-        "bass": [
-          48,
-          0.7068
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            60,
-            64
-          ],
-          1,
-          -0.6334
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, rising",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: high, rising",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and rising; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-ocean/2024-06-15",
-        "melody": [
-          64,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            52
-          ],
-          0.5
-        ],
-        "bass": [
-          48,
-          0.8
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            60,
-            64
-          ],
-          1,
-          -0.597
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, rising",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: high, rising",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and rising; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-ocean/2024-07-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            50
-          ],
-          0.5
-        ],
-        "bass": [
-          48,
-          0.7469
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            60,
-            64
-          ],
-          1,
-          -0.5961
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: high, falling",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-ocean/2024-08-15",
-        "melody": [
-          62,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            50
-          ],
-          0.5
-        ],
-        "bass": [
-          48,
-          0.6669
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            60,
-            64
-          ],
-          1,
-          -0.6314
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, falling",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: high, falling",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and falling; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-ocean/2024-09-15",
-        "melody": [
-          60,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            48
-          ],
-          0.5
-        ],
-        "bass": [
-          48,
-          0.5736
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            60,
-            62,
-            64
-          ],
-          1,
-          -0.6603
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, falling",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: high, falling",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and falling; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-ocean/2024-10-15",
+        "frameId": "mur-sst-mauritius/2023-02-02",
         "melody": null,
         "harmony": null,
         "bass": null,
@@ -1394,78 +1180,192 @@
         "summary": "Not enough readable data on this date: only the time pulse sounds."
       },
       {
-        "frameId": "synthetic-ocean/2024-11-15",
+        "frameId": "mur-sst-mauritius/2023-02-12",
         "melody": [
-          62,
+          74,
           false,
           0.8
         ],
         "harmony": [
           [
-            50
+            52
           ],
           0.5
         ],
         "bass": [
           48,
-          0.7203
+          0.6
         ],
-        "hotspots": [],
+        "hotspots": [
+          [
+            "h1",
+            "high",
+            81,
+            -0.7421,
+            -0.001,
+            0.8643
+          ],
+          [
+            "h2",
+            "high",
+            81,
+            -0.875,
+            0.6687,
+            0.221
+          ]
+        ],
         "rhythm": [
           [
-            60,
-            64
+            64,
+            69
           ],
           1,
-          -0.6314
+          -0.0238
         ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
+        "motion": null,
         "time": [
-          "month",
+          "none",
           100
         ],
         "missing": [],
         "dropout": false,
         "caption": {
-          "melody": "Melody: middle",
+          "melody": "Melody: high",
           "harmony": "Harmony: thin chord, 1 note",
           "bass": "Bass: high",
-          "hotspots": "",
+          "hotspots": "Hot spots: 2, the largest is a high one in the west",
           "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
+          "motion": "",
+          "time": "Time: steady pulse"
         },
-        "summary": "The overall level is middle; sparse edges; the picture is still; a new month."
+        "summary": "The overall level is high; 2 hot spots, the largest in the west; sparse edges."
       },
       {
-        "frameId": "synthetic-ocean/2024-12-15",
+        "frameId": "mur-sst-mauritius/2023-02-22",
         "melody": [
-          64,
-          true,
+          74,
+          false,
           0.8
         ],
         "harmony": [
           [
-            50
+            52
           ],
           0.5
         ],
         "bass": [
           48,
-          0.7306
+          0.6
         ],
-        "hotspots": [],
+        "hotspots": [
+          [
+            "h3",
+            "high",
+            81,
+            -0.6372,
+            -0.3872,
+            0.4193
+          ],
+          [
+            "h4",
+            "high",
+            81,
+            -0.9336,
+            -0.5547,
+            0.1976
+          ],
+          [
+            "h5",
+            "high",
+            81,
+            -0.9531,
+            -0.25,
+            0.1398
+          ]
+        ],
         "rhythm": [
           [
             60,
+            62,
             64
           ],
           1,
-          -0.6557
+          -0.642
+        ],
+        "motion": [
+          0,
+          0,
+          0.2
+        ],
+        "time": [
+          "none",
+          100
+        ],
+        "missing": [],
+        "dropout": false,
+        "caption": {
+          "melody": "Melody: high, steady",
+          "harmony": "Harmony: thin chord, 1 note",
+          "bass": "Bass: high, steady",
+          "hotspots": "Hot spots: 3, the largest is a high one in the south-west",
+          "rhythm": "Rhythm: sparse",
+          "motion": "Motion: still",
+          "time": "Time: steady pulse"
+        },
+        "summary": "The overall level is high and steady; 3 hot spots, the largest in the south-west; sparse edges; the picture is still."
+      },
+      {
+        "frameId": "mur-sst-mauritius/2023-03-04",
+        "melody": [
+          74,
+          false,
+          0.8
+        ],
+        "harmony": [
+          [
+            52,
+            55
+          ],
+          0.5
+        ],
+        "bass": [
+          48,
+          0.8
+        ],
+        "hotspots": [
+          [
+            "h6",
+            "high",
+            81,
+            -0.074,
+            0.0821,
+            1
+          ],
+          [
+            "h7",
+            "high",
+            81,
+            0.9531,
+            -0.4784,
+            0.2519
+          ],
+          [
+            "h8",
+            "high",
+            81,
+            0.9766,
+            -0.9219,
+            0.1398
+          ]
+        ],
+        "rhythm": [
+          [
+            64,
+            69,
+            72
+          ],
+          1,
+          0.5048
         ],
         "motion": [
           0,
@@ -1479,2517 +1379,140 @@
         "missing": [],
         "dropout": false,
         "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thin chord, 1 note",
+          "melody": "Melody: high, steady",
+          "harmony": "Harmony: medium chord, 2 notes",
           "bass": "Bass: high, rising",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; sparse edges; the picture is still; a new month."
-      }
-    ]
-  },
-  "synthetic-globe": {
-    "major": [
-      {
-        "frameId": "synthetic-globe/2024-01-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            52,
-            53,
-            57,
-            59
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4
-        ],
-        "hotspots": [
-          [
-            "h1",
-            "high",
-            83,
-            -0.0239,
-            0.0408,
-            1
-          ],
-          [
-            "h2",
-            "low",
-            60,
-            0.1362,
-            0.8786,
-            1
-          ],
-          [
-            "h3",
-            "low",
-            64,
-            0,
-            -0.7325,
-            0.559
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64,
-            67,
-            72
-          ],
-          1,
-          0
-        ],
-        "motion": null,
-        "time": [
-          "none",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle",
-          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
-          "rhythm": "Rhythm: sparse",
-          "motion": "",
-          "time": "Time: steady pulse"
-        },
-        "summary": "The overall level is middle; 3 hot spots, the largest in the centre; sparse edges."
-      },
-      {
-        "frameId": "synthetic-globe/2024-02-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            52,
-            53,
-            57,
-            59
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4122
-        ],
-        "hotspots": [
-          [
-            "h1",
-            "high",
-            83,
-            -0.0266,
-            0.0503,
-            1
-          ],
-          [
-            "h2",
-            "low",
-            60,
-            0.1362,
-            0.8786,
-            1
-          ],
-          [
-            "h3",
-            "low",
-            64,
-            0,
-            -0.7325,
-            0.559
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64,
-            67,
-            72
-          ],
-          1,
-          0
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, falling",
           "hotspots": "Hot spots: 3, the largest is a high one in the centre",
           "rhythm": "Rhythm: sparse",
           "motion": "Motion: still",
           "time": "Time: steady pulse, new month"
         },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the centre; sparse edges; the picture is still; a new month."
+        "summary": "The overall level is high and steady; 3 hot spots, the largest in the centre; sparse edges; the picture is still; a new month."
       },
       {
-        "frameId": "synthetic-globe/2024-03-15",
+        "frameId": "mur-sst-mauritius/2023-03-14",
         "melody": [
-          64,
+          74,
           false,
           0.8
         ],
         "harmony": [
           [
-            52,
-            53,
-            57,
-            59
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4091
-        ],
-        "hotspots": [
-          [
-            "h1",
-            "high",
-            83,
-            -0.025,
-            0.083,
-            1
-          ],
-          [
-            "h2",
-            "low",
-            60,
-            0.1794,
-            0.9035,
-            0.8756
-          ],
-          [
-            "h3",
-            "low",
-            62,
-            0,
-            -0.705,
-            0.7906
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64,
-            67,
-            69
-          ],
-          1,
-          -0.1874
-        ],
-        "motion": [
-          0.5122,
-          0.1111,
-          0.5073
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, steady",
-          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle, towards the east",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the centre; sparse edges; movement towards the east; a new month."
-      },
-      {
-        "frameId": "synthetic-globe/2024-04-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            48,
-            53,
-            57,
-            59
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4213
-        ],
-        "hotspots": [
-          [
-            "h1",
-            "high",
-            83,
-            -0.0202,
-            0.1182,
-            1
-          ],
-          [
-            "h3",
-            "low",
-            60,
-            0,
-            -0.6775,
-            0.9682
-          ],
-          [
-            "h2",
-            "low",
-            60,
-            0.2683,
-            0.9158,
-            0.7967
-          ]
-        ],
-        "rhythm": [
-          [
-            62,
-            65,
-            69,
-            72
-          ],
-          1,
-          0.2343
-        ],
-        "motion": [
-          0.5039,
-          -0.0625,
-          0.5023
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, falling",
-          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the centre; sparse edges; movement; a new month."
-      },
-      {
-        "frameId": "synthetic-globe/2024-05-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            52,
-            53,
-            57,
-            59
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4049
-        ],
-        "hotspots": [
-          [
-            "h1",
-            "high",
-            83,
-            -0.018,
-            0.1506,
-            1
-          ],
-          [
-            "h3",
-            "low",
-            60,
-            0,
-            -0.6775,
-            0.9682
-          ],
-          [
-            "h2",
-            "low",
-            62,
-            0.3438,
-            0.945,
-            0.6404
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64,
-            67,
-            72
-          ],
-          1,
-          0.0001
-        ],
-        "motion": [
-          0.5179,
-          -0.1351,
-          0.5108
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, rising",
-          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle, towards the west",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the centre; sparse edges; movement towards the west; a new month."
-      },
-      {
-        "frameId": "synthetic-globe/2024-06-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            48,
-            53,
-            57,
-            59
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4
-        ],
-        "hotspots": [
-          [
-            "h3",
-            "low",
-            60,
-            0,
-            -0.65,
-            1
-          ],
-          [
-            "h1",
-            "high",
-            83,
-            -0.027,
-            0.164,
-            1
-          ],
-          [
-            "h2",
-            "low",
-            64,
-            0.3438,
-            0.9725,
-            0.4529
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64,
-            67,
-            72
-          ],
-          1,
-          0.0002
-        ],
-        "motion": [
-          0.5695,
-          -0.2727,
-          0.5417
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, steady",
-          "hotspots": "Hot spots: 3, the largest is a low one in the south",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle, towards the west",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the south; sparse edges; movement towards the west; a new month."
-      },
-      {
-        "frameId": "synthetic-globe/2024-07-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            48,
-            53,
-            57,
-            59
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4103
-        ],
-        "hotspots": [
-          [
-            "h3",
-            "low",
-            60,
-            0,
-            -0.65,
-            1
-          ],
-          [
-            "h1",
-            "high",
-            83,
-            -0.0251,
-            0.1915,
-            1
-          ],
-          [
-            "h2",
-            "low",
-            64,
-            0.3438,
-            0.9725,
-            0.4529
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64,
-            67,
-            72
-          ],
-          1,
-          0.0004
-        ],
-        "motion": [
-          0.5,
-          0,
-          0.5
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, rising",
-          "hotspots": "Hot spots: 3, the largest is a low one in the south",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the south; sparse edges; movement; a new month."
-      },
-      {
-        "frameId": "synthetic-globe/2024-08-15",
-        "melody": [
-          65,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            48,
-            53,
-            57,
-            59
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4156
-        ],
-        "hotspots": [
-          [
-            "h3",
-            "low",
-            60,
-            0,
-            -0.65,
-            1
-          ],
-          [
-            "h1",
-            "high",
-            83,
-            -0.027,
-            0.164,
-            1
-          ],
-          [
-            "h2",
-            "low",
-            64,
-            0.3438,
-            0.9725,
-            0.4529
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64,
-            67,
-            72
-          ],
-          1,
-          0.0005
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, steady",
-          "hotspots": "Hot spots: 3, the largest is a low one in the south",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the south; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-globe/2024-09-15",
-        "melody": [
-          64,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            52,
-            53,
-            57,
-            59
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4038
-        ],
-        "hotspots": [
-          [
-            "h1",
-            "high",
-            83,
-            -0.018,
-            0.1506,
-            1
-          ],
-          [
-            "h3",
-            "low",
-            60,
-            0,
-            -0.6775,
-            0.9682
-          ],
-          [
-            "h2",
-            "low",
-            62,
-            0.3438,
-            0.945,
-            0.6404
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64,
-            67,
-            72
-          ],
-          1,
-          0.0003
-        ],
-        "motion": [
-          0.6009,
-          0.3333,
-          0.5606
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, falling",
-          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle, towards the east",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the centre; sparse edges; movement towards the east; a new month."
-      },
-      {
-        "frameId": "synthetic-globe/2024-10-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            48,
-            53,
-            57,
-            59
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4149
-        ],
-        "hotspots": [
-          [
-            "h1",
-            "high",
-            83,
-            -0.0202,
-            0.1182,
-            1
-          ],
-          [
-            "h3",
-            "low",
-            60,
-            0,
-            -0.6775,
-            0.9682
-          ],
-          [
-            "h2",
-            "low",
-            60,
-            0.27,
-            0.9238,
-            0.7428
-          ]
-        ],
-        "rhythm": [
-          [
-            62,
-            65,
-            67,
-            69
-          ],
-          1,
-          -0.0158
-        ],
-        "motion": [
-          0.5099,
-          0.1,
-          0.5059
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, falling",
-          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the centre; sparse edges; movement; a new month."
-      },
-      {
-        "frameId": "synthetic-globe/2024-11-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            52,
-            53,
-            57,
-            59
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4091
-        ],
-        "hotspots": [
-          [
-            "h1",
-            "high",
-            83,
-            -0.025,
-            0.083,
-            1
-          ],
-          [
-            "h2",
-            "low",
-            60,
-            0.1794,
-            0.9035,
-            0.8756
-          ],
-          [
-            "h3",
-            "low",
-            62,
-            0,
-            -0.705,
-            0.7906
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64,
-            67,
-            69
-          ],
-          1,
-          -0.1874
-        ],
-        "motion": [
-          0.5009,
-          0.0294,
-          0.5005
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, steady",
-          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the centre; sparse edges; movement; a new month."
-      },
-      {
-        "frameId": "synthetic-globe/2024-12-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            52,
-            53,
-            57,
-            59
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4122
-        ],
-        "hotspots": [
-          [
-            "h1",
-            "high",
-            83,
-            -0.0266,
-            0.0503,
-            1
-          ],
-          [
-            "h2",
-            "low",
-            60,
-            0.1362,
-            0.8786,
-            1
-          ],
-          [
-            "h3",
-            "low",
-            64,
-            0,
-            -0.7325,
-            0.559
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64,
-            67,
-            72
-          ],
-          1,
-          0
-        ],
-        "motion": [
-          0.5122,
-          -0.1111,
-          0.5073
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, steady",
-          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle, towards the west",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the centre; sparse edges; movement towards the west; a new month."
-      }
-    ],
-    "pentatonic": [
-      {
-        "frameId": "synthetic-globe/2024-01-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            48,
-            50,
             52,
             55
           ],
           0.5
         ],
         "bass": [
-          45,
-          0.4
+          48,
+          0.6
         ],
         "hotspots": [
           [
-            "h1",
+            "h9",
             "high",
-            84,
-            -0.0239,
-            0.0408,
+            81,
+            -0.6526,
+            0.1946,
             1
           ],
           [
-            "h2",
-            "low",
-            60,
-            0.1362,
-            0.8786,
+            "h10",
+            "high",
+            81,
+            0.2913,
+            0.722,
             1
           ],
           [
-            "h3",
-            "low",
-            64,
-            0,
-            -0.7325,
-            0.559
+            "h7",
+            "high",
+            81,
+            0.8415,
+            -0.4844,
+            0.3698
           ]
         ],
         "rhythm": [
           [
-            60,
-            64,
             67,
+            69,
             72
           ],
           1,
-          0
+          0.561
         ],
-        "motion": null,
+        "motion": [
+          0,
+          0,
+          0.2
+        ],
         "time": [
           "none",
           100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle",
-          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
-          "rhythm": "Rhythm: sparse",
-          "motion": "",
-          "time": "Time: steady pulse"
-        },
-        "summary": "The overall level is middle; 3 hot spots, the largest in the centre; sparse edges."
-      },
-      {
-        "frameId": "synthetic-globe/2024-02-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            48,
-            50,
-            52,
-            55
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4122
-        ],
-        "hotspots": [
-          [
-            "h1",
-            "high",
-            84,
-            -0.0266,
-            0.0503,
-            1
-          ],
-          [
-            "h2",
-            "low",
-            60,
-            0.1362,
-            0.8786,
-            1
-          ],
-          [
-            "h3",
-            "low",
-            64,
-            0,
-            -0.7325,
-            0.559
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64,
-            67,
-            72
-          ],
-          1,
-          0
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, falling",
-          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the centre; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-globe/2024-03-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            48,
-            50,
-            52,
-            55
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4091
-        ],
-        "hotspots": [
-          [
-            "h1",
-            "high",
-            84,
-            -0.025,
-            0.083,
-            1
-          ],
-          [
-            "h2",
-            "low",
-            60,
-            0.1794,
-            0.9035,
-            0.8756
-          ],
-          [
-            "h3",
-            "low",
-            62,
-            0,
-            -0.705,
-            0.7906
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64,
-            67,
-            69
-          ],
-          1,
-          -0.1874
-        ],
-        "motion": [
-          0.5122,
-          0.1111,
-          0.5073
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, steady",
-          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle, towards the east",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the centre; sparse edges; movement towards the east; a new month."
-      },
-      {
-        "frameId": "synthetic-globe/2024-04-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            50,
-            52,
-            55,
-            57
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4213
-        ],
-        "hotspots": [
-          [
-            "h1",
-            "high",
-            84,
-            -0.0202,
-            0.1182,
-            1
-          ],
-          [
-            "h3",
-            "low",
-            60,
-            0,
-            -0.6775,
-            0.9682
-          ],
-          [
-            "h2",
-            "low",
-            60,
-            0.2683,
-            0.9158,
-            0.7967
-          ]
-        ],
-        "rhythm": [
-          [
-            62,
-            67,
-            69,
-            72
-          ],
-          1,
-          0.2343
-        ],
-        "motion": [
-          0.5039,
-          -0.0625,
-          0.5023
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, falling",
-          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the centre; sparse edges; movement; a new month."
-      },
-      {
-        "frameId": "synthetic-globe/2024-05-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            48,
-            50,
-            52,
-            55
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4049
-        ],
-        "hotspots": [
-          [
-            "h1",
-            "high",
-            84,
-            -0.018,
-            0.1506,
-            1
-          ],
-          [
-            "h3",
-            "low",
-            60,
-            0,
-            -0.6775,
-            0.9682
-          ],
-          [
-            "h2",
-            "low",
-            62,
-            0.3438,
-            0.945,
-            0.6404
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64,
-            67,
-            72
-          ],
-          1,
-          0.0001
-        ],
-        "motion": [
-          0.5179,
-          -0.1351,
-          0.5108
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, rising",
-          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle, towards the west",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the centre; sparse edges; movement towards the west; a new month."
-      },
-      {
-        "frameId": "synthetic-globe/2024-06-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            50,
-            52,
-            55,
-            57
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4
-        ],
-        "hotspots": [
-          [
-            "h3",
-            "low",
-            60,
-            0,
-            -0.65,
-            1
-          ],
-          [
-            "h1",
-            "high",
-            84,
-            -0.027,
-            0.164,
-            1
-          ],
-          [
-            "h2",
-            "low",
-            64,
-            0.3438,
-            0.9725,
-            0.4529
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64,
-            67,
-            72
-          ],
-          1,
-          0.0002
-        ],
-        "motion": [
-          0.5695,
-          -0.2727,
-          0.5417
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, steady",
-          "hotspots": "Hot spots: 3, the largest is a low one in the south",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle, towards the west",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the south; sparse edges; movement towards the west; a new month."
-      },
-      {
-        "frameId": "synthetic-globe/2024-07-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            50,
-            52,
-            55,
-            57
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4103
-        ],
-        "hotspots": [
-          [
-            "h3",
-            "low",
-            60,
-            0,
-            -0.65,
-            1
-          ],
-          [
-            "h1",
-            "high",
-            84,
-            -0.0251,
-            0.1915,
-            1
-          ],
-          [
-            "h2",
-            "low",
-            64,
-            0.3438,
-            0.9725,
-            0.4529
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64,
-            67,
-            72
-          ],
-          1,
-          0.0004
-        ],
-        "motion": [
-          0.5,
-          0,
-          0.5
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, rising",
-          "hotspots": "Hot spots: 3, the largest is a low one in the south",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the south; sparse edges; movement; a new month."
-      },
-      {
-        "frameId": "synthetic-globe/2024-08-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            50,
-            52,
-            55,
-            57
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4156
-        ],
-        "hotspots": [
-          [
-            "h3",
-            "low",
-            60,
-            0,
-            -0.65,
-            1
-          ],
-          [
-            "h1",
-            "high",
-            84,
-            -0.027,
-            0.164,
-            1
-          ],
-          [
-            "h2",
-            "low",
-            64,
-            0.3438,
-            0.9725,
-            0.4529
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64,
-            67,
-            72
-          ],
-          1,
-          0.0005
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, steady",
-          "hotspots": "Hot spots: 3, the largest is a low one in the south",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the south; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-globe/2024-09-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            48,
-            50,
-            52,
-            55
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4038
-        ],
-        "hotspots": [
-          [
-            "h1",
-            "high",
-            84,
-            -0.018,
-            0.1506,
-            1
-          ],
-          [
-            "h3",
-            "low",
-            60,
-            0,
-            -0.6775,
-            0.9682
-          ],
-          [
-            "h2",
-            "low",
-            62,
-            0.3438,
-            0.945,
-            0.6404
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64,
-            67,
-            72
-          ],
-          1,
-          0.0003
-        ],
-        "motion": [
-          0.6009,
-          0.3333,
-          0.5606
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, falling",
-          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle, towards the east",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the centre; sparse edges; movement towards the east; a new month."
-      },
-      {
-        "frameId": "synthetic-globe/2024-10-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            50,
-            52,
-            55,
-            57
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4149
-        ],
-        "hotspots": [
-          [
-            "h1",
-            "high",
-            84,
-            -0.0202,
-            0.1182,
-            1
-          ],
-          [
-            "h3",
-            "low",
-            60,
-            0,
-            -0.6775,
-            0.9682
-          ],
-          [
-            "h2",
-            "low",
-            60,
-            0.27,
-            0.9238,
-            0.7428
-          ]
-        ],
-        "rhythm": [
-          [
-            62,
-            64,
-            67,
-            69
-          ],
-          1,
-          -0.0158
-        ],
-        "motion": [
-          0.5099,
-          0.1,
-          0.5059
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, falling",
-          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the centre; sparse edges; movement; a new month."
-      },
-      {
-        "frameId": "synthetic-globe/2024-11-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            48,
-            50,
-            52,
-            55
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4091
-        ],
-        "hotspots": [
-          [
-            "h1",
-            "high",
-            84,
-            -0.025,
-            0.083,
-            1
-          ],
-          [
-            "h2",
-            "low",
-            60,
-            0.1794,
-            0.9035,
-            0.8756
-          ],
-          [
-            "h3",
-            "low",
-            62,
-            0,
-            -0.705,
-            0.7906
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64,
-            67,
-            69
-          ],
-          1,
-          -0.1874
-        ],
-        "motion": [
-          0.5009,
-          0.0294,
-          0.5005
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, steady",
-          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the centre; sparse edges; movement; a new month."
-      },
-      {
-        "frameId": "synthetic-globe/2024-12-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            48,
-            50,
-            52,
-            55
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4122
-        ],
-        "hotspots": [
-          [
-            "h1",
-            "high",
-            84,
-            -0.0266,
-            0.0503,
-            1
-          ],
-          [
-            "h2",
-            "low",
-            60,
-            0.1362,
-            0.8786,
-            1
-          ],
-          [
-            "h3",
-            "low",
-            64,
-            0,
-            -0.7325,
-            0.559
-          ]
-        ],
-        "rhythm": [
-          [
-            60,
-            64,
-            67,
-            72
-          ],
-          1,
-          0
-        ],
-        "motion": [
-          0.5122,
-          -0.1111,
-          0.5073
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thick chord, 4 notes",
-          "bass": "Bass: middle, steady",
-          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle, towards the west",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; 3 hot spots, the largest in the centre; sparse edges; movement towards the west; a new month."
-      }
-    ]
-  },
-  "synthetic-change": {
-    "major": [
-      {
-        "frameId": "synthetic-change/2024-01-15",
-        "melody": [
-          69,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            57
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
-            65,
-            69,
-            72
-          ],
-          1,
-          0.1406
-        ],
-        "motion": null,
-        "time": [
-          "none",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: high",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "",
-          "time": "Time: steady pulse"
-        },
-        "summary": "The overall level is high; sparse edges."
-      },
-      {
-        "frameId": "synthetic-change/2024-02-15",
-        "melody": [
-          69,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            57
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
-            65,
-            69,
-            72
-          ],
-          1,
-          0.1406
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          84
         ],
         "missing": [],
         "dropout": false,
         "caption": {
           "melody": "Melody: high, steady",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
+          "harmony": "Harmony: medium chord, 2 notes",
+          "bass": "Bass: high, falling",
+          "hotspots": "Hot spots: 3, the largest is a high one in the west",
           "rhythm": "Rhythm: sparse",
           "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
+          "time": "Time: steady pulse"
         },
-        "summary": "The overall level is high and steady; sparse edges; the picture is still; a new month."
+        "summary": "The overall level is high and steady; 3 hot spots, the largest in the west; sparse edges; the picture is still."
       },
       {
-        "frameId": "synthetic-change/2024-03-15",
+        "frameId": "mur-sst-mauritius/2023-03-24",
         "melody": [
-          69,
+          74,
           false,
           0.8
         ],
         "harmony": [
           [
-            57
+            52,
+            55
           ],
           0.5
         ],
         "bass": [
-          36,
-          0.4
+          48,
+          0.8
         ],
-        "hotspots": [],
+        "hotspots": [
+          [
+            "h13",
+            "high",
+            81,
+            -0.165,
+            -0.1283,
+            1
+          ],
+          [
+            "h14",
+            "high",
+            81,
+            0.6589,
+            0.6682,
+            0.9453
+          ]
+        ],
         "rhythm": [
           [
-            62,
-            65,
-            69,
-            72
+            67,
+            69
           ],
           1,
-          0.1406
+          0.4194
         ],
         "motion": [
           0,
           0,
           0.2
         ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: high, steady",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is high and steady; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-change/2024-04-15",
-        "melody": [
-          67,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            57
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
-            65,
-            69,
-            72
-          ],
-          1,
-          0.1406
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, falling",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and falling; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-change/2024-05-15",
-        "melody": [
-          67,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            53
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
-            65,
-            69,
-            72
-          ],
-          1,
-          0.1406
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, falling",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and falling; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-change/2024-06-15",
-        "melody": [
-          65,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            53
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
-            65,
-            69,
-            72
-          ],
-          1,
-          0.1406
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, falling",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and falling; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-change/2024-07-15",
-        "melody": [
-          64,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            53
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
-            65,
-            69,
-            72
-          ],
-          1,
-          0.1406
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, falling",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and falling; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-change/2024-08-15",
-        "melody": [
-          62,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            53
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
-            65,
-            69,
-            72
-          ],
-          1,
-          0.1661
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, falling",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and falling; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-change/2024-09-15",
-        "melody": [
-          62,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            53
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
-            65,
-            69,
-            72
-          ],
-          1,
-          0.1896
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, steady",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and steady; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-change/2024-10-15",
-        "melody": [
-          62,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            53
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
-            65,
-            69,
-            72
-          ],
-          1,
-          0.1733
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, rising",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and rising; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-change/2024-11-15",
-        "melody": [
-          64,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            53
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
-            65,
-            69,
-            72
-          ],
-          1,
-          0.1406
-        ],
-        "motion": [
-          0.5,
-          0,
-          0.5
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, rising",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and rising; sparse edges; movement; a new month."
-      },
-      {
-        "frameId": "synthetic-change/2024-12-15",
-        "melody": [
-          65,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            57
-          ],
-          0.5
-        ],
-        "bass": [
-          36,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
-            65,
-            69,
-            72
-          ],
-          1,
-          0.1406
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          84
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, rising",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and rising; sparse edges; the picture is still; a new month."
-      }
-    ],
-    "pentatonic": [
-      {
-        "frameId": "synthetic-change/2024-01-15",
-        "melody": [
-          69,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            52
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
-            64,
-            69,
-            72
-          ],
-          1,
-          0.1406
-        ],
-        "motion": null,
         "time": [
           "none",
           100
@@ -3997,43 +1520,58 @@
         "missing": [],
         "dropout": false,
         "caption": {
-          "melody": "Melody: high",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle",
-          "hotspots": "",
+          "melody": "Melody: high, steady",
+          "harmony": "Harmony: medium chord, 2 notes",
+          "bass": "Bass: high, rising",
+          "hotspots": "Hot spots: 2, the largest is a high one in the centre",
           "rhythm": "Rhythm: sparse",
-          "motion": "",
+          "motion": "Motion: still",
           "time": "Time: steady pulse"
         },
-        "summary": "The overall level is high; sparse edges."
+        "summary": "The overall level is high and steady; 2 hot spots, the largest in the centre; sparse edges; the picture is still."
       },
       {
-        "frameId": "synthetic-change/2024-02-15",
+        "frameId": "mur-sst-mauritius/2023-04-03",
         "melody": [
-          69,
+          74,
           false,
           0.8
         ],
         "harmony": [
           [
-            52
+            55
           ],
           0.5
         ],
         "bass": [
-          45,
-          0.4
+          48,
+          0.8
         ],
-        "hotspots": [],
+        "hotspots": [
+          [
+            "h13",
+            "high",
+            81,
+            -0.0697,
+            0.0247,
+            1
+          ],
+          [
+            "h15",
+            "high",
+            81,
+            0.3125,
+            -0.9688,
+            0.1398
+          ]
+        ],
         "rhythm": [
           [
-            62,
-            64,
-            69,
-            72
+            67,
+            69
           ],
           1,
-          0.1406
+          0.2305
         ],
         "motion": [
           0,
@@ -4049,18 +1587,168 @@
         "caption": {
           "melody": "Melody: high, steady",
           "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
+          "bass": "Bass: high, steady",
+          "hotspots": "Hot spots: 2, the largest is a high one in the centre",
           "rhythm": "Rhythm: sparse",
           "motion": "Motion: still",
           "time": "Time: steady pulse, new month"
         },
-        "summary": "The overall level is high and steady; sparse edges; the picture is still; a new month."
+        "summary": "The overall level is high and steady; 2 hot spots, the largest in the centre; sparse edges; the picture is still; a new month."
       },
       {
-        "frameId": "synthetic-change/2024-03-15",
+        "frameId": "mur-sst-mauritius/2023-04-13",
         "melody": [
-          69,
+          74,
+          false,
+          0.8
+        ],
+        "harmony": [
+          [
+            52,
+            55
+          ],
+          0.5
+        ],
+        "bass": [
+          48,
+          0.8
+        ],
+        "hotspots": [
+          [
+            "h13",
+            "high",
+            81,
+            -0.0744,
+            -0.0945,
+            1
+          ],
+          [
+            "h16",
+            "high",
+            81,
+            0.9297,
+            0.6354,
+            0.2421
+          ],
+          [
+            "h17",
+            "high",
+            81,
+            0.1548,
+            0.9119,
+            0.2318
+          ]
+        ],
+        "rhythm": [
+          [
+            60,
+            62,
+            64
+          ],
+          1,
+          -0.5716
+        ],
+        "motion": [
+          0,
+          0,
+          0.2
+        ],
+        "time": [
+          "none",
+          100
+        ],
+        "missing": [],
+        "dropout": false,
+        "caption": {
+          "melody": "Melody: high, steady",
+          "harmony": "Harmony: medium chord, 2 notes",
+          "bass": "Bass: high, steady",
+          "hotspots": "Hot spots: 3, the largest is a high one in the centre",
+          "rhythm": "Rhythm: sparse",
+          "motion": "Motion: still",
+          "time": "Time: steady pulse"
+        },
+        "summary": "The overall level is high and steady; 3 hot spots, the largest in the centre; sparse edges; the picture is still."
+      },
+      {
+        "frameId": "mur-sst-mauritius/2023-04-23",
+        "melody": [
+          74,
+          false,
+          0.8
+        ],
+        "harmony": [
+          [
+            52,
+            55
+          ],
+          0.5
+        ],
+        "bass": [
+          48,
+          0.8
+        ],
+        "hotspots": [
+          [
+            "h18",
+            "high",
+            81,
+            -0.0152,
+            -0.3901,
+            1
+          ],
+          [
+            "h17",
+            "high",
+            81,
+            0.3766,
+            0.9128,
+            0.4308
+          ],
+          [
+            "h19",
+            "high",
+            81,
+            -0.8656,
+            0.925,
+            0.3125
+          ]
+        ],
+        "rhythm": [
+          [
+            60,
+            62,
+            64
+          ],
+          1,
+          -0.6068
+        ],
+        "motion": [
+          0,
+          0,
+          0.2
+        ],
+        "time": [
+          "none",
+          100
+        ],
+        "missing": [],
+        "dropout": false,
+        "caption": {
+          "melody": "Melody: high, steady",
+          "harmony": "Harmony: medium chord, 2 notes",
+          "bass": "Bass: high, steady",
+          "hotspots": "Hot spots: 3, the largest is a high one in the south",
+          "rhythm": "Rhythm: sparse",
+          "motion": "Motion: still",
+          "time": "Time: steady pulse"
+        },
+        "summary": "The overall level is high and steady; 3 hot spots, the largest in the south; sparse edges; the picture is still."
+      },
+      {
+        "frameId": "mur-sst-mauritius/2023-05-03",
+        "melody": [
+          74,
           false,
           0.8
         ],
@@ -4071,19 +1759,35 @@
           0.5
         ],
         "bass": [
-          45,
-          0.4
+          48,
+          0.6
         ],
-        "hotspots": [],
+        "hotspots": [
+          [
+            "h21",
+            "high",
+            81,
+            0.7305,
+            0.872,
+            0.597
+          ],
+          [
+            "h20",
+            "high",
+            81,
+            -0.03,
+            0.8421,
+            0.4364
+          ]
+        ],
         "rhythm": [
           [
-            62,
+            60,
             64,
-            69,
-            72
+            69
           ],
           1,
-          0.1406
+          0.0318
         ],
         "motion": [
           0,
@@ -4099,19 +1803,19 @@
         "caption": {
           "melody": "Melody: high, steady",
           "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
+          "bass": "Bass: high, falling",
+          "hotspots": "Hot spots: 2, the largest is a high one in the north-east",
           "rhythm": "Rhythm: sparse",
           "motion": "Motion: still",
           "time": "Time: steady pulse, new month"
         },
-        "summary": "The overall level is high and steady; sparse edges; the picture is still; a new month."
+        "summary": "The overall level is high and steady; 2 hot spots, the largest in the north-east; sparse edges; the picture is still; a new month."
       },
       {
-        "frameId": "synthetic-change/2024-04-15",
+        "frameId": "mur-sst-mauritius/2023-05-13",
         "melody": [
-          67,
-          true,
+          74,
+          false,
           0.8
         ],
         "harmony": [
@@ -4127,263 +1831,12 @@
         "hotspots": [],
         "rhythm": [
           [
-            62,
-            64,
-            69,
-            72
-          ],
-          1,
-          0.1406
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, falling",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and falling; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-change/2024-05-15",
-        "melody": [
-          67,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            50
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
-            64,
-            69,
-            72
-          ],
-          1,
-          0.1406
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, falling",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and falling; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-change/2024-06-15",
-        "melody": [
-          64,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            50
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
-            64,
-            69,
-            72
-          ],
-          1,
-          0.1406
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, falling",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and falling; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-change/2024-07-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            50
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
-            64,
-            69,
-            72
-          ],
-          1,
-          0.1406
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, falling",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and falling; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-change/2024-08-15",
-        "melody": [
-          62,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            50
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
-            64,
-            69,
-            72
-          ],
-          1,
-          0.1661
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, falling",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and falling; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-change/2024-09-15",
-        "melody": [
-          62,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            50
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
             67,
             69,
             72
           ],
           1,
-          0.1896
+          0.6444
         ],
         "motion": [
           0,
@@ -4391,171 +1844,21 @@
           0.2
         ],
         "time": [
-          "month",
+          "none",
           100
         ],
         "missing": [],
         "dropout": false,
         "caption": {
-          "melody": "Melody: middle, steady",
+          "melody": "Melody: high, steady",
           "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
+          "bass": "Bass: middle, falling",
           "hotspots": "",
           "rhythm": "Rhythm: sparse",
           "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
+          "time": "Time: steady pulse"
         },
-        "summary": "The overall level is middle and steady; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-change/2024-10-15",
-        "melody": [
-          62,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            50
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
-            64,
-            69,
-            72
-          ],
-          1,
-          0.1733
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, rising",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and rising; sparse edges; the picture is still; a new month."
-      },
-      {
-        "frameId": "synthetic-change/2024-11-15",
-        "melody": [
-          64,
-          true,
-          0.8
-        ],
-        "harmony": [
-          [
-            50
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
-            64,
-            69,
-            72
-          ],
-          1,
-          0.1406
-        ],
-        "motion": [
-          0.5,
-          0,
-          0.5
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, rising",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: middle",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and rising; sparse edges; movement; a new month."
-      },
-      {
-        "frameId": "synthetic-change/2024-12-15",
-        "melody": [
-          64,
-          false,
-          0.8
-        ],
-        "harmony": [
-          [
-            52
-          ],
-          0.5
-        ],
-        "bass": [
-          45,
-          0.4
-        ],
-        "hotspots": [],
-        "rhythm": [
-          [
-            62,
-            64,
-            69,
-            72
-          ],
-          1,
-          0.1406
-        ],
-        "motion": [
-          0,
-          0,
-          0.2
-        ],
-        "time": [
-          "month",
-          100
-        ],
-        "missing": [],
-        "dropout": false,
-        "caption": {
-          "melody": "Melody: middle, rising",
-          "harmony": "Harmony: thin chord, 1 note",
-          "bass": "Bass: middle, steady",
-          "hotspots": "",
-          "rhythm": "Rhythm: sparse",
-          "motion": "Motion: still",
-          "time": "Time: steady pulse, new month"
-        },
-        "summary": "The overall level is middle and rising; sparse edges; the picture is still; a new month."
+        "summary": "The overall level is high and steady; sparse edges; the picture is still."
       }
     ]
   }

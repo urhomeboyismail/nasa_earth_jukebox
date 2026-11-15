@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import catalog from '../public/data/index.json'
 import fixture from '../public/data/fixture/manifest.json'
-import synthetic from '../public/data/synthetic-ocean/manifest.json'
+import mauritius from '../public/data/mur-sst-mauritius/manifest.json'
 import App from './App'
 import { DataError, friendlyDataMessage } from './data'
 import { addActionHandler } from './interaction/registry'
@@ -56,7 +56,7 @@ beforeEach(() => {
     const body = url.endsWith('/api/v1/health') ? { status: 'ok' }
       : url.endsWith('/data/index.json') ? catalog
       : url.endsWith('/data/fixture/manifest.json') ? fixture
-      : url.endsWith('/data/synthetic-ocean/manifest.json') ? synthetic
+      : url.endsWith('/data/mur-sst-mauritius/manifest.json') ? mauritius
       : null
     return Promise.resolve(new Response(JSON.stringify(body), { status: body ? 200 : 404 }))
   }))
@@ -252,28 +252,28 @@ describe('Choosing a data set', () => {
 
   it('switches data set, shows it on the page, and keeps the choice in the address', async () => {
     render(<App />)
-    await userEvent.selectOptions(await picker(), 'Synthetic ocean')
-    expect(await screen.findByText(/Now playing from: Synthetic ocean/)).toBeInTheDocument()
-    expect(window.location.hash).toBe('#home?data=synthetic-ocean')
-    expect(screen.getByRole('combobox', { name: 'Data set' })).toHaveValue('synthetic-ocean')
+    await userEvent.selectOptions(await picker(), 'Sea surface temperature around Mauritius, 2023')
+    expect(await screen.findByText(/Now playing from: Sea surface temperature around Mauritius, 2023/)).toBeInTheDocument()
+    expect(window.location.hash).toBe('#home?data=mur-sst-mauritius')
+    expect(screen.getByRole('combobox', { name: 'Data set' })).toHaveValue('mur-sst-mauritius')
   })
 
   it('keeps the choice when moving between pages', async () => {
     render(<App />)
-    await userEvent.selectOptions(await picker(), 'Synthetic ocean')
-    await screen.findByText(/Now playing from: Synthetic ocean/)
-    expect(screen.getByRole('link', { name: 'Earth Jukebox' })).toHaveAttribute('href', '#home?data=synthetic-ocean')
+    await userEvent.selectOptions(await picker(), 'Sea surface temperature around Mauritius, 2023')
+    await screen.findByText(/Now playing from: Sea surface temperature around Mauritius, 2023/)
+    expect(screen.getByRole('link', { name: 'Earth Jukebox' })).toHaveAttribute('href', '#home?data=mur-sst-mauritius')
     await userEvent.click(navLink('Listen'))
-    expect(window.location.hash).toBe('#listen?data=synthetic-ocean')
+    expect(window.location.hash).toBe('#listen?data=mur-sst-mauritius')
     expect(await screen.findByRole('button', { name: 'Play' })).toBeEnabled()
-    expect(screen.getByRole('slider', { name: 'Date' })).toHaveAttribute('max', '11')
+    expect(screen.getByRole('slider', { name: 'Date' })).toHaveAttribute("max", "19")
   })
 
   it('opens the data set named in the address', async () => {
-    window.location.hash = '#about?data=synthetic-ocean'
+    window.location.hash = '#about?data=mur-sst-mauritius'
     render(<App />)
-    expect(await screen.findByText(/12 dates/)).toBeInTheDocument()
-    expect(await picker()).toHaveValue('synthetic-ocean')
+    expect(await screen.findByText(/20 dates/)).toBeInTheDocument()
+    expect(await picker()).toHaveValue('mur-sst-mauritius')
   })
 
   it('shows the first data set, and says so, when the address names one that does not exist', async () => {
@@ -289,16 +289,16 @@ describe('Choosing a data set', () => {
 
   it('follows back and forward between data sets', async () => {
     render(<App />)
-    await userEvent.selectOptions(await picker(), 'Synthetic ocean')
-    await screen.findByText(/Now playing from: Synthetic ocean/)
+    await userEvent.selectOptions(await picker(), 'Sea surface temperature around Mauritius, 2023')
+    await screen.findByText(/Now playing from: Sea surface temperature around Mauritius, 2023/)
     window.history.back()
     expect(await screen.findByText(/Now playing from: Fixture ocean/)).toBeInTheDocument()
     window.history.forward()
-    expect(await screen.findByText(/Now playing from: Synthetic ocean/)).toBeInTheDocument()
+    expect(await screen.findByText(/Now playing from: Sea surface temperature around Mauritius, 2023/)).toBeInTheDocument()
   })
 
   it('says so when the chosen data set cannot be loaded, and lets you choose another', async () => {
-    window.location.hash = '#home?data=synthetic-ocean'
+    window.location.hash = '#home?data=mur-sst-mauritius'
     vi.stubGlobal('fetch', vi.fn((input: RequestInfo | URL) => {
       const url = String(input)
       const body = url.endsWith('/data/index.json') ? catalog : url.endsWith('/data/fixture/manifest.json') ? fixture : null

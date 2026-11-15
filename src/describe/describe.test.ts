@@ -1,16 +1,11 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import fixture from '../../public/data/fixture/manifest.json'
-import globe from '../../public/data/synthetic-globe/manifest.json'
+import globe from './__fixtures__/monthly-globe.manifest.json'
 import type { Contour, FrameAnalysis, FrameGrid, GridCell, Score } from '../analysis'
-import { analyzePixels, gridFromPixels } from '../analysis/analyze'
-import { decodePng } from '../analysis/png'
 import type { CategoryId, Visualization } from '../data'
 import { describeCell, describeCellOverTime, describeChange, describeContour, describeFrame, describeHidden, describePlace, describeSequence, describeSweep } from '.'
 
-// The globe has twelve monthly frames of 2024, five categories (cold, cool, mild, warm, hot) and a region called
+// The globe fixture (a manifest only, no pictures) has twelve monthly frames of 2024, five categories (cold, cool, mild, warm, hot) and a region called
 // "North-east patch": the data the sentences in ticket T69 are written for.
 const visualization = globe as unknown as Visualization
 const { frames } = visualization
@@ -29,8 +24,6 @@ function resultsFor(categories: Spec[], overrides: Record<number, Partial<FrameA
 }
 
 const YEAR: Spec[] = ['cool', 'cool', 'cool', 'warm', 'mild', 'mild', 'hot', 'hot', 'warm', 'insufficient', 'mild', 'mild']
-
-const readFileBytes = (path: string) => readFileSync(resolve(fileURLToPath(import.meta.url), '../../..', path))
 
 describe('describeFrame', () => {
   it('describes a date, its readable points, its change and its shares', () => {
@@ -192,27 +185,6 @@ describe('describeSweep', () => {
   it('says so for a row or column that is not there', () => {
     expect(describeSweep(visualization, grid, { kind: 'row', index: 11 })).toBe('There is no row 12.')
     expect(describeSweep(visualization, grid, { kind: 'column', index: -1 })).toBe('There is no column 0.')
-  })
-})
-
-describe('on the real synthetic-globe frames', () => {
-  const read = (image: string) => decodePng(readFileBytes(`public/data/synthetic-globe/${image}`))
-  const pixels = read(frames[0].image)
-  const grid = gridFromPixels(pixels, frames[0], visualization.colorScale, visualization.mapping, visualization.mapArea)
-
-  it('describes a sweep across the map with land in it, and its runs add up to the row', () => {
-    const text = describeSweep(visualization, grid, { kind: 'row', index: Math.floor(grid.rows / 2) })
-    expect(text).toMatch(/^Row \d+, west to east: /)
-    expect(text).toContain('not enough data for')
-    const total = [...text.matchAll(/ for (\d+)/g)].reduce((sum, m) => sum + Number(m[1]), 0)
-    expect(total).toBe(grid.cols)
-  })
-
-  it('describes a date read from its picture', () => {
-    const results = frames.map(frame => analyzePixels(read(frame.image), frame, region, visualization.colorScale, visualization.mapping))
-    const text = describeFrame(visualization, results, 0)
-    expect(text).toMatch(/^January 2024\. North-east patch: [a-z]+, about \d+ °C\. 30 of 30 points could be read\. First date\./)
-    expect(describeFrame(visualization, results, 9)).toContain('not enough data')
   })
 })
 

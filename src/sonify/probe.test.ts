@@ -96,8 +96,8 @@ describe('slopeAt', () => {
 
 // The probe regression baseline. If this fails, the probe changed: rewrite it only for a change you meant, with
 // `npx vitest run -u src/sonify/probe.test.ts`, and read the diff before you commit it.
-// The fixture's frames are flat (one value over the whole map), so the synthetic ocean, which has gradients, is recorded too.
-const GOLDEN_SETS = ['fixture', 'synthetic-ocean']
+// The fixture's frames are flat (one value over the whole map), so the Mauritius data set, which has gradients, is recorded too.
+const GOLDEN_SETS = ['fixture', 'mur-sst-mauritius']
 const round = (value: number) => Number(value.toFixed(4))
 type Row = [number, number, number, number, number, number] | null
 
@@ -119,7 +119,7 @@ function probeFirstFrame(id: string): { frameId: string; cols: number; rows: num
 describe('probe regression baseline', () => {
   const results = Object.fromEntries(GOLDEN_SETS.map(id => [id, probeFirstFrame(id)]))
 
-  it('gives the committed tone and slope for every cell of the first frame of the fixture and the synthetic ocean', async () => {
+  it('gives the committed tone and slope for every cell of the first frame of the fixture and the Mauritius data set', async () => {
     // One cell a line, so a change shows as a small diff.
     const sets = GOLDEN_SETS.map(id => {
       const { cells, ...head } = results[id]
@@ -130,9 +130,9 @@ describe('probe regression baseline', () => {
     await expect(text).toMatchFileSnapshot('__golden__/probe.json')
   })
 
-  it('is flat on the flat fixture, and slopes both ways on the synthetic ocean', () => {
+  it('is flat on the flat fixture, and slopes both ways on the Mauritius data set', () => {
     expect(results.fixture.cells.every(cell => cell !== null && cell[5] === 0 && cell[4] === 0.5)).toBe(true)
-    const slopes = results['synthetic-ocean'].cells.flatMap(cell => (cell ? [cell[5]] : []))
+    const slopes = results['mur-sst-mauritius'].cells.flatMap(cell => (cell ? [cell[5]] : []))
     expect(slopes.some(slope => slope > 0) && slopes.some(slope => slope < 0)).toBe(true)
   })
 })

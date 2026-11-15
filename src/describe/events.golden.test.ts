@@ -1,4 +1,4 @@
-// Event-sentence baseline (docs/PLAN.md §6.3, ticket SN10). Reads the frames of the fixture and `synthetic-storm` with the real feature extractor (SN01) and
+// Event-sentence baseline (docs/PLAN.md §6.3, ticket SN10). Reads the frames of the fixture and `mur-sst-mauritius` with the real feature extractor (SN01) and
 // records, as text, the events and sentences between each consecutive pair, the markers of the first frame and the sound recipe for each preset in
 // __golden__/events.json, so any change to the words shows in a diff.
 //
@@ -20,7 +20,7 @@ import { hotspotMarkers } from './markers'
 import { soundRecipe } from './recipe'
 
 const dataDir = resolve(fileURLToPath(import.meta.url), '../../../public/data')
-const DATA_SETS = ['fixture', 'synthetic-storm']
+const DATA_SETS = ['fixture', 'mur-sst-mauritius']
 const FRAMES = 12
 const WHOLE = { x0: 0, y0: 0, x1: 1, y1: 1 }
 
@@ -68,6 +68,6 @@ describe('event words baseline', () => {
   })
 
   it('finds at least one event in the storm, so the baseline is not empty', () => {
-    expect(sentences('synthetic-storm').flat().length).toBeGreaterThan(0)
+    expect(sentences('mur-sst-mauritius').flat().length).toBeGreaterThan(0)
   })
 })

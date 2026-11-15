@@ -1,4 +1,4 @@
-// IX09 on real frames: the SN02 motion set (several hot spots) and the fixture. E points at the largest hot spot first, then the next, then the centre, and
+// IX09 on real frames: the Mauritius data set (several hot spots) and the fixture. E points at the largest hot spot first, then the next, then the centre, and
 // wraps; the voice guide's `point` action reaches the same beacon.
 import { readFileSync } from 'node:fs'
 import { act, render, renderHook } from '@testing-library/react'
@@ -21,23 +21,26 @@ import { LOCKED_TEXT, OFF_TEXT, useEcho, type EchoExplorer } from './useEcho'
 
 const WHOLE = { x0: 0, y0: 0, x1: 1, y1: 1 }
 const load = (dir: string) => visualizationSchema.parse(JSON.parse(readFileSync(`${dir}/manifest.json`, 'utf8')))
-const SETS = { motion: 'public/data/synthetic-motion', fixture: 'public/data/fixture' } as const
+const SETS = { motion: 'public/data/mur-sst-mauritius', fixture: 'public/data/fixture' } as const
 
 /** A frame's features straight from its PNG (no baseline: these sets have none). */
 const readerFor = (dir: string) => async (visualization: Visualization, frame: Frame): Promise<FrameFeatures> =>
   extractFeatures(decodePng(readFileSync(`${dir}/${frame.image}`)), baseInput(visualization, frame.id, frame.date, 1))
 
+// The Mauritius set has hot spots once the sea has warmed, so its last date is used; the fixture's first.
+const frameOf = (name: keyof typeof SETS, visualization: Visualization) => (name === 'motion' ? visualization.frames.at(-1)! : visualization.frames[0])
+
 const features: Record<keyof typeof SETS, FrameFeatures> = {} as Record<keyof typeof SETS, FrameFeatures>
 beforeAll(async () => {
   for (const name of Object.keys(SETS) as (keyof typeof SETS)[]) {
     const visualization = load(SETS[name])
-    features[name] = await readerFor(SETS[name])(visualization, visualization.frames[0])
+    features[name] = await readerFor(SETS[name])(visualization, frameOf(name, visualization))
   }
 })
 
 function rig(name: keyof typeof SETS, state = { on: true, locked: false }) {
   const visualization = load(SETS[name])
-  const frame = visualization.frames[0]
+  const frame = frameOf(name, visualization)
   const ensemble = { playNotes: vi.fn(), status: vi.fn(() => 'on' as const), start: vi.fn(async () => {}) }
   const moves: { col: number; row: number; by: string | undefined }[] = []
   const explorer = (): EchoExplorer => ({
@@ -67,7 +70,7 @@ beforeEach(() => {
 })
 afterEach(() => vi.useRealTimers())
 
-describe('E on the SN02 motion set', () => {
+describe('E on the Mauritius data set', () => {
   it('points at the largest hot spot first, then the next ones, then the centre, and wraps', async () => {
     const f = features.motion
     expect(f.hotspots.length).toBeGreaterThan(1)

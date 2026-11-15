@@ -15,7 +15,7 @@ vi.mock('./preview', async importOriginal => ({
 
 const CATALOG = [
   { id: 'fixture', title: 'Fixture ocean', summary: 'Four test frames.' },
-  { id: 'synthetic-storm', title: 'Synthetic storm', summary: 'A made-up storm.' },
+  { id: 'practice-storm', title: 'Practice storm', summary: 'A made-up storm.' },
 ]
 
 /** Cache Storage, kept in a map of URLs. */
@@ -51,8 +51,8 @@ describe('the crate', () => {
   it('lists every data set, each opening on Listen', async () => {
     mount()
     const items = await sleeves()
-    expect(items.map(item => within(item).getByRole('heading').textContent)).toEqual(['Fixture ocean', 'Synthetic storm'])
-    expect(screen.getByRole('link', { name: 'Open in Listen: Synthetic storm' })).toHaveAttribute('href', '#listen?data=synthetic-storm')
+    expect(items.map(item => within(item).getByRole('heading').textContent)).toEqual(['Fixture ocean', 'Practice storm'])
+    expect(screen.getByRole('link', { name: 'Open in Listen: Practice storm' })).toHaveAttribute('href', '#listen?data=practice-storm')
   })
 
   it('filters as you type and says how many are left', async () => {
@@ -89,10 +89,10 @@ describe('the crate', () => {
   })
 
   it('offers the data sets opened lately', async () => {
-    localStorage.setItem('earth-jukebox:recent', JSON.stringify(['synthetic-storm']))
+    localStorage.setItem('earth-jukebox:recent', JSON.stringify(['practice-storm']))
     mount()
     const recent = await screen.findByRole('navigation', { name: 'Continue where you left off' })
-    expect(within(recent).getByRole('link', { name: 'Synthetic storm' })).toHaveAttribute('href', '#listen?data=synthetic-storm')
+    expect(within(recent).getByRole('link', { name: 'Practice storm' })).toHaveAttribute('href', '#listen?data=practice-storm')
   })
 
   it('hides saving where the browser cannot', async () => {
@@ -176,8 +176,8 @@ describe('the 10-second preview', () => {
     act(() => hooksOf(0).onPlaying())
     const first = vi.mocked(createPreview).mock.results[0].value
     // The storm's manifest cannot be read in this test, so it is started once it can be.
-    vi.stubGlobal('fetch', vi.fn(async (url: string) => (url.endsWith('synthetic-storm/manifest.json') ? new Response(JSON.stringify(fixture)) : new Response('', { status: 404 }))))
-    await user.click(play('Synthetic storm'))
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => (url.endsWith('practice-storm/manifest.json') ? new Response(JSON.stringify(fixture)) : new Response('', { status: 404 }))))
+    await user.click(play('Practice storm'))
     await waitFor(() => expect(createPreview).toHaveBeenCalledTimes(2))
     expect(first.stop).toHaveBeenCalledTimes(1)
     expect(screen.getAllByRole('button', { name: /Preparing…|Stop preview/ })).toHaveLength(1)

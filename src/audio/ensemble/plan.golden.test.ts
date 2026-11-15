@@ -1,4 +1,4 @@
-// Plan regression baseline (docs/PLAN.md §6.3, ticket SN04). Reads the first twelve frames of the fixture and the synthetic data sets with the real feature
+// Plan regression baseline (docs/PLAN.md §6.3, ticket SN04). Reads the first twelve frames of the fixture and the Mauritius data set with the real feature
 // extractor (SN01), turns them into music (SN03), plans them at `full` and at `calm`, and records the plans in __golden__/plan.json, so any change to what
 // sounds shows in a diff. The plan is the part of the ensemble that decides; the Tone calls that follow are covered by voices.test.ts.
 //
@@ -21,7 +21,7 @@ import type { MusicFrame } from '../../sonify/types'
 import { planFrame, type VoiceAction } from './plan'
 
 const dataDir = resolve(fileURLToPath(import.meta.url), '../../../../public/data')
-const DATA_SETS = ['fixture', 'synthetic-ocean', 'synthetic-globe', 'synthetic-change']
+const DATA_SETS = ['fixture', 'mur-sst-mauritius']
 const DETAILS: DetailLevel[] = ['full', 'calm']
 const FRAMES = 12
 const WHOLE = { x0: 0, y0: 0, x1: 1, y1: 1 }
@@ -62,7 +62,7 @@ const music = Object.fromEntries(DATA_SETS.map(id => [id, musicOf(id)]))
 const plans = (frames: MusicFrame[], detail: DetailLevel) => frames.map(f => ({ frameId: f.frameId, plan: planFrame(f, detail, NO_MIX).map(plain) }))
 
 describe('plan regression baseline', () => {
-  it('plans the first twelve frames of the fixture and the synthetic data sets, at full and at calm, as the committed baseline says', async () => {
+  it('plans the first twelve frames of the fixture and the Mauritius data set, at full and at calm, as the committed baseline says', async () => {
     const text = JSON.stringify(
       Object.fromEntries(Object.entries(music).map(([id, frames]) => [id, Object.fromEntries(DETAILS.map(d => [d, plans(frames, d)]))])),
       null, 2,
