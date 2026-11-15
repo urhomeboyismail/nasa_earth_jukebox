@@ -128,3 +128,15 @@
 .crate__badge { border-color: var(--accent); }
 .crate__buttons { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; }
 .crate__open { display: inline-flex; align-items: center; min-block-size: var(--control-size); font-weight: 600; }
+
+/* LY01: in a narrow crate (a phone) the disc sits beside the title only, and the text and buttons use the card's full width,
+   so titles don't wrap to five lines. The body's children join the card's grid; the body itself has no meaning to lose. */
+.crate__list { container: crate / inline-size; }
+@container crate (max-width: 30rem) {
+  .crate__sleeve { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 0.5rem 0.75rem; }
+  .crate__disc { inline-size: 3rem; block-size: 3rem; }
+  .crate__body { display: contents; }
+  .crate__body > :not(.crate__title) { grid-column: 1 / -1; }
+  /* Play and Save across the card, so "Save … for offline" doesn't wrap to three lines. */
+  .crate__buttons > .ui-button { flex: 1 1 100%; }
+}

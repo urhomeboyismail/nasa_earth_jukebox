@@ -136,8 +136,8 @@ describe('in the app', () => {
       await user.click(link)
       const heading = await screen.findByRole('heading', { level: 1, name: page.title })
       const button = screen.getByRole('button', { name: 'Help from Echo' })
-      // Same parent as the title, and the next element after it.
-      expect(heading.nextElementSibling).toBe(button.closest('.help'))
+      // The first thing after the title: the row right after it (shared with the demo, LY01) starts with it.
+      expect(heading.nextElementSibling?.firstElementChild).toBe(button.closest('.help'))
     }
   })
 

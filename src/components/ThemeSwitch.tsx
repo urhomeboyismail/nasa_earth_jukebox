@@ -1,5 +1,6 @@
 import { useTheme } from '../hooks/useTheme'
 import { Button } from './Button'
+import { Icon } from './Icon'
 import { useAnnounce } from './useAnnounce'
 
 /**
@@ -19,7 +20,9 @@ export function ThemeSwitch() {
         announce(day ? 'Night theme' : 'Day theme')
       }}
     >
-      Day theme
+      {/* On a phone the header shows the sun alone (src/App.css); the name is still "Day theme". */}
+      <Icon name="sun" size={24} className="ui-theme-switch__icon" />
+      <span className="ui-theme-switch__label">Day theme</span>
     </Button>
   )
 }

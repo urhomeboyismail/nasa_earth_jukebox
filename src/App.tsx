@@ -321,8 +321,11 @@ function App() {
         <main className={`app-main app-main--${wideTools.has(page) ? 'wide' : 'prose'}`}>
           <h1 ref={heading} tabIndex={-1}>{title}</h1>
           {/* The same place on every page (WCAG 3.2.6); a new page closes the panel. */}
-          <HelpButton key={page} page={page} />
-          <DemoControl />
+          {/* Help and the demo share a row where they fit (LY01), so the page itself starts higher on a phone. */}
+          <div className="app-tools">
+            <HelpButton key={page} page={page} />
+            <DemoControl />
+          </div>
           {catalog && catalog.length > 1 && dataId && !testMode && (
             <DatasetPicker catalog={catalog} value={dataId} onChange={id => { window.location.hash = hashFor(page, { data: id }) }} />
           )}
