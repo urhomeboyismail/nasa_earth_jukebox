@@ -18,5 +18,10 @@
     "id": "global-temperature-anomaly",
     "title": "Global temperature change, 1880 to 2025",
     "summary": "Thirty world maps, one every five years from 1880 to 2025, showing how much warmer or cooler each place was than its 1951 to 1980 average."
+  },
+  {
+    "id": "meteomatics-sea-mauritius",
+    "title": "Sea around Mauritius, animated, last 60 days",
+    "summary": "60 daily maps of sea surface temperature around Mauritius up to 14 November 2026, from the Meteomatics weather API, played as a smooth animation."
   }
 ]

@@ -1,0 +1,1310 @@
+{
+  "id": "meteomatics-sea-mauritius",
+  "title": "Sea around Mauritius, animated, last 60 days",
+  "summary": "60 daily maps of sea surface temperature around Mauritius up to 14 November 2026, from the Meteomatics weather API, played as a smooth animation.",
+  "description": "Sea surface temperature (t_sea_sfc, model mix, noon UTC) from the Meteomatics Weather API for a box about 3.5 degrees across, centred on Mauritius, drawn smoothly in blue, green, yellow and orange. The island is grey, which the app reads as no data, with a dark coastline. The values are model values on a 0.02 degree grid, so they are about, not exact.",
+  "variable": {
+    "name": "Sea surface temperature",
+    "unit": "°C",
+    "words": {
+      "higher": "warmer",
+      "lower": "cooler",
+      "highest": "warmest",
+      "lowest": "coolest",
+      "edge": "warm edge",
+      "thing": "water"
+    }
+  },
+  "source": {
+    "name": "Meteomatics Weather API, t_sea_sfc:C (model mix)",
+    "url": "https://www.meteomatics.com/en/weather-api/",
+    "credit": "Sea surface temperature from the Meteomatics Weather API, drawn by the Earth Jukebox team.",
+    "license": "Used under the team's Meteomatics subscription. Check Meteomatics' terms before sharing the frames or the video.",
+    "retrievedOn": "2026-11-15"
+  },
+  "colorScale": {
+    "stops": [
+      {
+        "value": 20.0,
+        "rgb": [
+          38,
+          52,
+          148
+        ]
+      },
+      {
+        "value": 20.1,
+        "rgb": [
+          38,
+          58,
+          152
+        ]
+      },
+      {
+        "value": 20.2,
+        "rgb": [
+          39,
+          63,
+          156
+        ]
+      },
+      {
+        "value": 20.3,
+        "rgb": [
+          39,
+          69,
+          161
+        ]
+      },
+      {
+        "value": 20.4,
+        "rgb": [
+          39,
+          74,
+          165
+        ]
+      },
+      {
+        "value": 20.5,
+        "rgb": [
+          40,
+          80,
+          169
+        ]
+      },
+      {
+        "value": 20.6,
+        "rgb": [
+          40,
+          86,
+          173
+        ]
+      },
+      {
+        "value": 20.7,
+        "rgb": [
+          40,
+          91,
+          178
+        ]
+      },
+      {
+        "value": 20.8,
+        "rgb": [
+          41,
+          97,
+          182
+        ]
+      },
+      {
+        "value": 20.9,
+        "rgb": [
+          41,
+          102,
+          186
+        ]
+      },
+      {
+        "value": 21.0,
+        "rgb": [
+          41,
+          108,
+          190
+        ]
+      },
+      {
+        "value": 21.1,
+        "rgb": [
+          42,
+          114,
+          195
+        ]
+      },
+      {
+        "value": 21.2,
+        "rgb": [
+          42,
+          119,
+          199
+        ]
+      },
+      {
+        "value": 21.3,
+        "rgb": [
+          42,
+          125,
+          203
+        ]
+      },
+      {
+        "value": 21.4,
+        "rgb": [
+          43,
+          130,
+          207
+        ]
+      },
+      {
+        "value": 21.5,
+        "rgb": [
+          43,
+          136,
+          211
+        ]
+      },
+      {
+        "value": 21.6,
+        "rgb": [
+          43,
+          142,
+          216
+        ]
+      },
+      {
+        "value": 21.7,
+        "rgb": [
+          44,
+          147,
+          220
+        ]
+      },
+      {
+        "value": 21.8,
+        "rgb": [
+          45,
+          151,
+          220
+        ]
+      },
+      {
+        "value": 21.9,
+        "rgb": [
+          46,
+          154,
+          215
+        ]
+      },
+      {
+        "value": 22.0,
+        "rgb": [
+          48,
+          157,
+          210
+        ]
+      },
+      {
+        "value": 22.1,
+        "rgb": [
+          49,
+          159,
+          206
+        ]
+      },
+      {
+        "value": 22.2,
+        "rgb": [
+          51,
+          162,
+          201
+        ]
+      },
+      {
+        "value": 22.3,
+        "rgb": [
+          52,
+          164,
+          196
+        ]
+      },
+      {
+        "value": 22.4,
+        "rgb": [
+          54,
+          167,
+          192
+        ]
+      },
+      {
+        "value": 22.5,
+        "rgb": [
+          55,
+          170,
+          187
+        ]
+      },
+      {
+        "value": 22.6,
+        "rgb": [
+          57,
+          172,
+          182
+        ]
+      },
+      {
+        "value": 22.7,
+        "rgb": [
+          58,
+          175,
+          177
+        ]
+      },
+      {
+        "value": 22.8,
+        "rgb": [
+          60,
+          178,
+          173
+        ]
+      },
+      {
+        "value": 22.9,
+        "rgb": [
+          61,
+          180,
+          168
+        ]
+      },
+      {
+        "value": 23.0,
+        "rgb": [
+          63,
+          183,
+          163
+        ]
+      },
+      {
+        "value": 23.1,
+        "rgb": [
+          64,
+          185,
+          159
+        ]
+      },
+      {
+        "value": 23.2,
+        "rgb": [
+          66,
+          188,
+          154
+        ]
+      },
+      {
+        "value": 23.3,
+        "rgb": [
+          67,
+          191,
+          149
+        ]
+      },
+      {
+        "value": 23.4,
+        "rgb": [
+          69,
+          193,
+          145
+        ]
+      },
+      {
+        "value": 23.5,
+        "rgb": [
+          70,
+          196,
+          140
+        ]
+      },
+      {
+        "value": 23.6,
+        "rgb": [
+          82,
+          198,
+          135
+        ]
+      },
+      {
+        "value": 23.7,
+        "rgb": [
+          93,
+          200,
+          130
+        ]
+      },
+      {
+        "value": 23.8,
+        "rgb": [
+          105,
+          202,
+          124
+        ]
+      },
+      {
+        "value": 23.9,
+        "rgb": [
+          117,
+          204,
+          119
+        ]
+      },
+      {
+        "value": 24.0,
+        "rgb": [
+          128,
+          206,
+          114
+        ]
+      },
+      {
+        "value": 24.1,
+        "rgb": [
+          140,
+          208,
+          109
+        ]
+      },
+      {
+        "value": 24.2,
+        "rgb": [
+          152,
+          211,
+          104
+        ]
+      },
+      {
+        "value": 24.3,
+        "rgb": [
+          164,
+          213,
+          98
+        ]
+      },
+      {
+        "value": 24.4,
+        "rgb": [
+          175,
+          215,
+          93
+        ]
+      },
+      {
+        "value": 24.5,
+        "rgb": [
+          187,
+          217,
+          88
+        ]
+      },
+      {
+        "value": 24.6,
+        "rgb": [
+          199,
+          219,
+          83
+        ]
+      },
+      {
+        "value": 24.7,
+        "rgb": [
+          210,
+          221,
+          78
+        ]
+      },
+      {
+        "value": 24.8,
+        "rgb": [
+          222,
+          223,
+          72
+        ]
+      },
+      {
+        "value": 24.9,
+        "rgb": [
+          234,
+          225,
+          67
+        ]
+      },
+      {
+        "value": 25.0,
+        "rgb": [
+          245,
+          227,
+          62
+        ]
+      },
+      {
+        "value": 25.1,
+        "rgb": [
+          250,
+          224,
+          58
+        ]
+      },
+      {
+        "value": 25.2,
+        "rgb": [
+          250,
+          217,
+          56
+        ]
+      },
+      {
+        "value": 25.3,
+        "rgb": [
+          250,
+          210,
+          53
+        ]
+      },
+      {
+        "value": 25.4,
+        "rgb": [
+          250,
+          203,
+          50
+        ]
+      },
+      {
+        "value": 25.5,
+        "rgb": [
+          250,
+          196,
+          48
+        ]
+      },
+      {
+        "value": 25.6,
+        "rgb": [
+          250,
+          189,
+          45
+        ]
+      },
+      {
+        "value": 25.7,
+        "rgb": [
+          250,
+          182,
+          42
+        ]
+      },
+      {
+        "value": 25.8,
+        "rgb": [
+          250,
+          175,
+          40
+        ]
+      },
+      {
+        "value": 25.9,
+        "rgb": [
+          250,
+          168,
+          37
+        ]
+      },
+      {
+        "value": 26.0,
+        "rgb": [
+          250,
+          161,
+          34
+        ]
+      },
+      {
+        "value": 26.1,
+        "rgb": [
+          250,
+          154,
+          32
+        ]
+      },
+      {
+        "value": 26.2,
+        "rgb": [
+          248,
+          145,
+          30
+        ]
+      },
+      {
+        "value": 26.3,
+        "rgb": [
+          242,
+          133,
+          32
+        ]
+      },
+      {
+        "value": 26.4,
+        "rgb": [
+          237,
+          121,
+          33
+        ]
+      },
+      {
+        "value": 26.5,
+        "rgb": [
+          232,
+          110,
+          34
+        ]
+      },
+      {
+        "value": 26.6,
+        "rgb": [
+          226,
+          98,
+          35
+        ]
+      },
+      {
+        "value": 26.7,
+        "rgb": [
+          221,
+          86,
+          36
+        ]
+      },
+      {
+        "value": 26.8,
+        "rgb": [
+          216,
+          74,
+          38
+        ]
+      },
+      {
+        "value": 26.9,
+        "rgb": [
+          210,
+          62,
+          39
+        ]
+      },
+      {
+        "value": 27.0,
+        "rgb": [
+          205,
+          50,
+          40
+        ]
+      }
+    ],
+    "noData": [
+      [
+        128,
+        128,
+        128
+      ]
+    ],
+    "maxColorDistance": 40
+  },
+  "regions": [
+    {
+      "id": "mauritius",
+      "name": "Mauritius and its seas",
+      "description": "The sea and island in a box about 3.5 degrees across, centred on Mauritius.",
+      "points": [
+        {
+          "x": 0.0824,
+          "y": 0.0925
+        },
+        {
+          "x": 0.25,
+          "y": 0.0925
+        },
+        {
+          "x": 0.4162,
+          "y": 0.0925
+        },
+        {
+          "x": 0.5824,
+          "y": 0.0925
+        },
+        {
+          "x": 0.75,
+          "y": 0.0925
+        },
+        {
+          "x": 0.9162,
+          "y": 0.0925
+        },
+        {
+          "x": 0.0824,
+          "y": 0.2775
+        },
+        {
+          "x": 0.25,
+          "y": 0.2775
+        },
+        {
+          "x": 0.4162,
+          "y": 0.2775
+        },
+        {
+          "x": 0.5824,
+          "y": 0.2775
+        },
+        {
+          "x": 0.75,
+          "y": 0.2775
+        },
+        {
+          "x": 0.9162,
+          "y": 0.2775
+        },
+        {
+          "x": 0.0824,
+          "y": 0.4625
+        },
+        {
+          "x": 0.25,
+          "y": 0.4625
+        },
+        {
+          "x": 0.4162,
+          "y": 0.4625
+        },
+        {
+          "x": 0.5824,
+          "y": 0.4625
+        },
+        {
+          "x": 0.75,
+          "y": 0.4625
+        },
+        {
+          "x": 0.9162,
+          "y": 0.4625
+        },
+        {
+          "x": 0.0824,
+          "y": 0.6475
+        },
+        {
+          "x": 0.25,
+          "y": 0.6475
+        },
+        {
+          "x": 0.4162,
+          "y": 0.6475
+        },
+        {
+          "x": 0.5824,
+          "y": 0.6475
+        },
+        {
+          "x": 0.75,
+          "y": 0.6475
+        },
+        {
+          "x": 0.9162,
+          "y": 0.6475
+        },
+        {
+          "x": 0.0824,
+          "y": 0.8325
+        },
+        {
+          "x": 0.25,
+          "y": 0.8325
+        },
+        {
+          "x": 0.4162,
+          "y": 0.8325
+        },
+        {
+          "x": 0.5824,
+          "y": 0.8325
+        },
+        {
+          "x": 0.75,
+          "y": 0.8325
+        },
+        {
+          "x": 0.9162,
+          "y": 0.8325
+        }
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "id": "2026-09-16",
+      "date": "2026-09-16",
+      "image": "frames/2026-09-16.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-09-16, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 23.9 °C, from about 23.2 °C at the coolest to 24.5 °C at the warmest."
+    },
+    {
+      "id": "2026-09-17",
+      "date": "2026-09-17",
+      "image": "frames/2026-09-17.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-09-17, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 23.9 °C, from about 23.3 °C at the coolest to 24.5 °C at the warmest."
+    },
+    {
+      "id": "2026-09-18",
+      "date": "2026-09-18",
+      "image": "frames/2026-09-18.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-09-18, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.1 °C, from about 23.4 °C at the coolest to 24.7 °C at the warmest."
+    },
+    {
+      "id": "2026-09-19",
+      "date": "2026-09-19",
+      "image": "frames/2026-09-19.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-09-19, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.3 °C, from about 23.6 °C at the coolest to 24.8 °C at the warmest."
+    },
+    {
+      "id": "2026-09-20",
+      "date": "2026-09-20",
+      "image": "frames/2026-09-20.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-09-20, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.1 °C, from about 23.5 °C at the coolest to 24.6 °C at the warmest."
+    },
+    {
+      "id": "2026-09-21",
+      "date": "2026-09-21",
+      "image": "frames/2026-09-21.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-09-21, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.1 °C, from about 23.4 °C at the coolest to 24.9 °C at the warmest."
+    },
+    {
+      "id": "2026-09-22",
+      "date": "2026-09-22",
+      "image": "frames/2026-09-22.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-09-22, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.2 °C, from about 23.6 °C at the coolest to 25.0 °C at the warmest."
+    },
+    {
+      "id": "2026-09-23",
+      "date": "2026-09-23",
+      "image": "frames/2026-09-23.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-09-23, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.3 °C, from about 23.4 °C at the coolest to 24.8 °C at the warmest."
+    },
+    {
+      "id": "2026-09-24",
+      "date": "2026-09-24",
+      "image": "frames/2026-09-24.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-09-24, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.7 °C, from about 23.4 °C at the coolest to 25.7 °C at the warmest."
+    },
+    {
+      "id": "2026-09-25",
+      "date": "2026-09-25",
+      "image": "frames/2026-09-25.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-09-25, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.4 °C, from about 23.4 °C at the coolest to 25.6 °C at the warmest."
+    },
+    {
+      "id": "2026-09-26",
+      "date": "2026-09-26",
+      "image": "frames/2026-09-26.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-09-26, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.2 °C, from about 23.6 °C at the coolest to 25.0 °C at the warmest."
+    },
+    {
+      "id": "2026-09-27",
+      "date": "2026-09-27",
+      "image": "frames/2026-09-27.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-09-27, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.3 °C, from about 23.8 °C at the coolest to 24.8 °C at the warmest."
+    },
+    {
+      "id": "2026-09-28",
+      "date": "2026-09-28",
+      "image": "frames/2026-09-28.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-09-28, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.5 °C, from about 23.8 °C at the coolest to 25.0 °C at the warmest."
+    },
+    {
+      "id": "2026-09-29",
+      "date": "2026-09-29",
+      "image": "frames/2026-09-29.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-09-29, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.4 °C, from about 23.7 °C at the coolest to 25.6 °C at the warmest."
+    },
+    {
+      "id": "2026-09-30",
+      "date": "2026-09-30",
+      "image": "frames/2026-09-30.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-09-30, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.4 °C, from about 23.6 °C at the coolest to 25.0 °C at the warmest."
+    },
+    {
+      "id": "2026-10-01",
+      "date": "2026-10-01",
+      "image": "frames/2026-10-01.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-01, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.8 °C, from about 23.8 °C at the coolest to 25.8 °C at the warmest."
+    },
+    {
+      "id": "2026-10-02",
+      "date": "2026-10-02",
+      "image": "frames/2026-10-02.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-02, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.6 °C, from about 23.9 °C at the coolest to 25.0 °C at the warmest."
+    },
+    {
+      "id": "2026-10-03",
+      "date": "2026-10-03",
+      "image": "frames/2026-10-03.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-03, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.4 °C, from about 23.8 °C at the coolest to 25.1 °C at the warmest."
+    },
+    {
+      "id": "2026-10-04",
+      "date": "2026-10-04",
+      "image": "frames/2026-10-04.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-04, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.3 °C, from about 23.7 °C at the coolest to 25.1 °C at the warmest."
+    },
+    {
+      "id": "2026-10-05",
+      "date": "2026-10-05",
+      "image": "frames/2026-10-05.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-05, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.3 °C, from about 23.8 °C at the coolest to 24.7 °C at the warmest."
+    },
+    {
+      "id": "2026-10-06",
+      "date": "2026-10-06",
+      "image": "frames/2026-10-06.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-06, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.6 °C, from about 24.0 °C at the coolest to 25.0 °C at the warmest."
+    },
+    {
+      "id": "2026-10-07",
+      "date": "2026-10-07",
+      "image": "frames/2026-10-07.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-07, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.6 °C, from about 23.9 °C at the coolest to 25.2 °C at the warmest."
+    },
+    {
+      "id": "2026-10-08",
+      "date": "2026-10-08",
+      "image": "frames/2026-10-08.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-08, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.7 °C, from about 24.0 °C at the coolest to 25.2 °C at the warmest."
+    },
+    {
+      "id": "2026-10-09",
+      "date": "2026-10-09",
+      "image": "frames/2026-10-09.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-09, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.9 °C, from about 24.2 °C at the coolest to 26.0 °C at the warmest."
+    },
+    {
+      "id": "2026-10-10",
+      "date": "2026-10-10",
+      "image": "frames/2026-10-10.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-10, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.8 °C, from about 24.1 °C at the coolest to 25.2 °C at the warmest."
+    },
+    {
+      "id": "2026-10-11",
+      "date": "2026-10-11",
+      "image": "frames/2026-10-11.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-11, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 20.0 °C, from about 16.3 °C at the coolest to 20.0 °C at the warmest."
+    },
+    {
+      "id": "2026-10-12",
+      "date": "2026-10-12",
+      "image": "frames/2026-10-12.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-12, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.5 °C, from about 23.8 °C at the coolest to 25.0 °C at the warmest."
+    },
+    {
+      "id": "2026-10-13",
+      "date": "2026-10-13",
+      "image": "frames/2026-10-13.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-13, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.4 °C, from about 23.8 °C at the coolest to 24.7 °C at the warmest."
+    },
+    {
+      "id": "2026-10-14",
+      "date": "2026-10-14",
+      "image": "frames/2026-10-14.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-14, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.4 °C, from about 23.8 °C at the coolest to 24.8 °C at the warmest."
+    },
+    {
+      "id": "2026-10-15",
+      "date": "2026-10-15",
+      "image": "frames/2026-10-15.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-15, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.3 °C, from about 23.5 °C at the coolest to 24.8 °C at the warmest."
+    },
+    {
+      "id": "2026-10-16",
+      "date": "2026-10-16",
+      "image": "frames/2026-10-16.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-16, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.4 °C, from about 23.5 °C at the coolest to 25.0 °C at the warmest."
+    },
+    {
+      "id": "2026-10-17",
+      "date": "2026-10-17",
+      "image": "frames/2026-10-17.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-17, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.3 °C, from about 23.5 °C at the coolest to 24.9 °C at the warmest."
+    },
+    {
+      "id": "2026-10-18",
+      "date": "2026-10-18",
+      "image": "frames/2026-10-18.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-18, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.3 °C, from about 23.4 °C at the coolest to 24.8 °C at the warmest."
+    },
+    {
+      "id": "2026-10-19",
+      "date": "2026-10-19",
+      "image": "frames/2026-10-19.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-19, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.3 °C, from about 23.3 °C at the coolest to 24.9 °C at the warmest."
+    },
+    {
+      "id": "2026-10-20",
+      "date": "2026-10-20",
+      "image": "frames/2026-10-20.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-20, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.5 °C, from about 23.8 °C at the coolest to 25.2 °C at the warmest."
+    },
+    {
+      "id": "2026-10-21",
+      "date": "2026-10-21",
+      "image": "frames/2026-10-21.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-21, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.5 °C, from about 24.0 °C at the coolest to 25.3 °C at the warmest."
+    },
+    {
+      "id": "2026-10-22",
+      "date": "2026-10-22",
+      "image": "frames/2026-10-22.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-22, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.6 °C, from about 24.0 °C at the coolest to 25.9 °C at the warmest."
+    },
+    {
+      "id": "2026-10-23",
+      "date": "2026-10-23",
+      "image": "frames/2026-10-23.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-23, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.5 °C, from about 23.8 °C at the coolest to 25.1 °C at the warmest."
+    },
+    {
+      "id": "2026-10-24",
+      "date": "2026-10-24",
+      "image": "frames/2026-10-24.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-24, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 25.0 °C, from about 24.2 °C at the coolest to 26.4 °C at the warmest."
+    },
+    {
+      "id": "2026-10-25",
+      "date": "2026-10-25",
+      "image": "frames/2026-10-25.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-25, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 25.6 °C, from about 24.3 °C at the coolest to 26.8 °C at the warmest."
+    },
+    {
+      "id": "2026-10-26",
+      "date": "2026-10-26",
+      "image": "frames/2026-10-26.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-26, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.6 °C, from about 24.0 °C at the coolest to 25.6 °C at the warmest."
+    },
+    {
+      "id": "2026-10-27",
+      "date": "2026-10-27",
+      "image": "frames/2026-10-27.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-27, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.8 °C, from about 23.9 °C at the coolest to 25.2 °C at the warmest."
+    },
+    {
+      "id": "2026-10-28",
+      "date": "2026-10-28",
+      "image": "frames/2026-10-28.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-28, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.9 °C, from about 24.1 °C at the coolest to 25.8 °C at the warmest."
+    },
+    {
+      "id": "2026-10-29",
+      "date": "2026-10-29",
+      "image": "frames/2026-10-29.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-29, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 24.9 °C, from about 24.3 °C at the coolest to 25.4 °C at the warmest."
+    },
+    {
+      "id": "2026-10-30",
+      "date": "2026-10-30",
+      "image": "frames/2026-10-30.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-30, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 25.0 °C, from about 24.2 °C at the coolest to 25.4 °C at the warmest."
+    },
+    {
+      "id": "2026-10-31",
+      "date": "2026-10-31",
+      "image": "frames/2026-10-31.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-10-31, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 25.1 °C, from about 24.1 °C at the coolest to 25.5 °C at the warmest."
+    },
+    {
+      "id": "2026-11-01",
+      "date": "2026-11-01",
+      "image": "frames/2026-11-01.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-11-01, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 25.3 °C, from about 24.5 °C at the coolest to 26.1 °C at the warmest."
+    },
+    {
+      "id": "2026-11-02",
+      "date": "2026-11-02",
+      "image": "frames/2026-11-02.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-11-02, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 25.9 °C, from about 24.6 °C at the coolest to 27.4 °C at the warmest."
+    },
+    {
+      "id": "2026-11-03",
+      "date": "2026-11-03",
+      "image": "frames/2026-11-03.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-11-03, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 26.2 °C, from about 24.9 °C at the coolest to 27.6 °C at the warmest."
+    },
+    {
+      "id": "2026-11-04",
+      "date": "2026-11-04",
+      "image": "frames/2026-11-04.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-11-04, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 25.7 °C, from about 24.8 °C at the coolest to 27.3 °C at the warmest."
+    },
+    {
+      "id": "2026-11-05",
+      "date": "2026-11-05",
+      "image": "frames/2026-11-05.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-11-05, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 25.5 °C, from about 24.7 °C at the coolest to 26.4 °C at the warmest."
+    },
+    {
+      "id": "2026-11-06",
+      "date": "2026-11-06",
+      "image": "frames/2026-11-06.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-11-06, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 25.3 °C, from about 24.7 °C at the coolest to 26.2 °C at the warmest."
+    },
+    {
+      "id": "2026-11-07",
+      "date": "2026-11-07",
+      "image": "frames/2026-11-07.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-11-07, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 25.4 °C, from about 24.9 °C at the coolest to 26.0 °C at the warmest."
+    },
+    {
+      "id": "2026-11-08",
+      "date": "2026-11-08",
+      "image": "frames/2026-11-08.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-11-08, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 25.6 °C, from about 24.9 °C at the coolest to 26.4 °C at the warmest."
+    },
+    {
+      "id": "2026-11-09",
+      "date": "2026-11-09",
+      "image": "frames/2026-11-09.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-11-09, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 25.5 °C, from about 24.9 °C at the coolest to 26.1 °C at the warmest."
+    },
+    {
+      "id": "2026-11-10",
+      "date": "2026-11-10",
+      "image": "frames/2026-11-10.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-11-10, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 25.7 °C, from about 25.0 °C at the coolest to 26.2 °C at the warmest."
+    },
+    {
+      "id": "2026-11-11",
+      "date": "2026-11-11",
+      "image": "frames/2026-11-11.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-11-11, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 25.9 °C, from about 25.4 °C at the coolest to 26.7 °C at the warmest."
+    },
+    {
+      "id": "2026-11-12",
+      "date": "2026-11-12",
+      "image": "frames/2026-11-12.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-11-12, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 26.5 °C, from about 25.7 °C at the coolest to 27.7 °C at the warmest."
+    },
+    {
+      "id": "2026-11-13",
+      "date": "2026-11-13",
+      "image": "frames/2026-11-13.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-11-13, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 26.3 °C, from about 25.3 °C at the coolest to 27.6 °C at the warmest."
+    },
+    {
+      "id": "2026-11-14",
+      "date": "2026-11-14",
+      "image": "frames/2026-11-14.png",
+      "width": 752,
+      "height": 800,
+      "altText": "Map of sea surface temperature around Mauritius on 2026-11-14, from Meteomatics. The island is grey with a dark coastline. The middle of the sea is about 26.2 °C, from about 25.5 °C at the coolest to 27.6 °C at the warmest."
+    }
+  ],
+  "mapping": {
+    "scale": "C major arpeggio",
+    "summary": "median",
+    "minValidFraction": 0.5,
+    "categories": [
+      {
+        "id": "cold",
+        "label": "Cold",
+        "range": [
+          20.0,
+          24.3
+        ],
+        "note": "C4"
+      },
+      {
+        "id": "cool",
+        "label": "Cool",
+        "range": [
+          24.3,
+          24.5
+        ],
+        "note": "E4"
+      },
+      {
+        "id": "mild",
+        "label": "Mild",
+        "range": [
+          24.5,
+          24.7
+        ],
+        "note": "G4"
+      },
+      {
+        "id": "warm",
+        "label": "Warm",
+        "range": [
+          24.7,
+          25.4
+        ],
+        "note": "C5"
+      },
+      {
+        "id": "hot",
+        "label": "Hot",
+        "range": [
+          25.4,
+          27.0
+        ],
+        "note": "E5"
+      }
+    ],
+    "tick": {
+      "note": "C6",
+      "durationMs": 60
+    },
+    "missingCue": {
+      "type": "noise",
+      "durationMs": 300
+    }
+  },
+  "comparisons": [],
+  "story": [
+    {
+      "id": "first",
+      "title": "The first weeks",
+      "fromFrame": "2026-09-16",
+      "toFrame": "2026-10-06",
+      "text": "From 16 September 2026 to 6 October 2026 the sea around Mauritius is between 23.9 and 24.8 °C in the middle of the map. These are model values from Meteomatics, drawn smoothly; the island is grey and counts as no data."
+    },
+    {
+      "id": "middle",
+      "title": "The middle weeks",
+      "fromFrame": "2026-10-07",
+      "toFrame": "2026-10-26",
+      "text": "From 7 October 2026 to 26 October 2026 the sea around Mauritius is between 20.0 and 25.6 °C in the middle of the map. These are model values from Meteomatics, drawn smoothly; the island is grey and counts as no data."
+    },
+    {
+      "id": "latest",
+      "title": "The latest weeks",
+      "fromFrame": "2026-10-27",
+      "toFrame": "2026-11-14",
+      "text": "From 27 October 2026 to 14 November 2026 the sea around Mauritius is between 24.8 and 26.5 °C in the middle of the map. These are model values from Meteomatics, drawn smoothly; the island is grey and counts as no data."
+    }
+  ],
+  "mascot": {
+    "accent": "#00ffcc",
+    "trail": "bubbles"
+  },
+  "video": {
+    "src": "video/meteomatics-sea-mauritius.mp4",
+    "fps": 10,
+    "firstFrameDate": "2026-09-16",
+    "frameStepDays": 1
+  }
+}
