@@ -2248,5 +2248,24 @@
   "mascot": {
     "accent": "#00ffcc",
     "trail": "bubbles"
-  }
+  },
+  "sonification": {
+    "preset": "lofi",
+    "detail": "standard",
+    "timbre": {
+      "instrument": "synth",
+      "filterHz": {
+        "low": 300,
+        "high": 3500
+      },
+      "curve": "exponential",
+      "panWidth": 0.6
+    }
+  },
+  "pairsWith": [
+    {
+      "id": "hurricanes-2023-atlantic",
+      "note": "Both cover June to August 2023: the sea around Mauritius cools into its southern winter while the North Atlantic warms into its summer, so the two move in opposite directions."
+    }
+  ]
 }

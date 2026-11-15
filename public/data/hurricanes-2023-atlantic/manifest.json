@@ -587,5 +587,24 @@
     "y0": 0.0329,
     "x1": 0.8594,
     "y1": 0.8224
-  }
+  },
+  "sonification": {
+    "preset": "bass",
+    "detail": "full",
+    "timbre": {
+      "instrument": "synth",
+      "filterHz": {
+        "low": 200,
+        "high": 6000
+      },
+      "curve": "exponential",
+      "panWidth": 0.8
+    }
+  },
+  "pairsWith": [
+    {
+      "id": "mur-sst-mauritius",
+      "note": "Both cover June to August 2023: the North Atlantic warms into its summer while the sea around Mauritius cools into its southern winter, so the two move in opposite directions."
+    }
+  ]
 }
