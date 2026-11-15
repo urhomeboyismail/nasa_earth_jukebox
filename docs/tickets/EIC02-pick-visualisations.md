@@ -117,6 +117,6 @@ Done by Roni (Sahajoo Ronitesh, team Guru's Moon Heist) with Claude Code, 14 and
 
 Seen and not picked, with the reason in the table: SVS 4809 (a rotating globe), 5265 (no colour bar), 5382 and 5583 (third-party JAXA material, no colour bar), 5479 (its ocean background reads as cold water).
 
-Licence read by: Sahajoo Ronitesh on 15 Nov 2026 for picks 1 to 3; picks 4 and 5 are still to be signed. No pick is a picture-mode one (no colour bar).
+Licence read by: Sahajoo Ronitesh on 15 Nov 2026 for all five picks. No pick is a picture-mode one (no colour bar).
 
 Checks: `git diff --stat -- docs/data-sources.md` shows changes only in the candidates section.
