@@ -499,7 +499,7 @@
           -4,
           -2.4
         ],
-        "note": "C4"
+        "note": "E4"
       },
       {
         "id": "cool",
@@ -508,7 +508,7 @@
           -2.4,
           -0.8
         ],
-        "note": "E4"
+        "note": "A4"
       },
       {
         "id": "mild",
@@ -517,7 +517,7 @@
           -0.8,
           0.8
         ],
-        "note": "G4"
+        "note": "D5"
       },
       {
         "id": "warm",
@@ -526,7 +526,7 @@
           0.8,
           2.4
         ],
-        "note": "C5"
+        "note": "F5"
       },
       {
         "id": "hot",
@@ -535,7 +535,7 @@
           2.4,
           4
         ],
-        "note": "E5"
+        "note": "A5"
       }
     ],
     "tick": {
@@ -572,5 +572,48 @@
     "y0": 0,
     "x1": 1,
     "y1": 0.9412
-  }
+  },
+  "sonification": {
+    "preset": "cinematic",
+    "detail": "standard",
+    "voices": [
+      "melody",
+      "harmony",
+      "bass",
+      "hotspots",
+      "time"
+    ],
+    "timbre": {
+      "instrument": "synth",
+      "filterHz": {
+        "low": 300,
+        "high": 5000
+      },
+      "curve": "exponential",
+      "panWidth": 1
+    }
+  },
+  "story": [
+    {
+      "id": "early-years",
+      "title": "The early years",
+      "fromFrame": "1880-07-01",
+      "toFrame": "1935-07-01",
+      "text": "From 1880 to the 1930s the middle colour of the map is light blue to white: about half a degree to one degree Celsius below the 1951 to 1980 average. Many places are grey, because there were few measurements then; the app plays a hiss there, never a low note."
+    },
+    {
+      "id": "middle-years",
+      "title": "Up and down",
+      "fromFrame": "1940-07-01",
+      "toFrame": "1975-07-01",
+      "text": "From 1940 to 1975 the map moves between a little below and a little above the average, so the melody rises and falls without a clear direction. These are the years the average is measured from."
+    },
+    {
+      "id": "the-climb",
+      "title": "The climb",
+      "fromFrame": "1980-07-01",
+      "toFrame": "2025-07-01",
+      "text": "From 1980 the melody climbs and keeps climbing: the map turns orange and then deep red, about 1 degree above the average around 2000 and about 2 by 2025 in its middle colour. The far north warms fastest, so its hot spot rises highest and brightest. These numbers are read from the colours of the maps, so they are about, not exact, and they are not NASA's global average."
+    }
+  ]
 }

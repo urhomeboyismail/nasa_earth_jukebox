@@ -451,7 +451,7 @@
           -4,
           -2.4
         ],
-        "note": "C4"
+        "note": "D4"
       },
       {
         "id": "cool",
@@ -460,7 +460,7 @@
           -2.4,
           -0.8
         ],
-        "note": "E4"
+        "note": "F4"
       },
       {
         "id": "mild",
@@ -469,7 +469,7 @@
           -0.8,
           0.8
         ],
-        "note": "G4"
+        "note": "A4"
       },
       {
         "id": "warm",
@@ -511,5 +511,18 @@
     "fps": 5,
     "firstFrameDate": "2024-05-25",
     "frameStepDays": 38
+  },
+  "sonification": {
+    "preset": "dorian",
+    "detail": "standard",
+    "timbre": {
+      "instrument": "synth",
+      "filterHz": {
+        "low": 300,
+        "high": 4000
+      },
+      "curve": "exponential",
+      "panWidth": 1
+    }
   }
 }
