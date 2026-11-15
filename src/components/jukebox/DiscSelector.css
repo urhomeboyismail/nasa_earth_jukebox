@@ -1,0 +1,223 @@
+/* DiscSelector: a turntable (the platter with the chosen record and the tonearm) over a crate of records, one per data set. Tokens only. */
+.disc-selector {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: center;
+  inline-size: 100%;
+  max-inline-size: 46rem;
+  margin-inline: auto;
+  text-align: center;
+}
+.disc-selector > * { min-inline-size: 0; }
+.disc-selector .ui-picker__summary { max-inline-size: 36rem; }
+
+/*
+ * A record, as a pressing: a smooth rim, grooves too fine to count, a few smooth gaps between the tracks, a paper label with a spindle hole.
+ * The family colours the label and tints the vinyl (nearly black at night, a deeper tint by day, like a coloured pressing). The grooves and
+ * label turn with the record; the sheen does not, because light on a turning record stays where it is.
+ */
+.disc {
+  --disc-accent: var(--accent-ocean);
+  --disc-on-accent: var(--on-accent-ocean);
+  --disc-body: color-mix(in srgb, var(--disc-accent) 7%, #050608);
+  --disc-mat: var(--md-sys-color-surface-container-high);
+  position: relative;
+  inline-size: var(--disc-size, 5rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 10px 22px -10px rgb(0 0 0 / 0.85);
+}
+:root[data-theme='day'] .disc { --disc-body: color-mix(in srgb, var(--disc-accent) 34%, #04070a); }
+.disc[data-family='atmosphere'] { --disc-accent: var(--accent-atmosphere); --disc-on-accent: var(--on-accent-atmosphere); }
+.disc[data-family='forest'] { --disc-accent: var(--accent-forest); --disc-on-accent: var(--on-accent-forest); }
+.disc__spin { position: absolute; inset: 0; border-radius: 50%; }
+.disc__grooves {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    /* the shadow where the label sits a little proud of the vinyl */
+    radial-gradient(closest-side, transparent 0 35%, rgb(0 0 0 / 0.45) 35% 37%, transparent 37%),
+    /* the smooth gaps between the tracks */
+    radial-gradient(closest-side, transparent 0 56%, rgb(0 0 0 / 0.5) 56% 57%, transparent 57% 71%, rgb(0 0 0 / 0.5) 71% 72%, transparent 72% 84%, rgb(0 0 0 / 0.5) 84% 85%, transparent 85%),
+    /* the grooves, faint so they read as texture and not as a pattern */
+    repeating-radial-gradient(closest-side, rgb(255 255 255 / 0.045) 0 0.6px, transparent 0.6px 2.2px),
+    /* the vinyl, with a slightly lighter smooth rim */
+    radial-gradient(closest-side, var(--disc-body) 0 96.5%, color-mix(in srgb, var(--disc-body) 88%, white) 96.5% 100%);
+}
+.disc__sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  background: conic-gradient(from 25deg, transparent 0 6%, rgb(255 255 255 / 0.2) 12%, transparent 19% 56%, rgb(255 255 255 / 0.14) 62%, transparent 69%);
+  mask: radial-gradient(closest-side, transparent 0 36%, #000 37%);
+}
+.disc__label {
+  position: absolute;
+  inset: 32%;
+  border-radius: 50%;
+  color: var(--disc-on-accent);
+  background:
+    radial-gradient(circle at 32% 28%, color-mix(in srgb, var(--disc-accent) 88%, white) 0, var(--disc-accent) 55%, color-mix(in srgb, var(--disc-accent) 82%, black) 100%);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.5);
+}
+/* The printed ring just inside the label's edge. */
+.disc__label::before {
+  content: '';
+  position: absolute;
+  inset: 9%;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--disc-on-accent) 40%, transparent);
+}
+/* The spindle hole shows the platter mat through the record. */
+.disc__label::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  inline-size: 11%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: var(--disc-mat);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.55);
+}
+.disc__print {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  fill: currentColor;
+  font: 700 6.4px var(--md-ref-typeface-mono);
+  letter-spacing: 0.1em;
+}
+
+/* The platter: the chosen record, and the tonearm over its top right corner. The arm rests off the record and lands on it while playing. */
+.disc-platter {
+  --arm-rest: 12deg;
+  --arm-play: 50deg;
+  position: relative;
+  inline-size: min(100%, 22rem);
+  aspect-ratio: 1.25;
+  border-radius: var(--ui-corner-large, 20px);
+  background: var(--md-sys-color-surface-container);
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+.disc-platter .disc {
+  --disc-size: 64%;
+  position: absolute;
+  inset-block-start: 10%;
+  inset-inline-start: 4%;
+}
+/* The mat the record lies on: a little wider than the record, so a rim shows. */
+.disc-platter__mat {
+  position: absolute;
+  inset-block-start: 7%;
+  inset-inline-start: 2%;
+  inline-size: 68%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--md-sys-color-surface-container-high);
+  box-shadow: inset 0 0 0 2px var(--md-sys-color-outline-variant), inset 0 6px 14px rgb(0 0 0 / 0.35);
+}
+.disc-platter .disc__spin { animation: disc-spin 2.4s linear infinite; animation-play-state: paused; }
+.disc-platter .disc[data-spinning='true'] .disc__spin { animation-play-state: running; }
+.disc-platter__arm {
+  position: absolute;
+  inset-block-start: 10%;
+  inset-inline-end: 9%;
+  inline-size: 0.4rem;
+  block-size: 58%;
+  border-radius: 999px;
+  background: var(--md-sys-color-on-surface-variant);
+  transform-origin: 50% 0.2rem;
+  transform: rotate(var(--arm-rest));
+  transition: transform var(--md-sys-motion-spring-slow-spatial-duration) var(--md-sys-motion-spring-slow-spatial);
+}
+.disc-platter[data-playing='true'] .disc-platter__arm { transform: rotate(var(--arm-play)); }
+/* The pivot. */
+.disc-platter__arm::before {
+  content: '';
+  position: absolute;
+  inset-block-start: -0.35rem;
+  inset-inline-start: 50%;
+  inline-size: 1.1rem;
+  aspect-ratio: 1;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: var(--md-sys-color-surface-bright);
+  border: 2px solid var(--md-sys-color-on-surface-variant);
+}
+/* The head with the needle. */
+.disc-platter__head {
+  position: absolute;
+  inset-block-end: -0.4rem;
+  inset-inline-start: 50%;
+  inline-size: 0.9rem;
+  block-size: 1.4rem;
+  translate: -50% 0;
+  border-radius: 0.2rem;
+  background: var(--md-sys-color-on-surface);
+}
+
+/* The crate: one record per data set, scrolling sideways. The checked one is bigger, bold, and ringed (never colour alone). */
+.disc-crate {
+  display: flex;
+  gap: 0.75rem;
+  justify-self: stretch;
+  overflow-x: auto;
+  padding: 0.5rem 0.25rem 0.75rem;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+.disc-crate__item {
+  flex: 0 0 7.5rem;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 0.5rem;
+  min-block-size: var(--control-size);
+  padding: 0.5rem;
+  font: inherit;
+  color: var(--text-h);
+  background: transparent;
+  border: 0;
+  border-radius: var(--ui-corner-medium);
+  cursor: pointer;
+  scroll-snap-align: center;
+}
+.disc-crate__item:hover { background: var(--md-sys-color-surface-container-high); }
+.disc-crate__item:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.disc-crate__item[data-state='checked'] {
+  background: var(--md-sys-color-surface-container-high);
+  box-shadow: inset 0 0 0 2px var(--md-sys-color-primary);
+}
+.disc-crate__item[data-state='checked'] .disc { scale: 1.1; }
+.disc-crate__item[data-state='checked'] .disc-crate__name { font-weight: 700; }
+.disc-crate__name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  font-size: 0.875rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+@keyframes disc-spin { to { rotate: 360deg; } }
+
+/* High contrast: flat records with a solid edge and a heavier ring on the checked one. */
+@media (prefers-contrast: more) {
+  .disc { box-shadow: 0 0 0 2px var(--md-sys-color-on-surface); }
+  .disc__grooves { background: var(--md-sys-color-shadow); }
+  .disc__sheen { display: none; }
+  .disc__label { box-shadow: 0 0 0 3px var(--md-sys-color-on-surface); background: var(--disc-accent); }
+  .disc-crate__item[data-state='checked'] { box-shadow: inset 0 0 0 4px var(--md-sys-color-on-surface); }
+}
+
+/* Less motion: the record does not spin and the arm does not swing. It still shows where it is. */
+@media (prefers-reduced-motion: reduce) {
+  .disc-platter .disc__spin { animation: none; }
+  .disc-platter__arm { transition: none; }
+}

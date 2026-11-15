@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAssistantContext } from '../../assistant/context'
 import { playCue } from '../../audio/cues'
 import { Button, Dialog, Legend, LoadingIndicator, Notice, RegionPicker, Slider, useAnnounce } from '../../components'
+import { usePublishPlaying } from '../../components/jukebox/nowPlaying'
 import { useRegionChoice } from '../../components/useRegionChoice'
 import { higherPhrase, variableWords, type Region, type Visualization } from '../../data'
 import { describeChange } from '../../describe'
@@ -106,6 +107,7 @@ function Player({ visualization, region }: { visualization: Visualization; regio
   const words = variableWords(visualization.variable)
   const frame = frames[player.index]
   const playing = player.status === 'playing'
+  usePublishPlaying(playing)
   const [detail] = useDescriptionDetail()
   // The data table is built only while it is open: a closed <details> still keeps its content in the page.
   const [tableOpen, setTableOpen] = useState(false)
