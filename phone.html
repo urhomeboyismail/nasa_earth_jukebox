@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Phone preview (development)</title>
+    <!--
+      Only the dev server serves this page (`npm run phone`); the production build starts from index.html.
+      It shows the app in phone-sized frames that reload live as you edit, for the layout pass (.claude/rules/platform.md).
+      The frames are real viewports, so media and container queries behave as on a phone of that width. What they can't
+      show: touch, the notch and home-bar safe areas (env() is 0 here), the on-screen keyboard and iOS audio rules.
+      For those, use a real phone: `npm run dev -- --host` and open the Network address.
+    -->
+    <style>
+      :root { color-scheme: dark; font-family: system-ui, sans-serif; }
+      body { margin: 0; background: #16181d; color: #e8e8ea; }
+      header {
+        position: sticky; top: 0; z-index: 1; display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; align-items: center;
+        padding: 0.75rem 1rem; background: #0e0f12; border-bottom: 1px solid #2a2d35;
+      }
+      header h1 { margin: 0; font-size: 1rem; }
+      fieldset { display: flex; flex-wrap: wrap; gap: 0.25rem; align-items: center; margin: 0; padding: 0; border: 0; }
+      legend { float: left; margin-inline-end: 0.5rem; font-size: 0.8rem; color: #9aa0ab; }
+      button, label.chip {
+        display: inline-flex; align-items: center; gap: 0.35rem; min-height: 32px; padding: 0 0.75rem;
+        border: 1px solid #3a3e48; border-radius: 999px; background: #1f2229; color: inherit; font: inherit; font-size: 0.85rem; cursor: pointer;
+      }
+      button[aria-pressed='true'], label.chip:has(input:checked) { background: #2f6f8f; border-color: #5aa9cf; }
+      label.chip input { margin: 0; }
+      input[type='range'] { width: 7rem; }
+      main { display: flex; flex-wrap: wrap; gap: 2rem; align-items: flex-start; padding: 1.5rem; }
+      figure { margin: 0; }
+      figcaption { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; font-size: 0.85rem; color: #9aa0ab; }
+      figcaption strong { color: #e8e8ea; }
+      .warn { padding: 0.1rem 0.5rem; border-radius: 999px; background: #7a2630; color: #fff; font-size: 0.75rem; }
+      .ok { padding: 0.1rem 0.5rem; border-radius: 999px; background: #1f4d34; color: #cfe; font-size: 0.75rem; }
+      .bezel { padding: 10px; border-radius: 34px; background: #000; box-shadow: 0 0 0 2px #2a2d35, 0 20px 50px rgb(0 0 0 / 0.5); }
+      .screen { overflow: hidden; border-radius: 24px; background: #000; }
+      iframe { display: block; border: 0; transform-origin: 0 0; background: #fff; }
+      .note { width: 100%; margin: 0; font-size: 0.8rem; color: #9aa0ab; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Phone preview</h1>
+      <fieldset id="pages"><legend>Page</legend></fieldset>
+      <fieldset id="devices"><legend>Devices</legend></fieldset>
+      <fieldset>
+        <legend>View</legend>
+        <button type="button" id="rotate" aria-pressed="false">Landscape</button>
+        <button type="button" id="sync" aria-pressed="true">Frames follow each other</button>
+        <label class="chip">Zoom <input type="range" id="zoom" min="0.4" max="1" step="0.05" /> <output id="zoom-out"></output></label>
+        <button type="button" id="reload">Reload all</button>
+      </fieldset>
+      <p class="note">Edits reload in every frame. Each frame checks itself every 2 s for sideways scrolling and for tap targets under 24 px
+        (fails WCAG 2.5.8) or under 44 px. Touch, safe areas and the keyboard need a real phone: <code>npm run dev -- --host</code>.</p>
+    </header>
+    <main id="frames"></main>
+
+    <script type="module">
+      const PAGES = [
+        ['Welcome', 'welcome'], ['Home', 'home'], ['Learn', 'learn'], ['Listen', 'listen'],
+        ['Compare', 'compare'], ['Listening test', 'compare?test=1'], ['About', 'about'],
+      ]
+      // Widths are CSS pixels; 320 is the WCAG reflow floor, 768 is where the bottom bar gives way to the header nav.
+      const DEVICES = [
+        { id: '320', name: 'Reflow floor', w: 320, h: 640 },
+        { id: '360', name: 'Android small', w: 360, h: 740 },
+        { id: '375', name: 'iPhone SE', w: 375, h: 667 },
+        { id: '390', name: 'iPhone 15', w: 390, h: 844 },
+        { id: '430', name: 'iPhone Pro Max', w: 430, h: 932 },
+        { id: '768', name: 'Tablet (switch point)', w: 768, h: 1024 },
+      ]
+      const KEY = 'phone-preview'
+      const saved = JSON.parse(localStorage.getItem(KEY) || '{}')
+      const state = { page: 'home', devices: ['360', '390'], landscape: false, sync: true, zoom: 0.8, ...saved }
+      const save = () => localStorage.setItem(KEY, JSON.stringify(state))
+
+      const pagesEl = document.getElementById('pages')
+      const devicesEl = document.getElementById('devices')
+      const framesEl = document.getElementById('frames')
+      const zoom = document.getElementById('zoom')
+      const zoomOut = document.getElementById('zoom-out')
+      const rotate = document.getElementById('rotate')
+      const sync = document.getElementById('sync')
+      let following = false
+
+      for (const [label, hash] of PAGES) {
+        const b = document.createElement('button')
+        b.type = 'button'
+        b.textContent = label
+        b.dataset.hash = hash
+        b.addEventListener('click', () => go(hash))
+        pagesEl.append(b)
+      }
+      for (const d of DEVICES) {
+        const l = document.createElement('label')
+        l.className = 'chip'
+        l.innerHTML = `<input type="checkbox" value="${d.id}"> ${d.w} · ${d.name}`
+        const box = l.querySelector('input')
+        box.checked = state.devices.includes(d.id)
+        box.addEventListener('change', () => {
+          state.devices = DEVICES.filter(x => devicesEl.querySelector(`input[value="${x.id}"]`).checked).map(x => x.id)
+          save(); render()
+        })
+        devicesEl.append(l)
+      }
+
+      function markPage() {
+        for (const b of pagesEl.querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.hash === state.page))
+      }
+      function go(hash) {
+        state.page = hash; save(); markPage()
+        for (const f of framesEl.querySelectorAll('iframe')) f.contentWindow.location.hash = hash
+      }
+
+      function render() {
+        framesEl.replaceChildren()
+        for (const d of DEVICES.filter(x => state.devices.includes(x.id))) {
+          const w = state.landscape ? d.h : d.w
+          const h = state.landscape ? d.w : d.h
+          const fig = document.createElement('figure')
+          fig.innerHTML = `<figcaption><strong>${w} × ${h}</strong> ${d.name} <span class="status"></span></figcaption>
+            <div class="bezel"><div class="screen" style="width:${w * state.zoom}px;height:${h * state.zoom}px">
+            <iframe title="${d.name}, ${w} by ${h}" width="${w}" height="${h}" style="transform:scale(${state.zoom})" src="/#${state.page}"></iframe>
+            </div></div>`
+          const frame = fig.querySelector('iframe')
+          frame.addEventListener('load', () => {
+            // One frame navigating moves the others to the same page.
+            frame.contentWindow.addEventListener('hashchange', () => {
+              if (!state.sync || following) return
+              const hash = frame.contentWindow.location.hash.slice(1)
+              state.page = hash; save(); markPage()
+              following = true
+              for (const other of framesEl.querySelectorAll('iframe')) if (other !== frame && other.contentWindow.location.hash.slice(1) !== hash) other.contentWindow.location.hash = hash
+              setTimeout(() => { following = false }, 50)
+            })
+          })
+          framesEl.append(fig)
+        }
+      }
+
+      // A quick live check in each frame. The full audit measures more; this catches the common regressions while you work.
+      function check(frame) {
+        const doc = frame.contentDocument
+        if (!doc || !doc.body) return null
+        const win = frame.contentWindow
+        const sideways = doc.documentElement.scrollWidth > doc.documentElement.clientWidth + 1
+        let fail = 0, small = 0
+        const sel = 'a[href], button, input:not([type=hidden]), select, textarea, summary, [role=button], [role=slider], [role=tab], [role=switch], [tabindex="0"]'
+        for (const el of doc.querySelectorAll(sel)) {
+          const s = win.getComputedStyle(el)
+          if (s.display === 'none' || s.visibility === 'hidden' || s.clipPath.startsWith('inset(50%')) continue
+          if (el.tagName === 'A' && s.display === 'inline' && el.closest('p, li')) continue
+          let r = el.getBoundingClientRect()
+          if (!r.width || !r.height) continue
+          if (el.matches('input[type=checkbox], input[type=radio]') && el.closest('label')) r = el.closest('label').getBoundingClientRect()
+          if (r.width < 24 || r.height < 24) fail++
+          else if (r.width < 44 || r.height < 44) small++
+        }
+        return { sideways, fail, small }
+      }
+      setInterval(() => {
+        for (const fig of framesEl.querySelectorAll('figure')) {
+          let result
+          try { result = check(fig.querySelector('iframe')) } catch { result = null }
+          const out = fig.querySelector('.status')
+          if (!result) { out.textContent = ''; continue }
+          const bits = []
+          if (result.sideways) bits.push('<span class="warn">scrolls sideways</span>')
+          if (result.fail) bits.push(`<span class="warn">${result.fail} target${result.fail > 1 ? 's' : ''} &lt; 24px</span>`)
+          if (result.small) bits.push(`<span>${result.small} &lt; 44px</span>`)
+          out.innerHTML = bits.join(' ') || '<span class="ok">ok</span>'
+        }
+      }, 2000)
+
+      zoom.value = String(state.zoom)
+      zoomOut.textContent = `${Math.round(state.zoom * 100)}%`
+      zoom.addEventListener('input', () => { state.zoom = Number(zoom.value); zoomOut.textContent = `${Math.round(state.zoom * 100)}%`; save(); render() })
+      rotate.setAttribute('aria-pressed', String(state.landscape))
+      rotate.addEventListener('click', () => { state.landscape = !state.landscape; rotate.setAttribute('aria-pressed', String(state.landscape)); save(); render() })
+      sync.setAttribute('aria-pressed', String(state.sync))
+      sync.addEventListener('click', () => { state.sync = !state.sync; sync.setAttribute('aria-pressed', String(state.sync)); save() })
+      document.getElementById('reload').addEventListener('click', render)
+
+      markPage()
+      render()
+    </script>
+  </body>
+</html>
