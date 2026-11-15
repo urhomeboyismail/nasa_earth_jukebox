@@ -16,7 +16,7 @@ afterEach(() => vi.unstubAllGlobals())
 describe('queryMascot', () => {
   it('sends the question, the preference and the catalog, and reads a good answer', async () => {
     answer(200, good)
-    expect(await ask()).toEqual({ kind: 'answer', answer: { reply: good.mascot_reply, theme: 'ocean', audio, localId: null, series: null } })
+    expect(await ask()).toEqual({ kind: 'answer', answer: { reply: good.mascot_reply, theme: 'ocean', audio, localId: null, series: null, pictures: null } })
     const [url, init] = vi.mocked(fetch).mock.calls[0]
     expect(String(url)).toMatch(/\/api\/v1\/mascot\/query$/)
     expect(JSON.parse(String(init?.body))).toEqual({ user_prompt: 'SST near Mauritius', audio_preference: 'normal', catalog })
@@ -69,5 +69,53 @@ describe('queryMascot', () => {
     expect(await ask()).toEqual({ kind: 'error', error: 'model' })
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('failed')))
     expect(await ask()).toEqual({ kind: 'error', error: 'unreachable' })
+  })
+
+  describe('pictures (G12)', () => {
+    const url = 'https://planetarycomputer.microsoft.com/api/data/v1/item/bbox/57,-21,58,-20.png?collection=c&item=i&assets=sst'
+    const legend = { kind: 'data', unit: '°C', stops: [{ value: -1.5, rgb: [49, 54, 149] }, { value: 34.5, rgb: [165, 0, 38] }] }
+    const withPictures = { ...good, images: [{ date: '2026-06-01', url }, { date: '2026-06-15', url }], image_legend: legend, image_area: [57, -21, 58, -20] }
+    const picturesOf = async () => {
+      const result = await ask()
+      if (result.kind !== 'answer') throw new Error('expected an answer')
+      return result.answer
+    }
+
+    it('keeps good pictures', async () => {
+      answer(200, withPictures)
+      expect((await picturesOf()).pictures).toEqual({ images: withPictures.images, legend, area: [57, -21, 58, -20] })
+      answer(200, { ...withPictures, image_legend: { kind: 'picture' } })
+      expect((await picturesOf()).pictures?.legend).toEqual({ kind: 'picture' })
+    })
+
+    it('drops every picture when one URL is on another host, and keeps the rest of the answer', async () => {
+      answer(200, { ...withPictures, images: [{ date: '2026-06-01', url }, { date: '2026-06-15', url: 'https://example.com/api/data/v1/item/bbox/1.png' }] })
+      const result = await picturesOf()
+      expect(result.pictures).toBeNull()
+      expect([result.reply, result.audio]).toEqual([good.mascot_reply, audio])
+    })
+
+    it.each([
+      ['falling stops', { ...legend, stops: [...legend.stops].reverse() }],
+      ['a colour out of range', { ...legend, stops: [{ value: 0, rgb: [0, 0, 300] }, { value: 1, rgb: [0, 0, 0] }] }],
+      ['an unknown kind', { kind: 'map' }],
+    ])('drops a bad legend: %s', async (_name, bad) => {
+      answer(200, { ...withPictures, image_legend: bad })
+      expect((await picturesOf()).pictures).toBeNull()
+    })
+
+    it('drops a bad area, too many pictures, or none', async () => {
+      answer(200, { ...withPictures, image_area: [58, -21, 57, -20] })
+      expect((await picturesOf()).pictures).toBeNull()
+      answer(200, { ...withPictures, images: Array.from({ length: 7 }, () => ({ date: '2026-06-01', url })) })
+      expect((await picturesOf()).pictures).toBeNull()
+      answer(200, { ...withPictures, images: [], image_legend: null, image_area: null })
+      expect((await picturesOf()).pictures).toBeNull()
+    })
+
+    it('an answer from an older server, without the fields, still works', async () => {
+      answer(200, good)
+      expect(await picturesOf()).toEqual({ reply: good.mascot_reply, theme: 'ocean', audio, localId: null, series: null, pictures: null })
+    })
   })
 })

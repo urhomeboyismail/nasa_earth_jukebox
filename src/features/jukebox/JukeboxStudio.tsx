@@ -2,6 +2,7 @@
 // descriptions. With no server, the offline box plays a pasted answer. A model's text is shown only where this file says so.
 // G11: "Fetch live data" asks Echo instead. The server fetches the series from Planetary Computer; Echo's face follows the request, and
 // its reply (built from the numbers on the server, not model text) is shown, announced, and played by the same player.
+// G12: with it come up to six pictures of the area, shown and played through the app's own pipeline (LiveImages).
 
 import { lazy, Suspense, useRef, useState, type CSSProperties } from 'react'
 import { Button, Notice, useAnnounce } from '../../components'
@@ -10,6 +11,7 @@ import { loadCatalog, type CatalogEntry } from '../../data'
 import { hashFor } from '../../route'
 import { generateJukebox, MAX_QUERY_CHARS, type JukeboxErrorKind, type JukeboxRequest } from './generate'
 import { JukeboxPlayer } from './JukeboxPlayer'
+import { LiveImages } from './LiveImages'
 import { queryMascot, type AudioPreference, type DatasetTheme, type MascotAnswer } from './mascotQuery'
 import { parseAudioPayload, parseVisionPayload, type AudioPayload, type VisionPayload } from './payload'
 import { SeriesTable } from './SeriesTable'
@@ -245,6 +247,7 @@ export function JukeboxStudio() {
           {live.answer.localId && <a href={`index.html${hashFor('listen', { data: live.answer.localId })}`}>Open it in the app</a>}
           {live.answer.audio && <JukeboxPlayer payload={live.answer.audio} vision={null} onStep={setLiveStep} />}
           {live.answer.series && <SeriesTable series={live.answer.series} current={liveStep} />}
+          {live.answer.pictures && <LiveImages key={live.answer.pictures.images.map(image => image.url).join(' ')} pictures={live.answer.pictures} />}
         </section>
       )}
       {error && (

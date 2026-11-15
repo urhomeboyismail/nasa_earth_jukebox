@@ -106,3 +106,33 @@
   background: var(--md-sys-color-secondary-container);
   color: var(--md-sys-color-on-secondary-container);
 }
+
+/* G12: Echo's live pictures, one at a time. */
+.live-images {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+}
+
+.live-images p {
+  margin: 0;
+}
+
+.live-images__picture {
+  display: block;
+  max-inline-size: 100%;
+  block-size: auto;
+  border-radius: 0.75rem;
+  background: var(--md-sys-color-surface-container-highest);
+}
+
+.live-images__credit {
+  font-size: 0.875rem;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.live-images__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
