@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ComponentType, type CSSProperties, type MouseEvent } from 'react'
 import { AnnouncerProvider, DatasetPicker, LoadingIndicator, Notice, ServerPill, ThemeSwitch } from './components'
 import { Icon, type IconName } from './components/Icon'
+import { DiscSelector } from './components/jukebox/DiscSelector'
 import { RobotBadge } from './components/RobotBadge'
 import { DataError, friendlyDataMessage, loadCatalog, loadVisualization, type CatalogEntry, type Visualization } from './data'
 import { DisplayButton, DisplaySettingsProvider } from './display/DisplaySettings'
@@ -129,6 +130,8 @@ function App() {
   const testMode = page === 'compare' && route.params.get('test') === '1'
   // Links carry the chosen data set so it survives a click; a missing one is swapped for the one showing, and none stays none.
   const linkData = dataMissing ? dataId : requestedData
+  // Listen chooses its data set from a crate of records; the other pages keep the plain list.
+  const DataPicker = page === 'listen' ? DiscSelector : DatasetPicker
 
   useEffect(() => {
     if (!dataId) return
@@ -324,7 +327,7 @@ function App() {
           <HelpButton key={page} page={page} />
           <DemoControl />
           {catalog && catalog.length > 1 && dataId && !testMode && (
-            <DatasetPicker catalog={catalog} value={dataId} onChange={id => { window.location.hash = hashFor(page, { data: id }) }} />
+            <DataPicker catalog={catalog} value={dataId} onChange={id => { window.location.hash = hashFor(page, { data: id }) }} />
           )}
           {dataMissing && <Notice>The data set “{requestedData}” was not found, so this shows “{catalog?.[0].title}” instead.</Notice>}
           {loadError && <Notice variant="error">{loadError}</Notice>}

@@ -196,7 +196,7 @@ Video compression blends colours like JPEG, often worse (colour is stored at hal
 
 1. Fill in every field the converter lists as `TODO` (title, summary, description, variable and unit, source name, URL, credit and licence copied exactly from the source page, retrieved date, region id, name and description, one alt text per frame).
 2. Check the fields it lists under "Also check": `colorScale.noData` (the land, coastline and label colours; the template's grey is a placeholder), `maxColorDistance`, the 30 region points (move any on land), and the category ranges and labels.
-3. Add `{ "id": "<id>", "title": "...", "summary": "..." }` to `public/data/index.json`.
+3. Add `{ "id": "<id>", "title": "...", "summary": "..." }` to `public/data/index.json`. Optional `"family": "ocean" | "atmosphere" | "forest"` colours the data set's disc on Listen; left out, it is `ocean`.
 4. `npm run check-data`, and fix what it names.
 5. `npm run dev`, open `#listen?data=<id>`, and listen (step 7 of the checklist).
 

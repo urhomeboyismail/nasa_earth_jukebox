@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from 're
 import { SCHEDULE_LOOKAHEAD_S } from '../../audio/ensemble/constants'
 import { useEnsemble } from '../../audio/ensemble/useEnsemble'
 import { Button, Slider, useAnnounce } from '../../components'
+import { usePublishPlaying } from '../../components/jukebox/nowPlaying'
 import { dateFormatterFor } from '../../dates'
 import { primaryRegion, type Region, type Visualization } from '../../data'
 import { presetFor } from '../../sonify'
@@ -30,6 +31,7 @@ export function Scan({ visualization, region }: { visualization: Visualization; 
   const { ensemble, status } = useEnsemble(preset, 'full', visualization.sonification?.timbre)
   const [index, setIndex] = useState(0)
   const [phase, setPhase] = useState<Phase>('idle')
+  usePublishPlaying(phase === 'scanning')
   const [line, setLine] = useState<Line | null>(null)
   const [message, setMessage] = useState('')
   const format = dateFormatterFor(frames.map(frame => frame.date))
