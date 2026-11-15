@@ -553,5 +553,18 @@
     "y0": 0,
     "x1": 1,
     "y1": 0.9412
+  },
+  "sonification": {
+    "preset": "nature",
+    "detail": "full",
+    "timbre": {
+      "instrument": "synth",
+      "filterHz": {
+        "low": 400,
+        "high": 3000
+      },
+      "curve": "linear",
+      "panWidth": 1
+    }
   }
 }
