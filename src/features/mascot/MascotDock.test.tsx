@@ -231,6 +231,14 @@ describe("Echo's robot (JB08)", () => {
     rerender(<Dock voice="listening" voiceOpen line="" />)
     expect(robot(container)).toHaveAttribute('data-pose', 'listening')
   })
+
+  it("does not mouth the guide's line on a phone, where the voice panel covers the robot but not its bubble", () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: query === '(max-width: 767.98px)', addEventListener: () => {}, removeEventListener: () => {} }))
+    const { container } = render(<Dock voice="speaking" voiceOpen line="Hello there." />)
+    expect(robot(container)).toHaveAttribute('data-pose', 'talking')
+    expect(robot(container)).toHaveAttribute('data-say', '')
+    vi.unstubAllGlobals()
+  })
 })
 
 describe("Echo's face", () => {
