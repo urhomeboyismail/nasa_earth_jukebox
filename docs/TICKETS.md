@@ -97,7 +97,7 @@ The MC tickets branch from `chore/jpl-hud-theme` (the Mission Control look, not 
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [SN16](tickets/SN16-decade-accent.md) | A decade accent on the time voice, so years-apart data sets feel the decades pass | S | agent | — | — | open |
+| [SN16](tickets/SN16-decade-accent.md) | A decade accent on the time voice, so years-apart data sets feel the decades pass | S | agent | — | — | claimed: E, 2026-11-15 |
 | [SN17](tickets/SN17-event-cues.md) | Event cues: a short sound and a caption when a dated event in the manifest is reached | M | agent | — | schema | open |
 
 ### P2: Echo's weather (Meteomatics)
