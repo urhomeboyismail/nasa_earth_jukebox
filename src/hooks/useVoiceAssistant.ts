@@ -2,9 +2,9 @@
 // Ported from the FinAssist voice assistant.
 //
 // The server holds the Gemini session and runs every tool. The only things it can ask this
-// page to do are navigate to a page, send a playback command to the player, and point at a
-// place on the sound map (IX09). Every action is re-validated here, because it arrives from a
-// model over a WebSocket.
+// page to do are navigate to a page, send a playback command to the player, point at a
+// place on the sound map (IX09), and show live data in the panel (G13). Every action is
+// re-validated here, because it arrives from a model over a WebSocket.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Recorder, SpeechPlayer } from '../assistant/audio'
@@ -15,6 +15,7 @@ import {
 import { currentContext, subscribeContext, type ContextUpdate } from '../assistant/context'
 import { z } from 'zod'
 import { socketUrl } from '../config'
+import { parseMascotAnswer, type MascotAnswer } from '../features/jukebox/mascotQuery'
 import type { PlayerCommand } from '../features/player/controls'
 import { COMPASS_PLACES } from '../features/point/places'
 import { isPage, pages, type Page } from '../pages'
@@ -90,7 +91,7 @@ const MESSAGES = {
   upstream: 'Echo stopped unexpectedly. The rest of the app still works.',
   busy: 'Echo is busy with other conversations. Try again in a minute.',
   time_limit: 'This conversation reached its time limit. Start again to keep talking.',
-  service_ended: 'Echo finished the conversation.',
+  service_ended: 'The conversation ended after a pause. Press Start to talk again.',
   closed: 'The conversation has ended.',
 } as const
 
@@ -156,6 +157,8 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
   const [errorCode, setErrorCode] = useState('')
   const [endedMessage, setEndedMessage] = useState('')
   const [actions, setActions] = useState<ActionRecord[]>([])
+  /** G13: the newest live data answer the guide fetched, shown in the panel. */
+  const [liveAnswer, setLiveAnswer] = useState<MascotAnswer | null>(null)
   const [micMuted, setMicMuted] = useState(false)
   const [micSilent, setMicSilent] = useState(false)
   const [micNote, setMicNote] = useState('')
@@ -361,6 +364,7 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
     setEndedMessage('')
     records.current = []
     setActions([])
+    setLiveAnswer(null)
     mutedRef.current = false
     setMicMuted(false)
     setMicNote('')
@@ -420,7 +424,11 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
           openEntry.current = null
           break
         case 'action':
-          {
+          if (message.action === 'live_data') {
+            // The server's answer, checked by the same reader as the Live page's. One that does not pass is dropped.
+            const answer = parseMascotAnswer(message, [])
+            if (answer) setLiveAnswer(answer)
+          } else {
             const action = toAssistantAction(message)
             if (action) {
               const { label, inverse } = describeAction(action, pageRef.current)
@@ -492,7 +500,7 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
   /** Ends this conversation and starts the next at once, from the warning's Continue (a click). The transcript stays. */
   const continueSession = useCallback(() => { open(consent === 'mic') }, [consent, open])
 
-  const stop = useCallback(() => { teardown(); setStatus('idle') }, [teardown])
+  const stop = useCallback(() => { teardown(); setLiveAnswer(null); setStatus('idle') }, [teardown])
 
   /**
    * Cuts the guide's sound here and keeps the conversation open. The server may still finish its turn
@@ -569,7 +577,7 @@ export function useVoiceAssistant({ language, page, onAction }: Options) {
   useEffect(() => teardown, [teardown])
 
   return {
-    status, transcript, error, errorCode, endedMessage, actions, micMuted, micSilent, micNote, micReady, levelRef,
+    status, transcript, error, errorCode, endedMessage, actions, liveAnswer, micMuted, micSilent, micNote, micReady, levelRef,
     consent, consentAsked, talkMode, talking, answerLength, limitWarning, waking,
     start, stop, stopSpeaking, undo, toggleMute, toggleTalk, sendText, chooseConsent, clearConsent, continueSession, setTalkMode, setAnswerLength,
   }

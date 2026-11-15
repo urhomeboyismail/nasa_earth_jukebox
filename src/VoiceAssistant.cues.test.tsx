@@ -8,7 +8,7 @@ vi.mock('./audio/cues', () => ({ playCue }))
 
 type Assistant = ReturnType<typeof useVoiceAssistant>
 const assistant = (status: Assistant['status']): Assistant => ({
-  status, transcript: [], error: status === 'error' ? 'The connection dropped.' : '', errorCode: '', endedMessage: '', actions: [], micMuted: false,
+  status, transcript: [], error: status === 'error' ? 'The connection dropped.' : '', errorCode: '', endedMessage: '', actions: [], liveAnswer: null, micMuted: false,
   micSilent: false, micNote: '', micReady: true, levelRef: { current: 0 }, consent: 'mic', consentAsked: false, talkMode: 'open', talking: false,
   answerLength: 'short', limitWarning: false, waking: false,
   start: vi.fn(), stop: vi.fn(), stopSpeaking: vi.fn(), undo: vi.fn(), toggleMute: vi.fn(), toggleTalk: vi.fn(), sendText: vi.fn(() => true),

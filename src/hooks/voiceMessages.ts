@@ -23,8 +23,9 @@ const messageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('transcript'), role: z.enum(['user', 'assistant']), text: z.string() }),
   z.object({ type: z.literal('interrupted') }),
   z.object({ type: z.literal('turn_complete') }),
-  // The action's own allow-list (toAssistantAction) still runs on these: it is the browser's second check.
-  z.object({ type: z.literal('action'), action: z.string(), page: z.unknown().optional(), command: z.unknown().optional(), target: z.unknown().optional() }),
+  // The action's own allow-list (toAssistantAction, or parseMascotAnswer for live_data) still runs on these: it is the browser's
+  // second check. Loose, so live_data's answer fields reach that check.
+  z.looseObject({ type: z.literal('action'), action: z.string(), page: z.unknown().optional(), command: z.unknown().optional(), target: z.unknown().optional() }),
   z.object({ type: z.literal('error'), code: z.string(), message: z.string() }),
   z.object({ type: z.literal('ended'), reason: z.string() }),
 ])

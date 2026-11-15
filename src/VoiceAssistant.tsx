@@ -4,6 +4,7 @@ import { recognitionCtor, useWakeSetting } from './assistant/wakeWord'
 import { Button, ButtonGroup, IconButton, Notice } from './components'
 import type { AnswerLength } from './assistant/consent'
 import { Icon } from './components/Icon'
+import { LiveAnswer } from './features/jukebox/LiveAnswer'
 import { NO_RETRY_CODES, type useVoiceAssistant } from './hooks/useVoiceAssistant'
 import './styles/assistant.css'
 
@@ -16,7 +17,7 @@ const ANSWER_LENGTHS: readonly { value: AnswerLength; label: string }[] = [{ val
 
 export default function VoiceAssistant({ assistant, onClose }: { assistant: Assistant; onClose: () => void }) {
   const {
-    status, transcript, error, errorCode, endedMessage, actions, micMuted, micSilent, micNote, micReady, levelRef,
+    status, transcript, error, errorCode, endedMessage, actions, liveAnswer, micMuted, micSilent, micNote, micReady, levelRef,
     consent, consentAsked, talkMode, talking, answerLength, limitWarning, waking,
   } = assistant
   const [draft, setDraft] = useState('')
@@ -173,6 +174,9 @@ export default function VoiceAssistant({ assistant, onClose }: { assistant: Assi
         <span className="ui-visually-hidden">{entry.role === 'user' ? 'You said:' : 'Guide said:'} </span>{entry.text}
       </li>)}
     </ol>
+
+    {/* G13: live data the guide fetched. Nothing plays until its Play is pressed. */}
+    {liveAnswer && <LiveAnswer answer={liveAnswer} />}
 
     {/* Says what the guide just did, once, without moving focus. */}
     <p className="ui-visually-hidden" aria-live="polite">{latestAction?.label}</p>

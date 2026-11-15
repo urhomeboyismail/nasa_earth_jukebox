@@ -113,25 +113,31 @@ export async function queryMascot(
       const retryAfter = response.status === 429 && Number.isInteger(wait) && wait > 0 ? wait : undefined
       return { kind: 'error', error: errorFor(response.status), ...(retryAfter && { retryAfter }) }
     }
-    const parsed = answerSchema.safeParse(await response.json())
-    if (!parsed.success) return { kind: 'error', error: 'model' }
-    const { mascot_reply, dataset_theme, sonification_json, local_dataset_id, images, image_legend, image_area } = parsed.data
-    const audio = audioPayloadSchema.safeParse(sonification_json)
-    const series = seriesSchema.safeParse(parsed.data.series)
-    const localId = catalog.some(entry => entry.id === local_dataset_id) ? (local_dataset_id ?? null) : null
-    const pictures = picturesSchema.safeParse({ images, legend: image_legend, area: image_area })
-    return {
-      kind: 'answer',
-      answer: {
-        reply: mascot_reply,
-        theme: dataset_theme,
-        audio: audio.success ? audio.data : null,
-        localId,
-        series: series.success ? series.data : null,
-        pictures: pictures.success ? pictures.data : null,
-      },
-    }
+    const answer = parseMascotAnswer(await response.json(), catalog)
+    return answer ? { kind: 'answer', answer } : { kind: 'error', error: 'model' }
   } catch {
     return { kind: 'error', error: 'unreachable' }
+  }
+}
+
+/**
+ * The answer in the route's JSON, or null when it has no reply. The one reader of that shape: the route's answer and the voice
+ * guide's `live_data` action (G13) both come through here. A part that does not pass is dropped and the rest is kept.
+ */
+export function parseMascotAnswer(json: unknown, catalog: CatalogEntry[]): MascotAnswer | null {
+  const parsed = answerSchema.safeParse(json)
+  if (!parsed.success) return null
+  const { mascot_reply, dataset_theme, sonification_json, local_dataset_id, images, image_legend, image_area } = parsed.data
+  const audio = audioPayloadSchema.safeParse(sonification_json)
+  const series = seriesSchema.safeParse(parsed.data.series)
+  const localId = catalog.some(entry => entry.id === local_dataset_id) ? (local_dataset_id ?? null) : null
+  const pictures = picturesSchema.safeParse({ images, legend: image_legend, area: image_area })
+  return {
+    reply: mascot_reply,
+    theme: dataset_theme,
+    audio: audio.success ? audio.data : null,
+    localId,
+    series: series.success ? series.data : null,
+    pictures: pictures.success ? pictures.data : null,
   }
 }

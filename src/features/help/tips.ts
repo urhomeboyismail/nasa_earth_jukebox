@@ -7,5 +7,6 @@ export const TIPS: Record<Page, string> = {
   learn: 'Press each Play button to hear what a sound means. When you can tell them apart, go to Listen.',
   listen: 'Press Play to hear every date in turn. Use the date slider to jump to one date, and Replay to hear it again.',
   compare: 'Pick two dates and play each one. Say which one shows the change, then reveal the answer.',
+  live: 'Type a question about a place and a month, or press an example. Then press Play to hear the answer.',
   about: 'This page says where the images come from and how colours become sound. The values you hear are approximate.',
 }

@@ -9,7 +9,7 @@ import VoiceAssistant from './VoiceAssistant'
 
 type Assistant = ReturnType<typeof useVoiceAssistant>
 const assistant: Assistant = {
-  status: 'idle', transcript: [], error: '', errorCode: '', endedMessage: '', actions: [], micMuted: false, micSilent: false,
+  status: 'idle', transcript: [], error: '', errorCode: '', endedMessage: '', actions: [], liveAnswer: null, micMuted: false, micSilent: false,
   micNote: '', micReady: true, levelRef: { current: 0 }, consent: 'mic', consentAsked: false, talkMode: 'open', talking: false,
   answerLength: 'short', limitWarning: false, waking: false,
   start: vi.fn(), stop: vi.fn(), stopSpeaking: vi.fn(), undo: vi.fn(), toggleMute: vi.fn(), toggleTalk: vi.fn(), sendText: vi.fn(() => true),

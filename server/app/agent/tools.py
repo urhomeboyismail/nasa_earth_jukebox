@@ -1,4 +1,4 @@
-"""The voice guide's tools as ADK function tools: the five app tools, and get_weather (WX04).
+"""The voice guide's tools as ADK function tools: the five app tools, get_weather (WX04), and show_live_data (G13, mascot on only).
 
 Each one wraps `run_tool` (app/assistant/tools.py), which stays the one place that checks page names, playback commands and
 dates: the functions here only read the session state, call it, and pass on what it returns. ADK builds each tool's schema from
@@ -14,13 +14,14 @@ from typing import Literal
 import httpx
 from google.adk.tools import FunctionTool, ToolContext
 
-from app.agent import weather
+from app.agent import planetary, weather
 from app.agent.sink import sink
 from app.assistant.tools import SessionState, run_tool
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-PageId = Literal["home", "learn", "listen", "compare", "about"]
+PageId = Literal["home", "learn", "listen", "compare", "live", "about"]
 PlaybackCommand = Literal["play", "pause", "stop", "replay", "next", "previous"]
 
 
@@ -107,6 +108,59 @@ async def get_weather(latitude: float, longitude: float, tool_context: ToolConte
     }
 
 
+#: G13: live Planetary Computer fetches one voice session may make. Each also takes a token from the mascot route's bucket.
+MAX_LIVE_CALLS = 3
+LIVE_CALLS_KEY = "live_calls"
+
+#: Appended beside WEATHER_INSTRUCTION, only when the tool is there (MASCOT_ENABLED=true).
+LIVE_INSTRUCTION = (
+    "\n- Live data (an exception to the rules above): when the user asks to see or hear live satellite data, sea surface "
+    "temperature or clouds at a place, call show_live_data with that place's bounding box and the dates asked for, then say "
+    "only the say text it returns. The numbers in it are the only numbers about live data you may say. The answer appears in "
+    "this panel, where the user presses Play to hear it. If it returns an error, say so in a few words."
+)
+
+
+async def show_live_data(collection: str, bbox: list[float], datetime_range: str, tool_context: ToolContext) -> dict:
+    # The docstring is set below from planetary.COLLECTIONS, so the list cannot drift.
+    calls = int(tool_context.state.get(LIVE_CALLS_KEY) or 0)
+    if calls >= MAX_LIVE_CALLS:
+        return {"error": "No more live data requests in this conversation. Tell the user."}
+    checked = planetary.checked_args(collection, bbox, datetime_range)
+    if isinstance(checked, dict):
+        return checked
+    from app.api.mascot import _bucket  # the mascot route's whole-server bucket; there is no visitor address here
+
+    if not _bucket().take():
+        return {"error": "Too many live data requests on the server right now. Tell the user to try again in a minute."}
+    tool_context.state[LIVE_CALLS_KEY] = calls + 1
+    try:
+        series, images = await planetary.fetch_series(collection, *checked)
+    except Exception as error:  # noqa: BLE001 - the network, the STAC API or the data API
+        logger.warning("Planetary Computer failed: %s", type(error).__name__)  # Never the place asked about.
+        return {"error": "Planetary Computer did not answer. Tell the user, and do not try again."}
+    answer = planetary.answer_for({planetary.SERIES_KEY: series, planetary.IMAGES_KEY: images}, "normal", [])
+    if answer["series"] or answer["images"]:
+        sink.put(tool_context.session.id, {"action": "live_data", **answer})
+    return {"say": answer["mascot_reply"]}
+
+
+show_live_data.__doc__ = (
+    "Fetch live satellite data from Microsoft Planetary Computer and show it to the user as music, a table of the numbers and "
+    "pictures of the area. collection: one of "
+    + "; ".join(f'"{name}" for {spec.metric.lower()}' for name, spec in planetary.COLLECTIONS.items())
+    + f". bbox: [west, south, east, north] in degrees around the place asked about, at most {planetary.MAX_SPAN_DEGREES:g} "
+    'degrees each way. datetime_range: "YYYY-MM-DD/YYYY-MM-DD", first day then last day, at most a year. Returns the one '
+    "sentence to say."
+)
+
+
 #: The only tools the agent has. Each one's action, if any, has passed run_tool before it reaches the sink.
 AGENT_TOOLS = [FunctionTool(fn) for fn in (navigate_to, explain_section, control_playback, set_date, get_screen_context, get_weather)]
 TOOL_NAMES = frozenset(tool.name for tool in AGENT_TOOLS)
+LIVE_TOOL = FunctionTool(show_live_data)
+
+
+def agent_tools() -> list[FunctionTool]:
+    """AGENT_TOOLS, plus show_live_data when the mascot is on. Read at session start, so the switch needs no restart."""
+    return [*AGENT_TOOLS, LIVE_TOOL] if settings.mascot_enabled else list(AGENT_TOOLS)

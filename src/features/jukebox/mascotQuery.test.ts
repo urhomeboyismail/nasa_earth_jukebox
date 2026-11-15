@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { queryMascot } from './mascotQuery'
+import { parseMascotAnswer, queryMascot } from './mascotQuery'
 
 const catalog = [{ id: 'fixture', title: 'Fixture ocean', summary: 'Four test frames.' }]
 const audio = { base_bpm: 100, tracks: [{ instrument: 'marimba', pitch_range: [52, 76], volume_curve: [0.15, 1] }] }
@@ -117,5 +117,22 @@ describe('queryMascot', () => {
       answer(200, good)
       expect(await picturesOf()).toEqual({ reply: good.mascot_reply, theme: 'ocean', audio, localId: null, series: null, pictures: null })
     })
+  })
+})
+
+describe('parseMascotAnswer (G13)', () => {
+  it('reads a valid answer, the same as queryMascot does', async () => {
+    const parsed = parseMascotAnswer({ ...good, local_dataset_id: 'fixture' }, catalog)
+    expect(parsed).toEqual({ reply: good.mascot_reply, theme: 'ocean', audio, localId: 'fixture', series: null, pictures: null })
+    answer(200, { ...good, local_dataset_id: 'fixture' })
+    expect(await ask()).toEqual({ kind: 'answer', answer: parsed })
+  })
+
+  it('keeps no local data set without a catalog', () => {
+    expect(parseMascotAnswer({ ...good, local_dataset_id: 'fixture' }, [])?.localId).toBeNull()
+  })
+
+  it.each([null, 'text', [], {}, { ...good, mascot_reply: '' }, { ...good, mascot_reply: 5 }])('returns null for %j', json => {
+    expect(parseMascotAnswer(json, catalog)).toBeNull()
   })
 })

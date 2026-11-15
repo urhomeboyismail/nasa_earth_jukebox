@@ -124,6 +124,16 @@ describe('App shell', () => {
     expect(await screen.findByText(/Cold, Cool, Mild, Warm, Hot/)).toBeInTheDocument()
   })
 
+  it('opens the Live data page from the navigation, with its question box (G13)', async () => {
+    render(<App />)
+    await userEvent.click(navLink('Live data'))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Live data' })).toHaveFocus()
+    expect(window.location.hash).toBe('#live')
+    expect(await screen.findByRole('textbox', { name: 'Your question' })).toBeInTheDocument()
+    expect(navLink('Live data')).toHaveAttribute('aria-current', 'page')
+    expect(navLink('Live data')).toHaveTextContent('Live')
+  })
+
   it('keeps the page in the URL hash', async () => {
     render(<App />)
     await userEvent.click(navLink('Compare two dates'))

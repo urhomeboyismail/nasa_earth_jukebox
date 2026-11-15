@@ -6,6 +6,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { expectNoA11yViolations } from './test/a11y'
 import { installFakeAudioContext } from './test/fakes'
 import VoiceAssistant from './VoiceAssistant'
+import type { MascotAnswer } from './features/jukebox/mascotQuery'
 import { loadAssistantAudio, useVoiceAssistant } from './hooks/useVoiceAssistant'
 
 type Assistant = ReturnType<typeof useVoiceAssistant>
@@ -19,7 +20,7 @@ beforeAll(() => loadAssistantAudio())
 // The defaults are a decided open mic, as the guide was before V02, so the older cases keep their meaning.
 function fakeAssistant(overrides: Partial<Assistant> = {}): Assistant {
   return {
-    status: 'idle', transcript: [], error: '', errorCode: '', endedMessage: '', actions: [], micMuted: false, micSilent: false,
+    status: 'idle', transcript: [], error: '', errorCode: '', endedMessage: '', actions: [], liveAnswer: null, micMuted: false, micSilent: false,
     micNote: '', micReady: true, levelRef: { current: 0 }, consent: 'mic', consentAsked: false, talkMode: 'open', talking: false,
     answerLength: 'short', limitWarning: false, waking: false,
     start: vi.fn(), stop: vi.fn(), stopSpeaking: vi.fn(), undo: vi.fn(), toggleMute: vi.fn(), toggleTalk: vi.fn(), sendText: vi.fn(() => true),
@@ -34,6 +35,28 @@ describe('VoiceAssistant panel', () => {
     expect(screen.getByRole('heading', { name: 'Voice guide' })).toHaveFocus()
     expect(screen.getByRole('button', { name: 'Start talking' })).toBeInTheDocument()
     await expectNoA11yViolations(container)
+  })
+
+  it('shows the live data answer under the conversation, silent until Play (G13)', async () => {
+    const liveAnswer: MascotAnswer = {
+      reply: 'I found 2 days of sea surface temperature.', theme: 'ocean', localId: null, pictures: null,
+      audio: { base_bpm: 100, tracks: [{ instrument: 'marimba', pitch_range: [52, 76], volume_curve: [0.15, 1] }] },
+      series: { metric: 'Sea surface temperature', unit: '°C', times: ['2026-06-01', '2026-06-02'], values: [24.1, 24.6] },
+    }
+    const audio = installFakeAudioContext()
+    const { container } = render(<VoiceAssistant assistant={fakeAssistant({ status: 'listening', liveAnswer })} onClose={() => {}} />)
+    const panel = screen.getByRole('region', { name: 'Voice guide' })
+    const answer = within(panel).getByRole('region', { name: "Echo's answer" })
+    expect(answer).toHaveTextContent(liveAnswer.reply)
+    expect(within(answer).getByRole('button', { name: 'Play' })).toBeInTheDocument()
+    expect(within(answer).getByText('Show the numbers')).toBeInTheDocument()
+    await expectNoA11yViolations(container)
+    audio.uninstall()
+  })
+
+  it('shows no live data answer when there is none', () => {
+    render(<VoiceAssistant assistant={fakeAssistant()} onClose={() => {}} />)
+    expect(screen.queryByRole('region', { name: "Echo's answer" })).toBeNull()
   })
 
   it('closes on Escape from anywhere inside it', async () => {
