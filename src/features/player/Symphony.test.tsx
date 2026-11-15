@@ -355,6 +355,20 @@ describe('Symphony: accessibility', () => {
   })
 })
 
+describe('Event cues (SN17)', () => {
+  it('plays a short placed cue and announces the event when playback reaches its date, and not on the first frame', async () => {
+    const withEvent = withV3(plain, { events: [{ id: 'storm', date: d2, label: 'A storm forms', place: { x: 0.9, y: 0.5 } }] })
+    const { container } = mount(withEvent)
+    await emit(d1)
+    expect(e.ensemble.playNotes).not.toHaveBeenCalled()
+    await emit(d2)
+    const notes = vi.mocked(e.ensemble.playNotes).mock.calls[0][0]
+    expect(notes.every((n: { pan: number }) => n.pan > 0.5)).toBe(true)
+    expect(live()).toMatch(/Event: A storm forms, east\./)
+    await expectNoA11yViolations(container)
+  })
+})
+
 describe('Your sound (the listener\'s preferences)', () => {
   it('plays the manifest\'s preset until a style is chosen, then the style, and remembers it', async () => {
     const { user } = mount()

@@ -73,4 +73,13 @@ npm run check-data
 
 ## Result
 
-Filled in by the agent.
+Built by agent E (Claude Code, for Roni), 15 Nov 2026, on `feature/SN17-event-cues`.
+
+- `src/data/schema.ts` and `src/data/types.ts`: optional, strict `events: [{ id, date, label, place? }]`; ids unique, each date within the frames' dates, `place.x` and `place.y` 0 to 1. A manifest without it is unchanged.
+- `src/sonify/events.ts` (pure): `eventsBetween` (events after the last frame's date and up to this one; none on the first frame or when the dates go backwards), `eventCues` (a short G5 and C6 ping, panned by `place.x`, level 0.3, at most two a frame, 0.18 s apart) and `eventSentence` ("Event: A storm forms, east.", with the ninth of the map from `placeWord`).
+- `src/features/player/symphonyState.ts`: each frame plays the reached events' cues and announces the sentence. The cue goes through the ensemble's existing `playNotes` (the scan bank, under the master limiter) instead of a new `playEvent`, so `src/audio/ensemble/` is unchanged.
+- `docs/data-sources.md`, "Manifest fields": the `events` row.
+- Tests: `events.test.ts` (between, cues, sentence), `schema.test.ts` (valid, outside the dates, repeated id, place out of range, unknown field), `Symphony.test.tsx` (no cue on the first frame; a placed cue and the announcement when the date is reached; no a11y violations).
+- No data set has events yet: filling them (for example NOAA's storm list for `hurricanes-2023-atlantic`, credited) is data work.
+
+Checks (Windows): `npm run lint` 0 errors; `npm run build` built; `npm run check-data` 12 files, 213 tests passed; `npm test` 3092 of 3094 passed, the 2 failures in `src/App.test.tsx`, which passes when run alone (with `Symphony.test.tsx`: 88 tests passed); the full suite is flaky under load on this machine.

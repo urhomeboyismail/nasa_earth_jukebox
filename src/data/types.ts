@@ -106,6 +106,9 @@ export type MapArea = { x0: number; y0: number; x1: number; y1: number }
 /** One chapter of the story mode. fromFrame and toFrame are frame ids; fromFrame comes first in date order. */
 export type StoryChapter = { id: string; title: string; text: string; fromFrame: string; toFrame: string }
 
+/** A dated event the data set marks with a short cue and a caption (SN17). `date` falls within the frames' dates; `place` is 0 to 1 of the map area. */
+export type ManifestEvent = { id: string; date: string; label: string; place?: { x: number; y: number } }
+
 /**
  * The words for comparing values (F36). `higher`/`lower` ("warmer"), `highest`/`lowest` ("warmest"), `edge` ("warm edge", the boundary
  * the change style traces) and `thing` ("water", what the value is about; may be empty). Any left out use the defaults in words.ts.
@@ -177,6 +180,8 @@ export type Visualization = {
   mascot?: MascotSpec
   /** Data sets this one can be heard together with in Compare ("Two data sets"), each with the reason the pair is meaningful. Optional; default none. */
   pairsWith?: { id: string; note: string }[]
+  /** Dated events marked with a short cue and a caption in Symphony (SN17). Optional; default none. */
+  events?: ManifestEvent[]
 }
 
 /** `family` colours the data set's disc on Listen. Left out, it is the ocean. */
