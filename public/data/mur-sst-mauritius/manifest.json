@@ -2057,7 +2057,7 @@
           -0.075,
           25
         ],
-        "note": "C4"
+        "note": "F4"
       },
       {
         "id": "cool",
@@ -2066,7 +2066,7 @@
           25,
           26
         ],
-        "note": "E4"
+        "note": "A4"
       },
       {
         "id": "mild",
@@ -2075,7 +2075,7 @@
           26,
           27
         ],
-        "note": "G4"
+        "note": "C5"
       },
       {
         "id": "warm",
@@ -2084,7 +2084,7 @@
           27,
           28
         ],
-        "note": "C5"
+        "note": "E5"
       },
       {
         "id": "hot",
@@ -2093,7 +2093,7 @@
           28,
           32.075
         ],
-        "note": "E5"
+        "note": "A5"
       }
     ],
     "tick": {
@@ -2248,5 +2248,11 @@
   "mascot": {
     "accent": "#00ffcc",
     "trail": "bubbles"
-  }
+  },
+  "pairsWith": [
+    {
+      "id": "hurricanes-2023-atlantic",
+      "note": "Both cover June to August 2023: the sea around Mauritius cools into its southern winter while the North Atlantic warms into its summer, so the two move in opposite directions."
+    }
+  ]
 }
