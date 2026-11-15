@@ -1,6 +1,8 @@
-"""G11: POST /api/v1/mascot/query and its Planetary Computer tools. No key, no network: FakeLlm, and fake STAC items."""
+"""G11 and G12: POST /api/v1/mascot/query and its Planetary Computer tools. No key, no network: FakeLlm, and fake STAC items."""
 
 import asyncio
+import json
+import urllib.parse
 from datetime import date, datetime, timezone
 from types import SimpleNamespace
 
@@ -21,8 +23,14 @@ SST = "noaa-cdr-sea-surface-temperature-optimum-interpolation"
 CATALOG = [{"id": "synthetic-ocean", "title": "Synthetic ocean"}]
 
 
-def _scene(day: int, cover: float):
-    return SimpleNamespace(datetime=datetime(2026, 10, day, tzinfo=timezone.utc), properties={"eo:cloud_cover": cover})
+def _scene(day: int, cover: float, name: str = ""):
+    when = datetime(2026, 10, day, tzinfo=timezone.utc)
+    return SimpleNamespace(id=name or f"S2-{day}-{cover:g}", datetime=when, properties={"eo:cloud_cover": cover})
+
+
+def _sst_item(day: int):
+    start = datetime(2026, 6, day, tzinfo=timezone.utc)
+    return SimpleNamespace(id=f"oisst-avhrr-v02r01.202606{day:02d}", datetime=None, common_metadata=SimpleNamespace(start_datetime=start))
 
 
 def _fetch(collection=S2, bbox=(46, -19, 47, -18), period="2026-10-01/2026-10-31"):
@@ -145,6 +153,121 @@ def test_reply_for_a_local_data_set_and_for_nothing():
     assert planetary.answer_for({planetary.ERROR_KEY: True}, "normal", [])["mascot_reply"] == planetary.ERROR_REPLY
 
 
+# --- The pictures (G12) -----------------------------------------------------------------------------------------------------
+
+
+def test_sst_bands_are_37_rising_and_agree_with_the_colormap():
+    colormap, stops = planetary.sst_bands()
+    assert len(colormap) == len(stops) == 37
+    assert [stop["value"] for stop in stops] == [d + 0.5 for d in range(-2, 35)]
+    assert colormap[0] == [[-200, -100], [*stops[0]["rgb"], 255]]
+    for (interval, rgba), stop in zip(colormap, stops, strict=True):
+        assert interval[1] - interval[0] == 100 and interval[0] == round((stop["value"] - 0.5) * 100)
+        assert rgba == [*stop["rgb"], 255] and all(isinstance(c, int) and 0 <= c <= 255 for c in rgba)
+    assert stops[0]["rgb"] == [53, 61, 152] and stops[-1]["rgb"] == [169, 6, 40]  # -1.5 °C and 34.5 °C, between the anchors
+    legend = planetary.COLLECTIONS[SST].legend
+    assert legend == {"kind": "data", "unit": "°C", "stops": stops}
+
+
+def test_sst_colormap_stays_short_enough_for_the_data_api():
+    encoded = urllib.parse.urlencode({"colormap": planetary.COLLECTIONS[SST].render["colormap"]})
+    assert len(encoded) < 2500  # a 10k-character colormap gets 414 URI Too Long
+
+
+def test_image_url_for_sst():
+    url = planetary.image_url(SST, "oisst-avhrr-v02r01.20260601", [52.0, -26.0, 62.0, -16.0])
+    parts = urllib.parse.urlsplit(url)
+    assert f"{parts.scheme}://{parts.netloc}{parts.path}" == f"{planetary.DATA_URL}/item/bbox/52,-26,62,-16.png"
+    assert url.startswith("https://planetarycomputer.microsoft.com/api/data/v1/item/bbox/")
+    query = dict(urllib.parse.parse_qsl(parts.query))
+    assert query["collection"] == SST and query["item"] == "oisst-avhrr-v02r01.20260601"
+    assert query["assets"] == "sst" and query["nodata"] == "-999"
+    assert json.loads(query["colormap"]) == planetary.sst_bands()[0]
+    assert (query["width"], query["height"]) == ("512", "512")
+
+
+def test_image_url_height_follows_the_aspect_and_is_clamped():
+    def height(area):
+        return dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(planetary.image_url(S2, "x", area)).query))["height"]
+
+    assert height([0, 0, 2, 1]) == "256"
+    assert height([0, 0, 10, 0.1]) == "64"
+    assert height([0, 0, 0.1, 10]) == "1024"
+    query = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(planetary.image_url(S2, "x", [0, 0, 1, 1])).query))
+    assert query["assets"] == "visual" and "colormap" not in query
+
+
+def test_sentinel_2_picture_is_the_centre_at_most_half_a_degree():
+    assert planetary.COLLECTIONS[S2].area([46, -19, 47, -18]) == [46.25, -18.75, 46.75, -18.25]
+    assert planetary.COLLECTIONS[S2].area([47.4, -19.0, 47.6, -18.8]) == [47.4, -19.0, 47.6, -18.8]  # already small
+    assert planetary.COLLECTIONS[SST].area([52, -26, 62, -16]) == [52, -26, 62, -16]
+
+
+def test_sentinel_2_pictures_one_a_day_least_cloudy_under_the_limit():
+    items = [
+        _scene(2, 25, "cloudier"), _scene(2, 5, "clearest"), _scene(1, 31, "too-cloudy"), _scene(3, 30, "limit"), _scene(1, 0, "first"),
+    ]
+    pictures = planetary.images_of(S2, items, [46, -19, 47, -18])
+    assert [image["date"] for image in pictures["images"]] == ["2026-10-01", "2026-10-02", "2026-10-03"]
+    chosen = [dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(image["url"]).query))["item"] for image in pictures["images"]]
+    assert chosen == ["first", "clearest", "limit"]
+    assert pictures["legend"] == {"kind": "picture"} and pictures["area"] == [46.25, -18.75, 46.75, -18.25]
+
+
+def _items_chosen(pictures):
+    return [dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(image["url"]).query))["item"] for image in pictures["images"]]
+
+
+def test_sentinel_2_prefers_the_scene_covering_most_of_the_picture():
+    # The picture area is [46.25, -18.75, 46.75, -18.25]. The clearer tile stops at -18.5: it covers only half of it.
+    partial, whole = _scene(2, 1, "partial"), _scene(2, 20, "whole")
+    partial.bbox, whole.bbox = [45.9, -18.5, 47.0, -17.5], [45.9, -19.1, 47.0, -18.0]
+    assert _items_chosen(planetary.images_of(S2, [partial, whole], [46, -19, 47, -18])) == ["whole"]
+
+
+def test_sentinel_2_keeps_a_half_covered_scene_and_drops_a_sliver():
+    half, sliver = _scene(2, 5, "half"), _scene(3, 5, "sliver")
+    half.bbox = [45.9, -18.5, 47.0, -17.5]  # half of the picture area
+    sliver.bbox = [45.9, -18.3, 47.0, -17.5]  # a tenth of it
+    assert _items_chosen(planetary.images_of(S2, [half, sliver], [46, -19, 47, -18])) == ["half"]
+
+
+def test_at_most_six_pictures_spread_over_the_period_in_date_order():
+    items = [_sst_item(day) for day in range(30, 0, -1)]  # 30 days, given backwards
+    dates = [image["date"] for image in planetary.images_of(SST, items, [57, -21, 58.5, -19.5])["images"]]
+    assert len(dates) == planetary.MAX_IMAGES == 6
+    assert dates == sorted(dates) and dates[0] == "2026-06-01" and dates[-1] == "2026-06-30"
+    assert dates == ["2026-06-01", "2026-06-07", "2026-06-13", "2026-06-18", "2026-06-24", "2026-06-30"]
+
+
+def test_reply_and_answer_carry_the_pictures():
+    series = planetary.series_of(SST, [(date(2026, 6, 1), 25.0), (date(2026, 6, 2), 26.0)])
+    pictures = planetary.images_of(SST, [_sst_item(1), _sst_item(2)], [57, -21, 58.5, -19.5])
+    answer = planetary.answer_for({planetary.SERIES_KEY: series, planetary.IMAGES_KEY: pictures}, "normal", [])
+    assert answer["mascot_reply"].endswith("Press Play to hear it. I also have 2 pictures of the area.")
+    assert answer["images"] == pictures["images"] and answer["image_legend"]["kind"] == "data"
+    assert answer["image_area"] == [57, -21, 58.5, -19.5]
+    one = {**pictures, "images": pictures["images"][:1]}
+    reply = planetary.answer_for({planetary.SERIES_KEY: series, planetary.IMAGES_KEY: one}, "normal", [])["mascot_reply"]
+    assert reply.endswith(" I also have 1 picture of the area.")
+
+
+@pytest.mark.parametrize(
+    "state",
+    [
+        {},
+        {planetary.ERROR_KEY: True},
+        {planetary.LOCAL_KEY: "synthetic-ocean"},
+        {planetary.SERIES_KEY: planetary.series_of(SST, [])},
+        {planetary.SERIES_KEY: planetary.series_of(SST, [(date(2026, 6, 1), 25.0)])},  # a series with no pictures
+    ],
+)
+def test_every_answer_has_the_picture_keys(state):
+    answer = planetary.answer_for(state, "normal", CATALOG)
+    assert (answer["images"], answer["image_legend"], answer["image_area"]) == ([], None, None)
+    assert "picture" not in answer["mascot_reply"]
+
+
 # --- The route ---------------------------------------------------------------------------------------------------------------
 
 
@@ -179,7 +302,26 @@ def test_fetch_gives_a_reply_and_a_payload(client, monkeypatch):
     assert body["local_dataset_id"] is None
     # WX02: every value behind the sound, one per step.
     assert body["series"] == {"metric": "Cloud cover", "unit": "%", "times": ["2026-10-01", "2026-10-02"], "values": [10.0, 90.0]}
+    assert body["mascot_reply"].endswith(" I also have 1 picture of the area.")  # day 2 is too cloudy
+    url = planetary.image_url(S2, "S2-1-10", [46.25, -18.75, 46.75, -18.25])
+    assert body["images"] == [{"date": "2026-10-01", "url": url}]
+    assert body["image_legend"] == {"kind": "picture"} and body["image_area"] == [46.25, -18.75, 46.75, -18.25]
     assert seen == {"collection": S2, "bbox": [46.0, -19.0, 47.0, -18.0], "first": date(2026, 10, 1), "last": date(2026, 10, 31)}
+
+
+def test_a_picture_failure_keeps_the_series(client, monkeypatch):
+    monkeypatch.setattr(planetary, "search_items", lambda *args: [_scene(1, 10.0), _scene(2, 90.0)])
+
+    def broken(*args):
+        raise KeyError("odd item")
+
+    monkeypatch.setattr(planetary, "images_of", broken)
+    _install(monkeypatch, tool_then_text(_fetch(), "done"))
+    body = _post(client).json()
+    assert body["mascot_reply"].startswith("I found 2 days of Sentinel-2 scenes")
+    assert "picture" not in body["mascot_reply"]
+    assert body["sonification_json"]["tracks"][0]["volume_curve"] == [0.15, 1.0]
+    assert (body["images"], body["image_legend"], body["image_area"]) == ([], None, None)
 
 
 def test_no_items_is_still_an_answer(client, monkeypatch):
@@ -205,6 +347,7 @@ def test_local_data_set(client, monkeypatch):
     assert body["local_dataset_id"] == "synthetic-ocean"
     assert body["sonification_json"] is None
     assert body["series"] is None
+    assert (body["images"], body["image_legend"], body["image_area"]) == ([], None, None)
 
 
 def test_model_text_never_reaches_the_reply(client, monkeypatch):

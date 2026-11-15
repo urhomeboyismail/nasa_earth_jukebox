@@ -12,6 +12,13 @@ vi.mock('./JukeboxPlayer', () => ({
   ),
 }))
 
+// The pictures have their own tests (LiveImages.test.tsx); here a marker that shows what they were given.
+vi.mock('./LiveImages', () => ({
+  LiveImages: ({ pictures }: { pictures: { images: unknown[]; legend: { kind: string } } }) => (
+    <p>{pictures.images.length} {pictures.legend.kind} pictures</p>
+  ),
+}))
+
 // Echo's 3D robot needs WebGL; here it is a marker that shows its face and gesture.
 vi.mock('../mascot/Ixia', () => ({
   default: ({ expression, pose }: { expression: string; pose: string }) => <p>Echo looks {expression} and is {pose}</p>,
@@ -209,6 +216,24 @@ describe('JukeboxStudio', () => {
       await userEvent.click(await screen.findByText('Show the numbers'))
       expect(screen.getByRole('table', { name: 'Cloud cover (%): 2 values, one for each note' })).toBeInTheDocument()
       await expectNoA11yViolations(container)
+    })
+
+    it('shows the pictures in Echo\'s answer, next to the player (G12)', async () => {
+      const url = 'https://planetarycomputer.microsoft.com/api/data/v1/item/bbox/47.4,-19,47.6,-18.8.png?item=x'
+      stub(async () => reply(200, { ...live, images: [{ date: '2026-09-26', url }, { date: '2026-09-28', url }], image_legend: { kind: 'picture' }, image_area: [47.4, -19, 47.6, -18.8] }))
+      show()
+      await ask()
+      const answer = await screen.findByRole('region', { name: "Echo's answer" })
+      expect(answer).toHaveTextContent('2 picture pictures')
+      expect(answer).toHaveTextContent('Player at 100 with 0 descriptions')
+    })
+
+    it('shows no pictures when the server sends none', async () => {
+      stub(async () => reply(200, { ...live, images: [], image_legend: null, image_area: null }))
+      show()
+      await ask()
+      await screen.findByText('Player at 100 with 0 descriptions')
+      expect(screen.queryByText(/pictures$/)).not.toBeInTheDocument()
     })
 
     it('links to an app data set that answers the question', async () => {
