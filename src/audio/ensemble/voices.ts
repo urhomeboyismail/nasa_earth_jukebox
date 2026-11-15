@@ -4,7 +4,7 @@
 //
 // The Tone Transport is shared with the old engine (src/audio/engine.ts), so this file only ever clears the events it scheduled itself.
 
-import type { DetailLevel, MusicFrame, Preset, VoiceId } from '../../sonify/types'
+import type { DetailLevel, MusicFrame, Preset, TimeAccent, VoiceId } from '../../sonify/types'
 import { aimPanner } from '../pan'
 import {
   ACCENT_DB, CLICK_S, DROPOUT_SEED, DROPOUT_TAP_S, GLIDE_S, HOLD_FILTER_HZ, INTERACTIVE_LOOKAHEAD_S, MIN_APPLY_GAP_S, MOTION_FILTER_HZ, MOTION_PAD_MIDI, PARAM_RAMP_S,
@@ -13,7 +13,7 @@ import {
 import { dropoutTaps } from './dropout'
 import type { Graph } from './graph'
 import { midiToHz, planFrame, type VoiceAction } from './plan'
-import { TIME_PULSE_MIDI } from '../../sonify/ranges'
+import { DECADE_ACCENT_SEMITONES, TIME_PULSE_MIDI, YEAR_ACCENT_SEMITONES } from '../../sonify/ranges'
 import { cutoff, DEFAULT_TIMBRE, type Timbre } from './timbre'
 import type { HeldTone, NoteEvent } from './types'
 
@@ -56,7 +56,7 @@ export function createPlayer(ctx: PlayerContext) {
   let rhythmIds: number[] = []
   let motionOn = false
   let pulse: { bpm: number; id: number } | null = null
-  let accent: 'none' | 'month' | 'year' = 'none'
+  let accent: TimeAccent = 'none'
   let holdMidi: number | null = null
 
   const defaultTime = () => ctx.clock() + INTERACTIVE_LOOKAHEAD_S
@@ -75,11 +75,12 @@ export function createPlayer(ctx: PlayerContext) {
     pulse = null
   }
 
-  /** The time voice's click. A pending month or year accent is used once. */
+  /** The time voice's click. A pending month, year or decade accent is used once: a year an octave up, a decade two (SN16). */
   function click(time: number) {
     const { synth } = graph.time
     synth.volume.setValueAtTime(VOICE_GAIN_DB.time + (accent === 'none' ? 0 : ACCENT_DB), time)
-    synth.triggerAttackRelease(midiToHz(TIME_PULSE_MIDI + (accent === 'year' ? 12 : 0)), CLICK_S, time)
+    const up = accent === 'decade' ? DECADE_ACCENT_SEMITONES : accent === 'year' ? YEAR_ACCENT_SEMITONES : 0
+    synth.triggerAttackRelease(midiToHz(TIME_PULSE_MIDI + up), CLICK_S, time)
     accent = 'none'
   }
 

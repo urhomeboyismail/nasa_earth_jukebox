@@ -315,6 +315,15 @@ describe('the time voice', () => {
     expect(on(graph.time.synth, 'volume.setValueAtTime').map(c => c.args[0])).toEqual([VOICE_GAIN_DB.time + 3, VOICE_GAIN_DB.time])
   })
 
+  it('clicks a decade accent two octaves up and 3 dB louder (SN16)', () => {
+    const { graph, player } = setup()
+    const base = music({})
+    player.apply({ ...base, time: { ...base.time, accent: 'decade' } }, 1)
+    transport.fire(transport.events[0].id, 10)
+    expect(on(graph.time.synth, 'triggerAttackRelease')[0].args[0]).toBe(midiToHz(36 + 24))
+    expect(on(graph.time.synth, 'volume.setValueAtTime')[0].args[0]).toBe(VOICE_GAIN_DB.time + 3)
+  })
+
   it('keeps a month accent waiting for the next click: the frames in between do not cancel it', () => {
     const { graph, player } = setup()
     const base = music({})
