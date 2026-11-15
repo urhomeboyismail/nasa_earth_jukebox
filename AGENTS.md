@@ -89,4 +89,4 @@ Two services: the website on Vercel and the server (voice guide, Ask agent, list
 ## Git
 
 - Default branch: `main`
-- Remote: `origin` (https://github.com/urhomeboyismail/nasa.git)
+- Remote: `origin` (https://github.com/urhomeboyismail/nasa_earth_jukebox.git)
