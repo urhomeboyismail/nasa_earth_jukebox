@@ -502,7 +502,7 @@ def ingest(args: argparse.Namespace, work: Path) -> tuple[Plan, Ingested | None,
         shutil.copyfile(source.path, dated / f"{source.date}{suffix}")
     cf_args = cf.parse_args([
         "--id", args.id, "--frames", str(dated), "--out", str(args.out),
-        "--legend-box", box_text(plan.box), "--legend-values", f"{args.legend_min!r},{args.legend_max!r}",
+        "--legend-box", box_text(plan.box), f"--legend-values={args.legend_min!r},{args.legend_max!r}",
         "--legend-steps", str(args.legend_ticks), "--map-area", plan.area,
         *(["--max-width", str(args.max_width)] if args.max_width is not None else []),
         *(["--force"] if args.force else []),
