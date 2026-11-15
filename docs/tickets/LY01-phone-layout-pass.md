@@ -5,7 +5,7 @@
 | **Priority** | P1 |
 | **Size** | M (about a day) |
 | **Who** | agent+👤 (an agent builds it; the team lead signs off on a real phone) |
-| **Needs** | MC05 (the Mission Control look restyles the header and panels; this pass lays out the look that ships, not the one being replaced) |
+| **Needs** | — (the team lead chose to do it before the Mission Control look lands; expect conflicts with `chore/jpl-hud-theme` in `src/App.css` and the player) |
 | **Hotspots** | app, player |
 | **Branch** | `chore/LY01-phone-layout-pass` |
 
