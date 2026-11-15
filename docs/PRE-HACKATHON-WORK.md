@@ -126,6 +126,11 @@ Add one line per piece of work, newest last.
 | 14 Nov | UI08 Echo's chest equaliser: the chest bars follow the music through a real analyser on its output (`src/features/mascot/useChestBands.ts`) | `feature/UI08-chest-equaliser` |
 | 14 Nov | UI02 The welcome as a glass chat: Echo's glass bubbles under an ECHO label, accent bubbles for the listener, pill toggles for the sounds and a glass card for the manual form; opening line "Commander! Welcome to the Earth Information Jukebox. What should I call you?" | `feature/UI02-welcome-glass` |
 | 14 Nov | UI07 Ear check: "Which is higher?" and "Left or right?" suggest a starting detail level and flip swapped ears (`src/features/calibration/`, `playTone` in `src/audio/cues.ts`, `swapEars` in the audio prefs); the level is kept on the device | `feature/UI07-ear-check` |
+| 14 Nov | JB10 The tour's third stop is the Speed and Volume mixer (`data-tour="mixer"`), not Explore the map | PR #69 |
+| 14 Nov | UI09 Remix moments: in Compare's two-data-set mode, a short chord and one caption when both decks are at an extreme on the same date and place (consonant when they agree, a minor second when they oppose), with a "Mark moments" switch | PR #80 |
+| 15 Nov | EIC02 picks: five NASA visualisations checked for source, credit and licence in `docs/data-sources.md` (SVS 5176, the GIBS MUR sea ice layer, SVS 5603, SVS 3912, SVS 5305); licences read by Sahajoo Ronitesh; EIC03's board request answered | PRs #96, #103 |
+| 15 Nov | Four real data sets: `sst-anomaly-global` (SVS 5176), `global-temperature-anomaly` (SVS 5603, 1880 to 2025 every five years), `ocean-currents-temperature` (SVS 3912; shaded streaks matched back to NASA's colour bar, said in its description) and `hurricanes-2023-atlantic` (SVS 5305, paired with `mur-sst-mauritius` for Remix); `eic_ingest.py` reads a legend that starts below zero | PRs #95, #97, #98, #101, #102 |
+| 15 Nov | Sound design and SN15: each data set sets its own preset, detail, voices and timbre, and Simple mode notes in its own key; a three-chapter story for the climate record; a welcome style is now only a default and a Listen-mixer style plays over every data set (`presetIdFor` in `src/audio/prefs.ts`); tickets SN16 and SN17 added | PRs #107, #109, #110 |
 
 ## Outside resources used
 

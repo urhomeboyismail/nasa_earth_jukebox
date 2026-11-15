@@ -58,7 +58,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
-| [SN15](tickets/SN15-own-sound-first.md) | Each data set keeps its own sound unless the listener chooses a style on purpose | S | agent | — | — | ready: feature/SN15-own-sound-first |
+| [SN15](tickets/SN15-own-sound-first.md) | Each data set keeps its own sound unless the listener chooses a style on purpose | S | agent | — | — | done |
 
 ### P1: interaction (the listener plays the map; `PLAN.md` §6.3)
 
