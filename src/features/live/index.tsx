@@ -42,7 +42,7 @@ export default function LivePage() {
     setWaiting(false)
     if (reply.kind === 'error') {
       setResult({ error: reply.error, retryAfter: reply.retryAfter })
-      announce(errorText(reply.error, reply.retryAfter))
+      announce(errorText(reply.error, reply.retryAfter, 'live'))
     } else {
       setResult({ answer: reply.answer })
       announce(reply.answer.reply)
@@ -87,7 +87,7 @@ export default function LivePage() {
       {waiting && <p role="status">Fetching live data from Planetary Computer…</p>}
       {result && 'error' in result && (
         <Notice variant="error" action={{ label: 'Retry', onClick: () => void fetchLive(last.current), disabled: waiting }}>
-          {errorText(result.error, result.retryAfter)}
+          {errorText(result.error, result.retryAfter, 'live')}
         </Notice>
       )}
       {result && 'answer' in result && <LiveAnswer answer={result.answer} />}

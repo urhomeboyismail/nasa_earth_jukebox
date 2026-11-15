@@ -98,7 +98,7 @@ describe('Live data page (G13)', () => {
   })
 
   it.each([
-    [503, /switched off/],
+    [503, /Live data is switched off on this server/],
     [429, /Too many requests/],
   ])('says a %i in words, and Retry asks again', async (status, words) => {
     const answers = [reply(status), reply(200, live)]
