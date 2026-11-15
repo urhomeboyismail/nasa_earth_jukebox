@@ -208,9 +208,10 @@ export function Crate({ currentId }: { currentId: string | null }) {
                     {mine ? (mine.phase === 'preparing' ? 'Preparing…' : 'Stop preview') : `Play ${PREVIEW_SECONDS} seconds`}
                   </Button>
                   <a className="crate__open" href={hashFor('listen', { data: entry.id })} aria-label={`Open in Listen: ${entry.title}`}>Open in Listen</a>
+                  {/* Short visible words (LY02: the title made them wrap to three lines on a phone); the name adds the data set after them. */}
                   {offline && (saved.has(entry.id)
-                    ? <Button onClick={() => void remove(entry)}>{`Remove ${entry.title} from this device`}</Button>
-                    : <Button disabled={saving !== null} onClick={() => void save(entry)}>{`Save ${entry.title} for offline`}</Button>)}
+                    ? <Button onClick={() => void remove(entry)} aria-label={`Remove from this device: ${entry.title}`}>Remove from this device</Button>
+                    : <Button disabled={saving !== null} onClick={() => void save(entry)} aria-label={`Save for offline: ${entry.title}`}>Save for offline</Button>)}
                 </div>
               </div>
             </li>

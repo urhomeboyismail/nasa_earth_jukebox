@@ -36,3 +36,9 @@
 }
 
 .learn__buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+/* LY02: a voice's Play and Stop fit one row on a phone, instead of Stop on a row of its own under every Play. */
+@media (max-width: 767.98px) {
+  .learn__buttons { gap: 0.375rem; }
+  .learn__buttons .ui-button { padding-inline: 0.75rem; }
+}

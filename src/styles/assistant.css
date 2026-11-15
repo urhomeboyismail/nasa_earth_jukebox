@@ -9,6 +9,9 @@
   max-height: min(600px, calc(100vh - 120px));
   max-height: min(600px, calc(100dvh - 120px));
   display: flex; flex-direction: column; gap: 12px; padding: 20px; box-sizing: border-box;
+  /* LY02: when the content is taller than the panel (a phone, a long consent card) the panel scrolls, instead of its last
+     lines spilling out of the bottom and under the tab bar. */
+  overflow-y: auto; overscroll-behavior: contain;
   color: var(--ui-on-surface); text-align: left;
   background: var(--md-sys-color-surface-container-high, var(--bg));
   border: 1px solid var(--ui-outline-variant);

@@ -25,3 +25,9 @@
 /* Whether the answer came from the built-in rules or from the agent choosing among the same facts. */
 .ask__mode { margin: 0; color: var(--text); font-size: 1rem; font-style: italic; }
 .ask__privacy { margin: 0; color: var(--text); font-size: 1rem; }
+
+/* LY02: on a phone the suggested questions are one even column, like the other lists of buttons, not ragged pills. */
+@media (max-width: 767.98px) {
+  .ask__questions { flex-direction: column; align-items: stretch; }
+  .ask__questions .ui-button { justify-content: flex-start; text-align: start; }
+}
