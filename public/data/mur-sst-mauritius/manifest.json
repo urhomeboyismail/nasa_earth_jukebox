@@ -2249,19 +2249,6 @@
     "accent": "#00ffcc",
     "trail": "bubbles"
   },
-  "sonification": {
-    "preset": "lofi",
-    "detail": "standard",
-    "timbre": {
-      "instrument": "synth",
-      "filterHz": {
-        "low": 300,
-        "high": 3500
-      },
-      "curve": "exponential",
-      "panWidth": 0.6
-    }
-  },
   "pairsWith": [
     {
       "id": "hurricanes-2023-atlantic",
