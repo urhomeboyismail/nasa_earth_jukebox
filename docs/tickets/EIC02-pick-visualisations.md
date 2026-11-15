@@ -105,4 +105,18 @@ No code check applies: this ticket changes documents only.
 
 ## Result
 
-Not started.
+Done by Roni (Sahajoo Ronitesh, team Guru's Moon Heist) with Claude Code, 14 and 15 Nov 2026. Five picks, each with every field of the checklist in `docs/data-sources.md` under "Checked picks (EIC02)", read on the live NASA pages (SVS was unreachable for a while on 14 Nov; every pick was read again live).
+
+| Pick | What | Source | Data set |
+|---|---|---|---|
+| 1 | SST anomaly | SVS 5176, https://svs.gsfc.nasa.gov/5176 | built as `sst-anomaly-global` (merged, PR #97) |
+| 2 | Sea ice concentration | GIBS layer `GHRSST_L4_MUR_Sea_Ice_Concentration` | not built yet: the layer is a flat world map, so a polar crop must be chosen |
+| 3 | Global temperature change 1880 to 2025 | SVS 5603, https://svs.gsfc.nasa.gov/5603 | built as `global-temperature-anomaly` (merged, PR #98) |
+| 4 | Ocean currents coloured by SST | SVS 3912, https://svs.gsfc.nasa.gov/3912 | built as `ocean-currents-temperature` (PR #101, open) |
+| 5 | Hurricanes over warm water, Atlantic 2023 | SVS 5305, https://svs.gsfc.nasa.gov/5305 (Sea Surface Temperature only version) | built as `hurricanes-2023-atlantic` (PR #102, open) |
+
+Seen and not picked, with the reason in the table: SVS 4809 (a rotating globe), 5265 (no colour bar), 5382 and 5583 (third-party JAXA material, no colour bar), 5479 (its ocean background reads as cold water).
+
+Licence read by: Sahajoo Ronitesh on 15 Nov 2026 for picks 1 to 3; picks 4 and 5 are still to be signed. No pick is a picture-mode one (no colour bar).
+
+Checks: `git diff --stat -- docs/data-sources.md` shows changes only in the candidates section.
