@@ -304,6 +304,18 @@ def series_of(collection: str, points: list[Point]) -> dict:
     }
 
 
+async def fetch_series(collection: str, area: list[float], first: date, last: date) -> tuple[dict, dict | None]:
+    """The series and the pictures for checked arguments; the pictures are None when an odd item broke them, since they never
+    cost the answer. Raises when the network, the STAC API or the data API fails. Shared by Echo and the voice guide (G13)."""
+    items = await asyncio.to_thread(search_items, collection, area, first, last)
+    points = await COLLECTIONS[collection].read(items, area) if items else []
+    try:
+        images = images_of(collection, items, area)
+    except Exception:  # noqa: BLE001 - an odd item
+        images = None
+    return series_of(collection, points), images
+
+
 async def fetch_planetary_computer_data(
     collection: str, bbox: list[float], datetime_range: str, tool_context: ToolContext
 ) -> dict:
@@ -316,19 +328,15 @@ async def fetch_planetary_computer_data(
     checked = checked_args(collection, bbox, datetime_range)
     if isinstance(checked, dict):
         return checked
-    area, first, last = checked
     try:
-        items = await asyncio.to_thread(search_items, collection, area, first, last)
-        points = await COLLECTIONS[collection].read(items, area) if items else []
+        series, images = await fetch_series(collection, *checked)
     except Exception:  # noqa: BLE001 - the network, the STAC API or the data API
         tool_context.state[ERROR_KEY] = True
         return {"error": "Planetary Computer did not answer. Do not try again."}
-    tool_context.state[SERIES_KEY] = series_of(collection, points)
-    try:
-        tool_context.state[IMAGES_KEY] = images_of(collection, items, area)
-    except Exception:  # noqa: BLE001 - an odd item: the pictures never cost the answer
-        pass
-    return {"ok": True, "points": len(points)}
+    tool_context.state[SERIES_KEY] = series
+    if images is not None:
+        tool_context.state[IMAGES_KEY] = images
+    return {"ok": True, "points": len(series["values"])}
 
 
 async def fetch_weather(latitude: float, longitude: float, start: str, hours: int, tool_context: ToolContext) -> dict:

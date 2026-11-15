@@ -43,6 +43,16 @@ PAGES: dict[str, dict] = {
             "Reveal the answer to see the images and an explanation.",
         ],
     },
+    "live": {
+        "title": "Live data",
+        "purpose": "Ask for live satellite data, such as sea surface temperature or cloud cover at a place, and hear it as music "
+                   "with a table of the numbers and pictures of the area.",
+        "how_to": [
+            "Type a question such as sea surface temperature around Mauritius in June 2026.",
+            "Press Fetch live data.",
+            "Press Play to hear it, and use the pictures' Previous and Next to look at each date.",
+        ],
+    },
     "about": {
         "title": "About the data",
         "purpose": "Where the imagery comes from, what the colours and sounds represent, and the limits of the method.",

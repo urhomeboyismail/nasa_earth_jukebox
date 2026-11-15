@@ -10,7 +10,7 @@ from typing import Any
 
 from google.adk.tools import BaseTool, ToolContext
 
-from app.agent.tools import TOOL_NAMES
+from app.agent.tools import agent_tools
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ def _screen(state: Any, name: str) -> dict:
 
 def guard_tool(tool: BaseTool, args: dict[str, Any], tool_context: ToolContext) -> dict | None:
     """Refuse a tool call the browser could not carry out. None lets the tool run."""
-    if tool.name not in TOOL_NAMES:
+    if tool.name not in {known.name for known in agent_tools()}:
         return {"error": "Unknown tool."}
     state = tool_context.state
     page = state.get("page")

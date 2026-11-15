@@ -11,6 +11,7 @@ import { loadCatalog, type CatalogEntry } from '../../data'
 import { hashFor } from '../../route'
 import { generateJukebox, MAX_QUERY_CHARS, type JukeboxErrorKind, type JukeboxRequest } from './generate'
 import { JukeboxPlayer } from './JukeboxPlayer'
+import { errorText as sharedErrorText } from './liveErrors'
 import { LiveImages } from './LiveImages'
 import { queryMascot, type AudioPreference, type DatasetTheme, type MascotAnswer } from './mascotQuery'
 import { parseAudioPayload, parseVisionPayload, type AudioPayload, type VisionPayload } from './payload'
@@ -68,17 +69,10 @@ const SAMPLE = JSON.stringify(
   2,
 )
 
-const ERRORS: Record<JukeboxErrorKind, string> = {
-  rate: 'Too many requests just now. Wait a moment, then try again.',
-  model: 'The orchestrator could not finish this one. Try again, or ask in a different way.',
-  off: 'The Jukebox is switched off on this server.',
-  unreachable: 'The server could not be reached. Is it running? You can still try the offline demo below.',
-}
-
-/** The message for an error, with the server's wait when it gave one. */
+/** The shared words, and this page's offline demo when the server cannot be reached. */
 function errorText(error: JukeboxErrorKind, retryAfter?: number): string {
-  if (error === 'rate' && retryAfter) return `Too many requests just now. Try again in about ${retryAfter} second${retryAfter === 1 ? '' : 's'}.`
-  return ERRORS[error]
+  const text = sharedErrorText(error, retryAfter)
+  return error === 'unreachable' ? `${text} You can still try the offline demo below.` : text
 }
 
 type Answer = { audio: AudioPayload; vision: VisionPayload | null; approved: boolean; feedback: string }

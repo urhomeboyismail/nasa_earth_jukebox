@@ -61,7 +61,7 @@ class AskRequest(_Strict):
 
 class AskAction(BaseModel):
     kind: Literal["navigate", "set_date"]
-    page: Literal["home", "learn", "listen", "compare", "about"] | None = None
+    page: Literal["home", "learn", "listen", "compare", "live", "about"] | None = None
     date: str | None = None
 
 

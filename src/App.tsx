@@ -26,6 +26,7 @@ import './App.css'
 const AboutPage = lazy(() => import('./features/about'))
 const ComparePage = lazy(() => import('./features/compare'))
 const LearnPage = lazy(() => import('./features/learn'))
+const LivePage = lazy(() => import('./features/live'))
 const PlayerPage = lazy(() => import('./features/player'))
 // Echo's corner widget is not needed to read the page, so it loads after it.
 const MascotDock = lazy(() => import('./features/mascot/MascotDock'))
@@ -43,6 +44,7 @@ const pageComponents: Record<Page, ComponentType<PageProps>> = {
   learn: LearnPage,
   listen: PlayerPage,
   compare: ComparePage,
+  live: LivePage,
   about: AboutPage,
 }
 
@@ -52,6 +54,8 @@ const pageIcons: Record<Page, { current: IconName; other: IconName }> = {
   learn: { current: 'school', other: 'school-outline' },
   listen: { current: 'headphones', other: 'headphones-outline' },
   compare: { current: 'difference', other: 'difference-outline' },
+  // shortcut: no outlined twin in Icon.tsx yet, so the current page is marked by aria-current and the nav's own styles; the layout pass may add one.
+  live: { current: 'volume', other: 'volume' },
   about: { current: 'info', other: 'info-outline' },
 }
 

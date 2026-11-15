@@ -5,7 +5,8 @@
 scripted events. `AdkBridge` turns browser messages into calls on a `LiveSession`, and its events into browser messages.
 
 Nothing here logs user text or the API key. Model output is untrusted: the only actions that reach the browser are the ones the
-tools put in the sink after `run_tool` checked them (app/agent/tools.py).
+tools put in the sink after `run_tool` checked them, and show_live_data's `live_data`, built by `answer_for` from fetched
+numbers with no model text (app/agent/tools.py).
 """
 from __future__ import annotations
 
@@ -92,13 +93,15 @@ async def connect_adk(language: str, page: str) -> AsyncIterator[LiveSession]:
 
     from app.agent.callbacks import guard_tool, log_tool
     from app.agent.models import keyed_model
-    from app.agent.tools import AGENT_TOOLS, WEATHER_INSTRUCTION
+    from app.agent.tools import LIVE_INSTRUCTION, WEATHER_INSTRUCTION, agent_tools
 
+    tools = agent_tools()
+    live = LIVE_INSTRUCTION if any(tool.name == "show_live_data" for tool in tools) else ""
     agent = LlmAgent(
         name="voice_guide",
         model=keyed_model(settings.gemini_live_model),
-        instruction=system_instruction(settings.app_name, language, page, page_label=PAGE_PLACEHOLDER) + WEATHER_INSTRUCTION,
-        tools=list(AGENT_TOOLS),
+        instruction=system_instruction(settings.app_name, language, page, page_label=PAGE_PLACEHOLDER) + WEATHER_INSTRUCTION + live,
+        tools=tools,
         before_tool_callback=guard_tool,
         after_tool_callback=log_tool,
     )

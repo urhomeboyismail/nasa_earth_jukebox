@@ -184,6 +184,38 @@ describe('useVoiceAssistant (V01)', () => {
     expect(result.current.actions).toHaveLength(1)
   })
 
+  it('keeps a valid live_data answer for the panel, without navigating, and clears it on Stop (G13)', async () => {
+    const live = {
+      mascot_reply: 'I found 2 days of sea surface temperature.', dataset_theme: 'ocean', local_dataset_id: null,
+      sonification_json: { base_bpm: 100, tracks: [{ instrument: 'marimba', pitch_range: [52, 76], volume_curve: [0.15, 1] }] },
+      series: { metric: 'Sea surface temperature', unit: '°C', times: ['2026-06-01', '2026-06-02'], values: [24.1, 24.6] },
+      images: [], image_legend: null, image_area: null,
+    }
+    const { result, onAction } = await connect()
+    expect(result.current.liveAnswer).toBeNull()
+    await server({ type: 'action', action: 'live_data', ...live })
+    expect(result.current.liveAnswer).toMatchObject({ reply: live.mascot_reply, theme: 'ocean', localId: null, series: live.series, pictures: null })
+    expect(result.current.liveAnswer?.audio?.base_bpm).toBe(100)
+    expect(onAction).not.toHaveBeenCalled()
+
+    // One that does not pass is dropped, and the last good one stays.
+    await server({ type: 'action', action: 'live_data', mascot_reply: '' })
+    await server({ type: 'action', action: 'live_data' })
+    expect(result.current.liveAnswer?.reply).toBe(live.mascot_reply)
+    expect(onAction).not.toHaveBeenCalled()
+
+    act(() => result.current.stop())
+    expect(result.current.liveAnswer).toBeNull()
+  })
+
+  it('drops an invalid live_data answer', async () => {
+    const { result, onAction } = await connect()
+    await server({ type: 'action', action: 'live_data', mascot_reply: 5 })
+    expect(result.current.liveAnswer).toBeNull()
+    expect(result.current.actions).toEqual([])
+    expect(onAction).not.toHaveBeenCalled()
+  })
+
   it('keeps the last 10 entries, newest last', async () => {
     const { result } = await connect()
     for (let i = 0; i < 12; i++) await server({ type: 'action', action: 'player', command: i % 2 ? 'play' : 'stop' })
@@ -225,7 +257,7 @@ describe('useVoiceAssistant (V01)', () => {
 
   it.each([
     ['time_limit', 'This conversation reached its time limit. Start again to keep talking.'],
-    ['service_ended', 'Echo finished the conversation.'],
+    ['service_ended', 'The conversation ended after a pause. Press Start to talk again.'],
     ['closed', 'The conversation has ended.'],
   ])('says why the conversation ended: %s', async (reason, text) => {
     const { result } = await connect()
