@@ -17,10 +17,9 @@ import { useWakeSetting } from './assistant/wakeWord'
 import { WakeIndicator } from './WakeIndicator'
 import { MascotGuideProvider } from './features/mascot/MascotGuideProvider'
 import { pages, type Page } from './pages'
-import { currentDataParam, hashFor, parseHash } from './route'
+import { currentDataParam, hashFor, isLandingHash, LANDING_HASH, parseHash } from './route'
 import { useNavDrag } from './useNavDrag'
-import { useIntro } from './features/intro/storage'
-import { useWelcome } from './features/welcome/storage'
+import { readLandingDone } from './features/landing/storage'
 import './App.css'
 
 // Home loads with the app; every other page is fetched the first time it is opened, so the first load stays small.
@@ -30,8 +29,8 @@ const LearnPage = lazy(() => import('./features/learn'))
 const PlayerPage = lazy(() => import('./features/player'))
 // Echo's corner widget is not needed to read the page, so it loads after it.
 const MascotDock = lazy(() => import('./features/mascot/MascotDock'))
-// The planet intro (first visit only) brings three.js, so it loads only then.
-const Intro = lazy(() => import('./features/intro/Intro'))
+// The landing page (a first visit, or "Replay welcome") brings three.js, so it loads only then.
+const Landing = lazy(() => import('./features/landing/Landing'))
 // The voice panel loads the first time the guide is opened. The guide's audio code starts loading with it, so it is
 // there by the time Start is pressed. If it fails here, Start loads it again and says so.
 const VoiceAssistant = lazy(() => {
@@ -64,6 +63,9 @@ function goTo(page: Page) {
   window.location.hash = hashFor(page, { data: currentDataParam() })
 }
 
+/** The landing shows for #welcome, and for an empty address until it has been done once (a returning visitor goes straight to Home). */
+const wantsLanding = (hash: string) => isLandingHash(hash) || (hash.replace(/^#/, '') === '' && !readLandingDone())
+
 /** A load failure: the detail (file, status, validation) goes to the console, and the listener reads a plain sentence. */
 function failureOf(id: string | null, error: unknown) {
   console.error(error)
@@ -73,8 +75,9 @@ function failureOf(id: string | null, error: unknown) {
 function App() {
   const [route, setRoute] = useState(() => parseHash(window.location.hash))
   const page = route.page
-  const intro = useIntro()
-  const welcome = useWelcome()
+  /** The landing view: asked for by #welcome, or the first thing a new visitor sees. It replaces the whole app shell. */
+  const [landing, setLanding] = useState(() => wantsLanding(window.location.hash))
+  const wasLanding = useRef(landing)
   const [assistantOpen, setAssistantOpen] = useState(false)
   const [catalog, setCatalog] = useState<CatalogEntry[] | null>(null)
   const [loaded, setLoaded] = useState<Visualization | null>(null)
@@ -90,8 +93,12 @@ function App() {
   // Follow the address bar: links, back and forward, and edits to the hash. An unknown hash becomes #home.
   useEffect(() => {
     function follow() {
-      const route = parseHash(window.location.hash)
-      if (!route.known) window.history.replaceState(null, '', hashFor('home'))
+      const { hash } = window.location
+      const onLanding = wantsLanding(hash)
+      if (onLanding && !isLandingHash(hash)) window.history.replaceState(null, '', LANDING_HASH)
+      setLanding(onLanding)
+      const route = parseHash(hash)
+      if (!route.known && !onLanding) window.history.replaceState(null, '', hashFor('home'))
       setRoute(route)
     }
     follow()
@@ -148,10 +155,19 @@ function App() {
     shownPage.current = page
   }, [page])
 
+  // Leaving the landing for Home opens it like any new page: at the top, with focus on its heading.
+  useEffect(() => {
+    if (wasLanding.current && !landing) {
+      window.scrollTo({ top: 0 })
+      heading.current?.focus({ preventScroll: true })
+    }
+    wasLanding.current = landing
+  }, [landing])
+
   // The browser tab and history name the page too.
   useEffect(() => {
-    document.title = `${pages.find(item => item.id === page)?.title} · Earth Jukebox`
-  }, [page])
+    document.title = `${landing ? 'Welcome' : pages.find(item => item.id === page)?.title} · Earth Jukebox`
+  }, [page, landing])
 
   // When the voice guide closes, put focus back on the button that opened it.
   useEffect(() => {
@@ -237,6 +253,17 @@ function App() {
   const navDrag = useNavDrag(pages.length, index => { window.location.hash = hashFor(pages[index].id, { data: linkData }) })
   const shownIndex = navDrag.preview ?? pageIndex
 
+  // The landing stands alone: no navigation, no data cards, no dock (its own robot is the hero).
+  if (landing) {
+    return (
+      <AnnouncerProvider>
+        <Suspense fallback={<div className="app-loading"><LoadingIndicator label="Loading…" /></div>}>
+          <Landing onDone={() => { window.location.hash = hashFor('home', { data: linkData }) }} />
+        </Suspense>
+      </AnnouncerProvider>
+    )
+  }
+
   return (
     <AnnouncerProvider>
       <DisplaySettingsProvider>
@@ -317,7 +344,6 @@ function App() {
           <MascotDock page={page} loading={!visualization && !loadError} voice={assistant.status} voiceOpen={assistantOpen} line={spokenLine}
             onTalk={() => setAssistantOpen(true)} />
         </Suspense>
-        {page === 'home' && !intro.seen && !welcome.done && <Suspense fallback={null}><Intro /></Suspense>}
       </MascotGuideProvider>
       </DisplaySettingsProvider>
     </AnnouncerProvider>

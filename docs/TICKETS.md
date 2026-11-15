@@ -77,7 +77,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
 | [H02](tickets/H02-live-parity-check.md) | Live parity check with a billed key | S | 👤 | — | — | done |
-| [G05](tickets/G05-adk-default.md) | ADK by default; retire the old bridge | S | agent | H02 | server-assistant | claimed: C, 2026-11-14 |
+| [G05](tickets/G05-adk-default.md) | ADK by default; retire the old bridge | S | agent | H02 | server-assistant | ready: feature/G05-adk-default |
 | [G07](tickets/G07-agent-eval-drafter.md) | Agent evaluation (scoring bug fixed) and the offline drafter | M | agent+👤 | — | — | blocked: held-out questions |
 
 ### P1: UI overhaul (the Muninn look; [`planning/UI-OVERHAUL.md`](planning/UI-OVERHAUL.md))
@@ -99,6 +99,17 @@ Echo, the guide, redrawn as Juke-Bot (helmet visor, headphones, chest screen, ai
 | [JB09](tickets/JB09-tour-from-welcome.md) | The tour starts after the welcome (map path), and Echo flies home to the dock when it finishes | S | agent | — | tour | done |
 | [JB10](tickets/JB10-tour-mixer-stop.md) | The tour's third stop is the Speed and Volume mixer, not Explore the map | S | agent | — | player | done |
 | [JB11](tickets/JB11-chat-welcome.md) | Echo's chat welcome (name, four sound chips, then the path and sound check) with a "Prefer manual setup?" form | M | agent | JB09 | welcome | done |
+
+### P2: Echo's weather (Meteomatics)
+
+Echo fetches the weather for a place, shows every value it fetched, and plays it. Server credentials: `METEOMATICS_USERNAME`, `METEOMATICS_PASSWORD`.
+
+| ID | Ticket | Size | Who | Needs | Hotspots | Status |
+|---|---|---|---|---|---|---|
+| [WX01](tickets/WX01-echo-fetches-weather.md) | Echo fetches hourly air temperature from Meteomatics; reply and sound from the numbers | S | agent | — | — | ready: feature/echo-weather |
+| [WX02](tickets/WX02-echo-shows-the-numbers.md) | "Show the numbers": every fetched value in an accessible table, the playing row marked | S | agent | WX01 | — | ready: feature/echo-weather |
+| [WX03](tickets/WX03-weather-in-three-voices.md) | Weather in three voices: temperature melody, rain pulse, wind pad | S | agent | WX01 | — | open |
+| [WX04](tickets/WX04-voice-guide-weather.md) | The voice guide can tell the weather (ADK path; `get_weather` tool) | S | agent | WX01 | — | ready: feature/echo-weather |
 
 ### P3: people, evidence and submission
 

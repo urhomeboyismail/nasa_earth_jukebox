@@ -1,3 +1,5 @@
+"""The voice guide (Google ADK, G04/G05): `run_tool` unit tests, the browser protocol and the persona and page drift checks.
+A fake live session replaces `connect_adk`, so no network and no key are used."""
 import asyncio
 import contextlib
 import logging
@@ -9,105 +11,119 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
 
+from app.agent.callbacks import PLAYER_TOOLS
+from app.agent.limits import MAX_AUDIO_FRAME_BYTES
+from app.agent.sink import sink
+from app.agent.tools import AGENT_TOOLS
 from app.api import assistant as assistant_api
-from app.assistant.knowledge import PAGE_IDS
-from app.assistant.tools import COMPASS_PLACES, SessionState, run_tool, tools
+from app.assistant.knowledge import PAGE_IDS, PAGES, system_instruction
+from app.assistant.tools import COMPASS_PLACES, PLAYBACK_COMMANDS, SessionState, run_tool
 from app.config import settings
 from app.main import app
 
 ORIGIN = {"origin": "http://localhost:5173"}
+LIVE = "/api/v1/assistant/live"
 REPO_ROOT = Path(__file__).resolve().parents[2]
+AUDIO = b"\x01\x00" * 10
+END = object()
 
 
-def _msg(tool_call=None, server_content=None):
-    return SimpleNamespace(tool_call=tool_call, server_content=server_content, go_away=None)
+def _event(*, audio=None, user_text=None, text=None, finished=False, interrupted=False, turn_complete=False):
+    parts = [SimpleNamespace(inline_data=SimpleNamespace(data=audio))] if audio else []
+    transcribe = lambda value: SimpleNamespace(text=value, finished=finished) if value is not None else None  # noqa: E731
+    return SimpleNamespace(
+        content=SimpleNamespace(parts=parts) if parts else None,
+        input_transcription=transcribe(user_text), output_transcription=transcribe(text),
+        interrupted=interrupted, turn_complete=turn_complete,
+    )
 
 
-def _content(**fields):
-    base = dict(interrupted=False, model_turn=None, input_transcription=None, output_transcription=None, turn_complete=False)
-    return SimpleNamespace(**{**base, **fields})
+class FakeLiveSession:
+    """Stands in for `connect_adk`'s session. A text turn runs a tool the way the agent would, then yields the model's events."""
 
+    def __init__(self, page="home", language="en"):
+        self.session_id = "fake-session"
+        self.state = {"page": page, "page_title": PAGES[page]["title"], "language": language, "screens": {}}
+        self.call = ("navigate_to", {"page": "listen"})
+        self.audio_frames: list[bytes] = []
+        self.texts: list[str] = []
+        self.audio_ends = 0
+        self.closed = False
+        self.fail: Exception | None = None
+        self.hang = False
+        self.scripted: list[object] = []  # events to yield for the next text turn instead of the default flow
+        self._queue: asyncio.Queue | None = None
 
-class FakeSession:
-    """Stands in for a Gemini Live session: a text turn asking to go somewhere triggers navigate_to."""
+    def _q(self) -> asyncio.Queue:
+        if self._queue is None:
+            self._queue = asyncio.Queue()
+        return self._queue
 
-    def __init__(self):
-        self.tool_responses = []
-        self.audio_frames = 0
-        self.texts = []
-        self.queue = None
-        self.call = ("navigate_to", {"page": "listen"})  # what the next text turn asks the app to do
-
-    def _q(self):
-        if self.queue is None:
-            self.queue = asyncio.Queue()
-        return self.queue
-
-    async def send_realtime_input(self, audio=None, text=None, audio_stream_end=None):
-        if audio is not None:
-            self.audio_frames += 1
-        if text:
-            self.texts.append(text)
-        if text and not text.startswith("[App update"):
-            call = SimpleNamespace(id="c1", name=self.call[0], args=self.call[1])
-            await self._q().put(_msg(tool_call=SimpleNamespace(function_calls=[call])))
-
-    async def send_tool_response(self, function_responses):
-        self.tool_responses.extend(function_responses)
-        part = SimpleNamespace(inline_data=SimpleNamespace(data=b"\x01\x00" * 10))
-        await self._q().put(_msg(server_content=_content(model_turn=SimpleNamespace(parts=[part]),
-                                                         output_transcription=SimpleNamespace(text="Here you are."))))
-        await self._q().put(_msg(server_content=_content(turn_complete=True)))
-
-    async def receive(self):
-        while True:
-            msg = await self._q().get()
-            yield msg
-            if msg.server_content and msg.server_content.turn_complete:
+    async def events(self):
+        if self.fail:
+            raise self.fail
+        while not self.hang:
+            item = await self._q().get()
+            if item is END:
                 return
+            yield item
+        await asyncio.sleep(3600)
+
+    async def send_audio(self, pcm):
+        self.audio_frames.append(pcm)
+
+    async def send_text(self, text):
+        self.texts.append(text)
+        if text.startswith("[App update"):
+            return
+        if self.scripted:
+            for item in self.scripted:
+                await self._q().put(item)
+            return
+        name, args = self.call
+        result = run_tool(name, args, SessionState(page=self.state["page"], language="en", screens=self.state["screens"]))
+        # The guard refuses a player tool off the Listen page, so no action is produced.
+        if result.client_action and not (name in PLAYER_TOOLS and self.state["page"] != "listen"):
+            sink.put(self.session_id, result.client_action)
+            if result.client_action.get("action") == "navigate":
+                self.state["page"] = result.client_action["page"]
+        await self._q().put(_event())  # the function-call event: the action is queued by now, but nothing is said yet
+        await self._q().put(_event(audio=AUDIO, text="Here you are."))
+        await self._q().put(_event(turn_complete=True))
+
+    async def audio_end(self):
+        self.audio_ends += 1
+
+    def close(self):
+        self.closed = True
+        self._q().put_nowait(END)
 
 
 @pytest.fixture
-def fake_session(monkeypatch):
-    session = FakeSession()
+def live(monkeypatch):
+    session = FakeLiveSession()
 
     @contextlib.asynccontextmanager
     async def connect(language, page):
-        yield session
+        session.state.update(page=page, page_title=PAGES[page]["title"], language=language)
+        sink.open(session.session_id)
+        try:
+            yield session
+        finally:
+            session.close()
+            sink.close(session.session_id)
 
     monkeypatch.setattr(settings, "gemini_api_key", SecretStr("test-key"))
-    monkeypatch.setattr(assistant_api, "connect_live", connect)
+    monkeypatch.setattr(assistant_api, "connect_adk", connect)
     return session
 
 
-def test_navigation_round_trip(fake_session):
-    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
-        ws.send_json({"type": "start", "language": "en", "page": "home"})
-        assert ws.receive_json() == {"type": "ready"}
-        ws.send_bytes(b"\x00\x00" * 800)
-        ws.send_json({"type": "text", "text": "Take me to the player"})
-        assert ws.receive_json() == {"type": "action", "action": "navigate", "page": "listen"}
-        assert ws.receive_bytes() == b"\x01\x00" * 10
-        assert ws.receive_json() == {"type": "transcript", "role": "assistant", "text": "Here you are."}
-        assert ws.receive_json() == {"type": "turn_complete"}
-        ws.send_json({"type": "stop"})
-        assert ws.receive_json()["type"] == "ended"
-    assert fake_session.audio_frames == 1
-    assert fake_session.tool_responses[0].response == {"ok": True, "now_on": "Listen"}
+def _open(ws, page="home"):
+    ws.send_json({"type": "start", "language": "en", "page": page})
+    assert ws.receive_json() == {"type": "ready"}
 
 
-def test_not_configured_without_key(monkeypatch):
-    monkeypatch.setattr(settings, "gemini_api_key", SecretStr(""))
-    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
-        assert ws.receive_json()["code"] == "not_configured"
-
-
-def test_foreign_origin_rejected(fake_session):
-    from starlette.websockets import WebSocketDisconnect
-    with pytest.raises(WebSocketDisconnect):
-        with TestClient(app).websocket_connect("/api/v1/assistant/live", headers={"origin": "https://evil.example"}) as ws:
-            ws.receive_json()
-
+# ---- run_tool: the one place that checks page names, playback commands and dates ----
 
 def test_tools_only_navigate_or_read():
     home = SessionState(page="home")
@@ -122,22 +138,6 @@ def test_screen_context():
     context = run_tool("get_screen_context", {}, state).response
     assert context["current_page"]["id"] == "listen"
     assert context["player"] == {"date": "2026-01-01"} and "compare" not in context
-
-
-def test_player_context_prompts_feedback(fake_session):
-    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
-        ws.send_json({"type": "start", "language": "en", "page": "listen"})
-        assert ws.receive_json() == {"type": "ready"}
-        ws.send_json({"type": "context", "key": "player", "data": {"visualization": "v", "date": "2026-01-01", "region": "r", "category": "hot", "playing": True}, "announce": "playback_finished:1"})
-        ws.send_json({"type": "context", "key": "bogus", "data": {"x": 1}, "announce": "playback_finished:1"})
-        ws.send_json({"type": "stop"})
-        ws.receive_json()
-    assert len(fake_session.texts) == 1 and "get_screen_context" in fake_session.texts[0]
-
-
-def test_tool_declarations_build():
-    names = [d.name for d in tools()[0].function_declarations]
-    assert names == ["navigate_to", "explain_section", "control_playback", "set_date", "get_screen_context", "point_to"]
 
 
 LISTEN = SessionState(page="listen")
@@ -179,55 +179,6 @@ def test_playback_tools_only_work_on_the_listen_page(page):
         result = run_tool(name, args, state)
         assert result.client_action is None
         assert "Listen page" in result.response["error"]
-
-
-def _ask(ws, text):
-    ws.send_json({"type": "text", "text": text})
-
-
-def test_a_playback_action_reaches_the_browser(fake_session):
-    fake_session.call = ("control_playback", {"command": "pause"})
-    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
-        ws.send_json({"type": "start", "language": "en", "page": "listen"})
-        assert ws.receive_json() == {"type": "ready"}
-        _ask(ws, "Pause the music")
-        assert ws.receive_json() == {"type": "action", "action": "player", "command": "pause"}
-        assert ws.receive_bytes() == b"\x01\x00" * 10
-        ws.send_json({"type": "stop"})
-    assert fake_session.tool_responses[0].response == {"ok": True, "command": "pause"}
-
-
-def test_set_date_reaches_the_browser(fake_session):
-    fake_session.call = ("set_date", {"date": "2024-07-15"})
-    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
-        ws.send_json({"type": "start", "language": "en", "page": "listen"})
-        assert ws.receive_json() == {"type": "ready"}
-        _ask(ws, "Play July")
-        assert ws.receive_json() == {"type": "action", "action": "player", "command": {"setDate": "2024-07-15"}}
-        ws.send_json({"type": "stop"})
-
-
-def test_no_action_reaches_the_browser_when_the_player_is_not_open(fake_session):
-    fake_session.call = ("control_playback", {"command": "play"})
-    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
-        ws.send_json({"type": "start", "language": "en", "page": "about"})
-        assert ws.receive_json() == {"type": "ready"}
-        _ask(ws, "Play")
-        assert ws.receive_bytes() == b"\x01\x00" * 10  # straight to the spoken reply: no action first
-        ws.send_json({"type": "stop"})
-    assert "Listen page" in fake_session.tool_responses[0].response["error"]
-
-
-def test_going_to_listen_makes_the_playback_tools_work(fake_session):
-    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
-        ws.send_json({"type": "start", "language": "en", "page": "home"})
-        assert ws.receive_json() == {"type": "ready"}
-        _ask(ws, "Take me to the player")  # navigate_to listen: the server now believes the user is there
-        assert ws.receive_json() == {"type": "action", "action": "navigate", "page": "listen"}
-        assert ws.receive_bytes() == b"\x01\x00" * 10
-        assert ws.receive_json()["type"] == "transcript"
-        assert ws.receive_json() == {"type": "turn_complete"}
-        ws.send_json({"type": "stop"})
 
 
 def test_the_guide_is_told_about_the_playback_tools():
@@ -278,16 +229,6 @@ def test_point_to_only_works_on_the_listen_page(page):
     assert "Listen page" in result.response["error"]
 
 
-def test_a_point_action_reaches_the_browser(fake_session):
-    fake_session.call = ("point_to", {"target": "north-east"})
-    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
-        ws.send_json({"type": "start", "language": "en", "page": "listen"})
-        assert ws.receive_json() == {"type": "ready"}
-        _ask(ws, "Where is the warmest place?")
-        assert ws.receive_json() == {"type": "action", "action": "point", "target": "north-east"}
-        ws.send_json({"type": "stop"})
-
-
 def test_the_compass_places_match_the_browser():
     source = (REPO_ROOT / "src" / "features" / "point" / "places.ts").read_text(encoding="utf-8")
     listed = re.search(r"export const COMPASS_PLACES = \[([^\]]*)\] as const", source)
@@ -295,25 +236,37 @@ def test_the_compass_places_match_the_browser():
     assert re.findall(r"'([^']+)'", listed.group(1)) == COMPASS_PLACES
 
 
-def test_the_bridge_guide_is_told_to_point_and_ask_but_not_the_adk_guide():
-    from app.assistant.knowledge import system_instruction
-    line = "When the listener asks where something is, call point_to, then ask one short question about that place."
-    assert line in system_instruction("Earth Jukebox", "en", "listen")
-    # The ADK agent has no point_to yet (app/agent/tools.py), so its instruction must not offer it.
+def test_the_adk_guide_is_not_told_about_point_to_because_it_has_no_such_tool():
+    # G05 retired the bridge, which was the only path with point_to (IX09). Add the tool to app/agent/tools.py before offering it here.
     assert "point_to" not in system_instruction("Earth Jukebox", "en", "listen", page_label="{page_title}")
+    assert "point_to" not in {tool.name for tool in AGENT_TOOLS}
 
+
+def test_the_agent_has_the_six_tools_in_order_with_their_enum_lists():
+    assert [tool.name for tool in AGENT_TOOLS] == ["navigate_to", "explain_section", "control_playback", "set_date", "get_screen_context", "get_weather"]
+    schemas = {tool.name: tool._get_declaration().parameters_json_schema for tool in AGENT_TOOLS}
+    assert schemas["navigate_to"]["properties"]["page"]["enum"] == PAGE_IDS
+    assert schemas["explain_section"]["properties"]["page"]["enum"] == PAGE_IDS
+    assert schemas["control_playback"]["properties"]["command"]["enum"] == PLAYBACK_COMMANDS
+
+
+def test_tools_py_has_no_google_genai_types():
+    source = (REPO_ROOT / "server" / "app" / "assistant" / "tools.py").read_text(encoding="utf-8")
+    assert "google.genai" not in source and "google import genai" not in source
+
+
+# ---- persona and drift ----
 
 def test_the_guide_speaks_as_the_mascot_and_keeps_its_rules():
     from app.assistant.knowledge import PERSONA_NAME, system_instruction
-    from app.assistant.tools import tools
     text = system_instruction("Earth Jukebox", "en", "home")
     assert f"Your name is {PERSONA_NAME}" in text
     # Echo is a program, not a person (F58).
     assert "robot" in text and "a program and not a person" in text
     assert "astronaut" not in text
     assert "Rules you must never break" in text and "never play sound yourself" in text
-    # The persona changes how the guide sounds, not what it can do: the same six tools.
-    assert len(tools()[0].function_declarations) == 6
+    # The persona changes how the guide sounds, not what it can do.
+    assert len(AGENT_TOOLS) == 6
 
 
 def test_the_persona_name_matches_the_frontend():
@@ -327,10 +280,221 @@ def test_pages_match_frontend():
     assert re.findall(r'id: "([a-z]+)"', source) == PAGE_IDS
 
 
-# ---- I05: bad input, limits and the health route -------------------------------------------------------------
+# ---- the browser protocol ----
 
-LIVE = "/api/v1/assistant/live"
+def test_navigation_round_trip(live):
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        _open(ws)
+        ws.send_bytes(b"\x00\x00" * 800)
+        ws.send_json({"type": "text", "text": "Take me to the player"})
+        assert ws.receive_json() == {"type": "action", "action": "navigate", "page": "listen"}
+        assert ws.receive_bytes() == AUDIO
+        assert ws.receive_json() == {"type": "transcript", "role": "assistant", "text": "Here you are."}
+        assert ws.receive_json() == {"type": "turn_complete"}
+        ws.send_json({"type": "stop"})
+        assert ws.receive_json()["type"] == "ended"
+    assert len(live.audio_frames) == 1
+    assert live.state["page"] == "listen" and live.state["page_title"] == PAGES["listen"]["title"]
+    assert live.closed
 
+
+def test_playback_action_reaches_the_browser(live):
+    live.call = ("control_playback", {"command": "pause"})
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        _open(ws, "listen")
+        ws.send_json({"type": "text", "text": "Pause"})
+        assert ws.receive_json() == {"type": "action", "action": "player", "command": "pause"}
+        assert ws.receive_bytes() == AUDIO
+
+
+def test_set_date_reaches_the_browser(live):
+    live.call = ("set_date", {"date": "2024-07-15"})
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        _open(ws, "listen")
+        ws.send_json({"type": "text", "text": "Play July 15"})
+        assert ws.receive_json() == {"type": "action", "action": "player", "command": {"setDate": "2024-07-15"}}
+        assert ws.receive_bytes() == AUDIO
+
+
+def test_no_action_off_the_listen_page_but_the_audio_still_comes(live):
+    live.call = ("control_playback", {"command": "pause"})
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        _open(ws, "home")
+        ws.send_json({"type": "text", "text": "Pause"})
+        assert ws.receive_bytes() == AUDIO
+
+
+def test_player_context_prompts_feedback_once_per_gap(live):
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        _open(ws, "listen")
+        ws.send_json({"type": "context", "key": "player", "data": {"visualization": "v", "date": "2026-01-01", "region": "r", "category": "hot", "playing": True}, "announce": "playback_finished:1"})
+        ws.send_json({"type": "context", "key": "player", "data": {"visualization": "v", "date": "2026-01-02", "region": "r", "category": "hot", "playing": True}, "announce": "playback_finished:1"})
+        ws.send_json({"type": "context", "key": "bogus", "data": {"x": 1}, "announce": "playback_finished:1"})
+        ws.send_json({"type": "stop"})
+        ws.receive_json()
+    assert len(live.texts) == 1 and "get_screen_context" in live.texts[0]
+    assert live.state["screens"] == {"player": {"visualization": "v", "date": "2026-01-02", "region": "r", "category": "hot", "playing": True}}
+
+
+def test_not_configured_without_key(monkeypatch):
+    monkeypatch.setattr(settings, "gemini_api_key", SecretStr(""))
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        assert ws.receive_json()["code"] == "not_configured"
+
+
+def test_foreign_origin_rejected(live):
+    from starlette.websockets import WebSocketDisconnect
+    with pytest.raises(WebSocketDisconnect):
+        with TestClient(app).websocket_connect("/api/v1/assistant/live", headers={"origin": "https://evil.example"}) as ws:
+            ws.receive_json()
+
+
+# ---- browser to model ----
+
+def test_audio_frames_pass_through_and_oversize_ones_are_dropped(live):
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        _open(ws)
+        ws.send_bytes(b"\x01\x02" * 800)
+        ws.send_bytes(b"\x00" * (MAX_AUDIO_FRAME_BYTES + 1))
+        ws.send_json({"type": "stop"})
+        ws.receive_json()
+    assert live.audio_frames == [b"\x01\x02" * 800]
+
+
+def test_mic_off_ends_the_audio_stream(live):
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        _open(ws)
+        ws.send_json({"type": "mic_off"})
+        ws.send_json({"type": "stop"})
+        ws.receive_json()
+    assert live.audio_ends == 1
+
+
+def test_text_is_capped_and_blank_text_is_ignored(live):
+    live.scripted = [_event(turn_complete=True)]
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        _open(ws)
+        ws.send_json({"type": "text", "text": "   \n"})
+        ws.send_json({"type": "text", "text": "x" * 2500})
+        assert ws.receive_json() == {"type": "turn_complete"}
+        ws.send_json({"type": "stop"})
+        ws.receive_json()
+    assert live.texts == ["x" * 2000]
+
+
+def test_bad_json_and_unknown_types_are_ignored(live):
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        _open(ws)
+        ws.send_text("not json")
+        ws.send_json({"type": "nonsense"})
+        ws.send_json(["a", "list"])
+        ws.send_json({"type": "page", "page": "not-a-page"})
+        ws.send_json({"type": "page", "page": "compare"})
+        ws.send_json({"type": "stop"})
+        assert ws.receive_json()["type"] == "ended"
+    assert live.state["page"] == "compare" and live.state["page_title"] == PAGES["compare"]["title"]
+
+
+def test_oversized_context_is_ignored(live):
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        _open(ws, "listen")
+        ws.send_json({"type": "context", "key": "player", "data": {"blob": "x" * 30000}, "announce": "playback_finished:1"})
+        ws.send_json({"type": "stop"})
+        ws.receive_json()
+    assert live.state["screens"] == {} and live.texts == []
+
+
+# ---- model to browser ----
+
+def test_time_limit(live, monkeypatch):
+    monkeypatch.setattr(settings, "assistant_max_session_seconds", 0.2)
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        _open(ws)
+        assert ws.receive_json() == {"type": "ended", "reason": "time_limit"}
+
+
+def test_events_ending_is_service_ended(live):
+    live.scripted = [END]
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        _open(ws)
+        ws.send_json({"type": "text", "text": "hello"})
+        assert ws.receive_json() == {"type": "ended", "reason": "service_ended"}
+
+
+def test_upstream_error_is_reported_without_the_key(live, caplog):
+    live.fail = RuntimeError("boom test-key boom")
+    with caplog.at_level("WARNING"):
+        with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+            _open(ws)
+            message = ws.receive_json()
+    assert message == {"type": "error", "code": "upstream", "message": "The voice guide stopped unexpectedly."}
+    assert "test-key" not in caplog.text and "[redacted]" in caplog.text
+
+
+def test_an_action_is_sent_before_the_audio_of_its_event(live):
+    # The tool ran before this event arrived; its action must go out first, then the audio on the same event.
+    live.scripted = [_event(audio=AUDIO, text="Over to Learn.", turn_complete=True)]
+    original = live.send_text
+
+    async def send_text(text):
+        sink.put(live.session_id, {"action": "navigate", "page": "learn"})
+        await original(text)
+
+    live.send_text = send_text
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        _open(ws)
+        ws.send_json({"type": "text", "text": "Learn please"})
+        assert ws.receive_json() == {"type": "action", "action": "navigate", "page": "learn"}
+        assert ws.receive_bytes() == AUDIO
+        assert ws.receive_json() == {"type": "transcript", "role": "assistant", "text": "Over to Learn."}
+        assert ws.receive_json() == {"type": "turn_complete"}
+    assert live.state["page_title"] == PAGES["learn"]["title"]
+
+
+def test_interrupted_comes_before_audio_and_transcripts_are_not_repeated(live):
+    live.scripted = [
+        _event(interrupted=True),
+        _event(user_text="take me", finished=False),
+        _event(user_text=" home", finished=False),
+        _event(user_text="take me home", finished=True),  # the whole text again: not sent a second time
+        _event(text="Going.", finished=False),
+        _event(text="Going.", finished=True),
+        _event(turn_complete=True),
+    ]
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        _open(ws)
+        ws.send_json({"type": "text", "text": "go"})
+        assert ws.receive_json() == {"type": "interrupted"}
+        assert ws.receive_json() == {"type": "transcript", "role": "user", "text": "take me"}
+        assert ws.receive_json() == {"type": "transcript", "role": "user", "text": " home"}
+        assert ws.receive_json() == {"type": "transcript", "role": "assistant", "text": "Going."}
+        assert ws.receive_json() == {"type": "turn_complete"}
+
+
+def test_a_single_final_user_transcript_is_sent_once(live):
+    # Gemini 3 sends the user's words once, as a finished transcript with no chunks before it.
+    live.scripted = [_event(user_text="hello there", finished=True), _event(turn_complete=True)]
+    with TestClient(app).websocket_connect("/api/v1/assistant/live", headers=ORIGIN) as ws:
+        _open(ws)
+        ws.send_json({"type": "text", "text": "go"})
+        assert ws.receive_json() == {"type": "transcript", "role": "user", "text": "hello there"}
+        assert ws.receive_json() == {"type": "turn_complete"}
+
+
+# ---- the instruction ----
+
+def test_the_instruction_has_the_page_placeholder_and_no_other_braces():
+    text = system_instruction("Earth Jukebox", "en", "home", page_label="{page_title}")
+    assert re.findall(r"[{}]", text) == ["{", "}"]
+    assert "{page_title}" in text
+    assert "The user started on: Home" not in text
+
+
+def test_the_default_instruction_names_the_page_by_its_title():
+    assert "The user started on: Listen." in system_instruction("Earth Jukebox", "en", "listen")
+
+
+# ---- bad input, limits and the health route (I05) ----
 
 def _first_message(payload):
     with TestClient(app).websocket_connect(LIVE, headers=ORIGIN) as ws:
@@ -339,20 +503,20 @@ def _first_message(payload):
 
 
 @pytest.mark.parametrize("payload", [[], [1, 2], 5, "start", None])
-def test_a_start_message_that_is_not_an_object_gives_bad_start(fake_session, payload):
+def test_a_start_message_that_is_not_an_object_gives_bad_start(live, payload):
     assert _first_message(payload)["code"] == "bad_start"
 
 
 @pytest.mark.parametrize("value", [["en"], {"a": 1}, 5, None, "xx"])
-def test_a_language_or_page_of_the_wrong_kind_falls_back_to_the_defaults(monkeypatch, fake_session, value):
+def test_a_language_or_page_of_the_wrong_kind_falls_back_to_the_defaults(monkeypatch, live, value):
     seen = []
+    real = assistant_api.connect_adk
 
-    @contextlib.asynccontextmanager
-    async def connect(language, page):
+    def connect(language, page):
         seen.append((language, page))
-        yield fake_session
+        return real(language, page)
 
-    monkeypatch.setattr(assistant_api, "connect_live", connect)
+    monkeypatch.setattr(assistant_api, "connect_adk", connect)
     with TestClient(app).websocket_connect(LIVE, headers=ORIGIN) as ws:
         ws.send_json({"type": "start", "language": value, "page": value})
         assert ws.receive_json() == {"type": "ready"}
@@ -361,7 +525,7 @@ def test_a_language_or_page_of_the_wrong_kind_falls_back_to_the_defaults(monkeyp
     assert seen == [("en", "home")]
 
 
-def test_a_second_session_gets_busy_while_the_cap_is_full(fake_session, monkeypatch):
+def test_a_second_session_gets_busy_while_the_cap_is_full(live, monkeypatch):
     monkeypatch.setattr(settings, "assistant_max_sessions", 1)
     client = TestClient(app)
     with client.websocket_connect(LIVE, headers=ORIGIN) as first:
@@ -377,14 +541,6 @@ def test_a_second_session_gets_busy_while_the_cap_is_full(fake_session, monkeypa
     assert assistant_api._active == 0
 
 
-def test_a_session_ends_with_time_limit_when_it_runs_too_long(fake_session, monkeypatch):
-    monkeypatch.setattr(settings, "assistant_max_session_seconds", 0.2)
-    with TestClient(app).websocket_connect(LIVE, headers=ORIGIN) as ws:
-        ws.send_json({"type": "start", "language": "en", "page": "home"})
-        assert ws.receive_json() == {"type": "ready"}
-        assert ws.receive_json() == {"type": "ended", "reason": "time_limit"}
-    assert assistant_api._active == 0
-
 
 def test_an_upstream_failure_gives_a_plain_error_with_no_traceback(monkeypatch, caplog):
     @contextlib.asynccontextmanager
@@ -393,7 +549,7 @@ def test_an_upstream_failure_gives_a_plain_error_with_no_traceback(monkeypatch, 
         yield
 
     monkeypatch.setattr(settings, "gemini_api_key", SecretStr("secret-key"))
-    monkeypatch.setattr(assistant_api, "connect_live", connect)
+    monkeypatch.setattr(assistant_api, "connect_adk", connect)
     with caplog.at_level(logging.WARNING):
         with TestClient(app).websocket_connect(LIVE, headers=ORIGIN) as ws:
             ws.send_json({"type": "start", "language": "en", "page": "home"})
@@ -404,18 +560,8 @@ def test_an_upstream_failure_gives_a_plain_error_with_no_traceback(monkeypatch, 
     assert assistant_api._active == 0
 
 
-def test_an_audio_frame_over_the_limit_is_dropped_and_the_session_goes_on(fake_session):
-    with TestClient(app).websocket_connect(LIVE, headers=ORIGIN) as ws:
-        ws.send_json({"type": "start", "language": "en", "page": "home"})
-        assert ws.receive_json() == {"type": "ready"}
-        ws.send_bytes(b"\x00" * (assistant_api.MAX_AUDIO_FRAME_BYTES + 2))
-        ws.send_bytes(b"\x00\x00" * 800)
-        ws.send_json({"type": "text", "text": "Take me to the player"})
-        assert ws.receive_json() == {"type": "action", "action": "navigate", "page": "listen"}
-    assert fake_session.audio_frames == 1
 
-
-def test_a_missing_origin_is_refused_in_production_and_allowed_in_development(fake_session, monkeypatch):
+def test_a_missing_origin_is_refused_in_production_and_allowed_in_development(live, monkeypatch):
     from starlette.websockets import WebSocketDisconnect
     monkeypatch.setattr(settings, "cors_origins", "https://earth-jukebox.vercel.app")
     with pytest.raises(WebSocketDisconnect) as refused:

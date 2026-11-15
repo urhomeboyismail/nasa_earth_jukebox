@@ -177,6 +177,8 @@ def test_fetch_gives_a_reply_and_a_payload(client, monkeypatch):
     assert body["mascot_reply"].startswith("I found 2 days of Sentinel-2 scenes")
     assert body["sonification_json"]["tracks"][0]["volume_curve"] == [0.15, 1.0]
     assert body["local_dataset_id"] is None
+    # WX02: every value behind the sound, one per step.
+    assert body["series"] == {"metric": "Cloud cover", "unit": "%", "times": ["2026-10-01", "2026-10-02"], "values": [10.0, 90.0]}
     assert seen == {"collection": S2, "bbox": [46.0, -19.0, 47.0, -18.0], "first": date(2026, 10, 1), "last": date(2026, 10, 31)}
 
 
@@ -202,6 +204,7 @@ def test_local_data_set(client, monkeypatch):
     body = _post(client).json()
     assert body["local_dataset_id"] == "synthetic-ocean"
     assert body["sonification_json"] is None
+    assert body["series"] is None
 
 
 def test_model_text_never_reaches_the_reply(client, monkeypatch):

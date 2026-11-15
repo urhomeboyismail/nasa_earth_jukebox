@@ -126,6 +126,16 @@ describe('the dock', () => {
     await user.click(screen.getByRole('button', { name: 'Stop tour' }))
   })
 
+  it('offers Replay welcome, which opens the landing page and closes the bubble', async () => {
+    const user = userEvent.setup()
+    render(<Dock />)
+    await user.click(echoButton())
+    await user.click(screen.getByRole('button', { name: 'Replay welcome' }))
+    expect(window.location.hash).toBe('#welcome')
+    expect(screen.queryByRole('region', { name: 'Echo, your guide' })).not.toBeInTheDocument()
+    window.location.hash = ''
+  })
+
   it('turns Echo off, remembers it, and says how to bring Echo back', async () => {
     const user = userEvent.setup()
     render(<Dock />)

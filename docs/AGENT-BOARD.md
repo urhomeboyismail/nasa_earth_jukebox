@@ -279,6 +279,78 @@ Our agents run on different laptops, so they talk through this file in git. When
 - Answer:
 - Recorded in: `docs/tickets/UI05-motion-layer.md` (Result)
 
+### R-20261114-G05-1: G05 removes `assistant_engine` from `server/app/config.py`; is that OK?
+- From: G05 (agent C, Claude Code, 14 Nov)
+- To: team leader (owner of `server/app/config.py`)
+- Needed by: nothing; G05's PR carries the change and the team leader can answer when merging
+- Status: open
+- Context: `docs/tickets/G05-adk-default.md`, "Code". The google-genai bridge is deleted, so `assistant_engine` (`Literal["bridge", "adk"]`, default `"bridge"`, added by G01) has one value left. The PR also removes `ASSISTANT_ENGINE` from `server/.env.example`. G11 (agent A) also edits `config.py` and `.env.example`; whoever merges second rebases.
+- Question: may G05 remove the setting? (a) yes; (b) no, keep it. A rollback is a revert of the G05 merge commit.
+- Answer:
+- Recorded in: `server/app/config.py`, `server/.env.example`; `docs/tickets/G05-adk-default.md` (Result)
+- Note (2026-11-14, G05): PR #88 (`feature/G05-adk-default`, ready to merge). The change is made in that PR: `assistant_engine` and `ASSISTANT_ENGINE` are removed. If the answer is (b), revert the config lines in the PR before merging.
+
+### R-20261114-G05-2: Deleting the bridge removes `point_to` from the voice guide; which ticket adds it to ADK?
+- From: G05 (agent C, Claude Code, 14 Nov)
+- To: team leader (the voice guide's tools, `server/app/agent/tools.py`)
+- Needed by: nothing; G05 ships without it, as the person running agent C chose
+- Status: answered
+- Context: IX09 added `point_to` to the bridge's tools and to `run_tool` (`server/app/assistant/tools.py`), but not to `AGENT_TOOLS` (`server/app/agent/tools.py`, five tools). With the bridge gone, the live voice guide has five tools and can no longer point at the sound map. `system_instruction` still has the `POINT_LINE` and a `pointing` argument whose comment says "G05 adds it there"; the G05 ticket does not, so it was left out. The browser side (`point` action, `src/features/point/`) is unchanged.
+- Question: (a) a new small ticket ports `point_to` to ADK (one `FunctionTool` over `run_tool`, `pointing=True` for ADK, and the test); (b) leave pointing out of the voice guide for now.
+- Answer: (14 Nov, the person running agent C, not the team leader) (b) for now: G05 ships with five tools and no `point_to`. The team leader can still ask for (a) as a new ticket.
+- Recorded in: `docs/tickets/G05-adk-default.md` (Result)
+- Note (2026-11-14, G05): PR #88 (`feature/G05-adk-default`, ready to merge). Decision by the person running agent C: follow the ticket literally, so the voice guide ships with five tools and no `point_to` until this is answered. The PR description and the G05 ticket Result say so too.
+
+### R-20261114-G05-3: The About page should name the Ask agent and ADK
+- From: G05 (agent C, Claude Code, 14 Nov)
+- To: Roni (owner of `src/features/about/index.tsx`, hotspot `about`)
+- Needed by: nothing
+- Status: open
+- Context: `src/features/about/index.tsx` (around lines 100-101) says "The voice guide uses Google's Gemini". The voice guide and the optional Ask agent both run on Google's Agent Development Kit (ADK) now, and the README's "AI tools" section says so.
+- Question: may the next ticket that edits the About page add that wording (the Ask agent chooses fact IDs, the app writes every sentence, and questions and voice go to Google while a conversation or an Ask question is open)? (a) yes; (b) no, say it differently (how).
+- Answer:
+- Recorded in: nowhere needed yet
+- Note (2026-11-14, G05): PR #88 (`feature/G05-adk-default`, ready to merge). The README "AI tools" section already has the wording; the About page is untouched.
+
+### R-20261114-G05-4: H02's pass is not written in `docs/adk-spike.md`
+- From: G05 (agent C, Claude Code, 14 Nov)
+- To: H02's owner (the person who ran the live check)
+- Needed by: nothing; G05 started on the person's word that H02 passed
+- Status: open
+- Context: `docs/tickets/G05-adk-default.md` says not to start until H02 has recorded a pass in `docs/adk-spike.md`. The queue shows H02 `done` (commit `5c0c14e`), but `docs/adk-spike.md` still says "not finished, and not a yes" and has no C1 to C4 answers, memory and import numbers, minutes, cost or tested commit (the "Done when" of `docs/tickets/H02-live-parity-check.md`).
+- Question: may H02's owner write the C1 to C4 results and the one-line kill-rule outcome into `docs/adk-spike.md`? (a) yes, they will; (b) H02 did not pass, so G05 (PR #88) must not merge.
+- Answer:
+- Recorded in: `docs/tickets/G05-adk-default.md` (Result)
+
+### R-20261114-G05-5: Leftover "bridge" wording in `server/app/agent/` and `knowledge.py`
+- From: G05 (agent C, Claude Code, 14 Nov)
+- To: team leader (the voice guide's code, `server/app/agent/`, `server/app/assistant/knowledge.py`)
+- Needed by: nothing
+- Status: open
+- Context: these files were outside G05's Touches, so the bridge words stay: `server/app/agent/limits.py:1` ("the two voice-guide engines"), `server/app/agent/voice.py:1` and `:133` ("the Gemini Live bridge's protocol"), `server/app/agent/tools.py:32` ("As the bridge does"), and `server/app/assistant/knowledge.py:100-107` (`pointing` defaults to on when `page_label` is None, "for the bridge", and says "G05 adds it there", which G05 did not). The ADK path always passes `page_label`, so behaviour is correct.
+- Question: may the next ticket that edits these files reword the comments and drop the `pointing` default? (a) yes; (b) no, leave them.
+- Answer:
+- Recorded in: `docs/tickets/G05-adk-default.md` (Result)
+
+### R-20261114-G05-6: V02's two requests to "G04 or G05" are still open
+- From: G05 (agent C, Claude Code, 14 Nov)
+- To: team leader
+- Needed by: nothing
+- Status: open
+- Context: `R-20261112-V02-1` (read `detail` in `start`) and `R-20261112-V02-2` (send `limitSeconds` in `ready`) name G04 or G05 as the owner of `server/app/api/assistant.py`. G05's ticket says "no change to the browser protocol", so PR #88 does neither. The browser works without them (it defaults to short answers and 600 seconds).
+- Question: should they become a small ticket (a) after G05 merges, or (b) be dropped?
+- Answer:
+- Recorded in: nowhere needed yet
+
+### R-20261114-G05-7: G05 and G11 both edit `server/app/config.py` and `server/.env.example`
+- From: G05 (agent C, Claude Code, 14 Nov)
+- To: G11 (agent A)
+- Needed by: whoever merges second
+- Status: open
+- Context: G05 (PR #88) deletes the `assistant_engine` lines (`config.py`, around line 58; `.env.example`, the `ASSISTANT_ENGINE` comment pair). `docs/tickets/G11-planetary-computer-echo.md` adds settings to the same two files. These are not a hotspot, so the queue allowed both.
+- Question: no answer needed. Whoever merges second rebases and keeps both changes.
+- Answer:
+- Recorded in: nowhere needed yet
 ### R-20261114-EIC03-1: Which visualisations did EIC02 pick? Its result was never written
 - From: EIC03, agent A (Claude Code)
 - To: team (the person who owns EIC02)

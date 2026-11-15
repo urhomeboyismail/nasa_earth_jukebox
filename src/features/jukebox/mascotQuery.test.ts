@@ -16,7 +16,7 @@ afterEach(() => vi.unstubAllGlobals())
 describe('queryMascot', () => {
   it('sends the question, the preference and the catalog, and reads a good answer', async () => {
     answer(200, good)
-    expect(await ask()).toEqual({ kind: 'answer', answer: { reply: good.mascot_reply, theme: 'ocean', audio, localId: null } })
+    expect(await ask()).toEqual({ kind: 'answer', answer: { reply: good.mascot_reply, theme: 'ocean', audio, localId: null, series: null } })
     const [url, init] = vi.mocked(fetch).mock.calls[0]
     expect(String(url)).toMatch(/\/api\/v1\/mascot\/query$/)
     expect(JSON.parse(String(init?.body))).toEqual({ user_prompt: 'SST near Mauritius', audio_preference: 'normal', catalog })
@@ -27,6 +27,16 @@ describe('queryMascot', () => {
     const result = await ask()
     expect(result.kind === 'answer' && result.answer.audio).toBeNull()
     expect(result.kind === 'answer' && result.answer.reply).toBe(good.mascot_reply)
+  })
+
+  it('reads the series behind the sound, and drops one that does not pass (WX02)', async () => {
+    const series = { metric: 'Sea surface temperature', unit: '°C', times: ['2026-06-01', '2026-06-02'], values: [24.1, 24.6] }
+    answer(200, { ...good, series })
+    const read = await ask()
+    expect(read.kind === 'answer' && read.answer.series).toEqual(series)
+    answer(200, { ...good, series: { ...series, values: [24.1] } }) // one value short
+    const short = await ask()
+    expect(short.kind === 'answer' && [short.answer.series, short.answer.reply]).toEqual([null, good.mascot_reply])
   })
 
   it('keeps a local data set only if it was sent, and an unknown theme becomes default', async () => {
