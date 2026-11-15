@@ -573,3 +573,66 @@ html {
   label:has(> input[type='checkbox']),
   label:has(> input[type='radio']) { display: inline-flex; align-items: center; gap: 0.5rem; min-block-size: 44px; }
 }
+
+/* ---- LY01: the page, not the chrome, on a phone's first screen ---- */
+
+/* Help and the demo share a row where they fit. The demo's own parts join the row; an open help panel takes a row of its own. */
+.app-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-block: 0.5rem 1rem;
+}
+.app-tools > .help { margin: 0; }
+.app-tools > .help:has(.help__panel) { flex-basis: 100%; }
+.app-tools > .demo { display: contents; }
+
+/* The theme switch shows its words; on a phone (below) the sun alone. */
+.ui-theme-switch__icon { display: none; }
+
+@media (max-width: 767.98px) {
+  /* Header: one row (wordmark, Display, the sun), and the server status only when it has something to say. */
+  .app-header .ui-theme-switch {
+    inline-size: var(--control-size);
+    padding: 0;
+    justify-content: center;
+  }
+  .app-header .ui-theme-switch__icon { display: block; flex: none; }
+  .app-header .ui-theme-switch__label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  /* "Server ready" and "Checking" are not news on a phone; waking and offline still show, with Check again beside them. */
+  .app-server:has(> .ui-pill[data-state='ready']),
+  .app-server:has(> .ui-pill[data-state='checking']) { display: none; }
+  .app-server { flex-wrap: nowrap; }
+  .app-server > .ui-pill { flex: 0 1 auto; min-inline-size: 0; }
+  .app-server > .ui-button { flex: none; padding-inline: 0.75rem; }
+
+  .app-main { padding-block-start: 0.5rem; }
+  .app-main h1 { margin-block: 0.25rem 0.5rem; }
+
+  /* Narrower buttons, so "Help from Echo" and "Play the demo" fit one row at 360 px. */
+  .app-tools .ui-button { padding-inline: 1rem; }
+
+  /* The data set picker: its label beside the choice, the summary under both. */
+  .app-main > .ui-picker {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 0.75rem;
+    margin-block-end: 1rem;
+  }
+  .app-main > .ui-picker .ui-picker__summary { grid-column: 1 / -1; }
+
+  /* The voice guide floats above the tab bar: the end of the page, and anything focused, scroll clear of it too. */
+  html { scroll-padding-bottom: calc(var(--bottom-nav-height) + 16px + var(--control-size) + 8px + var(--voice-panel-space, 0px)); }
+  .app-main { padding-block-end: calc(var(--bottom-nav-height) + 1.5rem + var(--control-size) + 8px + var(--voice-panel-space, 0px)); }
+
+  /* Legend rows take focus (src/components/Legend.tsx): a full 44 px each, like every other target here. */
+  .ui-legend__list li { min-block-size: 44px; }
+}

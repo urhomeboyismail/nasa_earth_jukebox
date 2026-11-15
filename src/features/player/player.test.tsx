@@ -145,6 +145,18 @@ describe('Player: viewing', () => {
     expect(screen.getByText(/Earth Jukebox team/)).toBeInTheDocument()
   })
 
+  it('puts Play and the date straight after the image, before the description and the questions (LY01)', async () => {
+    await renderReady()
+    const after = (a: Element, b: Element) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+    const image = screen.getByRole('img', { name: visualization.frames[0].altText })
+    const play = screen.getByRole('button', { name: 'Play' })
+    const date = screen.getByRole('slider', { name: 'Date' })
+    const ask = screen.getByRole('button', { name: 'Ask' })
+    expect(after(image, play)).toBe(true)
+    expect(after(play, date)).toBe(true)
+    expect(after(date, ask)).toBe(true)
+  })
+
   it('describes the date on screen in words, below the picture, and follows the date', async () => {
     const { user } = await renderReady()
     const description = screen.getByRole('region', { name: 'Description' })

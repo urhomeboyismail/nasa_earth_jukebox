@@ -245,45 +245,6 @@ function Player({ visualization, region }: { visualization: Visualization; regio
           <ExplorerSurface explorer={explorer} />
         </Viewer>
       </div>
-      <ExplorerPanel visualization={visualization} explorer={explorer} />
-      {/* IX03: what follow is doing. Not a live region: losing the spot is said through the speech gate. */}
-      {follow.text && <p className="player__follow">{follow.text}</p>}
-      {/* IX09: where Echo pointed. Not a live region: E announces it once, and for a voice point the guide says it. */}
-      {echo.text && <p className="player__follow">{echo.text}</p>}
-      <FindPanel find={find} />
-      <PredictPanel predict={predict} index={player.index} />
-      <OnboardingPanel onboarding={onboarding} />
-      <MarksPanel visualization={visualization} index={player.index} cursor={moment.cell} grid={explorer.grid} formatDate={player.formatDate} style={player.style} />
-
-      {player.results && <Description visualization={visualization} results={player.results} index={player.index} />}
-      {player.style === 'change' && player.score && (
-        <p className="player__change">{describeChange(visualization, player.score, { detail })}</p>
-      )}
-
-      {player.results && (
-        <details className="player__legend" onToggle={event => setTableOpen(event.currentTarget.open)}>
-          <summary>Show data table</summary>
-          {tableOpen && <DataTable visualization={visualization} results={player.results} formatDate={player.formatDate} />}
-        </details>
-      )}
-
-      {player.results && <AskPanel visualization={visualization} results={player.results} />}
-
-      <details className="player__legend">
-        <summary>Colour legend</summary>
-        <Legend colorScale={visualization.colorScale} mapping={visualization.mapping} variable={visualization.variable} />
-        <div className="player__legend-play">
-          <Button disabled={!player.ready} onClick={() => void player.hearLegend()}>
-            Hear the legend, {words.lowest} to {words.highest}
-          </Button>
-        </div>
-      </details>
-
-      {player.error && <Notice variant="error">The sounds could not be prepared. {player.error}</Notice>}
-      {player.loading && <LoadingIndicator label="Analyzing the images…" />}
-      {player.downloadError && <Notice variant="error">The audio could not be prepared. {player.downloadError}</Notice>}
-      {player.finished && <Notice>That is the last date. Press Play to hear it again.</Notice>}
-
       {chapters.length > 0 && (
         <div className="player__story" ref={storyBox}>
           <Button aria-expanded={storyOpen} disabled={!player.ready || storyOpen} onClick={openStory}>Hear the story</Button>
@@ -293,6 +254,7 @@ function Player({ visualization, region }: { visualization: Visualization; regio
         <StoryPanel visualization={visualization} chapters={chapters} results={player.results} playRange={player.playRange} predict={predict} onClose={closeStory} />
       )}
 
+      {/* LY01: the transport comes straight after the image (and the story, which plays through it), so Play is on the first screens of a phone, and focus and reading order match what is seen. */}
       <div className="player__transport ui-glass">
         <div className="player__controls player__controls--main" role="group" aria-label="Playback">
           <Button variant="primary" data-tour="play" disabled={!player.ready} onClick={playing ? player.pause : player.play}>
@@ -345,6 +307,45 @@ function Player({ visualization, region }: { visualization: Visualization; regio
           />
         </div>
       </div>
+
+      <ExplorerPanel visualization={visualization} explorer={explorer} />
+      {/* IX03: what follow is doing. Not a live region: losing the spot is said through the speech gate. */}
+      {follow.text && <p className="player__follow">{follow.text}</p>}
+      {/* IX09: where Echo pointed. Not a live region: E announces it once, and for a voice point the guide says it. */}
+      {echo.text && <p className="player__follow">{echo.text}</p>}
+      <FindPanel find={find} />
+      <PredictPanel predict={predict} index={player.index} />
+      <OnboardingPanel onboarding={onboarding} />
+      <MarksPanel visualization={visualization} index={player.index} cursor={moment.cell} grid={explorer.grid} formatDate={player.formatDate} style={player.style} />
+
+      {player.results && <Description visualization={visualization} results={player.results} index={player.index} />}
+      {player.style === 'change' && player.score && (
+        <p className="player__change">{describeChange(visualization, player.score, { detail })}</p>
+      )}
+
+      {player.results && (
+        <details className="player__legend" onToggle={event => setTableOpen(event.currentTarget.open)}>
+          <summary>Show data table</summary>
+          {tableOpen && <DataTable visualization={visualization} results={player.results} formatDate={player.formatDate} />}
+        </details>
+      )}
+
+      {player.results && <AskPanel visualization={visualization} results={player.results} />}
+
+      <details className="player__legend">
+        <summary>Colour legend</summary>
+        <Legend colorScale={visualization.colorScale} mapping={visualization.mapping} variable={visualization.variable} />
+        <div className="player__legend-play">
+          <Button disabled={!player.ready} onClick={() => void player.hearLegend()}>
+            Hear the legend, {words.lowest} to {words.highest}
+          </Button>
+        </div>
+      </details>
+
+      {player.error && <Notice variant="error">The sounds could not be prepared. {player.error}</Notice>}
+      {player.loading && <LoadingIndicator label="Analyzing the images…" />}
+      {player.downloadError && <Notice variant="error">The audio could not be prepared. {player.downloadError}</Notice>}
+      {player.finished && <Notice>That is the last date. Press Play to hear it again.</Notice>}
 
       <div className="player__controls" role="group" aria-label="More ways to listen">
         <Button disabled={!player.ready} onClick={player.replay}>Replay this date</Button>

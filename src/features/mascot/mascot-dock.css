@@ -20,6 +20,10 @@
 @media (max-width: 640px) {
   .mascot-dock { inline-size: 140px; block-size: 126px; }
 }
+/* LY01: smaller on a phone, so Echo, the voice guide and the tab bar cover less of the page. Same proportions. */
+@media (max-width: 420px) {
+  .mascot-dock { inline-size: 100px; block-size: 90px; }
+}
 /* Out of the way while the guided tour runs (JB05). */
 .mascot-dock[hidden] { display: none; }
 @media (max-width: 767.98px) {

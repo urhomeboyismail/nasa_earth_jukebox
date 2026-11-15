@@ -100,4 +100,42 @@ npm run phone-audit -- http://localhost:5173/   # with npm run dev running; past
 
 ## Result
 
-Filled in by the agent: the branch, the commits, the audit's before and after summaries, and the real output of the checks, failures included.
+Branch `chore/LY01-phone-layout-pass` (agent B, 15 Nov). Built on `main` before the Mission Control look, at the team lead's request: expect conflicts with `chore/jpl-hud-theme` in `src/App.css` and `src/features/player/index.tsx`.
+
+**What changed**
+
+1. Header (phone): one row (wordmark, Display, and the theme switch as a sun icon, still named "Day theme"). The server status shows only when it is waking or offline, with "Check again" beside it (`src/App.css`, `src/components/ThemeSwitch.tsx`, a `sun` path in `src/components/Icon.tsx`).
+2. Setup block: "Help from Echo" and the demo share one row (`.app-tools` in `src/App.tsx`); Help is still the first thing after the title (WCAG 3.2.6). On a phone the data set label sits beside its choice.
+3. Listen: the story button and the transport (Play, Stop, Loop, Mixer, Date, Speed, Volume) moved in the DOM to straight after the image, at every width, so reading and focus order match (`src/features/player/index.tsx`).
+4. Home crate cards: a container query puts the disc beside the title only, with the text and buttons across the card (`src/features/home/home.css`).
+5. Bottom: Echo's dock is 100 × 90 below 420 px (`src/features/mascot/mascot-dock.css`); the page and `scroll-padding-bottom` leave room for the floating voice guide button.
+8. Legend rows are 44 px tall on a phone.
+
+**Not done (they need another owner; post on `AGENT-BOARD.md` first):** 6, Echo's flight over the heading (it moves itself away from clickable things; `tour` hotspot); 7, folding About and Learn into `<details>` (`about` and `learn` hotspots). About is still 16.3 screens at 360.
+
+**Audit** (`npm run phone-audit`, Edge, dark theme, server off), before and after at 360 × 740:
+
+| | Before (ff3bc44) | After |
+|---|---|---|
+| `<h1>` top, every page | 214 px | 120 px |
+| Listen: Play top | 2876 px | 870 px |
+| Targets under 44 px | legend rows, 26 px | none |
+| Sideways scroll, targets under 24 px, inputs under 16 px | none | none |
+
+At 390: h1 at 120 px, Play at 885 px. At 320 the header wraps to two rows: h1 at 178 px, Play at 964 px.
+
+Screenshots at 768 and 1280: tablet and desktop are unchanged, except that Help and the demo now share a row.
+
+**Checks**
+
+```
+npm run lint   -> 0 errors; 3 warnings, all already on main (src/features/compare/Fusion.tsx, react(refs))
+npm test       -> Test Files 217 passed (217); Tests 3061 passed (3061)
+npm run build  -> built in 1.52s
+```
+
+One earlier `npm test` run, made while a dev server and a browser were also running, timed out in 101 tests across unrelated files. Run alone, App and Explorer passed 152/152, and the full run above was made with nothing else running.
+
+Tests: `help.test.tsx` now checks that Help is the first item in the row after the title; a new `player.test.tsx` case checks the order image, Play, Date, Ask. The story test (button above Play) still passes.
+
+**👤 Still to do (step 6):** the team lead's real-phone check with VoiceOver or TalkBack.
