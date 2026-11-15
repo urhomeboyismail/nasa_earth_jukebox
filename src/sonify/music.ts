@@ -94,7 +94,8 @@ function timeFor(features: FrameFeatures, preset: Preset, prev: MusicFrame | nul
   let accent: MusicFrame['time']['accent'] = 'none'
   if (prev) {
     // Dates are YYYY-MM-DD, so the year and month are text slices; no Date object, no time zone.
-    if (features.date.slice(0, 4) !== prev.date.slice(0, 4)) accent = 'year'
+    if (features.date.slice(0, 3) !== prev.date.slice(0, 3)) accent = 'decade'
+    else if (features.date.slice(0, 4) !== prev.date.slice(0, 4)) accent = 'year'
     else if (features.date.slice(5, 7) !== prev.date.slice(5, 7)) accent = 'month'
   }
   return { accent, pulseBpm: preset.bpm, level: LEVEL.time }

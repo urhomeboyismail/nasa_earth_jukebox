@@ -34,6 +34,9 @@ export const RHYTHM_BUSY_DENSITY = 0.2
 export const MOTION_FULL_SPEED = 2
 /** C2; a year accent moves it up an octave (the ensemble, SN04, reads this). */
 export const TIME_PULSE_MIDI = 36
+/** How far above the pulse a year accent clicks (one octave) and a decade accent (two octaves, SN16). */
+export const YEAR_ACCENT_SEMITONES = 12
+export const DECADE_ACCENT_SEMITONES = 24
 /** A melody position change this big counts as rising or falling. */
 export const TREND_STEP = 0.02
 export const LEVEL = { melody: 0.8, harmony: 0.5, rhythm: 0.5, time: 0.4, motionBase: 0.2, motionRange: 0.6, bassBase: 0.4, bassRange: 0.4, dropout: 1 } as const

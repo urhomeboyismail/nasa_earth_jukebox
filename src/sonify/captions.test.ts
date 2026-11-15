@@ -74,6 +74,7 @@ describe('captionsFor', () => {
     expect(caption.rhythm).toBe('Rhythm: busy')
     expect(caption.motion).toBe('Motion: high, towards the west')
     expect(caption.time).toBe('Time: steady pulse, new year')
+    expect(captionsFor({ ...base, time: { accent: 'decade' } }).caption.time).toBe('Time: steady pulse, new decade')
     expect(captionsFor({ ...base, motion: { openness: 0, sweep: 0 } }).caption.motion).toBe('Motion: still')
   })
 
