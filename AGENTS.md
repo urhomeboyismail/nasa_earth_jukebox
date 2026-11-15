@@ -72,7 +72,7 @@ Two services: the website on Vercel and the server (voice guide, Ask agent, list
 
 | What | Where | Live URL |
 |---|---|---|
-| Website | Vercel, from `vercel.json` | https://nasagurusmoonheist.vercel.app/ |
+| Website | Vercel, from `vercel.json` | https://nasa-earth-jukebox.vercel.app/ |
 | Server | Render, from `render.yaml` | https://earth-jukebox-server.onrender.com |
 
 **First deploy**
