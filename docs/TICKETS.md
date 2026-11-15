@@ -91,6 +91,7 @@ The MC tickets branch from `chore/jpl-hud-theme` (the Mission Control look, not 
 | [MC03](tickets/MC03-backdrop-real-audio.md) | The backdrop follows real sound | S | agent | — | — | ready: no code change (findings in Result) |
 | [MC04](tickets/MC04-quality-gate-flaky-app-test.md) | Quality gate, and the flaky App test | S | agent | — | — | claimed: A, 2026-11-14 |
 | [MC05](tickets/MC05-pr-mission-control.md) | Pull request: the Mission Control look into main | S | agent+👤 | MC01, MC02, MC03, MC04 | — | open |
+| [LY02](tickets/LY02-phone-visual-fixes.md) | Phone visual fixes from the 15 Nov visual audit | M | agent+👤 | — | app, about, learn | claimed: B, 2026-11-15 |
 
 ### P2: quality and smaller features
 
