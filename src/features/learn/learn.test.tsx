@@ -2,7 +2,7 @@ import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fixture from '../../../public/data/fixture/manifest.json'
-import synthetic from '../../../public/data/mur-sst-mauritius/manifest.json'
+import mauritius from '../../../public/data/mur-sst-mauritius/manifest.json'
 import type { Visualization } from '../../data'
 import { expectNoA11yViolations } from '../../test/a11y'
 import LearnPage from '.'
@@ -230,7 +230,7 @@ describe('Learn page: explore the map', () => {
 })
 
 describe('Learn page: the change style, the edge trace and the lock key (F38)', () => {
-  const withChange = synthetic as unknown as Visualization
+  const withChange = mauritius as unknown as Visualization
 
   it('shows neither new card for a data set with no baseline', () => {
     render(<LearnPage visualization={visualization} />, { wrapper: AnnouncerProvider })

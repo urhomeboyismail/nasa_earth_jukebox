@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import catalog from '../public/data/index.json'
 import fixture from '../public/data/fixture/manifest.json'
-import synthetic from '../public/data/mur-sst-mauritius/manifest.json'
+import mauritius from '../public/data/mur-sst-mauritius/manifest.json'
 import App from './App'
 import { DataError, friendlyDataMessage } from './data'
 import { addActionHandler } from './interaction/registry'
@@ -56,7 +56,7 @@ beforeEach(() => {
     const body = url.endsWith('/api/v1/health') ? { status: 'ok' }
       : url.endsWith('/data/index.json') ? catalog
       : url.endsWith('/data/fixture/manifest.json') ? fixture
-      : url.endsWith('/data/mur-sst-mauritius/manifest.json') ? synthetic
+      : url.endsWith('/data/mur-sst-mauritius/manifest.json') ? mauritius
       : null
     return Promise.resolve(new Response(JSON.stringify(body), { status: body ? 200 : 404 }))
   }))
