@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import catalog from '../../../public/data/index.json'
 import fixture from '../../../public/data/fixture/manifest.json'
-import synthetic from '../../../public/data/synthetic-ocean/manifest.json'
+import synthetic from '../../../public/data/mur-sst-mauritius/manifest.json'
 import App from '../../App'
 import { pages } from '../../pages'
 import { expectNoA11yViolations } from '../../test/a11y'
@@ -28,7 +28,7 @@ beforeEach(() => {
     const url = String(input)
     const body = url.endsWith('/data/index.json') ? catalog
       : url.endsWith('/data/fixture/manifest.json') ? fixture
-      : url.endsWith('/data/synthetic-ocean/manifest.json') ? synthetic
+      : url.endsWith('/data/mur-sst-mauritius/manifest.json') ? synthetic
       : null
     return Promise.resolve(new Response(JSON.stringify(body), { status: body ? 200 : 404 }))
   }))

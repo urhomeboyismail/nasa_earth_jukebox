@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check-data": "vitest run src/data src/analysis/synthetic.test.ts",
+    "check-data": "vitest run src/data",
     "check-bundle": "node scripts/check-bundle.mjs",
     "new-translation": ".venv/bin/python -I scripts/consume.py new",
     "parse-nasa": ".venv/bin/python -I scripts/consume.py parse",

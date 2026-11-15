@@ -1,4 +1,4 @@
-// Music regression baseline (docs/PLAN.md §6.3, ticket SN03). Reads the first twelve frames of the fixture and the synthetic data sets with the real
+// Music regression baseline (docs/PLAN.md §6.3, ticket SN03). Reads the first twelve frames of the fixture and the Mauritius data set with the real
 // feature extractor (SN01), turns each into a `MusicFrame` with the `major` and the `pentatonic` presets, and records what it found in
 // __golden__/music.json, so any change to the rules shows in a diff.
 //
@@ -20,7 +20,7 @@ import { presetFor } from './presets'
 import type { MusicFrame } from './types'
 
 const dataDir = resolve(fileURLToPath(import.meta.url), '../../../public/data')
-const DATA_SETS = ['fixture', 'synthetic-ocean', 'synthetic-globe', 'synthetic-change']
+const DATA_SETS = ['fixture', 'mur-sst-mauritius']
 const PRESETS_USED: PresetId[] = ['major', 'pentatonic']
 const FRAMES = 12
 const WHOLE = { x0: 0, y0: 0, x1: 1, y1: 1 }
@@ -76,7 +76,7 @@ function music(id: string, preset: PresetId): MusicFrame[] {
 const results = Object.fromEntries(DATA_SETS.map(id => [id, Object.fromEntries(PRESETS_USED.map(p => [p, music(id, p)]))]))
 
 describe('music regression baseline', () => {
-  it('turns the first twelve frames of the fixture and the synthetic data sets into the committed music', async () => {
+  it('turns the first twelve frames of the fixture and the Mauritius data set into the committed music', async () => {
     const text = JSON.stringify(
       Object.fromEntries(Object.entries(results).map(([id, byPreset]) => [id, Object.fromEntries(Object.entries(byPreset).map(([p, frames]) => [p, frames.map(plain)]))])),
       null, 2,
@@ -106,8 +106,6 @@ describe('music regression baseline', () => {
     }
     // The golden data does contain both kinds of frame.
     expect(results.fixture.major.some(m => m.dropout)).toBe(true)
-    expect(results['synthetic-ocean'].major.some(m => m.dropout)).toBe(true)
-    expect(results['synthetic-globe'].major.every(m => !m.dropout)).toBe(true)
   })
 
   it('has a caption for every voice on every frame, and the same notes in the key of the preset', () => {
@@ -122,13 +120,4 @@ describe('music regression baseline', () => {
     }
   })
 
-  it('sounds the warmest date of the synthetic ocean higher than its coolest, with either preset', () => {
-    // The generator drew January at about 3 and June at about 19.5 (public/data/synthetic-ocean/expected.json): frames 0 and 5 in date order.
-    for (const p of PRESETS_USED) {
-      const frames = results['synthetic-ocean'][p]
-      expect(frames[5].melody!.midi, p).toBeGreaterThan(frames[0].melody!.midi)
-      expect(frames[5].caption.melody).toMatch(/high|middle/)
-      expect(frames[0].caption.melody).toMatch(/low/)
-    }
-  })
 })

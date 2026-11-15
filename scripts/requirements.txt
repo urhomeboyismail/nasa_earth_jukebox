@@ -1,4 +1,4 @@
-# For scripts/make_synthetic.py and scripts/convert_frames.py (its tests also need pytest). make_fixture.py needs only the standard library.
-#   python3 -m venv .venv && .venv/bin/pip install -r scripts/requirements.txt && .venv/bin/python -I scripts/make_synthetic.py
+# For scripts/convert_frames.py (its tests also need pytest). make_fixture.py needs only the standard library.
+#   python3 -m venv .venv && .venv/bin/pip install -r scripts/requirements.txt
 pillow>=10.1
 numpy>=1.26

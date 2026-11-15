@@ -39,11 +39,11 @@ describe('Home page', () => {
   })
 
   it('keeps the chosen data set on its links', () => {
-    window.location.hash = '#home?data=synthetic-ocean'
+    window.location.hash = '#home?data=fixture'
     render(<HomePage visualization={visualization} />)
     const hrefs = within(screen.getByRole('list', { name: 'Steps' })).getAllByRole('link').map(link => link.getAttribute('href'))
-    expect(hrefs).toEqual(['#learn?data=synthetic-ocean', '#listen?data=synthetic-ocean', '#compare?data=synthetic-ocean'])
-    expect(screen.getByRole('link', { name: 'About the data' })).toHaveAttribute('href', '#about?data=synthetic-ocean')
+    expect(hrefs).toEqual(['#learn?data=fixture', '#listen?data=fixture', '#compare?data=fixture'])
+    expect(screen.getByRole('link', { name: 'About the data' })).toHaveAttribute('href', '#about?data=fixture')
     window.location.hash = ''
   })
 
