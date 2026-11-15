@@ -37,3 +37,6 @@
   border: 1px solid var(--text);
   border-radius: var(--md-sys-shape-corner-extra-small);
 }
+
+/* The pipeline diagram scales to the card; the list under it says the same in words. */
+.about__pipeline { display: block; inline-size: 100%; block-size: auto; max-inline-size: 48rem; }

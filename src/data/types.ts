@@ -179,4 +179,5 @@ export type Visualization = {
   pairsWith?: { id: string; note: string }[]
 }
 
-export type CatalogEntry = { id: string; title: string; summary: string }
+/** `family` colours the data set's disc on Listen. Left out, it is the ocean. */
+export type CatalogEntry = { id: string; title: string; summary: string; family?: 'ocean' | 'atmosphere' | 'forest' }

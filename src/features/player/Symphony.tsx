@@ -2,6 +2,7 @@ import { useMemo, useState, type KeyboardEvent } from 'react'
 import { Button, Dialog } from '../../components'
 import { useKeyboard } from '../../interaction/useInput'
 import { HotspotMarkers } from '../../components/HotspotMarkers'
+import { usePublishPlaying } from '../../components/jukebox/nowPlaying'
 import { hotspotMarkers } from '../../describe/markers'
 import { dateFormatterFor } from '../../dates'
 import { primaryRegion, type Frame, type Region, type Visualization } from '../../data'
@@ -38,6 +39,7 @@ export function Symphony({ visualization, preset, region }: { visualization: Vis
   const [video, setVideo] = useState<HTMLVideoElement | null>(null)
   const [mixerOpen, setMixerOpen] = useState(false)
   const symphony = useSymphony(visualization, video, preset)
+  usePublishPlaying(symphony.ensembleStatus === 'on')
   const features = symphony.latest?.features ?? null
   useEventAnnouncer(features, visualization)
   const markers = useMemo(() => (features ? hotspotMarkers(features, visualization) : []), [features, visualization])
