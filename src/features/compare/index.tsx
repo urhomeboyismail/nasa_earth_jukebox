@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { analyzeAll, type FrameAnalysis } from '../../analysis'
 import { useFrameAnalysis } from '../../analysis/useFrameAnalysis'
 import { hasChange } from '../../analysis/available'
@@ -23,6 +23,11 @@ import './test-mode.css'
 import { answerText, baselineName, categoryLabel, changeStepLabel, judge, type Answer } from './judge'
 import TestMode from './TestMode'
 import { Fusion } from './Fusion'
+import { isOceanView } from '../ocean/useOceanTracks'
+import { currentDataParam, hashFor } from '../../route'
+
+// EIC06: two dates of an ECCO2 ocean track, loaded only when #compare?ocean=1 is opened.
+const OceanCompare = lazy(() => import('../ocean/OceanCompare'))
 
 const CUSTOM = 'custom'
 /** How long each of the two notes of "Hear the change" lasts. */
@@ -30,9 +35,15 @@ const CHANGE_NOTE_MS = 700
 
 /** Listening-test mode is open only when the address is #compare?test=1. The App reads that once and passes it down. */
 export default function ComparePage({ visualization, testMode = false }: PageProps) {
+  if (!testMode && isOceanView()) return <Suspense fallback={<LoadingIndicator label="Loading the ocean tracks…" />}><OceanCompare /></Suspense>
   if (!visualization) return <p>Loading the data…</p>
   if (testMode) return <TestMode key={visualization.id} visualization={visualization} />
-  return <CompareModes key={visualization.id} visualization={visualization} />
+  return (
+    <>
+      <CompareModes key={visualization.id} visualization={visualization} />
+      <p><a href={hashFor('compare', { data: currentDataParam(), ocean: '1' })}>Compare two dates of an ocean video track (ECCO2)</a></p>
+    </>
+  )
 }
 
 type Mode = 'dates' | 'sets'

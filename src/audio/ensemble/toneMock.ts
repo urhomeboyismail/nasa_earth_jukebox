@@ -20,7 +20,7 @@ function makeParam(node: string, id: number, name: string): Param {
   return { value: 0, rampTo: record('rampTo'), setValueAtTime: record('setValueAtTime'), linearRampToValueAtTime: record('linearRampToValueAtTime'), cancelScheduledValues: record('cancelScheduledValues') }
 }
 
-function make(name: string, methods: string[], params: string[] = []) {
+export function make(name: string, methods: string[], params: string[] = []) {
   class Node {
     id = nextNode++
     name = name
