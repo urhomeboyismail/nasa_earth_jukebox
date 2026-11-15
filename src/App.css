@@ -593,7 +593,8 @@ html {
 
 @media (max-width: 767.98px) {
   /* Header: one row (wordmark, Display, the sun), and the server status only when it has something to say. */
-  .app-header .ui-theme-switch {
+  /* The extra .ui-button outranks the start padding a button with an icon gets (components.css), which pushed the sun off centre. */
+  .app-header .ui-button.ui-theme-switch {
     inline-size: var(--control-size);
     padding: 0;
     justify-content: center;
