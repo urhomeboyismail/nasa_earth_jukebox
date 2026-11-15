@@ -6,7 +6,7 @@ import type { Pixels } from '../../analysis/analyze'
 import { useEnsemble } from '../../audio/ensemble/useEnsemble'
 import { Button, Notice, useAnnounce } from '../../components'
 import { formatDate } from '../../dates'
-import { altFor, LIVE_PRESET, musicFramesFor, STEP_MS, type LiveFrame } from './liveImages'
+import { altFor, LIVE_PRESET, musicFramesFor, STEP_MS, type LiveFrame } from './livePictureSound'
 import type { LivePictures } from './mascotQuery'
 
 type Props = {

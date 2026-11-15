@@ -15,8 +15,8 @@ Manual check against the live API, with no model: `.venv/bin/python -m app.agent
 from __future__ import annotations
 
 import asyncio
-import logging
 import json
+import logging
 import urllib.parse
 from collections import defaultdict
 from dataclasses import dataclass
