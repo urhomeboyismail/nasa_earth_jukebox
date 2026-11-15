@@ -1,9 +1,12 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import catalog from '../../public/data/index.json'
+import catalogJson from '../../public/data/index.json'
+import { catalogSchema } from '../data/schema'
 import { expectNoA11yViolations } from '../test/a11y'
 import { DatasetPicker } from './DatasetPicker'
+
+const catalog = catalogSchema.parse(catalogJson)
 
 describe('DatasetPicker', () => {
   it('has a labelled choice with every data set, showing the current one', () => {

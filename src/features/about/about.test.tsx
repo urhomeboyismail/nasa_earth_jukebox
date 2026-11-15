@@ -21,6 +21,12 @@ describe('About the data page', () => {
     expect(screen.getByText(/Central ocean\. A grid of nine points/)).toBeInTheDocument()
   })
 
+  it('says who it is for, how an image becomes sound, and what comes next', () => {
+    render(<AboutPage visualization={visualization} />)
+    for (const name of ['Who this is for', 'How a NASA image becomes sound', 'What comes next']) expect(screen.getByRole('heading', { name })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /From NASA image to sound: NASA video, then Frames/ })).toBeInTheDocument()
+  })
+
   it('credits the source', () => {
     render(<AboutPage visualization={visualization} />)
     const source = screen.getByRole('heading', { name: 'Source and credits' }).closest('section')!

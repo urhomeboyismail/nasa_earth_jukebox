@@ -312,7 +312,7 @@ function checkV3(data: { frames: { date: string }[]; video?: z.infer<typeof vide
   })
 }
 
-export const catalogSchema = z.array(z.object({ id: nonEmpty, title: nonEmpty, summary: z.string() }))
+export const catalogSchema = z.array(z.object({ id: nonEmpty, title: nonEmpty, summary: z.string(), family: z.enum(['ocean', 'atmosphere', 'forest']).optional() }))
 
 /** The first few problems as one readable line, each with the field it is about, e.g. "frames.0.width: ...". */
 export function describeIssues(error: z.ZodError, limit = 3): string {
