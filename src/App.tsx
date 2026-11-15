@@ -334,7 +334,8 @@ function App() {
             {/* No demo during the listening test: it would sit above the consent form and could play over the test. */}
             {!testMode && <DemoControl />}
           </div>
-          {catalog && catalog.length > 1 && dataId && !testMode && (
+          {/* The ocean view (?ocean=1) has its own crate of tracks, so the map data sets' crate steps aside. */}
+          {catalog && catalog.length > 1 && dataId && !testMode && route.params.get('ocean') !== '1' && (
             <DataPicker catalog={catalog} value={dataId} onChange={id => { window.location.hash = hashFor(page, { data: id }) }} />
           )}
           {dataMissing && <Notice>The data set “{requestedData}” was not found, so this shows “{catalog?.[0].title}” instead.</Notice>}

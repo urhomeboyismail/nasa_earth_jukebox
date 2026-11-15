@@ -2,3 +2,4 @@
 #   python3 -m venv .venv && .venv/bin/pip install -r scripts/requirements.txt
 pillow>=10.1
 numpy>=1.26
+opencv-python-headless>=4.9  # scripts/ecco2_extract.py (EIC06): optical flow

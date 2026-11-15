@@ -1,0 +1,87 @@
+{
+  "datasets": [
+    {
+      "dataset_id": "ecco2_global_ocean",
+      "title": "Global Ocean Currents and Temperature",
+      "summary": "The world's ocean surface currents as streaks, coloured by sea surface temperature, from the ECCO2 model (2007–2008).",
+      "category": "ocean",
+      "theme_color": "#00ffcc",
+      "duration_sec": 66.7,
+      "date_range": "2007-03-25 to 2008-03-03",
+      "poster_url": "/media/ecco2_global_ocean_poster.jpg",
+      "data_url": "/data/json_output/ecco2_global_ocean.json",
+      "what_you_will_try": "Can you hear the year turn? Listen for the moment the whole ocean sounds warmest."
+    },
+    {
+      "dataset_id": "ecco2_gulf_stream",
+      "title": "Gulf Stream",
+      "summary": "The Gulf Stream off North America: warm water streaming north-east past cooler water, coloured by temperature (2007–2008).",
+      "category": "ocean",
+      "theme_color": "#00ffcc",
+      "duration_sec": 66.7,
+      "date_range": "2007-03-25 to 2008-03-03",
+      "poster_url": "/media/ecco2_gulf_stream_poster.jpg",
+      "data_url": "/data/json_output/ecco2_gulf_stream.json",
+      "what_you_will_try": "Can you hear the seasons change in the Gulf Stream without looking: when does the sound grow brightest?"
+    },
+    {
+      "dataset_id": "ecco2_equatorial_pacific",
+      "title": "Equatorial Pacific",
+      "summary": "The equatorial Pacific's warm surface water and currents, coloured by temperature (2007–2008).",
+      "category": "ocean",
+      "theme_color": "#00ffcc",
+      "duration_sec": 66.7,
+      "date_range": "2007-03-25 to 2008-03-03",
+      "poster_url": "/media/ecco2_equatorial_pacific_poster.jpg",
+      "data_url": "/data/json_output/ecco2_equatorial_pacific.json",
+      "what_you_will_try": "This region stays warm all year. Can you hear the small changes in brightness from step to step?"
+    },
+    {
+      "dataset_id": "ecco2_indian_ocean_mauritius",
+      "title": "Southwest Indian Ocean & Mauritius Currents",
+      "summary": "Warm eddies and tropical surface currents in the south-west Indian Ocean around Mauritius, coloured by temperature (2007–2008).",
+      "category": "ocean",
+      "theme_color": "#00ffcc",
+      "duration_sec": 66.7,
+      "date_range": "2007-03-25 to 2008-03-03",
+      "poster_url": "/media/ecco2_indian_ocean_mauritius_poster.jpg",
+      "data_url": "/data/json_output/ecco2_indian_ocean_mauritius.json",
+      "what_you_will_try": "Can you hear when the water around Mauritius is warmest, and when the eddies swirl most, without looking at the map?"
+    },
+    {
+      "dataset_id": "ecco2_antarctic_circumpolar",
+      "title": "Antarctic Circumpolar Current",
+      "summary": "The cold, fast Antarctic Circumpolar Current circling the Southern Ocean, coloured by temperature (2007–2008).",
+      "category": "ocean",
+      "theme_color": "#00ffcc",
+      "duration_sec": 66.7,
+      "date_range": "2007-03-25 to 2008-03-03",
+      "poster_url": "/media/ecco2_antarctic_circumpolar_poster.jpg",
+      "data_url": "/data/json_output/ecco2_antarctic_circumpolar.json",
+      "what_you_will_try": "This is the coldest region. Can you hear how muffled it sounds next to the tropics, and when it is warmest?"
+    },
+    {
+      "dataset_id": "ecco2_pacific_globe",
+      "title": "Pacific Ocean Currents (globe)",
+      "summary": "The Pacific Ocean on a turning globe: surface currents coloured by temperature (2007–2008).",
+      "category": "ocean",
+      "theme_color": "#00ffcc",
+      "duration_sec": 67.7,
+      "date_range": "2007-03-25 to 2008-03-03",
+      "poster_url": "/media/ecco2_pacific_globe_poster.jpg",
+      "data_url": "/data/json_output/ecco2_pacific_globe.json",
+      "what_you_will_try": "The globe turns as it plays. Can you hear the sound change as warm equatorial water comes into view?"
+    },
+    {
+      "dataset_id": "meteomatics_mauritius_weather",
+      "title": "Mauritius Weather, 48 Hours",
+      "summary": "Two days of hourly air temperature, wind and rain around Mauritius from the Meteomatics weather API: colours for temperature, streaks for wind, and a tone that follows the heat.",
+      "category": "atmosphere",
+      "theme_color": "#00f0ff",
+      "duration_sec": 24.0,
+      "date_range": "2026-11-13 to 2026-11-14",
+      "data_url": "/data/json_output/meteomatics_mauritius_weather.json",
+      "what_you_will_try": "Can you hear the heat of the afternoon build and fade across two days in Mauritius? Listen for the brightest tone, then for the pulse that quickens when the wind picks up."
+    }
+  ]
+}

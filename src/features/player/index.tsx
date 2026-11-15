@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useAssistantContext } from '../../assistant/context'
 import { playCue } from '../../audio/cues'
 import { Button, Dialog, Legend, LoadingIndicator, Notice, RegionPicker, Slider, useAnnounce } from '../../components'
@@ -39,6 +39,11 @@ import { Scan } from './Scan'
 import { useScrub } from './useScrub'
 import { Symphony } from './Symphony'
 import { SoundPrefs } from './SoundPrefs'
+import { isOceanView } from '../ocean/useOceanTracks'
+import { currentDataParam, hashFor } from '../../route'
+
+// EIC06: the ECCO2 ocean tracks (video and sound), loaded only when #listen?ocean=1 is opened.
+const OceanListen = lazy(() => import('../ocean/OceanListen'))
 
 const SPEEDS: { id: Speed; label: string }[] = [
   { id: 'slow', label: 'Slow' },
@@ -50,9 +55,13 @@ const SPEEDS: { id: Speed; label: string }[] = [
 const LISTEN_SCOPES = ['listen', 'anywhere'] as const
 
 export default function PlayerPage({ visualization }: PageProps) {
+  if (isOceanView()) return <Suspense fallback={<LoadingIndicator label="Loading the ocean tracks…" />}><OceanListen /></Suspense>
   if (!visualization) return <p>Loading the data…</p>
   return (
-    <ListenPage key={visualization.id} visualization={visualization} />
+    <>
+      <ListenPage key={visualization.id} visualization={visualization} />
+      <p><a href={hashFor('listen', { data: currentDataParam(), ocean: '1' })}>Ocean video tracks (ECCO2 currents and temperature)</a></p>
+    </>
   )
 }
 
