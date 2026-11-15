@@ -6,7 +6,7 @@ import { AnnouncerContext } from '../../components/announcerContext'
 import { expectNoA11yViolations } from '../../test/a11y'
 import { installFakeAudioContext } from '../../test/fakes'
 import { createFakeEnsemble, type FakeEnsemble } from '../player/symphonyTestSupport'
-import { STEP_MS } from './liveImages'
+import { STEP_MS } from './livePictureSound'
 import { LiveImages } from './LiveImages'
 import type { LivePictures } from './mascotQuery'
 

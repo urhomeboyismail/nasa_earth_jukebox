@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Pixels } from '../../analysis/analyze'
-import { altFor, musicFramesFor, visualizationInputFor } from './liveImages'
+import { altFor, musicFramesFor, visualizationInputFor } from './livePictureSound'
 import type { ImageLegend } from './mascotQuery'
 
 // A made-up data legend: cold blue to warm red, four stops.
