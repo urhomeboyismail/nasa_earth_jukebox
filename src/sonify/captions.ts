@@ -19,7 +19,7 @@ export type CaptionParts = {
   hotspots: { count: number; band: Band; x: number; y: number } | null
   rhythm: { perBeat: 1 | 2 | 4 } | null
   motion: { openness: number; sweep: number } | null
-  time: { accent: 'none' | 'month' | 'year' }
+  time: { accent: 'none' | 'month' | 'year' | 'decade' }
 }
 
 /** Thirds of the 0 to 1 range. */
@@ -72,7 +72,7 @@ export function captionsFor(parts: CaptionParts): { caption: Record<VoiceId, str
     const side = eastWest(parts.motion.sweep)
     caption.motion = `Motion: ${parts.motion.openness === 0 ? 'still' : levelWord(parts.motion.openness)}${side ? `, towards the ${side}` : ''}`
   }
-  const accent = parts.time.accent === 'year' ? ', new year' : parts.time.accent === 'month' ? ', new month' : ''
+  const accent = parts.time.accent === 'decade' ? ', new decade' : parts.time.accent === 'year' ? ', new year' : parts.time.accent === 'month' ? ', new month' : ''
   caption.time = `Time: steady pulse${accent}`
 
   if (parts.dropout) return { caption, summary: 'Not enough readable data on this date: only the time pulse sounds.' }

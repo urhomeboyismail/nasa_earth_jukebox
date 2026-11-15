@@ -293,6 +293,13 @@ describe('toMusicFrame: the time voice', () => {
     expect(at('2027-03-15', jan).time.accent).toBe('year')
   })
 
+  it('has a decade accent when the decade turns over, before the year accent (SN16)', () => {
+    expect(at('1980-07-01', at('1975-07-01')).time.accent).toBe('decade')
+    expect(at('1985-07-01', at('1980-07-01')).time.accent).toBe('year')
+    expect(at('2030-01-15', at('2029-12-15')).time.accent).toBe('decade')
+    expect(at('2029-12-15', at('2029-11-15')).time.accent).toBe('month')
+  })
+
   it('keeps the pulse even when nothing else can be read', () => {
     const frame = toMusicFrame(features({ position: null }), major)
     expect(frame.time).toEqual({ accent: 'none', pulseBpm: major.bpm, level: LEVEL.time })

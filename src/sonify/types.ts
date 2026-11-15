@@ -30,6 +30,9 @@ export type Preset = {
   sound?: string
 }
 
+/** The time voice's accent: a new month, a new year, or a new decade (SN16: the year's first three digits change). */
+export type TimeAccent = 'none' | 'month' | 'year' | 'decade'
+
 export type MusicFrame = {
   frameId: string
   date: string
@@ -44,7 +47,7 @@ export type MusicFrame = {
   rhythm: { midis: number[]; perBeat: 1 | 2 | 4; pan: number; level: number } | null
   /** `openness` 0 to 1 (opens the pad's filter), `sweep` −1 (west) to +1 (east). */
   motion: { openness: number; sweep: number; level: number } | null
-  time: { accent: 'none' | 'month' | 'year'; pulseBpm: number; level: number }
+  time: { accent: TimeAccent; pulseBpm: number; level: number }
   /** Voices with no data this frame. They are silent, and the caption says so. */
   missing: VoiceId[]
   /** True when the whole frame cannot be read: the ensemble plays the seeded dropout cue once, when it starts. */

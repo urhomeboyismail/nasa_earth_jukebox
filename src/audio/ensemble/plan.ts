@@ -3,7 +3,7 @@
 
 import { VOICE_IDS } from '../../data/sonification'
 import { voicesFor } from '../../sonify/detail'
-import type { DetailLevel, MusicFrame, VoiceId } from '../../sonify/types'
+import type { DetailLevel, MusicFrame, TimeAccent, VoiceId } from '../../sonify/types'
 import { MAX_HOTSPOT_VOICES } from './constants'
 
 export type VoiceAction = {
@@ -27,7 +27,7 @@ export type VoiceAction = {
   /** Rhythm: notes a beat. */
   perBeat?: 1 | 2 | 4
   /** Time: the accent for the next click, and the tempo. */
-  accent?: 'none' | 'month' | 'year'
+  accent?: TimeAccent
   pulseBpm?: number
 }
 
