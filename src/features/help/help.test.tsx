@@ -5,12 +5,9 @@ import catalog from '../../../public/data/index.json'
 import fixture from '../../../public/data/fixture/manifest.json'
 import synthetic from '../../../public/data/synthetic-ocean/manifest.json'
 import App from '../../App'
-import type { Visualization } from '../../data'
 import { pages } from '../../pages'
 import { expectNoA11yViolations } from '../../test/a11y'
 import { DemoControl } from '../demo/DemoControl'
-import HomePage from '../home'
-import { readWelcome, resetWelcome, saveWelcome } from '../welcome/storage'
 import { HelpButton } from './HelpButton'
 import { readMascotOn, setMascotOn } from './mascotSetting'
 import { TIPS } from './tips'
@@ -24,7 +21,7 @@ vi.mock('../../audio', () => ({ createSoundEngine: () => ({ unlock: async () => 
 beforeEach(() => {
   localStorage.clear()
   setMascotOn(true)
-  resetWelcome()
+  localStorage.setItem('ej_onboarding_done', 'true') // a returning visitor: Home, not the landing page
   window.location.hash = ''
   vi.stubGlobal('scrollTo', vi.fn())
   vi.stubGlobal('fetch', vi.fn((input: RequestInfo | URL) => {
@@ -68,16 +65,14 @@ describe('Help from Echo', () => {
     expect(screen.getByText(TIPS[id])).toBeInTheDocument()
   })
 
-  it('brings the welcome back, on Home', async () => {
+  it('opens the welcome landing page again', async () => {
     const user = userEvent.setup()
-    saveWelcome({ done: true, path: 'map' })
     setMascotOn(false)
     render(<HelpButton page="about" />)
     await user.click(screen.getByRole('button', { name: 'Help' }))
     await user.click(screen.getByRole('button', { name: 'Show the welcome again' }))
-    expect(readWelcome().done).toBe(false)
     expect(readMascotOn()).toBe(true)
-    expect(window.location.hash).toBe('#home')
+    expect(window.location.hash).toBe('#welcome')
   })
 
   it('turns the mascot off and on, and keeps the help button either way', async () => {
@@ -101,20 +96,6 @@ describe('Help from Echo', () => {
     setMascotOn(true)
     expect(readMascotOn()).toBe(true)
     vi.restoreAllMocks()
-  })
-})
-
-describe('with the mascot off', () => {
-  it('does not show the welcome on Home', async () => {
-    setMascotOn(false)
-    render(<HomePage visualization={fixture as Visualization} />)
-    await new Promise(resolve => setTimeout(resolve, 50))
-    expect(screen.queryByRole('heading', { name: 'Welcome' })).not.toBeInTheDocument()
-  })
-
-  it('shows the welcome on Home when it is on', async () => {
-    render(<HomePage visualization={fixture as Visualization} />)
-    expect(await screen.findByRole('heading', { name: 'Welcome' })).toBeInTheDocument()
   })
 })
 
