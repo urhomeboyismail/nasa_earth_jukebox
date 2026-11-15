@@ -28,5 +28,10 @@
     "id": "hurricanes-2023-atlantic",
     "title": "Hurricanes over warm water, Atlantic 2023",
     "summary": "Thirty-one views of the North Atlantic, five days apart from June to October 2023: sea surface temperature, with the track and name of every storm of the season drawn as it happens."
+  },
+  {
+    "id": "ocean-currents-temperature",
+    "title": "Ocean currents and temperature, 2007 to 2008",
+    "summary": "Thirty world maps, eleven days apart from March 2007 to February 2008, of the ocean surface currents drawn as streaks coloured by sea surface temperature, from blue (0 degrees Celsius) to red (32)."
   }
 ]
