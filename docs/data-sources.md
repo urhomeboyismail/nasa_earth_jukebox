@@ -22,6 +22,52 @@ Sea ice extent, as these pages define it, is the total area where ice concentrat
 
 **Credit wording seen:** SVS pages ask that items be credited to NASA's Scientific Visualization Studio; the 2024 sea ice page also credits the Blue Marble data to Reto Stockli (NASA/GSFC). Check each page's own credit and licence line before using an image.
 
+### Checked picks (EIC02)
+
+Read on the live SVS pages on 14 Nov 2026. Every cell is copied from the page, or says "unknown" or "not on page". A pick is final only when a person has read the licence line and signed it off (the "Read by" cell). Raw files are staged in the git-ignored `Consumption/` folder, not committed.
+
+**Pick 1, sea surface temperature: SVS 5176** (chosen by the team on 14 Nov 2026 after 4809 was ruled out, see below)
+
+| Field | Value |
+|---|---|
+| Proposed id | `sst-anomaly-global` (a working name; EIC03 decides the final id) |
+| Page | https://svs.gsfc.nasa.gov/5176 , "Sea Surface Temperature (SST) Anomaly - Near Real Time", released 16 October 2023, page last updated 24 October 2026 (ID 5176) |
+| Credit (exact) | "Please give credit for this item to: NASA's Scientific Visualization Studio". Visualizer: Kel Elkins (USRA). Technical support: Laurence Schuler and Ian Jones (ADNET Systems, Inc.). Scientist: Atousa Saberi (NASA/GSFC) |
+| Licence or usage | Not on page: the page states no licence or usage note, only the credit request above. Falls back on NASA's media-usage guidance (https://www.nasa.gov/nasa-brand-center/images-and-media/): NASA content "used in a factual manner that does not imply endorsement may be used without needing explicit permission"; "NASA should be acknowledged as the source of the material."; the NASA insignia and logotype "are not in the public domain". Read by: Roni (team Guru's Moon Heist), on: 15 Nov 2026 (the SVS pages themselves were read on 14 Nov 2026) |
+| Underlying data and its licence | MUR SST (Multi-scale Ultra-high Resolution (MUR) Sea Surface Temperature (SST) Analysis), SVS dataset ID 845, "Collected by: JPL PO DAAC"; data at https://podaac.jpl.nasa.gov/dataset/MUR-JPL-L4-GLOB-v4.1 . The repo's `mur-sst-mauritius` records CC0 for this dataset under NASA's data-use guidance; the SVS page itself does not say so |
+| Colour bar | Yes, a separate image `sst_mur_anomaly_auto_colorbar_01` (4096x2048). Caption: "The color shading changes from blue - white - red. And the color range is -4 to 4 with the unit of degrees Celsius." Which end is -4 and the labels on the bar: unknown until the image is read |
+| Frames | 4096x2048, equirectangular, 2:1; frame sets of 902 items on 14 Nov 2026 ("past two and half years, updated daily"; the file names carry a date, e.g. the thumbnail `sst_mur_anomaly_20231014_thm.png`). Versions on the page: with dates, without dates (`nodates`), Pacific-centred, Robinson. Videos `sst_anomaly_30_sec_4096x2048_2x1_30p.mp4` (338.0 MB) and the `nodates` one (337.3 MB). Dates of each frame: to read from the frame file names |
+| Overlays | The dated versions draw a date on the map; the `nodates` version has none. Land and any mask: unknown, to read from a frame |
+| Alt text (page's own words) | "An equirectangular view of sea surface temperature (SST) anomaly data for the past two and half years, updated daily to include the latest available data." |
+| Baseline candidate | `anomaly-product`: the bar already shows the change from normal (white at zero). The page does not name the normal it is measured from: unknown, to record before the manifest says it |
+| Decision | Picked by the team on 14 Nov 2026. Reason: a flat map keeps every place at the same pixel on every frame, and the bar shows the change from normal directly. The daily updates are not followed: EIC03 fixes a short date range and records the day of download |
+
+**Pick 2, sea ice (the strong-edge role): GIBS layer `GHRSST_L4_MUR_Sea_Ice_Concentration`** (chosen by the team on 15 Nov 2026; read on NASA's GIBS capabilities, colour map and data pages the same day)
+
+| Field | Value |
+|---|---|
+| Proposed id | `sea-ice-concentration` (a working name; EIC03 decides the final id) |
+| Page | Not an SVS page. The layer is in NASA's Global Imagery Browse Services: capabilities https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/1.0.0/WMTSCapabilities.xml , layer "Sea Ice Concentration (L4, MUR, GHRSST)", identifier `GHRSST_L4_MUR_Sea_Ice_Concentration`; layer metadata https://gibs.earthdata.nasa.gov/layer-metadata/v1.0/GHRSST_L4_MUR_Sea_Ice_Concentration.json ("Sea Ice Concentration (L4, MUR)", subtitle "Multi-mission / GHRSST", daily, ongoing) |
+| Dates | Daily, "2002-06-01" to "2026-11-13" on 15 Nov 2026 (the capabilities list the dates in six runs with a few missing days between them). Every image is for one date |
+| Credit (exact) | GIBS asks for: "We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS)." (https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api). The dataset's suggested citation on PO.DAAC: "JPL MUR MEaSUREs Project. 2015. GHRSST Level 4 MUR Global Foundation Sea Surface Temperature Analysis. Ver. 4.1. PO.DAAC, CA, USA. Dataset accessed [YYYY-MM-DD] at https://doi.org/10.5067/GHGMR-4FJ04" |
+| Licence or usage | The GIBS page states no licence ("NASA supports full and open sharing of data") and no limits on use; the PO.DAAC page states none either ("Licence: not on page"). NASA's data-use guidance (https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-use-guidance) says "data provided from a NASA-led mission are licensed as Creative Commons Zero (CC0)", that content with a use restriction "shall be labeled as such", and that non-NASA data follow their sponsor's terms. The same CC0 line is already recorded for `mur-sst-mauritius`. Read by: TODO (person), on: TODO |
+| Underlying data and its licence | GHRSST Level 4 MUR Global Foundation Sea Surface Temperature Analysis (v4.1), "MUR-JPL-L4-GLOB-v4.1", PO.DAAC concept `C1996881146-POCLOUD`, DOI 10.5067/GHGMR-4FJ04. The data page lists the variable `sea_ice_fraction` ("sea ice area fraction", "fraction (between 0 and 1)") at 0.01 x 0.01 degrees. This is the same dataset as the SST pick above and as `mur-sst-mauritius` |
+| Colour bar | Yes, and it is published as a table, not a picture: GIBS colour map https://gibs.earthdata.nasa.gov/colormaps/v1.3/GHRSST_Sea_Ice_Concentration.xml , "Sea Ice Concentration", units "%", a continuous legend with `minLabel="0"` and `maxLabel="100"`, one RGB colour for each whole percent (for example [0,1) rgb(17,17,17); [49,50) rgb(0,222,156); [99,100) rgb(255,230,230); [100] rgb(255,255,255)), and "No Data" as rgb(0,0,0), transparent. Legend images: `GHRSST_Sea_Ice_Concentration_H.svg` and `_V.svg` under https://gibs.earthdata.nasa.gov/legends/ . The colours near the legend line (a purple ramp, then teal and pink) are to be checked in EIC03 against any no-data or land colour |
+| Frames | PNG, from the layer's tile matrix set `1km` in EPSG:4326 (plate carree, the whole world). The layer is not listed in EPSG:3413 (Arctic) or EPSG:3031 (Antarctic), so a polar view is not available from this layer. Size and number of frames: chosen in EIC03 |
+| Overlays | None from the layer itself: no title, logo or legend is drawn on the picture; land and coastlines are separate GIBS layers, so a frame has only the data colours on transparent no-data. What land and the open sea show as: unknown, to read from a frame in EIC03 |
+| Alt text (page's own words) | Not on page: GIBS gives only the title "Sea Ice Concentration (L4, MUR, GHRSST)". Alt text is written by a person from what each frame shows |
+| Baseline candidate | `none` (the colours show the amount of ice, not a change). A same-day-of-year `climatology` is not offered |
+| Decision | Picked by the team on 15 Nov 2026 for the strong-edge role (ice against open water). Reason: the legend is exact and the data, credit and licence are the same as the SST pick, with no third-party material. Open points for EIC03: the layer shows ice only near the poles on a flat world map, so EIC03 must choose a crop (for example a strip north of 60 degrees) or a different layer; and whether the date range and crop give a clear edge for the rhythm voice |
+
+Seen but not picked on 14 Nov 2026:
+
+- **SVS 4809, "Earth Day 2020: Sea Surface Temperature (SST) from January 2016 through March 2020"** (credit "NASA's Scientific Visualization Studio"; MUR SST; a separate colour bar image with 0 at the left, ticks at 0, 5, 10, 15, 20, 25 and 30 and an arrow tip for the top; the caption says 0 to 32 degrees Celcius). **Not picked: the composite is a rotating globe.** Frames at 17 Jan 2016, 28 Oct 2016 and 24 Aug 2017 show the Atlantic, the Pacific and the Indian Ocean, so a place does not stay at one pixel and the turning would be heard as motion. The bar sits in the bottom-right and the date in the bottom-left of the frame. Video: 1920x1080, 30 fps, 3128 frames, 104 seconds.
+- SVS 5265 is "Worldview: Sea Surface Temperature" (credit "NASA's Worldview"), not "Sea Surface Temperature (SST) - Near Real Time" as the table above says: a 2480x1240 PNG frame set of 29 items and a 1920x1080 set of 30 items; no bar, description or dataset on the page.
+- SVS 5583, "Arctic Sea Ice Minimum 2025" (read 14 Nov 2026): credit "NASA's Scientific Visualization Studio"; lists the same two JAXA AMSR2 datasets and the Blue Marble dataset as 5382, with the same credits; the animation has no colour bar. Not picked, for the same reason.
+- SVS 5382, "Arctic Sea Ice Minimum 2024": credit "NASA's Scientific Visualization Studio", with third-party credits on the page ("AMSR2 data courtesy of the Japan Aerospace Exploration Agency (JAXA)" and "The Blue Marble data is courtesy of Reto Stockli (NASA/GSFC)"). No bar. Not clearly free to use as a whole, so not picked until a person decides.
+
+Still to pick for EIC02: one to three more (a picture-mode one with no colour bar, and any animation role not covered by the picks above).
+
 ## Still to find out (for each of: Sea Surface Temperature, Arctic sea ice, global temperature anomaly)
 
 Fill these in from the released resources or the page itself. Do not assume.

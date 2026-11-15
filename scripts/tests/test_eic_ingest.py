@@ -302,6 +302,15 @@ def test_the_legend_is_sampled_from_the_bar_in_the_right_direction(tmp_path):
     assert stops[0]["rgb"][2] > stops[0]["rgb"][0] and stops[-1]["rgb"][0] > stops[-1]["rgb"][2]  # blue at the low end, red at the high
 
 
+def test_a_legend_that_starts_below_zero_is_read(tmp_path):
+    # An anomaly bar runs from a negative value (say -4 to 4); "-4,4" must not be taken for an option.
+    folder = frame_folder(tmp_path)
+    code, _, err = ingest(tmp_path, "--legend-min", "-4", "--legend-max", "4", *DATES, source=["--frames", str(folder)])
+    assert code == 0, err
+    stops = manifest(tmp_path)["colorScale"]["stops"]
+    assert stops[0]["value"] == -4 and stops[-1]["value"] == 4
+
+
 @needs_ffmpeg
 def test_a_vertical_bar_is_read_with_the_low_end_at_the_bottom(tmp_path):
     folder = tmp_path / "in"
