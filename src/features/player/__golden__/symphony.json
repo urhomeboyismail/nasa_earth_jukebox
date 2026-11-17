@@ -6,13 +6,15 @@
       "frameId": "2024-01-15",
       "date": "2024-01-15",
       "melody": {
-        "midi": 48,
+        "midi": 60,
         "glide": false,
         "level": 0.8
       },
       "harmony": {
         "midis": [
-          48
+          48,
+          52,
+          55
         ],
         "level": 0.5
       },
@@ -24,7 +26,7 @@
         {
           "id": "h1",
           "band": "low",
-          "midi": 60,
+          "midi": 84,
           "pan": 0,
           "elevation": 0,
           "level": 1
@@ -41,7 +43,7 @@
       "dropout": false,
       "caption": {
         "melody": "Melody: low",
-        "harmony": "Harmony: thin chord, 1 note",
+        "harmony": "Harmony: thick chord, 3 notes",
         "bass": "Bass: middle",
         "hotspots": "Hot spots: 1, the largest is a low one in the centre",
         "rhythm": "",
@@ -52,7 +54,7 @@
     },
     "captions": [
       "Melody: low",
-      "Harmony: thin chord, 1 note",
+      "Harmony: thick chord, 3 notes",
       "Bass: middle",
       "Hot spots: 1, the largest is a low one in the centre",
       "Time: steady pulse"
@@ -66,18 +68,20 @@
       "frameId": "2024-07-15",
       "date": "2024-07-15",
       "melody": {
-        "midi": 55,
+        "midi": 65,
         "glide": true,
         "level": 0.8
       },
       "harmony": {
         "midis": [
-          53
+          48,
+          53,
+          57
         ],
         "level": 0.5
       },
       "bass": {
-        "midi": 41,
+        "midi": 45,
         "level": 0.8
       },
       "hotspots": [],
@@ -96,7 +100,7 @@
       "dropout": false,
       "caption": {
         "melody": "Melody: low, rising",
-        "harmony": "Harmony: thin chord, 1 note",
+        "harmony": "Harmony: thick chord, 3 notes",
         "bass": "Bass: high, rising",
         "hotspots": "",
         "rhythm": "",
@@ -107,7 +111,7 @@
     },
     "captions": [
       "Melody: low, rising",
-      "Harmony: thin chord, 1 note",
+      "Harmony: thick chord, 3 notes",
       "Bass: high, rising",
       "Time: steady pulse, new month"
     ],
@@ -120,25 +124,27 @@
       "frameId": "2024-12-15",
       "date": "2024-12-15",
       "melody": {
-        "midi": 67,
+        "midi": 74,
         "glide": true,
         "level": 0.8
       },
       "harmony": {
         "midis": [
+          50,
+          55,
           59
         ],
         "level": 0.5
       },
       "bass": {
-        "midi": 41,
+        "midi": 48,
         "level": 0.8
       },
       "hotspots": [
         {
           "id": "h2",
           "band": "high",
-          "midi": 84,
+          "midi": 96,
           "pan": 0,
           "elevation": 0,
           "level": 1
@@ -159,7 +165,7 @@
       "dropout": false,
       "caption": {
         "melody": "Melody: middle, rising",
-        "harmony": "Harmony: thin chord, 1 note",
+        "harmony": "Harmony: thick chord, 3 notes",
         "bass": "Bass: high, steady",
         "hotspots": "Hot spots: 1, the largest is a high one in the centre",
         "rhythm": "",
@@ -170,7 +176,7 @@
     },
     "captions": [
       "Melody: middle, rising",
-      "Harmony: thin chord, 1 note",
+      "Harmony: thick chord, 3 notes",
       "Bass: high, steady",
       "Hot spots: 1, the largest is a high one in the centre",
       "Time: steady pulse, new month"
