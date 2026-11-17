@@ -4,7 +4,9 @@ import { PRESETS } from '../../sonify/presets'
 import { features, line, spot } from '../../sonify/testFeatures'
 import type { MusicFrame } from '../../sonify/types'
 import { DUCK_ATTACK_S, DUCK_LINEAR, DUCK_RELEASE_S, duck } from '../duck'
-import { MAX_RENDER_S, PAUSE_FADE_S, RESUME_FADE_S, STOP_FADE_S, VOLUME_RAMP_S } from './constants'
+import { INSTRUMENT_WAIT_S, MAX_RENDER_S, PAUSE_FADE_S, RESUME_FADE_S, STOP_FADE_S, VOLUME_RAMP_S } from './constants'
+import { DEFAULT_KIT } from './graph'
+import { createInstrumentLoader, kitInstruments, type InstrumentBuffers, type InstrumentLoader } from './instruments'
 import { createEnsemble, type Ensemble } from '.'
 import { behaviour, calls, callsOn, nodes, offlineRuns, raw, resetTone, start, transport, type MockNode } from './toneMock'
 
@@ -522,5 +524,97 @@ describe('ducking under a voice (SN13)', () => {
     const before = ramps().length
     duck.end('speech')
     expect(ramps()).toHaveLength(before)
+  })
+})
+
+describe('the recorded instruments (SN19)', () => {
+  const names = kitInstruments(DEFAULT_KIT)
+  /** Small fake buffers, as the loader would give them. */
+  const buffers: InstrumentBuffers = new Map(names.map(name => [name, { 60: new Float32Array(4) as unknown as AudioBuffer }]))
+  /** A loader the test finishes by hand. */
+  function fakeLoader() {
+    let finish = () => {}
+    let loaded: InstrumentBuffers = new Map()
+    const done = new Promise<void>(resolve => { finish = resolve })
+    const loader: InstrumentLoader = {
+      request: vi.fn(async () => {
+        await done
+        return loaded
+      }),
+      ready: () => loaded,
+    }
+    return {
+      loader,
+      load() {
+        loaded = buffers
+        finish()
+      },
+    }
+  }
+  const samplers = () => nodes.Sampler ?? []
+
+  it('asks for nothing before start(), plays the oscillators at once, and switches to the instruments only at a start from silence', async () => {
+    const { loader, load } = fakeLoader()
+    const e = ensemble({ instruments: loader })
+    expect(loader.request).not.toHaveBeenCalled()
+    await e.start()
+    expect(loader.request).toHaveBeenCalledWith(names)
+    expect(samplers()).toHaveLength(0)
+    e.apply(frame(), 1)
+    expect(callsOn(melody(), 'triggerAttack')).toHaveLength(1)
+    load()
+    await Promise.resolve()
+    // Playing on: never swapped mid-note.
+    await e.start()
+    expect(samplers()).toHaveLength(0)
+    e.stop()
+    await e.start()
+    expect(samplers().length).toBeGreaterThan(0)
+    expect(callsOn(melody(), 'dispose')).toHaveLength(1)
+    expect(e.status()).toBe('on')
+    e.apply(frame(), 2)
+    expect(callsOn(samplers()[0], 'triggerAttack')).toHaveLength(1)
+  })
+
+  it('renders offline with the instruments, the same twice', async () => {
+    const { loader, load } = fakeLoader()
+    load()
+    const e = ensemble({ instruments: loader })
+    const schedule = [{ frame: frame(0.3), atSeconds: 0 }, { frame: loud(), atSeconds: 1 }]
+    const first = await e.renderOffline(schedule, { detail: 'full' })
+    expect(samplers().length).toBeGreaterThan(0)
+    const second = await e.renderOffline(schedule, { detail: 'full' })
+    expect(Array.from(second[0])).toEqual(Array.from(first[0]))
+    expect(Array.from(second[1])).toEqual(Array.from(first[1]))
+  })
+
+  it('renders with the oscillators when the instruments take longer than INSTRUMENT_WAIT_S', async () => {
+    vi.useFakeTimers()
+    try {
+      const { loader } = fakeLoader()
+      const e = ensemble({ instruments: loader })
+      const render = e.renderOffline([{ frame: frame(), atSeconds: 0 }], { detail: 'full' })
+      await vi.advanceTimersByTimeAsync(INSTRUMENT_WAIT_S * 1000)
+      await render
+      expect(offlineRuns).toHaveLength(1)
+      expect(samplers()).toHaveLength(0)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('keeps the oscillators playing when the instruments cannot load, logs once and rejects nothing', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const loader = createInstrumentLoader(() => ({ fetch: async () => new Response(null, { status: 404 }), decode: async () => { throw new Error('unreachable') } }))
+    const e = ensemble({ instruments: loader })
+    await e.start()
+    await loader.request(names)
+    e.stop()
+    await e.start()
+    e.apply(frame(), 1)
+    expect(samplers()).toHaveLength(0)
+    expect(callsOn(melody(), 'triggerAttack')).toHaveLength(1)
+    expect(warn).toHaveBeenCalledTimes(1)
+    warn.mockRestore()
   })
 })

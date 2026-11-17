@@ -10,7 +10,17 @@ export type ScaleName = 'major' | 'dorian' | 'minorPentatonic'
 
 /** The oscillator each kit voice plays. Only the timbre: which data drives a voice never changes. */
 export type Waveform = 'sine' | 'triangle' | 'square' | 'sawtooth'
-export type Kit = { melody: Waveform; bass: Waveform; rhythm: Waveform }
+/** A recorded instrument a style can play (SN19): a few notes of the FluidR3_GM SoundFont each, in public/audio/instruments/<name>/. */
+export type InstrumentName =
+  | 'marimba' | 'vibraphone' | 'acoustic_grand_piano' | 'string_ensemble_1' | 'cello' | 'pizzicato_strings' | 'orchestral_harp' | 'flute'
+  | 'acoustic_bass' | 'tubular_bells'
+/** The pitched voices that can play a recorded instrument. The time pulse, the dropout taps, the motion pad and the explore tone are cues: they stay oscillators. */
+export type InstrumentVoice = 'melody' | 'harmony' | 'bass' | 'rhythm' | 'hotspots'
+/**
+ * The waveforms are what each voice plays until the instruments have loaded, or if they cannot load: exactly the sound before SN19. `instruments`
+ * names the recorded instrument a voice plays once they have; a voice it leaves out (or a kit without it) stays an oscillator. `rhythm` is the arpeggio.
+ */
+export type Kit = { melody: Waveform; bass: Waveform; rhythm: Waveform; instruments?: Partial<Record<InstrumentVoice, InstrumentName>> }
 
 export type Preset = {
   id: PresetId

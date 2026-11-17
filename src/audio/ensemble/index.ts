@@ -4,8 +4,9 @@
 
 import type { DetailLevel, MusicFrame, Preset, VoiceId } from '../../sonify/types'
 import { duck } from '../duck'
-import { MAX_RENDER_S, PAUSE_FADE_S, RENDER_TAIL_S, RESUME_FADE_S, STOP_FADE_S, VOICE_GAIN_DB, VOLUME_RAMP_S } from './constants'
-import { buildGraph, type Graph } from './graph'
+import { INSTRUMENT_WAIT_S, MAX_RENDER_S, PAUSE_FADE_S, RENDER_TAIL_S, RESUME_FADE_S, STOP_FADE_S, VOICE_GAIN_DB, VOLUME_RAMP_S } from './constants'
+import { buildGraph, DEFAULT_KIT, type Graph } from './graph'
+import { instrumentLoader, kitInstruments, type InstrumentBuffers } from './instruments'
 import { createStatus, watchContext, watchVisibility } from './lifecycle'
 import { resolveTimbre } from './timbre'
 import { createPlayer, type Player } from './voices'
@@ -36,6 +37,12 @@ export function createEnsemble(preset: Preset, options: EnsembleOptions = {}): E
   let soloed: VoiceId | null = null
   const muted = new Set<VoiceId>()
   const status = createStatus()
+  const kit = preset.kit ?? DEFAULT_KIT
+  /** The recorded instruments the style plays (SN19), loaded on the first start. */
+  const wanted = kitInstruments(kit)
+  const loader = options.instruments ?? instrumentLoader
+  /** How many of them the live graph was built with: when more have loaded, the next start from silence rebuilds. */
+  let builtWith = 0
 
   let tone: ToneModule | null = null
   let graph: Graph | null = null
@@ -45,9 +52,11 @@ export function createEnsemble(preset: Preset, options: EnsembleOptions = {}): E
   let starting: Promise<void> | null = null
   let disposed = false
 
-  /** Built once, on the first start(): the graph, the player and the two listeners. */
+  /** Built on the first start(), and again when the instruments have loaded: the graph, the player and the two listeners. */
   function build(t: ToneModule) {
-    graph = buildGraph(t, { master: 0, spatial, kit: preset.kit, bassDb, fm: timbre.fm })
+    const instruments = loader.ready(wanted)
+    builtWith = instruments.size
+    graph = buildGraph(t, { master: 0, spatial, kit, bassDb, fm: timbre.fm, instruments })
     raw = t.getContext().rawContext
     const context = raw
     player = createPlayer({ t, graph, preset, timbre, clock: () => context.currentTime, canSound: () => status.get() === 'on' })
@@ -84,10 +93,33 @@ export function createEnsemble(preset: Preset, options: EnsembleOptions = {}): E
     const t = (tone ??= await import('tone'))
     await t.start()
     if (disposed) return
+    // SN19: the instruments start loading now, after the listener's gesture; the request never rejects. The oscillators play meanwhile, and a later start
+    // from silence rebuilds with the instruments, so a voice never changes mid-note.
+    if (wanted.length) void loader.request(wanted)
+    if (graph && status.get() === 'off' && loader.ready(wanted).size > builtWith) teardown()
     if (!graph) build(t)
     graph!.master.gain.rampTo(level(), RESUME_FADE_S)
     t.getTransport().start()
     status.set(raw!.state === 'running' ? 'on' : 'suspended')
+  }
+
+  /** Disposes the graph and its listeners, for a rebuild. The ensemble stays usable. */
+  function teardown() {
+    removeListeners?.()
+    removeListeners = null
+    graph?.dispose()
+    graph = null
+    player = null
+  }
+
+  /** The instruments for an offline render: those loaded once the load finishes, or after INSTRUMENT_WAIT_S, whichever is first. */
+  async function instrumentsForRender(): Promise<InstrumentBuffers | undefined> {
+    if (!wanted.length) return undefined
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const timeout = new Promise<void>(resolve => { timer = setTimeout(resolve, INSTRUMENT_WAIT_S * 1000) })
+    await Promise.race([loader.request(wanted), timeout])
+    clearTimeout(timer)
+    return loader.ready(wanted)
   }
 
   function start(): Promise<void> {
@@ -135,9 +167,11 @@ export function createEnsemble(preset: Preset, options: EnsembleOptions = {}): E
     const seconds = sorted[sorted.length - 1].atSeconds + (opts.tailSeconds ?? RENDER_TAIL_S)
     if (seconds > MAX_RENDER_S) throw new Error('That is too long to render (over 3 minutes).')
     const t = (tone ??= await import('tone'))
+    const instruments = await instrumentsForRender()
+    if (disposed) throw new Error('This ensemble has been disposed.')
     // A graph of its own on the offline context, at full level whatever the listening volume is: the file is played on the listener's own volume.
     const buffer = await t.Offline(() => {
-      const offlineGraph = buildGraph(t, { master: 1, spatial, kit: preset.kit, bassDb, fm: timbre.fm })
+      const offlineGraph = buildGraph(t, { master: 1, spatial, kit, bassDb, fm: timbre.fm, instruments })
       const offlinePlayer = createPlayer({ t, graph: offlineGraph, preset, timbre, clock: () => 0, canSound: () => true })
       offlinePlayer.setDetail(opts.detail)
       for (const { frame, atSeconds } of sorted) offlinePlayer.apply(frame, atSeconds)
@@ -187,14 +221,11 @@ export function createEnsemble(preset: Preset, options: EnsembleOptions = {}): E
     dispose() {
       if (disposed) return
       disposed = true
-      removeListeners?.()
       if (player && raw) {
         player.releaseAll(raw.currentTime)
         player.reset()
       }
-      graph?.dispose()
-      graph = null
-      player = null
+      teardown()
       status.set('off')
       status.clear()
     },

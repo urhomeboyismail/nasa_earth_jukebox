@@ -121,4 +121,63 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent: the branch, the commits, and the real output of the checks, failures included.
+Built by agent C on `feature/SN19-real-instruments` (from `main` at 556745e). Not yet signed off by ear: see "To listen for" below.
+
+**Commits**
+- 5a4e92c SN19: fetch the recorded instruments (FluidR3_GM, CC BY 3.0)
+- e054538 SN19: sampled voices and a seeded convolver room
+- e2d41fe SN19: credit the FluidR3_GM SoundFont (CC BY 3.0) on the About page
+- (this Result)
+
+**Samples:** 101 MP3s, 1,962,945 bytes in all (under 2,000,000), from gleitz/midi-js-soundfonts @ `044fab8e1456bfafc5776e86dfd6bb8697149aef`, written by `node scripts/fetch_instruments.mjs`. Every file is about 1.6 s long (128 kbps mono).
+
+| Instrument | Range (MIDI) | Notes | Size |
+|---|---|---|---|
+| marimba | 48–84 | 13 | 185.1 KB |
+| vibraphone | 60–96 | 13 | 220.5 KB |
+| acoustic_grand_piano | 48–84 | 13 | 310.4 KB |
+| string_ensemble_1 | 48–64 | 6 | 149.9 KB |
+| cello | 36–48 | 5 | 124.9 KB |
+| pizzicato_strings | 60–84 | 9 | 155.7 KB |
+| orchestral_harp | 60–96 | 13 | 204.4 KB |
+| flute | 54–84 | 11 | 274.8 KB |
+| acoustic_bass | 36–48 | 5 | 73.4 KB |
+| tubular_bells | 60–96 | 13 | 217.9 KB |
+
+Ranges are the union of each voice's range before and after SN18. The flute starts at F#3, not C3, to stay under 2 MB; notes below it are repitched from F#3.
+
+**Choices made while building**
+- `Kit` keeps its three waveforms and gains `instruments?: Partial<Record<InstrumentVoice, InstrumentName>>`, not `Waveform | InstrumentName` per voice. Cinematic, lo-fi and nature replace different waveforms with the same instrument (flute replaces sawtooth in one and triangle in another), so the waveform has to stay in the kit for "until loaded, today's oscillators" to be exact. Major, dorian and pentatonic use `DEFAULT_KIT` (graph.ts), which now names the default row's instruments. 8-bit and heavy bass name none.
+- The scan bank (`playNotes`: scan, find, follow, the style's "Play sample", explore's one-note sounds) plays the melody instrument, as it already played the melody waveform. The explore tone (`hold`), motion pad, time pulse and dropout taps stay oscillators.
+- Each recorded note lasts about 1.5 s, so a note held longer would go silent. A held melody, chord, bass or hot-spot note is struck again after `SAMPLE_RENEW_S` (1.2 s), on the next frame. This is deterministic.
+- Each chord note and hot-spot slot has its own `Tone.Sampler`, so releasing one note never cuts the same pitch struck by another.
+- The notes are decoded in an `OfflineAudioContext` at 44.1 kHz whatever the device's rate, so a render does not depend on the machine's sample rate. Loading happens once a page (`instrumentLoader`). A failure logs one `console.warn` and that instrument's voices stay oscillators until reload.
+- The room's dry path is now at full level (the old delay lines passed about 72 % dry), so the melody and harmony are about 2.8 dB louder against the bass than before.
+- graph.test's two room tests asserted the two `FeedbackDelay`s. They now assert the convolver send.
+
+**Checks** (Windows, this worktree)
+
+```
+npm run lint      → oxlint: no findings
+npm run build     → tsc -b && vite build: ✓ built in 2.83s (ensemble chunk loads on demand; check-bundle: 89211 bytes gzip, within 93753)
+npm test          → Test Files  2 failed | 219 passed (221)
+                    Tests       2 failed | 3056 passed (3058)
+ FAIL  src/boundary.test.ts > the boundary: … > finds nothing wrong in any of them
+       + "audio/ensemble/instruments.ts calls fetch()"
+ FAIL  src/App.test.tsx > App shell > loads the first visualization and shows it on each page
+```
+
+- `boundary.test.ts` is caused by this ticket. Only `analysis/pixels.ts` may call `fetch()` in `src/audio`, and the loader fetches the self-hosted samples. The fix is one line outside this ticket's Touches: add `'audio/ensemble/instruments.ts'` to `MAY_FETCH` in `src/boundary.test.ts`. It fetches only same-origin files from `public/audio/instruments/` after a gesture, and the sound works without them. Left for the team lead to approve.
+- `App.test.tsx` already fails on `main` at 556745e (2 tests fail there in a clean checkout). It is timing-sensitive and not caused by this ticket.
+- An earlier full run under load also timed out 6 tests (ask, Landing, a scoring test and others). They pass on a rerun.
+- `sound-regression.test.ts` passed.
+
+**To listen for** (fixture and two NASA data sets, each style). Sign-off by ear is still to do.
+- Press Play: the first time, the oscillators play as before. Stop and Play again (or open another data set) and the instruments are there. Check that nothing changes mid-note.
+- Default (major, dorian, pentatonic): marimba melody, string chords, acoustic bass, harp arpeggio, tubular bells on hot spots. Cinematic: flute, strings, cello, pizzicato, bells. Lo-fi: piano, strings, acoustic bass, vibraphone. Nature: flute, strings, acoustic bass, marimba, harp. 8-bit and heavy bass should sound exactly as before.
+- Levels: samples use the synths' `VOICE_GAIN_DB`, and recorded notes may be louder or softer than the oscillators. The bells and the harp may stand out.
+- Held notes: a held chord or melody note is struck again every 1.2 s. Listen for a pulse on the strings and decide whether `SAMPLE_RENEW_S` should change.
+- Glides: the melody now steps legato instead of sliding.
+- The room (all styles, including 8-bit and heavy bass): a 2.4 s warm tail at `REVERB.wet` 0.2 in place of the metallic short delays. Listen for mud on fast arpeggios.
+- The export: a WAV from Listen should have the instruments, and two exports of the same thing should be identical.
+- Peak: nothing should clip on a loud data set. The limiter and the −1 dBFS hard clip are unchanged.

@@ -99,13 +99,16 @@ export const raw = {
 /** What Tone.start() leaves the context in. Tests set it to 'suspended' to see a browser that will not start the sound. */
 export const behaviour = { stateAfterStart: 'running' as string }
 
+/** The context's sample rate, which sizes the room's impulse. Small, so the impulse is quick to build in every test. */
+export const MOCK_SAMPLE_RATE = 8000
+
 export const offlineRuns: { duration: number; channels: number; sampleRate: number }[] = []
 export const start = vi.fn(async () => { raw.state = behaviour.stateAfterStart })
 const offline = vi.fn(async (callback: () => void, duration: number, channels: number, sampleRate: number) => {
   offlineRuns.push({ duration, channels, sampleRate })
   const before = calls.length
   callback()
-  // A buffer that depends on the notes this run played, so "the same schedule gives the same samples" is a real comparison.
+  // A buffer that depends on the notes this run played (synths and samplers alike), so "the same schedule gives the same samples" is a real comparison.
   const notes = calls.slice(before).filter(c => c.method === 'triggerAttack' || c.method === 'triggerAttackRelease').length
   return { getChannelData: (channel: number) => Float32Array.from({ length: 16 }, (_, i) => Math.sin(i + channel) * 0.1 + notes * 0.001) }
 })
@@ -114,7 +117,7 @@ export const toneModule = {
   start,
   now: () => raw.currentTime,
   getTransport: () => transport,
-  getContext: () => ({ rawContext: raw }),
+  getContext: () => ({ rawContext: raw, sampleRate: MOCK_SAMPLE_RATE }),
   Offline: offline,
   Gain: make('Gain', ['disconnect'], ['gain']),
   Panner: make('Panner', [], ['pan']),
@@ -126,6 +129,10 @@ export const toneModule = {
   WaveShaper: make('WaveShaper', []),
   Freeverb: make('Freeverb', [], ['wet']),
   Synth: make('Synth', ['triggerAttack', 'triggerRelease', 'triggerAttackRelease', 'setNote', 'set'], ['volume', 'frequency']),
+  // SN19: the recorded instruments and the room. A Sampler's options carry the buffers it was given; fromArray records the impulse it was handed.
+  Sampler: make('Sampler', ['triggerAttack', 'triggerRelease', 'triggerAttackRelease', 'releaseAll'], ['volume']),
+  Convolver: make('Convolver', []),
+  ToneAudioBuffer: make('ToneAudioBuffer', ['fromArray']),
   PolySynth: make('PolySynth', ['triggerAttack', 'triggerRelease', 'releaseAll', 'set'], ['volume']),
 }
 
