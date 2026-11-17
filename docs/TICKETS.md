@@ -101,6 +101,7 @@ The MC tickets branch from `chore/jpl-hud-theme` (the Mission Control look, not 
 |---|---|---|---|---|---|---|
 | [SN16](tickets/SN16-decade-accent.md) | A decade accent on the time voice, so years-apart data sets feel the decades pass | S | agent | — | — | done |
 | [SN17](tickets/SN17-event-cues.md) | Event cues: a short sound and a caption when a dated event in the manifest is reached | M | agent | — | schema | done |
+| [SN20](tickets/SN20-chord-follow-ups.md) | Sevenths that real data can reach, and words that describe the new chords | S | agent | SN18 | — | open |
 
 ### P2: Echo's weather (Meteomatics)
 
