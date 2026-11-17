@@ -1,9 +1,16 @@
 import * as Tone from 'tone'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { CEILING_LINEAR, COMPRESSOR, HARMONY_POLYPHONY, MASTER_LIMIT_DB, MAX_HOTSPOT_VOICES, SCAN_VOICES } from './constants'
-import { buildGraph } from './graph'
+import { PRESETS } from '../../sonify/presets'
+import type { InstrumentName } from '../../sonify/types'
+import {
+  CEILING_LINEAR, COMPRESSOR, HARMONY_POLYPHONY, MASTER_LIMIT_DB, MAX_HOTSPOT_VOICES, REVERB, REVERB_SEED, SAMPLER_ATTACK_S, SAMPLER_RELEASE_S, SCAN_VOICES,
+  VOICE_GAIN_DB,
+} from './constants'
+import { buildGraph, DEFAULT_KIT } from './graph'
+import type { InstrumentBuffers } from './instruments'
 import { hasLevelSource, setLevelSource } from '../level'
-import { calls, nodes, raw, resetTone, type MockNode } from './toneMock'
+import { reverbImpulse } from './seeded'
+import { calls, callsOn, MOCK_SAMPLE_RATE, nodes, raw, resetTone, type MockNode } from './toneMock'
 
 vi.mock('tone', async () => (await import('./toneMock')).toneModule)
 
@@ -119,26 +126,36 @@ describe('buildGraph: the voices', () => {
     expect(only('Panner3D').length).toBeGreaterThan(0)
   })
 
-  it('makes no noise, no Reverb (its impulse is random) and no other random source', () => {
+  // SN19 replaced the room's two delay lines with a convolver whose impulse is seeded, so this lists a Convolver and its impulse buffer, not two FeedbackDelays.
+  it('makes no noise, no Reverb (its impulse is random) and no other random source: the room is a convolver with a seeded impulse', () => {
     buildGraph(Tone, { master: 0, spatial: 'stereo' })
-    expect(Object.keys(nodes).sort()).toEqual(['Compressor', 'FeedbackDelay', 'Filter', 'Gain', 'Limiter', 'Panner', 'Synth', 'WaveShaper'])
-    expect(only('FeedbackDelay')).toHaveLength(2)
+    expect(Object.keys(nodes).sort()).toEqual(['Compressor', 'Convolver', 'Filter', 'Gain', 'Limiter', 'Panner', 'Synth', 'ToneAudioBuffer', 'WaveShaper'])
+    expect(only('Convolver')).toHaveLength(1)
+    const [impulse] = only('ToneAudioBuffer')
+    expect(only('Convolver')[0].options).toBe(impulse)
+    expect(callsOn(impulse, 'fromArray')[0].args[0]).toEqual(reverbImpulse(REVERB_SEED, MOCK_SAMPLE_RATE, REVERB))
     for (const synth of only('Synth')) {
       const options = synth.options as { oscillator: { type: string } }
       expect(['sine', 'triangle', 'sawtooth']).toContain(options.oscillator.type)
     }
   })
 
-  it('sends the melody and the harmony through the room (two delay lines in series), and the others dry', () => {
+  // SN19: the room is one convolver send (it was two delay lines that only the melody and the harmony fed).
+  it('sends the melody, the harmony, the arpeggio and the hot spots into the room as well as dry to the bus, and the bass and the cues only dry', () => {
     const g = buildGraph(Tone, { master: 0, spatial: 'stereo' })
-    const [second, first] = only('FeedbackDelay') // the second line is made first: the first connects to it
-    expect(g.space).toBe(first)
-    expect(first.connectedTo).toEqual([second])
-    expect(second.connectedTo).toEqual([g.bus])
-    expect(connected(g.melody.out as unknown as MockNode, first)).toBe(true)
-    expect(connected(g.harmony.out as unknown as MockNode, first)).toBe(true)
-    expect(connected(g.bass.out as unknown as MockNode, first)).toBe(false)
-    expect(connected(g.bass.out as unknown as MockNode, g.bus as unknown as MockNode)).toBe(true)
+    const node = (n: unknown) => n as MockNode
+    const send = node(g.roomSend)
+    expect(send.options).toBe(REVERB.wet)
+    expect(send.connectedTo).toEqual([node(g.reverb)])
+    expect(node(g.reverb).connectedTo).toEqual([node(g.bus)])
+    for (const out of [g.melody.out, g.harmony.out, g.rhythm.out, ...g.hotspots.map(h => h.out)]) {
+      expect(connected(node(out), send)).toBe(true)
+      expect(connected(node(out), node(g.bus))).toBe(true)
+    }
+    for (const out of [g.bass.out, g.motion.out, g.time.out, g.hold.out]) {
+      expect(connected(node(out), send)).toBe(false)
+      expect(connected(node(out), node(g.bus))).toBe(true)
+    }
   })
 })
 
@@ -184,3 +201,77 @@ describe('buildGraph: a style\'s kit and the Bass setting', () => {
   })
 })
 
+
+describe('buildGraph: the recorded instruments (SN19)', () => {
+  /** Small fake buffers: a few notes for every instrument, as the loader would give them. */
+  const fakeBuffers = (names: InstrumentName[]): InstrumentBuffers =>
+    new Map(names.map(name => [name, { 48: new Float32Array(4), 60: new Float32Array(4), 72: new Float32Array(4) } as unknown as Record<number, AudioBuffer>]))
+  const kitNames = (kit = DEFAULT_KIT) => Object.values(kit.instruments ?? {})
+  const samplerOptions = (n: unknown) => (n as MockNode).options as { urls: unknown; attack: number; release: number; volume: number }
+
+  it('plays each pitched voice through a sampler of its kit\'s instrument once the notes are given, and keeps the cues as oscillators', () => {
+    const buffers = fakeBuffers(kitNames())
+    const g = buildGraph(Tone, { master: 0, spatial: 'stereo', instruments: buffers })
+    const voices = 1 + HARMONY_POLYPHONY + 1 + MAX_HOTSPOT_VOICES + 1 + SCAN_VOICES
+    expect(only('Sampler')).toHaveLength(voices)
+    // The motion pad, the time pulse, the explore tone and the two dropout taps.
+    expect(only('Synth')).toHaveLength(5)
+    expect(samplerOptions(only('Sampler')[0])).toEqual({ urls: buffers.get('marimba'), attack: SAMPLER_ATTACK_S, release: SAMPLER_RELEASE_S.melody, volume: VOICE_GAIN_DB.melody })
+    expect(samplerOptions(g.harmony.synths.map(v => (v as { sampler: unknown }).sampler)[0]).urls).toBe(buffers.get('string_ensemble_1'))
+    expect(samplerOptions((g.bass.synth as { sampler: unknown }).sampler).urls).toBe(buffers.get('acoustic_bass'))
+    expect(samplerOptions((g.rhythm.synth as { sampler: unknown }).sampler).urls).toBe(buffers.get('orchestral_harp'))
+    expect(samplerOptions((g.hotspots[0].synth as { sampler: unknown }).sampler).urls).toBe(buffers.get('tubular_bells'))
+  })
+
+  it('keeps the brightness filter after a hot spot\'s sampler, and adds the Bass setting to the bass sampler', () => {
+    const g = buildGraph(Tone, { master: 0, spatial: 'stereo', bassDb: 4, instruments: fakeBuffers(kitNames()) })
+    const sampler = (g.hotspots[0].synth as { sampler: unknown }).sampler as MockNode
+    expect(sampler.connectedTo).toEqual([g.hotspots[0].filter])
+    expect(samplerOptions((g.bass.synth as { sampler: unknown }).sampler).volume).toBe(VOICE_GAIN_DB.bass + 4)
+  })
+
+  it('plays each style\'s own instruments, and none for a kit that names none (8-bit, heavy bass)', () => {
+    const cinematic = PRESETS.cinematic.kit!
+    const buffers = fakeBuffers(kitNames(cinematic))
+    const g = buildGraph(Tone, { master: 0, spatial: 'stereo', kit: cinematic, instruments: buffers })
+    expect(samplerOptions((g.melody.synth as { sampler: unknown }).sampler).urls).toBe(buffers.get('flute'))
+    expect(samplerOptions((g.bass.synth as { sampler: unknown }).sampler).urls).toBe(buffers.get('cello'))
+    for (const id of ['chiptune', 'bass'] as const) {
+      resetTone()
+      buildGraph(Tone, { master: 0, spatial: 'stereo', kit: PRESETS[id].kit, instruments: fakeBuffers(kitNames()) })
+      expect(only('Sampler'), id).toHaveLength(0)
+    }
+  })
+
+  it('keeps the oscillator for a voice whose instrument has not loaded', () => {
+    const g = buildGraph(Tone, { master: 0, spatial: 'stereo', instruments: fakeBuffers(['marimba']) })
+    expect('sampler' in g.melody.synth).toBe(true)
+    expect('sampler' in g.bass.synth).toBe(false)
+    expect(only('Sampler')).toHaveLength(1 + SCAN_VOICES)
+  })
+
+  it('builds exactly the same nodes without instruments as with an empty set', () => {
+    buildGraph(Tone, { master: 0, spatial: 'stereo' })
+    const without = calls.map(c => [c.node, c.method])
+    resetTone()
+    buildGraph(Tone, { master: 0, spatial: 'stereo', instruments: new Map() })
+    expect(calls.map(c => [c.node, c.method])).toEqual(without)
+  })
+
+  it('puts the room and every sampler before the limiter and the hard clip, so the peak still holds at −1 dBFS', () => {
+    const g = buildGraph(Tone, { master: 0, spatial: 'stereo', instruments: fakeBuffers(kitNames()) })
+    const [clip] = only('WaveShaper')
+    const intoMaster = Object.values(nodes).flat().filter(n => n.connectedTo.includes(g.master as unknown as MockNode))
+    expect(intoMaster).toEqual([clip])
+    expect((g.reverb as unknown as MockNode).connectedTo).toEqual([g.bus])
+    for (const sampler of only('Sampler')) expect(sampler.connectedTo.some(n => n === (g.master as unknown as MockNode) || n === clip)).toBe(false)
+  })
+
+  it('disposes every sampler too', () => {
+    const g = buildGraph(Tone, { master: 0, spatial: 'stereo', instruments: fakeBuffers(kitNames()) })
+    const made = Object.values(nodes).flat().length
+    calls.length = 0
+    g.dispose()
+    expect(calls.filter(c => c.method === 'dispose')).toHaveLength(made)
+  })
+})

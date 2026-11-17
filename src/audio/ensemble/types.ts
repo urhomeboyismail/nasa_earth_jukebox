@@ -3,6 +3,7 @@
 import type { TimbreSpec } from '../../data/types'
 import type { DetailLevel, MusicFrame, VoiceId } from '../../sonify/types'
 import type { SpatialMode } from '../pan'
+import type { InstrumentLoader } from './instruments'
 
 export type EnsembleStatus = 'off' | 'on' | 'paused' | 'suspended'
 
@@ -14,11 +15,17 @@ export type NoteEvent = { midi: number; level: number; pan: number; elevation?: 
 
 export type ScheduledFrame = { frame: MusicFrame; atSeconds: number }
 
-/** `timbre` is the data set's `sonification.timbre` (SN14); absent is today's sound. */
-export type EnsembleOptions = { detail?: DetailLevel; volume?: number; spatial?: SpatialMode; bassDb?: number; timbre?: TimbreSpec }
+/**
+ * `timbre` is the data set's `sonification.timbre` (SN14); absent is today's sound. `instruments` loads the style's recorded instruments (SN19); absent is
+ * the page's shared loader. Tests pass their own.
+ */
+export type EnsembleOptions = { detail?: DetailLevel; volume?: number; spatial?: SpatialMode; bassDb?: number; timbre?: TimbreSpec; instruments?: InstrumentLoader }
 
 export type Ensemble = {
-  /** Call from a click or key press only (WCAG 1.4.2). Starts the audio context and resumes it if the browser suspended it. */
+  /**
+   * Call from a click or key press only (WCAG 1.4.2). Starts the audio context and resumes it if the browser suspended it. The first start also starts
+   * loading the style's recorded instruments (SN19); the oscillators play until then, and a start from silence after they have loaded switches to them.
+   */
   start(): Promise<void>
   /** Silences every voice with a short fade and stops the transport. The next start() begins again. */
   stop(): void
@@ -49,6 +56,6 @@ export type Ensemble = {
   onStatus(listener: (status: EnsembleStatus) => void): () => void
   /** Releases every voice, removes the listeners and disposes the nodes. Calls after this do nothing. */
   dispose(): void
-  /** Renders the schedule through the same graph, faster than real time. Returns the left and right channels. Never plays. */
+  /** Renders the schedule through the same graph, faster than real time, with the recorded instruments (waiting up to INSTRUMENT_WAIT_S for them). Returns the left and right channels. Never plays. */
   renderOffline(schedule: ScheduledFrame[], options: { detail: DetailLevel; sampleRate?: number; tailSeconds?: number }): Promise<[Float32Array, Float32Array]>
 }

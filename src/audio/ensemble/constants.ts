@@ -43,10 +43,25 @@ export const HOLD_FILTER_HZ = { low: 400, high: 3400 }
 
 // Not in the ticket's list, but each is a number the voices need.
 /**
- * The room around the melody and the harmony: two short feedback delays in series. Not Freeverb, and not Tone.Reverb: measured in Chrome, two renders of the
- * same notes through a Freeverb differ (by up to 1e-4 through the melody), and a PolySynth differs too; plain delay lines and plain Synths do not.
+ * The room (SN19): one convolver, fed by the melody, the harmony, the arpeggio and the hot spots; the bass and the cues stay dry. Not Freeverb, and not
+ * Tone.Reverb: measured in Chrome, two renders of the same notes through a Freeverb differ (by up to 1e-4 through the melody), and Tone.Reverb's impulse is
+ * random. This impulse is seeded noise (seeded.ts), so it is the same every time: stereo, 2.4 s, falling 60 dB, low-passed to sound warm. `wet` is the
+ * send's level into the room; the dry sound goes straight to the bus.
  */
-export const SPACE = { wet: 0.15, lines: [{ delayTime: 0.029, feedback: 0.4 }, { delayTime: 0.043, feedback: 0.35 }] }
+export const REVERB = { seconds: 2.4, decayDb: 60, damping: 0.35, wet: 0.2 }
+export const REVERB_SEED = 20261118
+/**
+ * How a recorded instrument (SN19) starts and stops: a short fade in (also the legato where the melody would glide) and each voice's release, near its
+ * synth's. The arpeggio and the scan rings longer than the synth's pluck, as a plucked string does.
+ */
+export const SAMPLER_ATTACK_S = 0.01
+export const SAMPLER_RELEASE_S: Record<'melody' | 'harmony' | 'bass' | 'rhythm' | 'hotspots' | 'scan', number> = {
+  melody: 0.6, harmony: 0.8, bass: 0.3, rhythm: 0.4, hotspots: 0.3, scan: 0.3,
+}
+/** Each recorded note lasts about 1.5 s. A note held longer is struck again after this, so a held value never falls silent. */
+export const SAMPLE_RENEW_S = 1.2
+/** renderOffline waits this long for the instruments to load, then renders with whatever has (the oscillators for the rest). */
+export const INSTRUMENT_WAIT_S = 10
 /**
  * The ceiling: the last stage before the master is a hard clip at this level (−1.003 dBFS). Tone.Limiter is a compressor, not a brick wall: measured on a loud
  * schedule it let the peak reach 0 dBFS. The limiter still does the work; the clip only catches what it lets through.

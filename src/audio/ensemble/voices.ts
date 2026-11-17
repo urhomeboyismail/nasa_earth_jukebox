@@ -11,7 +11,7 @@ import {
   RHYTHM_NOTE_SHARE, SCAN_VOICES, VOICE_GAIN_DB,
 } from './constants'
 import { dropoutTaps } from './dropout'
-import type { Graph } from './graph'
+import type { Graph, Voice } from './graph'
 import { midiToHz, planFrame, type VoiceAction } from './plan'
 import { DECADE_ACCENT_SEMITONES, TIME_PULSE_MIDI, YEAR_ACCENT_SEMITONES } from '../../sonify/ranges'
 import { cutoff, DEFAULT_TIMBRE, type Timbre } from './timbre'
@@ -33,6 +33,10 @@ export type PlayerContext = {
 }
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, Number.isFinite(value) ? value : 0))
+/** A held note on a recorded instrument runs out after about 1.5 s: strike it again (SN19). A synth holds its note by itself. */
+const renew = (voice: Voice, at: number) => {
+  if ('renew' in voice) voice.renew(at)
+}
 
 export function createPlayer(ctx: PlayerContext) {
   const { t, graph, preset } = ctx
@@ -95,8 +99,11 @@ export function createPlayer(ctx: PlayerContext) {
           return
         }
         const midi = a.midis[0]
-        if (midi === melodyMidi) return
-        // A note that slides keeps the voice sounding; any other new note is struck again.
+        if (midi === melodyMidi) {
+          renew(synth, at)
+          return
+        }
+        // A note that slides keeps the voice sounding; any other new note is struck again. A recorded instrument cannot slide: its setNote is legato.
         const slide = a.glide && melodyMidi !== null
         synth.portamento = slide ? GLIDE_S : 0
         if (slide) synth.setNote(midiToHz(midi), at)
@@ -114,7 +121,10 @@ export function createPlayer(ctx: PlayerContext) {
         }
         // The chord is struck again only when its notes change; otherwise only its level moves. One plain synth for each note.
         const key = a.midis.join(',')
-        if (key === harmonyKey) return
+        if (key === harmonyKey) {
+          for (const synth of synths.slice(0, a.midis.length)) renew(synth, at)
+          return
+        }
         synths.forEach((synth, i) => {
           if (i < a.midis.length) synth.triggerAttack(midiToHz(a.midis[i]), at)
           else synth.triggerRelease(at)
@@ -130,7 +140,10 @@ export function createPlayer(ctx: PlayerContext) {
           bassMidi = null
           return
         }
-        if (a.midis[0] === bassMidi) return
+        if (a.midis[0] === bassMidi) {
+          renew(synth, at)
+          return
+        }
         synth.triggerAttack(midiToHz(a.midis[0]), at)
         bassMidi = a.midis[0]
         return
@@ -151,7 +164,7 @@ export function createPlayer(ctx: PlayerContext) {
         if (!held || held.midi !== midi) {
           if (held && held.id === a.id) slot.synth.setNote(midiToHz(midi), at)
           else slot.synth.triggerAttack(midiToHz(midi), at)
-        }
+        } else renew(slot.synth, at)
         slots[a.slot] = { id: a.id ?? '', midi }
         return
       }

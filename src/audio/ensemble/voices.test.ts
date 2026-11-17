@@ -5,9 +5,11 @@ import { PRESETS } from '../../sonify/presets'
 import { change, features, line, spot, type FeatureOptions } from '../../sonify/testFeatures'
 import type { MusicFrame } from '../../sonify/types'
 import {
-  DROPOUT_SPACING_S, GLIDE_S, HOLD_FILTER_HZ, INTERACTIVE_LOOKAHEAD_S, MIN_APPLY_GAP_S, MOTION_FILTER_HZ, MOTION_PAD_MIDI, PARAM_RAMP_S, SCAN_VOICES, VOICE_GAIN_DB,
+  DROPOUT_SPACING_S, GLIDE_S, HOLD_FILTER_HZ, INTERACTIVE_LOOKAHEAD_S, MIN_APPLY_GAP_S, MOTION_FILTER_HZ, MOTION_PAD_MIDI, PARAM_RAMP_S, SAMPLE_RENEW_S, SCAN_VOICES,
+  VOICE_GAIN_DB,
 } from './constants'
-import { buildGraph } from './graph'
+import { buildGraph, DEFAULT_KIT } from './graph'
+import { kitInstruments, type InstrumentBuffers } from './instruments'
 import { midiToHz } from './plan'
 import { callsOn, raw, resetTone, transport, type MockNode } from './toneMock'
 import { createPlayer } from './voices'
@@ -521,5 +523,67 @@ describe('releaseAll', () => {
     player.apply(frame, 3)
     expect(on(graph.melody.synth, 'triggerAttack')).toHaveLength(2)
     expect(on(graph.motion.synth, 'triggerAttack')).toHaveLength(2)
+  })
+})
+
+describe('the recorded instruments (SN19)', () => {
+  /** Small fake buffers for every instrument of the default kit. */
+  const buffers: InstrumentBuffers = new Map(kitInstruments(DEFAULT_KIT).map(name => [name, { 60: new Float32Array(4) as unknown as AudioBuffer }]))
+  function sampled() {
+    const graph = buildGraph(Tone, { master: 1, spatial: 'stereo', instruments: buffers })
+    const player = createPlayer({ t: Tone, graph, preset: major, clock: () => raw.currentTime, canSound: () => canSound })
+    return { graph, player }
+  }
+  const samplerOf = (voice: unknown) => (voice as { sampler: MockNode }).sampler
+
+  it('strikes the melody on its sampler and lets go of it by its note', () => {
+    const { graph, player } = sampled()
+    const frame = music({ position: 0.3 })
+    const hz = midiToHz(frame.melody!.midi)
+    player.apply(frame, 1)
+    player.apply(music({ position: null }), 2)
+    expect(on(samplerOf(graph.melody.synth), 'triggerAttack').map(c => c.args)).toEqual([[hz, 1, 1]])
+    expect(on(samplerOf(graph.melody.synth), 'triggerRelease').map(c => c.args)).toEqual([[hz, 2]])
+  })
+
+  it('plays a glide legato: the old note let go at the moment the new one is struck', () => {
+    const { graph, player } = sampled()
+    const first = music({ position: 0.2 })
+    player.apply(first, 1)
+    const second = music({ position: 0.8 }, first)
+    expect(second.melody!.glide).toBe(true)
+    player.apply(second, 2)
+    const sampler = samplerOf(graph.melody.synth)
+    expect(on(sampler, 'triggerRelease').map(c => c.args)).toEqual([[midiToHz(first.melody!.midi), 2]])
+    expect(on(sampler, 'triggerAttack').map(c => c.args)).toEqual([[midiToHz(first.melody!.midi), 1, 1], [midiToHz(second.melody!.midi), 2, 1]])
+  })
+
+  it('strikes a held note again once the recorded note would have run out, and not before', () => {
+    const { graph, player } = sampled()
+    const frame = music({ position: 0.3 })
+    player.apply(frame, 1)
+    player.apply(frame, 1 + SAMPLE_RENEW_S / 2)
+    expect(on(samplerOf(graph.melody.synth), 'triggerAttack')).toHaveLength(1)
+    player.apply(frame, 1 + SAMPLE_RENEW_S)
+    expect(on(samplerOf(graph.melody.synth), 'triggerAttack').map(c => c.args[1])).toEqual([1, 1 + SAMPLE_RENEW_S])
+    expect(on(samplerOf(graph.melody.synth), 'triggerRelease').map(c => c.args[1])).toEqual([1 + SAMPLE_RENEW_S])
+  })
+
+  it('gives each chord note a sampler of its own, so a note that moves to another sampler is never cut by it', () => {
+    const { graph, player } = sampled()
+    const first = music({ histogram: [0.3, 0.7, 0] })
+    player.apply(first, 1)
+    const samplers = graph.harmony.synths.map(samplerOf)
+    expect(new Set(samplers).size).toBe(samplers.length)
+    first.harmony!.midis.forEach((midi, i) => expect(on(samplers[i], 'triggerAttack').map(c => c.args)).toEqual([[midiToHz(midi), 1, 1]]))
+  })
+
+  it('plays the arpeggio and the scan notes through their samplers', () => {
+    const { graph, player } = sampled()
+    player.playNotes([{ midi: 64, level: 0.5, pan: 0, seconds: 0.3 }], 1)
+    expect(on(samplerOf(graph.scan[0].synth), 'triggerAttackRelease').map(c => c.args)).toEqual([[midiToHz(64), 0.3, 1, 0.5]])
+    player.apply(music({ density: 0.3, strongest: line(Array.from({ length: 16 }, (_, i) => 0.1 + (0.8 * i) / 15)) }), 2)
+    for (const event of transport.events.filter(e => e.kind === 'once')) event.cb(3)
+    expect(on(samplerOf(graph.rhythm.synth), 'triggerAttackRelease').length).toBeGreaterThan(0)
   })
 })

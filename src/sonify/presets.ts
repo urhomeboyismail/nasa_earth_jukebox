@@ -23,10 +23,15 @@ export const PRESETS: Record<PresetId, Preset> = {
     id: 'pentatonic', label: 'Pentatonic', tonic: 9, scale: 'minorPentatonic', bpm: 100, brightness: 0.7,
     note: 'Five notes with no clashing intervals, so every combination sounds consonant. The choice is artistic: it never carries data.',
   },
-  // The music styles (docs/planning/UIUX-BLUEPRINT.md §1.3). shortcut: starting values, to be tuned by a listening check.
+  // The music styles (docs/planning/UIUX-BLUEPRINT.md §1.3). shortcut: starting values, to be tuned by a listening check. The waveforms play until the
+  // recorded instruments (SN19) have loaded; 8-bit and heavy bass have none and stay synthesised.
   cinematic: {
     id: 'cinematic', label: 'Cinematic orchestral', tonic: 2, scale: 'dorian', bpm: 72, brightness: 0.4,
-    kit: { melody: 'sawtooth', bass: 'triangle', rhythm: 'sine' }, sound: 'Strings and brass, slow and wide.',
+    kit: {
+      melody: 'sawtooth', bass: 'triangle', rhythm: 'sine',
+      instruments: { melody: 'flute', harmony: 'string_ensemble_1', bass: 'cello', rhythm: 'pizzicato_strings', hotspots: 'tubular_bells' },
+    },
+    sound: 'Strings and brass, slow and wide.',
     note: 'A music style. The choice is artistic: it changes the instruments and never carries data.',
   },
   chiptune: {
@@ -36,7 +41,11 @@ export const PRESETS: Record<PresetId, Preset> = {
   },
   lofi: {
     id: 'lofi', label: 'Lo-fi ambient', tonic: 5, scale: 'major', bpm: 76, brightness: 0.3,
-    kit: { melody: 'sine', bass: 'sine', rhythm: 'triangle' }, sound: 'Soft keys and a slow beat.',
+    kit: {
+      melody: 'sine', bass: 'sine', rhythm: 'triangle',
+      instruments: { melody: 'acoustic_grand_piano', harmony: 'string_ensemble_1', bass: 'acoustic_bass', rhythm: 'vibraphone', hotspots: 'vibraphone' },
+    },
+    sound: 'Soft keys and a slow beat.',
     note: 'A music style. The choice is artistic: it changes the instruments and never carries data.',
   },
   bass: {
@@ -46,7 +55,11 @@ export const PRESETS: Record<PresetId, Preset> = {
   },
   nature: {
     id: 'nature', label: 'Organic nature', tonic: 7, scale: 'minorPentatonic', bpm: 64, brightness: 0.5,
-    kit: { melody: 'triangle', bass: 'sine', rhythm: 'sine' }, sound: 'Wood, water and gentle percussion.',
+    kit: {
+      melody: 'triangle', bass: 'sine', rhythm: 'sine',
+      instruments: { melody: 'flute', harmony: 'string_ensemble_1', bass: 'acoustic_bass', rhythm: 'marimba', hotspots: 'orchestral_harp' },
+    },
+    sound: 'Wood, water and gentle percussion.',
     note: 'A music style. The choice is artistic: it changes the instruments and never carries data.',
   },
 }
