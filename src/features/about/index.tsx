@@ -48,6 +48,7 @@ function About({ visualization }: { visualization: Visualization }) {
           <div><dt>Credit</dt><dd>{source.credit}</dd></div>
           <div><dt>Licence</dt><dd>{source.license}</dd></div>
           <div><dt>Retrieved</dt><dd>{formatDate(source.retrievedOn)}</dd></div>
+          <div><dt>Instruments</dt><dd>Recorded notes from the FluidR3_GM SoundFont by Frank Wen, licensed <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a></dd></div>
         </dl>
       </Card>
 

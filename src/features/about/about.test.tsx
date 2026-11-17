@@ -27,6 +27,14 @@ describe('About the data page', () => {
     expect(screen.getByRole('img', { name: /From NASA image to sound: NASA video, then Frames/ })).toBeInTheDocument()
   })
 
+  it('credits the recorded instruments and links their licence (SN19)', async () => {
+    const { container } = render(<AboutPage visualization={visualization} />)
+    const source = screen.getByRole('heading', { name: 'Source and credits' }).closest('section')!
+    expect(within(source).getByText(/FluidR3_GM SoundFont by Frank Wen/)).toBeInTheDocument()
+    expect(within(source).getByRole('link', { name: 'CC BY 3.0' })).toHaveAttribute('href', 'https://creativecommons.org/licenses/by/3.0/')
+    await expectNoA11yViolations(container)
+  })
+
   it('credits the source', () => {
     render(<AboutPage visualization={visualization} />)
     const source = screen.getByRole('heading', { name: 'Source and credits' }).closest('section')!
