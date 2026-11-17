@@ -5,7 +5,7 @@
 | **Priority** | P2 |
 | **Size** | S (under half a day) |
 | **Who** | agent |
-| **Needs** | SN18 (PR #126; this ticket edits the code it adds) |
+| **Needs** | — (SN18 is merged, PR #126) |
 | **Hotspots** | — |
 | **Branch** | `feature/SN20-chord-follow-ups` |
 

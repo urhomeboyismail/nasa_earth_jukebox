@@ -59,8 +59,8 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 | ID | Ticket | Size | Who | Needs | Hotspots | Status |
 |---|---|---|---|---|---|---|
 | [SN15](tickets/SN15-own-sound-first.md) | Each data set keeps its own sound unless the listener chooses a style on purpose | S | agent | — | — | done |
-| [SN18](tickets/SN18-real-chords.md) | Real chords, chord-tone arpeggios and separate registers, so the ensemble sounds like music | M | agent+👤 | — | — | ready: feature/SN18-real-chords (#126) |
-| [SN19](tickets/SN19-real-instruments.md) | Real instruments and a real room: sampled voices and a seeded reverb | L | agent+👤 | — | about | ready: feature/SN19-real-instruments (#125) |
+| [SN18](tickets/SN18-real-chords.md) | Real chords, chord-tone arpeggios and separate registers, so the ensemble sounds like music | M | agent+👤 | — | — | done |
+| [SN19](tickets/SN19-real-instruments.md) | Real instruments and a real room: sampled voices and a seeded reverb | L | agent+👤 | — | about | done |
 
 ### P1: interaction (the listener plays the map; `PLAN.md` §6.3)
 
@@ -101,7 +101,7 @@ The MC tickets branch from `chore/jpl-hud-theme` (the Mission Control look, not 
 |---|---|---|---|---|---|---|
 | [SN16](tickets/SN16-decade-accent.md) | A decade accent on the time voice, so years-apart data sets feel the decades pass | S | agent | — | — | done |
 | [SN17](tickets/SN17-event-cues.md) | Event cues: a short sound and a caption when a dated event in the manifest is reached | M | agent | — | schema | done |
-| [SN20](tickets/SN20-chord-follow-ups.md) | Sevenths that real data can reach, and words that describe the new chords | S | agent | SN18 | — | open |
+| [SN20](tickets/SN20-chord-follow-ups.md) | Sevenths that real data can reach, and words that describe the new chords | S | agent | — | — | open |
 
 ### P2: Echo's weather (Meteomatics)
 
