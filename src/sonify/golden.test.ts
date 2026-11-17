@@ -15,7 +15,7 @@ import { decodePng } from '../analysis/png'
 import type { Visualization } from '../data'
 import { visualizationSchema } from '../data/schema'
 import { VOICE_IDS, type PresetId } from '../data/sonification'
-import { toMusicFrame } from './music'
+import { isSpaced, toMusicFrame } from './music'
 import { presetFor } from './presets'
 import type { MusicFrame } from './types'
 
@@ -115,6 +115,19 @@ describe('music regression baseline', () => {
         const classes = new Set([9, 0, 2, 4, 7])
         for (const note of [m.melody?.midi, m.bass?.midi, ...(m.harmony?.midis ?? []), ...m.hotspots.map(h => h.midi), ...(m.rhythm?.midis ?? [])]) {
           if (note !== undefined) expect(classes.has(note % 12), `${id} ${m.frameId} ${note}`).toBe(true)
+        }
+      }
+    }
+  })
+
+  it('plays the arpeggio on the tones of the chord under it, and never a chord with two notes closer than a minor third (SN18)', () => {
+    for (const id of DATA_SETS) {
+      for (const p of PRESETS_USED) {
+        for (const m of results[id][p]) {
+          if (!m.harmony) continue
+          const chord = new Set(m.harmony.midis.map(note => note % 12))
+          for (const note of m.rhythm?.midis ?? []) expect(chord.has(note % 12), `${id} ${p} ${m.frameId} ${note}`).toBe(true)
+          expect(isSpaced(m.harmony.midis), `${id} ${p} ${m.frameId}`).toBe(true)
         }
       }
     }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { DETAIL_LEVELS, PRESET_IDS, STYLE_IDS, VOICE_IDS } from '../data/sonification'
 import { DETAIL_VOICES, voicesFor } from './detail'
-import { PRESETS, SCALES, pitchClasses, presetFor, snapToScale } from './presets'
+import { PRESETS, SCALES, chordOn, pitchClasses, presetFor, snapToClasses, snapToScale } from './presets'
 
 describe('presets', () => {
   it('has a preset for every id the manifest can name, and nothing else', () => {
@@ -96,6 +96,36 @@ describe('snapToScale', () => {
     expect(snapToScale(49, PRESETS.dorian, 48, 78)).toBe(48)
     expect(pitchClasses(PRESETS.dorian).has(1)).toBe(false)
     expect(pitchClasses(PRESETS.pentatonic)).toEqual(new Set([9, 0, 2, 4, 7]))
+  })
+})
+
+describe('snapToClasses', () => {
+  it('snaps onto the given pitch classes only, a tie going down', () => {
+    const cMajorTriad = new Set([0, 4, 7])
+    expect(snapToClasses(73, cMajorTriad, 72, 84)).toBe(72)
+    expect(snapToClasses(74, cMajorTriad, 72, 84)).toBe(72) // between C (72) and E (76): the tie goes down
+    expect(snapToClasses(78, cMajorTriad, 72, 84)).toBe(79)
+    expect(snapToClasses(100, cMajorTriad, 72, 84)).toBe(84)
+  })
+})
+
+describe('chordOn', () => {
+  it('stacks thirds of the scale from the root, counted round the scale', () => {
+    expect(chordOn(0, 3, PRESETS.major)).toEqual([0, 4, 7]) // C E G
+    expect(chordOn(5, 3, PRESETS.major)).toEqual([9, 0, 4]) // A C E
+    expect(chordOn(4, 4, PRESETS.major)).toEqual([7, 11, 2, 5]) // G B D F
+    expect(chordOn(0, 3, PRESETS.dorian)).toEqual([2, 5, 9]) // D F A
+    expect(chordOn(0, 3, PRESETS.pentatonic)).toEqual([9, 2, 7]) // A D G: open fourths on a 5-note scale
+  })
+
+  it('only uses notes of the preset scale, with no two the same', () => {
+    for (const preset of Object.values(PRESETS)) {
+      for (let root = 0; root < SCALES[preset.scale].length; root++) {
+        const chord = chordOn(root, 4, preset)
+        expect(new Set(chord).size).toBe(4)
+        for (const pc of chord) expect(pitchClasses(preset).has(pc)).toBe(true)
+      }
+    }
   })
 })
 
