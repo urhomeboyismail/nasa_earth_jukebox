@@ -10,8 +10,11 @@ const sources = import.meta.glob(
   { query: '?raw', import: 'default', eager: true },
 ) as Record<string, string>
 
-/** The one place allowed to fetch: it downloads the picture it is about to read. */
-const MAY_FETCH = ['analysis/pixels.ts']
+/**
+ * The places allowed to fetch, each only our own static files: the picture about to be read, and the recorded instruments (SN19), which play the same
+ * every time and fall back to oscillators when they cannot load, so listening still works with the server off.
+ */
+const MAY_FETCH = ['analysis/pixels.ts', 'audio/ensemble/instruments.ts']
 
 const FORBIDDEN_IMPORT = /(^|\/)(assistant|config)(\/|$)|useVoiceAssistant|VoiceAssistant/
 
