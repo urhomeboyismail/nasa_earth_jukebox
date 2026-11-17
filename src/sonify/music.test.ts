@@ -1,31 +1,67 @@
 import { describe, expect, it } from 'vitest'
 import { PRESET_IDS, VOICE_IDS } from '../data/sonification'
 import { elevationForPoint, panForPoint } from '../audio/pan'
-import { toMusicFrame } from './music'
-import { PRESETS, pitchClasses } from './presets'
+import { isSpaced, toMusicFrame, voiceChord } from './music'
+import { PRESETS, chordOn, pitchClasses } from './presets'
 import {
-  BASS_HIGH_MIDI, BASS_LOW_MIDI, HARMONY_HIGH_MIDI, HARMONY_LOW_MIDI, HOTSPOT_LOW_MIDI, HOTSPOT_SPAN, LEVEL, MAX_HARMONY_NOTES, MAX_HOTSPOT_NOTES, MELODY_LOW_MIDI,
-  MELODY_SPAN, RHYTHM_LOW_MIDI, RHYTHM_SPAN,
+  BASS_HIGH_MIDI, BASS_LOW_MIDI, CHORD_ROOT_DEGREES, HARMONY_HIGH_MIDI, HARMONY_LOW_MIDI, HOTSPOT_LOW_MIDI, HOTSPOT_SPAN, LEVEL, MAX_HARMONY_NOTES, MAX_HOTSPOT_NOTES,
+  MELODY_LOW_MIDI, MELODY_SPAN, MIN_CHORD_GAP, RHYTHM_LOW_MIDI, RHYTHM_SPAN, TRIAD_NOTES,
 } from './ranges'
 import { change, features, line, spot } from './testFeatures'
+import type { MusicFrame } from './types'
 
 const major = PRESETS.major
+
+/** Histograms of 1 to 8 bands from a fixed sequence (no randomness), shares adding up to 1, some bands empty. */
+function histogramSweep(): number[][] {
+  let seed = 7
+  const next = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648
+  const out: number[][] = []
+  for (const bands of [1, 2, 3, 4, 5, 6, 8]) {
+    for (let i = 0; i < 40; i++) {
+      const raw = Array.from({ length: bands }, () => (next() < 0.3 ? 0 : next()))
+      const total = raw.reduce((sum, share) => sum + share, 0)
+      out.push(total > 0 ? raw.map(share => share / total) : raw.map((_, band) => (band === 0 ? 1 : 0)))
+    }
+  }
+  return out
+}
+
+describe('the registers', () => {
+  it('stack the voices low to high: bass, harmony, melody, arpeggio, hot spots, each starting above the one before and ending no lower', () => {
+    const ranges = [
+      [BASS_LOW_MIDI, BASS_HIGH_MIDI], [HARMONY_LOW_MIDI, HARMONY_HIGH_MIDI], [MELODY_LOW_MIDI, MELODY_LOW_MIDI + MELODY_SPAN],
+      [RHYTHM_LOW_MIDI, RHYTHM_LOW_MIDI + RHYTHM_SPAN], [HOTSPOT_LOW_MIDI, HOTSPOT_LOW_MIDI + HOTSPOT_SPAN],
+    ]
+    for (let i = 1; i < ranges.length; i++) {
+      expect(ranges[i][0]).toBeGreaterThan(ranges[i - 1][0])
+      expect(ranges[i][1]).toBeGreaterThanOrEqual(ranges[i - 1][1])
+    }
+  })
+
+  it('keeps the bass below the chord, and the arpeggio and hot spots above it; the chord reaches at most a fifth into the melody', () => {
+    expect(BASS_HIGH_MIDI).toBeLessThanOrEqual(HARMONY_LOW_MIDI)
+    expect(RHYTHM_LOW_MIDI).toBeGreaterThan(HARMONY_HIGH_MIDI)
+    expect(HOTSPOT_LOW_MIDI).toBeGreaterThanOrEqual(RHYTHM_LOW_MIDI + RHYTHM_SPAN)
+    expect(HARMONY_HIGH_MIDI - MELODY_LOW_MIDI).toBeLessThanOrEqual(7)
+  })
+})
 
 describe('toMusicFrame: a uniform frame', () => {
   const frame = toMusicFrame(features({ position: 0.5, histogram: [0, 1, 0] }), major)
 
   it('puts the melody in the middle of its range, on a scale note, without a glide', () => {
-    // 48 + 0.5 × 30 = 63 (D#4) is between D (62) and E (64): the tie goes down.
-    expect(frame.melody).toEqual({ midi: 62, glide: false, level: LEVEL.melody })
+    // 60 + 0.5 × 24 = 72 (C5).
+    expect(frame.melody).toEqual({ midi: 72, glide: false, level: LEVEL.melody })
   })
 
-  it('has a thin chord: one note, from the band that holds the whole picture', () => {
-    // Band 1 of 3 is degree round(1 × 6 / 2) = 3 of the major scale (F).
-    expect(frame.harmony).toEqual({ midis: [53], level: LEVEL.harmony })
+  it('plays a triad in root position on the root the mean band picks', () => {
+    // The mean band is the middle (0.5), the third of the major roots I, vi, IV, V: F major, F3–A3–C4.
+    expect(frame.harmony).toEqual({ midis: [53, 57, 60], level: LEVEL.harmony })
   })
 
-  it('has the bass at its start, and nothing else', () => {
-    expect(frame.bass).toEqual({ midi: BASS_LOW_MIDI, level: LEVEL.bassBase })
+  it('has the bass on the chord root, and nothing else', () => {
+    expect(frame.bass).toEqual({ midi: 41, level: LEVEL.bassBase }) // F2
     expect(frame.hotspots).toEqual([])
     expect(frame.rhythm).toBeNull()
     expect(frame.motion).toBeNull()
@@ -37,7 +73,7 @@ describe('toMusicFrame: a uniform frame', () => {
     expect(frame.dropout).toBe(false)
     expect(frame.caption.melody).toBe('Melody: middle')
     expect(frame.summary).toBe('The overall level is middle.')
-    expect(frame.state).toEqual({ melodyPosition: 0.5, chordKey: '53', shift: 0 })
+    expect(frame.state).toEqual({ melodyPosition: 0.5, chordKey: '3:3', shift: 0 })
   })
 
   it('carries the frame id and the date', () => {
@@ -89,41 +125,99 @@ describe('toMusicFrame: the melody', () => {
 })
 
 describe('toMusicFrame: the harmony', () => {
-  it('is thick for a mixed picture: one note for each band that holds a tenth, at most four', () => {
-    const mixed = toMusicFrame(features({ histogram: [0.2, 0.2, 0.2, 0.2, 0.2] }), major)
-    expect(mixed.harmony!.midis).toHaveLength(MAX_HARMONY_NOTES)
-    const three = toMusicFrame(features({ histogram: [0.5, 0.05, 0.3, 0.15, 0] }), major)
-    expect(three.harmony!.midis).toHaveLength(3)
-  })
+  const C_MAJOR = [48, 52, 55] // C3 E3 G3
 
-  it('keeps every note inside the harmony range and on a scale note, sorted, once each', () => {
+  it('builds every chord in thirds from the scale: a triad or a seventh, inside the harmony range, sorted, once each', () => {
     for (const id of PRESET_IDS) {
       const preset = PRESETS[id]
-      const { harmony } = toMusicFrame(features({ histogram: [0.2, 0.2, 0.2, 0.2, 0.2] }), preset)
-      const notes = harmony!.midis
-      expect([...notes].sort((a, b) => a - b)).toEqual(notes)
-      expect(new Set(notes).size).toBe(notes.length)
-      for (const note of notes) {
-        expect(note).toBeGreaterThanOrEqual(HARMONY_LOW_MIDI)
-        expect(note).toBeLessThanOrEqual(HARMONY_HIGH_MIDI)
-        expect(pitchClasses(preset).has(note % 12)).toBe(true)
+      for (const histogram of histogramSweep()) {
+        const notes = toMusicFrame(features({ histogram }), preset).harmony!.midis
+        expect([TRIAD_NOTES, MAX_HARMONY_NOTES]).toContain(notes.length)
+        expect([...notes].sort((a, b) => a - b)).toEqual(notes)
+        expect(new Set(notes).size).toBe(notes.length)
+        for (const note of notes) {
+          expect(note).toBeGreaterThanOrEqual(HARMONY_LOW_MIDI)
+          expect(note).toBeLessThanOrEqual(HARMONY_HIGH_MIDI)
+          expect(pitchClasses(preset).has(note % 12)).toBe(true)
+        }
+        // The notes are the chord on one of the preset's roots, in thirds.
+        const classes = new Set(notes.map(note => note % 12))
+        const built = CHORD_ROOT_DEGREES[preset.scale].some(root => [TRIAD_NOTES, MAX_HARMONY_NOTES].some(size => {
+          const chord = chordOn(root, size, preset)
+          return chord.length === classes.size && chord.every(pc => classes.has(pc))
+        }))
+        expect(built, `${id} ${histogram.join(',')}`).toBe(true)
       }
     }
   })
 
-  it('keeps the strongest bands when more than four sound', () => {
-    const six = toMusicFrame(features({ histogram: [0.11, 0.11, 0.11, 0.11, 0.3, 0.26] }), major)
-    expect(six.harmony!.midis).toHaveLength(MAX_HARMONY_NOTES)
+  it('never plays a cluster: no two notes a semitone or a whole tone apart, over every preset and a sweep of histograms, frame after frame', () => {
+    expect(MIN_CHORD_GAP).toBeGreaterThan(2)
+    for (const id of PRESET_IDS) {
+      let prev: MusicFrame | undefined
+      for (const histogram of histogramSweep()) {
+        prev = toMusicFrame(features({ histogram }), PRESETS[id], prev)
+        const notes = prev.harmony!.midis
+        for (let i = 1; i < notes.length; i++) expect(notes[i] - notes[i - 1], `${id} ${notes.join(',')}`).toBeGreaterThanOrEqual(MIN_CHORD_GAP)
+      }
+    }
   })
 
-  it('holds the chord while the mix keeps its bands, and changes it when the mix changes', () => {
-    const first = toMusicFrame(features({ histogram: [0.3, 0.7, 0] }), major)
-    const same = toMusicFrame(features({ histogram: [0.35, 0.65, 0] }), major, first)
-    expect(same.harmony!.midis).toEqual(first.harmony!.midis)
-    expect(same.state.chordKey).toBe(first.state.chordKey)
-    const changed = toMusicFrame(features({ histogram: [0.3, 0.4, 0.3] }), major, same)
-    expect(changed.harmony!.midis).not.toEqual(first.harmony!.midis)
-    expect(changed.harmony!.midis.length).toBeGreaterThan(first.harmony!.midis.length)
+  it('has a spaced triad on every chord root of every preset, whatever chord came before', () => {
+    for (const id of PRESET_IDS) {
+      const preset = PRESETS[id]
+      const roots = CHORD_ROOT_DEGREES[preset.scale]
+      for (const root of roots) {
+        const first = voiceChord(chordOn(root, TRIAD_NOTES, preset), HARMONY_LOW_MIDI, HARMONY_HIGH_MIDI, null)
+        expect(isSpaced(first), `${id} ${root}`).toBe(true)
+        for (const before of roots) {
+          const prev = voiceChord(chordOn(before, TRIAD_NOTES, preset), HARMONY_LOW_MIDI, HARMONY_HIGH_MIDI, null)
+          expect(isSpaced(voiceChord(chordOn(root, TRIAD_NOTES, preset), HARMONY_LOW_MIDI, HARMONY_HIGH_MIDI, prev)), `${id} ${before} to ${root}`).toBe(true)
+        }
+      }
+    }
+  })
+
+  it('picks the root from the mean band: low values I, then vi, IV, and V for high values (major)', () => {
+    const chordFor = (histogram: number[]) => toMusicFrame(features({ histogram }), major).harmony!.midis
+    expect(chordFor([1, 0, 0, 0, 0])).toEqual(C_MAJOR)
+    expect(chordFor([0, 1, 0, 0, 0])).toEqual([57, 60, 64]) // A minor, A3 C4 E4
+    expect(chordFor([0, 0, 1, 0, 0])).toEqual([53, 57, 60]) // F major
+    expect(chordFor([0, 0, 0, 0, 1])).toEqual([55, 59, 62]) // G major
+  })
+
+  it('is a seventh when the heard bands are spread wide, a triad when they are close, and a triad for one band', () => {
+    // Half at each end: the mean is the middle (F), the spread half the band range: F major seventh, F3 A3 C4 E4.
+    expect(toMusicFrame(features({ histogram: [0.5, 0, 0, 0, 0.5] }), major).harmony!.midis).toEqual([53, 57, 60, 64])
+    expect(toMusicFrame(features({ histogram: [0, 0.5, 0.5, 0, 0] }), major).harmony!.midis).toHaveLength(TRIAD_NOTES)
+    // A band under a tenth does not widen the chord.
+    expect(toMusicFrame(features({ histogram: [0.05, 0, 0.95, 0, 0] }), major).harmony!.midis).toHaveLength(TRIAD_NOTES)
+    expect(toMusicFrame(features({ histogram: [1] }), major).harmony!.midis).toEqual(C_MAJOR)
+  })
+
+  it('plays a seventh that cannot be spaced inside the range as its triad', () => {
+    // Lo-fi is F major: its IV seventh, B♭ D F A, has no voicing between C3 and G4 without a second.
+    const { harmony, state } = toMusicFrame(features({ histogram: [0.5, 0, 0, 0, 0.5] }), PRESETS.lofi)
+    expect(state.chordKey).toBe('3:4')
+    expect(harmony!.midis).toHaveLength(TRIAD_NOTES)
+    expect(new Set(harmony!.midis.map(note => note % 12))).toEqual(new Set(chordOn(3, TRIAD_NOTES, PRESETS.lofi)))
+    expect(isSpaced(harmony!.midis)).toBe(true)
+  })
+
+  it('gives the same chord for the same histogram, and holds it when the histogram only changes in level', () => {
+    const first = toMusicFrame(features({ histogram: [0.2, 0.6, 0.2] }), major)
+    expect(toMusicFrame(features({ histogram: [0.2, 0.6, 0.2] }), major).harmony).toEqual(first.harmony)
+    const quieter = toMusicFrame(features({ histogram: [0.1, 0.3, 0.1] }), major, first)
+    expect(quieter.state.chordKey).toBe(first.state.chordKey)
+    expect(quieter.harmony!.midis).toEqual(first.harmony!.midis)
+  })
+
+  it('moves to the next chord by the smallest step: C major to F major is C–F–A, not F–A–C', () => {
+    const c = toMusicFrame(features({ histogram: [1, 0, 0, 0, 0] }), major)
+    const f = toMusicFrame(features({ histogram: [0, 0, 1, 0, 0] }), major, c)
+    expect(c.harmony!.midis).toEqual(C_MAJOR)
+    expect(f.harmony!.midis).toEqual([48, 53, 57])
+    expect(f.state.chordKey).not.toBe(c.state.chordKey)
   })
 
   it('is null, and named missing, when no cell can be read', () => {
@@ -131,31 +225,54 @@ describe('toMusicFrame: the harmony', () => {
     expect(none.harmony).toBeNull()
     expect(none.missing).toContain('harmony')
   })
+})
 
-  it('has one note for a one-band picture', () => {
-    expect(toMusicFrame(features({ histogram: [1] }), major).harmony!.midis).toEqual([HARMONY_LOW_MIDI])
+describe('voiceChord', () => {
+  const F_MAJOR = chordOn(3, TRIAD_NOTES, major)
+  const voice = (classes: number[], prev: number[] | null) => voiceChord(classes, HARMONY_LOW_MIDI, HARMONY_HIGH_MIDI, prev)
+
+  it('puts a first chord in root position, as low as it fits', () => {
+    expect(voice(F_MAJOR, null)).toEqual([53, 57, 60])
+    expect(voice(chordOn(0, TRIAD_NOTES, PRESETS.pentatonic), null)).toEqual([57, 62, 67]) // A D G, a stack of fourths
+  })
+
+  it('chooses the voicing that moves least, notes paired in sorted order', () => {
+    expect(voice(F_MAJOR, [48, 52, 55])).toEqual([48, 53, 57]) // C E G to C F A: 0 + 1 + 2
+  })
+
+  it('gives a tie to the lower voicing', () => {
+    // From F3 A3 C4, both D3 G3 B3 and G3 B3 D4 move six semitones in all.
+    expect(voice(chordOn(4, TRIAD_NOTES, major), [53, 57, 60])).toEqual([50, 55, 59])
+  })
+
+  it('moves least between chords of different sizes too', () => {
+    // C E G to F A C E: C and E stay, G steps up to A, and F goes on top (each note to the other chord's nearest).
+    expect(voice(chordOn(3, MAX_HARMONY_NOTES, major), [48, 52, 55])).toEqual([48, 52, 57, 65])
   })
 })
 
 describe('toMusicFrame: the bass', () => {
+  // One band at the bottom: the chord is the tonic's, so the bass rests on the tonic.
+  const tonic = [1, 0, 0]
+
   it('follows the change from the baseline when there is one, and a missing shift counts as 0', () => {
-    const up = toMusicFrame(features({ change: change(1, 'much-above') }), major).bass!
+    const up = toMusicFrame(features({ histogram: tonic, change: change(1, 'much-above') }), major).bass!
     expect(up.midi).toBe(41) // 36 + 5, F
     expect(up.level).toBeCloseTo(LEVEL.bassBase + LEVEL.bassRange, 10)
-    const none = toMusicFrame(features({ change: change(null, 'insufficient') }), major).bass!
+    const none = toMusicFrame(features({ histogram: tonic, change: change(null, 'insufficient') }), major).bass!
     expect(none).toEqual({ midi: BASS_LOW_MIDI, level: LEVEL.bassBase })
   })
 
   it('without a baseline, follows the distance from the first position of the run', () => {
-    const rose = toMusicFrame(features({ position: 0.7, reference: 0.5 }), major).bass!
+    const rose = toMusicFrame(features({ histogram: tonic, position: 0.7, reference: 0.5 }), major).bass!
     expect(rose.midi).toBeGreaterThan(BASS_LOW_MIDI)
     expect(rose.level).toBeCloseTo(LEVEL.bassBase + LEVEL.bassRange * 0.4, 10)
-    expect(toMusicFrame(features({ position: 0.5, reference: 0.5 }), major).bass!.midi).toBe(BASS_LOW_MIDI)
+    expect(toMusicFrame(features({ histogram: tonic, position: 0.5, reference: 0.5 }), major).bass!.midi).toBe(BASS_LOW_MIDI)
     // The shift is clamped to ±1.
     expect(toMusicFrame(features({ position: 1, reference: 0 }), major).state.shift).toBe(1)
   })
 
-  it('stays in its range on a scale note, and starts on the tonic of the key', () => {
+  it('stays in its range on a scale note, and rests on the root of the chord', () => {
     for (const id of PRESET_IDS) {
       const preset = PRESETS[id]
       for (const shift of [-1, -0.5, 0, 0.5, 1]) {
@@ -164,8 +281,13 @@ describe('toMusicFrame: the bass', () => {
         expect(bass!.midi).toBeLessThanOrEqual(BASS_HIGH_MIDI)
         expect(pitchClasses(preset).has(bass!.midi % 12)).toBe(true)
       }
+      for (const histogram of [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]) {
+        const frame = toMusicFrame(features({ histogram, change: change(0) }), preset)
+        const root = CHORD_ROOT_DEGREES[preset.scale][histogram.indexOf(1)]
+        expect(frame.bass!.midi % 12, `${id} ${histogram.join(',')}`).toBe(chordOn(root, 1, preset)[0])
+      }
     }
-    expect(toMusicFrame(features({ change: change(0) }), PRESETS.dorian).bass!.midi % 12).toBe(PRESETS.dorian.tonic)
+    expect(toMusicFrame(features({ histogram: tonic, change: change(0) }), PRESETS.dorian).bass!.midi % 12).toBe(PRESETS.dorian.tonic)
   })
 
   it('is missing when the picture cannot be read', () => {
@@ -244,6 +366,18 @@ describe('toMusicFrame: the rhythm', () => {
     }
     expect(rhythm!.pan).toBeCloseTo(0, 5) // the line runs from 0.1 to 0.9: its middle is the middle of the map
     expect(rhythm!.level).toBe(LEVEL.rhythm)
+  })
+
+  it('plays only tones of the chord under it, over every preset and a sweep of histograms', () => {
+    for (const id of PRESET_IDS) {
+      for (const histogram of histogramSweep()) {
+        const frame = toMusicFrame(features({ histogram, density: 0.3, strongest: line(xs) }), PRESETS[id])
+        const chord = new Set(frame.harmony!.midis.map(note => note % 12))
+        for (const midi of frame.rhythm!.midis) expect(chord.has(midi % 12), `${id} ${midi}`).toBe(true)
+      }
+    }
+    // The default histogram gives F major (F A C): the line from 0.1 to 0.9 across the map climbs through its tones from C5 to C6.
+    expect(toMusicFrame(features({ density: 0.3, strongest: line(xs) }), major).rhythm!.midis).toEqual([72, 77, 81, 84])
   })
 
   it('has more notes a beat as the picture gets busier', () => {

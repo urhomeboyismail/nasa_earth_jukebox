@@ -61,12 +61,25 @@ export function pitchClasses(preset: Preset): Set<number> {
 }
 
 /**
+ * The pitch classes of the chord built in thirds on scale degree `rootDegree`: degrees root, root+2, root+4 (and root+6 for a seventh), counted
+ * round the scale, root first. On a 7-note scale these are the ordinary triads and sevenths; on the 5-note pentatonic, open stacks (A–D–G).
+ */
+export function chordOn(rootDegree: number, size: number, preset: Preset): number[] {
+  const scale = SCALES[preset.scale]
+  return Array.from({ length: size }, (_, i) => (preset.tonic + scale[(rootDegree + 2 * i) % scale.length]) % 12)
+}
+
+/**
  * The note of the preset's scale nearest to `midi`, inside [low, high] (both included). `midi` may be fractional; one outside the range is
  * first moved to its nearest end. A tie goes down. If the range holds no note of the scale, the nearest whole note in range is returned.
  */
 export function snapToScale(midi: number, preset: Preset, low: number, high: number): number {
+  return snapToClasses(midi, pitchClasses(preset), low, high)
+}
+
+/** Like `snapToScale`, but onto any set of pitch classes (0 to 11), for example a chord's. */
+export function snapToClasses(midi: number, classes: ReadonlySet<number>, low: number, high: number): number {
   const target = Math.min(high, Math.max(low, midi))
-  const classes = pitchClasses(preset)
   let best: number | null = null
   for (let note = low; note <= high; note++) {
     if (!classes.has(note % 12)) continue

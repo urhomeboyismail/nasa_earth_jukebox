@@ -1,30 +1,52 @@
 // Every pitch range and weight of the ruleset (docs/PLAN.md §6.3, ticket SN03), as named constants, so a rule never carries a bare number.
 // MIDI note numbers: C3 = 48, C4 = 60.
+// Each voice has its own register (SN18), low to high: bass C2–C3, harmony C3–G4, melody C4–C6, arpeggio C5–C6, hot spots C6–C7. The ranges are
+// taste, the same for every data set.
 
-export const MELODY_LOW_MIDI = 48 // C3
-/** Two and a half octaves: C3 to F#5. */
-export const MELODY_SPAN = 30
+import type { ScaleName } from './types'
+
+export const MELODY_LOW_MIDI = 60 // C4
+/** Two octaves: C4 to C6 (14 notes of a 7-note scale). */
+export const MELODY_SPAN = 24
 /** Weight of the new position in the melody's smoothing (0 to 1). */
 export const MELODY_SMOOTHING = 0.5
 export const HARMONY_LOW_MIDI = 48 // C3
-export const HARMONY_HIGH_MIDI = 60 // C4
-/** A band must hold this share of the readable cells to sound. */
+/**
+ * G4. A fifth into the melody's register: the least that lets the tonic chord of the pentatonic presets (a stack of fourths, A–D–G) and most
+ * seventh chords be voiced with no two notes closer than MIN_CHORD_GAP.
+ */
+export const HARMONY_HIGH_MIDI = 67
+/** A band must hold this share of the readable cells to count towards the chord's fullness. */
 export const HARMONY_MIN_SHARE = 0.1
+/** A chord built in thirds: a triad, or a seventh with MAX_HARMONY_NOTES. */
+export const TRIAD_NOTES = 3
 export const MAX_HARMONY_NOTES = 4
+/**
+ * The chord roots, as scale degrees, that the histogram's weighted mean band chooses from, low values first. Major: I, vi, IV, V. Dorian: i, VII,
+ * IV, v (its vi is diminished, so it is left out). Pentatonic: the first four degrees. shortcut: starting values, to be tuned by ear.
+ */
+export const CHORD_ROOT_DEGREES: Record<ScaleName, readonly number[]> = { major: [0, 5, 3, 4], dorian: [0, 6, 3, 4], minorPentatonic: [0, 1, 2, 3] }
+/**
+ * The heard bands' share-weighted spread (standard deviation), as a share of the band range, at or above which the chord is a seventh (below: a
+ * triad). shortcut: a starting value, to be tuned by ear. On the committed NASA data sets the spread is 0.08 to 0.26, so they play triads only.
+ */
+export const SEVENTH_SPREAD = 0.35
+/** No two notes of a chord are closer than this (a minor third), so a chord is never a cluster of seconds. */
+export const MIN_CHORD_GAP = 3
 export const BASS_LOW_MIDI = 36 // C2
 export const BASS_HIGH_MIDI = 48 // C3
 /** A full shift (±1) moves the bass a fourth from its start. */
 export const BASS_SHIFT_SEMITONES = 5
-export const HOTSPOT_LOW_MIDI = 60 // C4
-/** Up to C6. */
-export const HOTSPOT_SPAN = 24
+export const HOTSPOT_LOW_MIDI = 84 // C6
+/** Up to C7. */
+export const HOTSPOT_SPAN = 12
 export const MAX_HOTSPOT_NOTES = 3
 /** A hot spot covering this share of the map sounds at full level. */
 export const HOTSPOT_FULL_SHARE = 0.1
-export const RHYTHM_LOW_MIDI = 60 // C4
-/** Up to C5. */
+export const RHYTHM_LOW_MIDI = 72 // C5
+/** Up to C6. */
 export const RHYTHM_SPAN = 12
-/** The arpeggio's notes. */
+/** The arpeggio's notes, each a tone of the chord under it. */
 export const RHYTHM_NOTES = 4
 /** Edge density below this: 1 note a beat. */
 export const RHYTHM_SPARSE_DENSITY = 0.05

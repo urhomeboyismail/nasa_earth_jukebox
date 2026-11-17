@@ -113,4 +113,47 @@ npm run lint && npm test && npm run build
 
 ## Result
 
-Filled in by the agent: the branch, the commits, and the real output of the checks, failures included.
+**Branch:** `feature/SN18-real-chords` (agent B). **Commits:** `b45b912` (rules, tests, `music.json` and `plan.json`), `7be15b5` (three goldens outside **Touches** that record the music, see below), and the commit that adds this Result.
+
+**What changed**
+
+- `src/sonify/presets.ts`: `chordOn(rootDegree, size, preset)` (pitch classes stacked in thirds) and `snapToClasses` (`snapToScale` now calls it).
+- `src/sonify/music.ts`: `voiceChord` and `isSpaced`. The harmony picks the root from the weighted mean band and the size from the spread, then voice-leads the chord. The arpeggio snaps to the chord's tones, and the bass sits on the chord root plus the data shift.
+- `src/sonify/ranges.ts`: the new registers, plus `CHORD_ROOT_DEGREES`, `TRIAD_NOTES`, `SEVENTH_SPREAD` and `MIN_CHORD_GAP`.
+- Tests: `music.test.ts`, `presets.test.ts` and `golden.test.ts` (on real data, the arpeggio uses only chord tones and no chord has a second).
+
+**Decided by the agent (to check by ear)**
+
+- **Harmony top is G4 (67), not E4.** Below G4, the tonic chord of the pentatonic presets (A–D–G, stacked fourths) has no voicing without a whole tone, and most sevenths have none without a second. The chord can reach a fifth into the melody's floor (C4). A seventh that cannot be spaced in range plays as its triad (for example the lo-fi IV7).
+- **Dorian roots are i, VII, IV, v** (`[0, 6, 3, 4]`), not `[0, 5, 3, 4]`, because dorian's vi is a diminished triad. Major is `[0, 5, 3, 4]` and pentatonic `[0, 1, 2, 3]`, as specified.
+- **Melody C4–C6 and arpeggio C5–C6 overlap**, as the table says. The register test therefore checks that each voice starts above the one before and ends no lower. It does not check that they are disjoint.
+- **Chords of different sizes:** the move is measured from each note to the nearest note of the other chord (sorted pairing only works for equal sizes).
+- **`SEVENTH_SPREAD` stays at 0.35**, but no committed NASA data set reaches it: the spread is 0.08 to 0.26 (Mauritius ≤ 0.12, SST anomaly 0.12, hurricanes ≤ 0.17, global temperature 0.12 to 0.26). So in practice every chord is a triad. A value of 0.2 would give sevenths on some global-temperature frames, but it breaks `src/audio/ensemble/voices.test.ts:109-121` (outside Touches), which needs `[0.3, 0.7, 0]` to give a smaller chord than `[0.2, 0.4, 0.4]`.
+
+**Outside Touches (follow-ups for the owners)**
+
+- Commit `7be15b5` regenerates `src/sonify/__golden__/render.json`, `src/features/player/__golden__/symphony.json` and `src/features/learn/__golden__/voice-cards.json`. They record the music, so `npm test` fails without them. Nothing else in them changed.
+- The wording no longer fits. Every chord now reads "Harmony: thick chord, 3 notes" (`src/sonify/captions.ts`). `src/features/learn/voiceCards.ts` ("One note means one kind of value; more notes mean a mix"), `src/describe/recipe.ts` ("thin when the map is of one kind") and the `MusicFrame.harmony` comment in `src/sonify/types.ts` still describe the old one-note-per-band chord.
+
+**Checks** (in `C:/Users/ismai/Desktop/nasa-b`)
+
+```
+npm run lint   -> oxlint, no findings
+npm test       -> Test Files  219 passed (219)
+                  Tests  3044 passed (3044)
+                  Duration  144.33s
+npm run build  -> tsc -b && vite build: ✓ built (only the usual >500 kB chunk warning)
+```
+
+`src/data/sound-regression.test.ts` passed here. Earlier full runs that overlapped another agent's full suite in `nasa-c` had timeouts in `App.test.tsx`, `Explorer.test.tsx` and `player.test.tsx`. When run alone, `App.test.tsx > loads the first visualization and shows it on each page` also failed the same way ("Timed out in waitFor") on an untouched checkout of `556745e`. So those failures come from load, not from this change, and the clean full run above passed them.
+
+**What to listen for** (the agent can't listen; these are the frames the rules produce)
+
+- **Fixture, Major:** C3–E3–G3 over a C2 bass, then C3–F3–A3 (F major, voice-led: C stays, E→F, G→A) over A2 (F plus the data shift), then D3–G3–B3 (G major) over C3, then the dropout. Melody C4 → F4 → D5, hot spots now at C6–C7.
+- **Mauritius SST, Major:** F major (F3–A3–C4), then a dropout, then G major (G3–B3–D4), F major, and G major again as D3–G3–B3 (the lower voicing wins the tie), held for most of March to May. It moves to Am (C3–E3–A3) in June and C major (C3–E3–G3) in July and August, as the water cools. The arpeggio is two or three tones of the chord around C5–C6, and the melody holds A5. Listen for the bass leaving the root when the shift is large: A2 under G major, C3 under G, G2 under F. That is the data shift the ticket keeps.
+- **SST anomaly, Dorian:** G major (G3–B3–D4, the dorian IV) for all 24 frames, because the histogram barely moves. The arpeggio is busy (four notes a beat) on G and B or D, with the melody on D5. The chord is static, so check whether that is acceptable.
+- **Hurricanes 2023, Heavy bass (pentatonic):** E3–A3–D4 (stacked fourths) over E2 for all 31 frames. The arpeggio is sparse on E5 and A5.
+- **Global temperature, Cinematic (dorian):** mostly C major (VII), which moves to D3–G3–B3 (G) and E3–G3–C4 (C, first inversion) from the 1940s. It settles on G major from 1980 and ends on Am (E3–A3–C4) in 2025. This is the clearest example of voice leading.
+- **Overall:** listen for no clusters, chords that move by small steps, the arpeggio sitting inside the chord, and the voices sounding in separate octaves.
+
+**Sign-off:** waiting for the team lead to listen.
