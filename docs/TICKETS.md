@@ -60,7 +60,7 @@ Who: `agent`, `👤` (a person; agents never claim it), `agent+👤` (an agent b
 |---|---|---|---|---|---|---|
 | [SN15](tickets/SN15-own-sound-first.md) | Each data set keeps its own sound unless the listener chooses a style on purpose | S | agent | — | — | done |
 | [SN18](tickets/SN18-real-chords.md) | Real chords, chord-tone arpeggios and separate registers, so the ensemble sounds like music | M | agent+👤 | — | — | ready: feature/SN18-real-chords (#126) |
-| [SN19](tickets/SN19-real-instruments.md) | Real instruments and a real room: sampled voices and a seeded reverb | L | agent+👤 | — | about | claimed: C, 2026-11-18 |
+| [SN19](tickets/SN19-real-instruments.md) | Real instruments and a real room: sampled voices and a seeded reverb | L | agent+👤 | — | about | ready: feature/SN19-real-instruments (#125) |
 
 ### P1: interaction (the listener plays the map; `PLAN.md` §6.3)
 
